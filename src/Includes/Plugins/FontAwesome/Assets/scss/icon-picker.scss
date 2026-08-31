@@ -1,0 +1,336 @@
+/**
+ * ModPress FontAwesome Icon Picker Styles
+ *
+ * @package ModPress
+ * @subpackage FontAwesome
+ * @since 1.0.0
+ */
+
+/* Icon Picker Container */
+.ModPress-fa-picker-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Picker Button */
+.ModPress-fa-picker-button {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px !important;
+    min-height: 36px;
+}
+
+.ModPress-fa-picker-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.ModPress-fa-picker-preview:empty::before {
+    content: '📦';
+    font-size: 16px;
+    opacity: 0.5;
+}
+
+.ModPress-fa-picker-text {
+    font-size: 14px;
+}
+
+/* Modal Overlay */
+.ModPress-fa-picker-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ModPress-fa-picker-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal Dialog */
+.ModPress-fa-picker-dialog {
+    position: relative;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 800px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Modal Header */
+.ModPress-fa-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.ModPress-fa-picker-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.ModPress-fa-picker-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #646970;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.ModPress-fa-picker-close:hover {
+    background: #f0f0f1;
+    color: #1d2327;
+}
+
+/* Search Section */
+.ModPress-fa-picker-search {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.ModPress-fa-picker-search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.ModPress-fa-picker-search-input:focus {
+    outline: none;
+    border-color: #007cba;
+    box-shadow: 0 0 0 1px #007cba;
+}
+
+.ModPress-fa-picker-pack-filter,
+.ModPress-fa-picker-style-filter {
+    padding: 8px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 90px !important;
+}
+
+.ModPress-fa-picker-pack-filter:focus,
+.ModPress-fa-picker-style-filter:focus {
+    outline: none;
+    border-color: #007cba;
+    box-shadow: 0 0 0 1px #007cba;
+}
+
+/* Results Area */
+.ModPress-fa-picker-results {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    min-height: 300px;
+    max-height: 400px;
+}
+
+.ModPress-fa-picker-loading,
+.ModPress-fa-picker-error,
+.ModPress-fa-picker-no-results {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    font-size: 16px;
+    color: #646970;
+}
+
+/* Icon Grid */
+.ModPress-fa-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 12px;
+}
+
+/* Icon Items */
+.ModPress-fa-picker-icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f8f9fa;
+}
+
+.ModPress-fa-picker-icon-item:hover {
+    background: #fff;
+    border-color: #007cba;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ModPress-fa-picker-icon-item.selected {
+    background: #fff;
+    border-color: #007cba;
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.2);
+}
+
+.ModPress-fa-picker-icon-item i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #1d2327;
+}
+
+.ModPress-fa-picker-icon-item.selected i {
+    color: #007cba;
+}
+
+.ModPress-fa-picker-icon-label {
+    font-size: 11px;
+    text-align: center;
+    color: #646970;
+    line-height: 1.2;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+/* Pagination */
+.ModPress-fa-picker-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e1e1;
+}
+
+.ModPress-fa-picker-load-more {
+    background: #007cba !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.ModPress-fa-picker-load-more:hover {
+    background: #005a87 !important;
+}
+
+/* Modal Footer */
+.ModPress-fa-picker-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid #e1e1e1;
+    background: #f8f9fa;
+}
+
+.ModPress-fa-picker-footer .button {
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+}
+
+/* Responsive Design */
+@media (max-width: 782px) {
+    .ModPress-fa-picker-dialog {
+        width: 95vw;
+        max-height: 95vh;
+    }
+
+    .ModPress-fa-picker-search {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .ModPress-fa-picker-pack-filter,
+    .ModPress-fa-picker-style-filter {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .ModPress-fa-picker-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 8px;
+    }
+
+    .ModPress-fa-picker-icon-item {
+        padding: 8px 4px;
+    }
+
+    .ModPress-fa-picker-icon-item i {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .ModPress-fa-picker-icon-label {
+        font-size: 10px;
+    }
+}
+
+/* Loading Animation */
+@keyframes ModPress-fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.ModPress-fa-picker-loading::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f4f5;
+    border-top: 2px solid #007cba;
+    border-radius: 50%;
+    animation: ModPress-fa-spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+/* Accessibility */
+.ModPress-fa-picker-icon-item:focus {
+    outline: 2px solid #007cba;
+    outline-offset: 2px;
+}
+
+.ModPress-fa-picker-close:focus,
+.ModPress-fa-picker-search-input:focus,
+.ModPress-fa-picker-pack-filter:focus,
+.ModPress-fa-picker-style-filter:focus {
+    outline: 2px solid #007cba;
+    outline-offset: 2px;
+}
+
+/* WordPress Admin Integration */
+.ModPress-fa-picker-container .button {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}

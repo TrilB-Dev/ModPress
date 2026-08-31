@@ -1,0 +1,20 @@
+.modpress-admin {
+	.modpress-editor-form {
+		max-width: 960px;
+	}
+
+	.form-table {
+		th {
+			width: 30%;
+			min-width: 150px;
+		}
+
+		input[type='text'],
+		textarea,
+		select {
+			width: min(100%, 640px);
+		}
+
+		select[multiple] { min-height: 9rem; }
+	}
+}

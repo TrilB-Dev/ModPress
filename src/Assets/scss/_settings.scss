@@ -1,0 +1,39 @@
+.modpress-admin {
+	.nav-tabs {
+		border-bottom-color: var(--bs-border-color);
+
+		.nav-link {
+			color: var(--bs-secondary-color);
+
+			&.active {
+				color: var(--bs-primary);
+				font-weight: 600;
+			}
+		}
+	}
+
+	.modpress-settings-form,
+	.modpress-import-form {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.modpress-settings-form {
+		.tab-content {
+			margin-top: 1rem;
+		}
+
+		> .card-body > .btn {
+			margin-top: 1rem;
+		}
+	}
+
+	.modpress-settings-tab-content {
+		transition: opacity 150ms ease;
+
+		&.is-loading {
+			opacity: .65;
+			pointer-events: none;
+		}
+	}
+}

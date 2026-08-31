@@ -1,0 +1,14 @@
+.modpress-admin {
+	[data-modpress-menu-builder] {
+		background: var(--bs-tertiary-bg);
+		border-color: var(--bs-border-color) !important;
+	}
+
+	[data-modpress-nav-items] {
+		min-height: 2.75rem;
+	}
+
+	[data-modpress-nav-item] {
+		cursor: grab;
+	}
+}

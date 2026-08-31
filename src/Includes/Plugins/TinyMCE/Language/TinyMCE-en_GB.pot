@@ -1,0 +1,65 @@
+# Translation catalog for TinyMCE.
+# Copyright (C) 2026 ModPress contributors
+# This file is distributed under the same license as the ModPress package.
+msgid ""
+msgstr ""
+"Project-Id-Version: ModPress 1.0.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: modpress\n"
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:87
+msgid "Choose the stylesheet used inside the editor content area."
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:96
+msgid "Choose the TinyMCE toolbar and dialog skin."
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:105
+msgid "Choose which bundled TinyMCE plugins are available to the editor."
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:88
+msgid "Content skins control typography and content formatting inside the editing area."
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:86
+msgid "Default content skin"
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:95
+msgid "Default user-interface skin"
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:104
+msgid "Enabled TinyMCE plugins"
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Assets/Assets.php:52
+msgid "Insert into editor"
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Assets/Assets.php:51
+#: src/includes/Plugins/TinyMCE/Assets/Assets.php:53
+msgid "Insert media"
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/TinyMCE.php:67
+msgid "Introduces a local TinyMCE 8.8 editor for ModPress."
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:106
+msgid "Only selected local plugin files are requested when an editor starts."
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:80
+msgid "TinyMCE"
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:81
+msgid "TinyMCE integration"
+msgstr ""
+
+#: src/includes/Plugins/TinyMCE/Includes/Settings/Settings.php:97
+msgid "UI skins control the toolbar, menus, dialogs, and editor chrome."
+msgstr ""

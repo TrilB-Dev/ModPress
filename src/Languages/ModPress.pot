@@ -1,0 +1,1793 @@
+# Translation catalog for ModPress
+# Copyright (C) 2026 ModPress contributors
+# This file is distributed under the same license as the plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: ModPress 1.0.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: modpress\n"
+#: src/Public/Public.php:38
+msgid "%d min read"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:153
+msgid "3rd Party"
+msgstr ""
+
+#: src/Includes/Tools/DataTransfer.php:87
+msgid "A page entry was skipped because it was invalid."
+msgstr ""
+
+#: src/Includes/Settings/SettingsManager.php:93
+msgid "A searchable knowledge base powered by ModPress."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:28
+msgid "A short description for the ModPress knowledge base."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:30
+msgid "A short introduction helps visitors understand what they can find in the Wiki."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:101
+msgid "A small minimum prevents noisy searches from very short terms."
+msgstr ""
+
+#: src/Includes/Tools/DataTransfer.php:74
+msgid "A Wiki entry was skipped because it was invalid."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:118
+msgid "Above Page Content"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:154
+msgid "Access"
+msgstr ""
+
+#: src/Admin/Manager/UI/Header.php:44
+msgid "Account"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:126
+msgid "Add navigation links between related Wiki pages."
+msgstr ""
+
+#: src/Includes/Core/PostType.php:45
+msgid "Add New Wiki"
+msgstr ""
+
+#: src/Includes/Core/PostType.php:67
+msgid "Add New Wiki Page"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:36
+msgid "Administrators"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:107
+msgid "Allow enough room for long category names without crowding the content."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:35
+msgid "Allow ModPress themes and integrations to expose documentation metadata."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:34
+msgid "Allows access to the ModPress Wiki Pages administration area."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:25
+msgid "Allows access to the ModPress Wikis administration area."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:35
+msgid "Allows creating Wiki Pages."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:26
+msgid "Allows creating Wikis."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:42
+msgid "Allows deleting published Wiki Pages."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:31
+msgid "Allows deleting published Wikis."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:39
+msgid "Allows deleting Wiki Pages created by other users."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:37
+msgid "Allows deleting Wiki Pages."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:33
+msgid "Allows deleting Wikis created by other users."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:28
+msgid "Allows deleting Wikis."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:44
+msgid "Allows editing general ModPress settings."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:53
+msgid "Allows editing ModPress access settings."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:46
+msgid "Allows editing ModPress layout settings."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:41
+msgid "Allows editing published Wiki Pages."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:30
+msgid "Allows editing published Wikis."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:51
+msgid "Allows editing settings for external ModPress plugins."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:49
+msgid "Allows editing settings for internal ModPress plugins."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:38
+msgid "Allows editing Wiki Pages created by other users."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:36
+msgid "Allows editing Wiki Pages."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:32
+msgid "Allows editing Wikis created by other users."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:27
+msgid "Allows editing Wikis."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:55
+msgid "Allows exporting ModPress data."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:54
+msgid "Allows importing ModPress data."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:40
+msgid "Allows publishing Wiki Pages."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:29
+msgid "Allows publishing Wikis."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:56
+msgid "Allows using ModPress debug tools."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:43
+msgid "Allows viewing general ModPress settings."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:52
+msgid "Allows viewing ModPress access settings."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:57
+msgid "Allows viewing ModPress analytics."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:45
+msgid "Allows viewing ModPress layout settings."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:47
+msgid "Allows viewing ModPress plugin settings."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:50
+msgid "Allows viewing settings for external ModPress plugins."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:48
+msgid "Allows viewing settings for internal ModPress plugins."
+msgstr ""
+
+#: src/Admin/Manager/Tools/ToolsManager.php:142
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:164
+msgid "Analytics"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:28
+msgid "Analytics data is shown only to users who meet this capability."
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:135
+msgid "Ask for Help"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:125
+msgid "Ask visitors whether the Wiki page was helpful."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:194
+msgid "Author"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:142
+#: src/Admin/Manager/Settings/SettingsPlugins.php:158
+#: src/Admin/Manager/Settings/SettingsPlugins.php:334
+msgid "Author:"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:38
+msgid "Authors"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:51
+msgid "Available permalink tokens"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:120
+msgid "Avoid including every heading level on very detailed pages."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:48
+msgid "Base package"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:62
+msgid "Base package version"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:566
+msgid "Brands"
+msgstr ""
+
+#: src/Public/Public.php:79
+msgid "Breadcrumbs"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:132
+msgid "Breadcrumbs connect the current page to its parent structure."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:116
+msgid "Breadcrumbs help visitors understand where the current page belongs."
+msgstr ""
+
+#: src/Includes/Settings/SettingsManager.php:95
+msgid "Browse the ModPress knowledge base."
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:78
+msgid "Build, organise, and share a clear home for your knowledge. Start by creating a Wiki or adding your first page."
+msgstr ""
+
+#: src/Public/Public.php:90
+msgid "by %s"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:210
+#: src/Includes/Core/Editor.php:58
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:578
+msgid "Cancel"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:141
+msgid "Categories"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:32
+#: src/Admin/Manager/Settings/SettingsGeneral.php:33
+msgid "Changing this value flushes the WordPress rewrite rules."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:34
+msgid "Choose a structure that remains readable and stable after publication."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:560
+msgid "Choose an Icon"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:116
+#: src/Admin/Manager/Settings/SettingsManager.php:163
+msgid "Choose carefully so editors and administrators retain the access they need."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:44
+msgid "Choose how ModPress loads Font Awesome icons."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:527
+msgid "Choose Icon"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:26
+msgid "Choose the minimum capability required to create ModPress mods."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:27
+msgid "Choose the minimum capability required to create or edit mod pages."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:29
+msgid "Choose the minimum capability required to manage ModPress plugins."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:28
+msgid "Choose the minimum capability required to view ModPress analytics."
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:87
+msgid "Choose the stylesheet used inside the editor content area."
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:96
+msgid "Choose the TinyMCE toolbar and dialog skin."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:118
+msgid "Choose where the page table of contents appears."
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:105
+msgid "Choose which bundled TinyMCE plugins are available to the editor."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:115
+#: src/Admin/Manager/Settings/SettingsManager.php:162
+msgid "Choose which navigation and page layout features ModPress displays."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:98
+msgid "Choose which parts of Wiki pages are searched."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:106
+msgid "Choose which side of the page contains the Wiki navigation."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:566
+msgid "Classic"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:62
+msgid "Click a token to add it to the pattern. Tokens are inserted with a trailing slash and reappear when removed."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:187
+#: src/Includes/Plugins/FontAwesome/Assets/Assets.php:93
+msgid "Close"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:134
+#: src/Admin/Manager/UI/Header.php:28
+msgid "Community"
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:32
+msgid "Configure diagnostic logging from the Tools settings tab."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:114
+#: src/Admin/Manager/Settings/SettingsManager.php:161
+msgid "Configure ModPress names, URL slugs, and permalink settings."
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:134
+msgid "Connect with other people building their knowledge base."
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:55
+msgid "Console logging"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:98
+msgid "Content Only"
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:88
+msgid "Content skins control typography and content formatting inside the editing area."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:110
+msgid "Counts help visitors understand the size of each section."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/FormFieldHelper.php:543
+msgid "Create \"{0}\""
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:80
+msgid "Create a New Wiki"
+msgstr ""
+
+#: src/Includes/Core/Editor.php:58
+msgid "Create Page"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:102
+msgid "Create Wiki Page"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:35
+msgid "Create Wiki Pages"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:26
+msgid "Create Wikis"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:67
+msgid "Create your first Wiki to start organising your knowledge."
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:64
+msgid "Created"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:144
+msgid "Created:"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:32
+msgid "Custom Category Slug"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:33
+msgid "Custom Tags Slug"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:47
+#: src/Admin/Manager/UI/Sidebar.php:38
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:103
+msgid "Dashboard"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:45
+msgid "Database manager"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ToolsManager.php:143
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:161
+msgid "Debug"
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:32
+#: src/Admin/Manager/Tools/DebugManager.php:48
+msgid "Debug logging"
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:86
+msgid "Default content skin"
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:95
+msgid "Default user-interface skin"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:155
+msgid "Delete %s"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:39
+msgid "Delete Others Wiki Pages"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:33
+msgid "Delete Others Wikis"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:42
+msgid "Delete Published Wiki Pages"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:31
+msgid "Delete Published Wikis"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:37
+msgid "Delete Wiki Pages"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:28
+msgid "Delete Wikis"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:111
+msgid "Disable this for Wikis with many nested categories."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:109
+msgid "Disable this when navigation is provided by a custom component."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:115
+msgid "Disable this when your page template already renders the title."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:117
+msgid "Display a table of contents generated from page headings."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:123
+msgid "Display an estimated reading time for the page."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:112
+msgid "Display page counts beside Wiki navigation items."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:127
+msgid "Display related Wiki pages below the current page."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:95
+msgid "Display search controls throughout the Wiki."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:122
+msgid "Display the author of the Wiki page."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:132
+msgid "Display the current Wiki hierarchy."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:110
+msgid "Display the number of pages in each category."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:105
+msgid "Display the Wiki navigation sidebar on Wiki pages."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:133
+msgid "Display the Wiki navigation sidebar."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:115
+msgid "Display the Wiki page title above its content."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:131
+msgid "Display the Wiki search interface."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:121
+msgid "Display when the Wiki page was last updated."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:109
+msgid "Display Wiki categories in the navigation."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:160
+#: src/Admin/Manager/Settings/SettingsPlugins.php:336
+msgid "Docs:"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:133
+#: src/Admin/Manager/UI/Header.php:24
+msgid "Documentation"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:33
+msgid "Download your ModPress content and settings as a JSON file."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:566
+msgid "Duotone"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:53
+msgid "Edit Access Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:51
+msgid "Edit External Plugin Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:44
+msgid "Edit General Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:49
+msgid "Edit Internal Plugin Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:46
+msgid "Edit Layout Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:38
+msgid "Edit Others Wiki Pages"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:32
+msgid "Edit Others Wikis"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:41
+msgid "Edit Published Wiki Pages"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:30
+msgid "Edit Published Wikis"
+msgstr ""
+
+#: src/Includes/Core/PostType.php:46
+msgid "Edit Wiki"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:102
+#: src/Includes/Core/PostType.php:68
+msgid "Edit Wiki Page"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:36
+msgid "Edit Wiki Pages"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:27
+msgid "Edit Wikis"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:37
+msgid "Editors"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:152
+#: src/Admin/Manager/Settings/SettingsPlugins.php:328
+msgid "Enable %s"
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:55
+msgid "Enable browser console logging"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:35
+msgid "Enable Documentation Schema"
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:48
+msgid "Enable ModPress debug logging"
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:45
+msgid "Enable this only while investigating a problem, because logs can grow over time."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:131
+#: src/Admin/Manager/Settings/SettingsLayout.php:95
+msgid "Enable Wiki Search"
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:104
+msgid "Enabled TinyMCE plugins"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:55
+msgid "Enter the ID of your Font Awesome Kit."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:111
+msgid "Expand Categories"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ToolsManager.php:145
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:163
+msgid "Export"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:33
+msgid "Export ModPress data"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:55
+msgid "Export ModPress Data"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:34
+#: src/Admin/Manager/Tools/ExportManager.php:44
+msgid "Export ModPress JSON"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:44
+msgid "Export or import ModPress content and settings as JSON."
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:44
+msgid "Exports are protected with a WordPress nonce."
+msgstr ""
+
+#: src/Admin/Manager/UI/Header.php:32
+msgid "Extensions"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:125
+msgid "Feedback gives Wiki maintainers a simple quality signal."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:37
+msgid "Font Awesome"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:38
+msgid "Font Awesome integration"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:49
+msgid "Font Awesome Kit"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:85
+msgid "From TrilB.Dev"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:27
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:150
+msgid "General"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:68
+msgid "Get Started"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:135
+msgid "Get support when you need a hand with your setup."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:99
+msgid "Give visitors a useful next step instead of leaving the result area empty."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:119
+msgid "Heading 2 is a useful default for most documentation pages."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:43
+msgid "Icon source"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ToolsManager.php:144
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:162
+msgid "Import"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:44
+msgid "Import and export"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ImportManager.php:37
+msgid "Import JSON"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:54
+msgid "Import ModPress Data"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ImportManager.php:37
+msgid "Import ModPress JSON"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ImportManager.php:37
+msgid "Importing replaces matching ModPress data with the contents of the file."
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Assets/Assets.php:52
+msgid "Insert into editor"
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Assets/Assets.php:51
+#: src/Includes/Plugins/TinyMCE/Assets/Assets.php:53
+msgid "Insert media"
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/TinyMCE.php:67
+msgid "Introduces a local TinyMCE 8.8 editor for ModPress."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:108
+msgid "Keep the Wiki navigation visible while the page scrolls."
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:108
+msgid "Keep things moving"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:35
+msgid "Keep this enabled when search engines and integrations should understand the Wiki structure."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:128
+msgid "Keep this low enough that related content does not overwhelm the page."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:96
+msgid "Keep this short so it fits comfortably in the search field."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:54
+msgid "Kit ID"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:86
+msgid "Latest News"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:151
+msgid "Layout"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:115
+#: src/Admin/Manager/Settings/SettingsManager.php:162
+msgid "Layout settings control the visitor-facing ModPress interface."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:33
+msgid "Layout settings sections"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:106
+msgid "Left"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:198
+msgid "License"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:567
+msgid "Light"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:102
+msgid "Live results make large Wikis easier to browse."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:102
+msgid "Live Search Results"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:572
+msgid "Loading icons..."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Assets/Assets.php:91
+msgid "Loading..."
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:153
+msgid "Manage %s"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:111
+msgid "Manage content"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:47
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:110
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:137
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:140
+msgid "Manage Wiki"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:45
+msgid "Managed automatically"
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:45
+msgid "Manual database changes are not required for normal ModPress operation."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:100
+msgid "Maximum number of results shown for one search."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:99
+msgid "Message shown when a Wiki search returns no results."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:101
+msgid "Minimum number of characters required before a search is performed."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:101
+msgid "Minimum Search Characters"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:94
+#: src/Public/Public.php:72
+msgid "ModPress"
+msgstr ""
+
+#: src/Admin/Manager/UI/Sidebar.php:36
+msgid "ModPress admin navigation"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:28
+msgid "ModPress Description"
+msgstr ""
+
+#: src/Includes/Settings/SettingsManager.php:94
+msgid "ModPress Documentation"
+msgstr ""
+
+#: src/Admin/Manager/UI/Header.php:50
+msgid "ModPress header navigation"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:87
+msgid "ModPress news and updates will appear here soon."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:34
+msgid "ModPress Permalink"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:27
+msgid "ModPress Root Name"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:31
+msgid "ModPress Root Slug"
+msgstr ""
+
+#: src/Admin/Manager/Tools/AnalyticsManager.php:53
+msgid "Most Viewed Wiki Pages"
+msgstr ""
+
+#: src/Admin/Manager/UI/Sidebar.php:33
+msgid "Navigate"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:143
+msgid "New Wiki"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:139
+msgid "No description provided yet."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:333
+msgid "No description provided."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Assets/Assets.php:90
+msgid "No icons found"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:124
+msgid "No published Wiki Pages yet."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:99
+msgid "No Results Message"
+msgstr ""
+
+#: src/Includes/Settings/SettingsManager.php:115
+msgid "No Wiki pages found."
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:66
+msgid "No Wikis created yet"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:336
+msgid "Not available"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:128
+msgid "Number of related pages to display."
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:106
+msgid "Only selected local plugin files are requested when an editor starts."
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:32
+msgid "Open Tools Settings"
+msgstr ""
+
+#: src/Admin/Manager/Tools/AnalyticsManager.php:53
+msgid "Page"
+msgstr ""
+
+#: src/Includes/Core/Editor.php:57
+msgid "Page Content"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:112
+msgid "Page counts provide a quick overview of navigation depth."
+msgstr ""
+
+#: src/Includes/Core/Editor.php:57
+msgid "Page Title"
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:146
+msgid "Pages:"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:118
+msgid "Place it in the sidebar to keep navigation together or in the content area for a more compact layout."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsImport.php:31
+msgid "Please upload a valid ModPress JSON export."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:191
+msgid "Plugin information"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsPlugins.php:75
+#: src/Includes/Functions/Admin/FunctionsPlugins.php:76
+msgid "Plugin settings saved successfully."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:117
+#: src/Admin/Manager/Settings/SettingsManager.php:164
+msgid "Plugin-specific configuration is available from each plugin settings page when provided."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:152
+msgid "Plugins"
+msgstr ""
+
+#: src/Admin/Manager/UI/Footer.php:25
+msgid "Powered by"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/FontAwesome.php:84
+msgid "Provides Font Awesome loading, icon picking, and styling APIs for PuginName."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:40
+msgid "Publish Wiki Pages"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:29
+msgid "Publish Wikis"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:65
+msgid "Published"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:133
+msgid "Read the ModPress guides and product notes."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:124
+msgid "Reading Speed"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:123
+msgid "Reading time helps visitors decide how much time to set aside."
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:109
+msgid "Recently published or updated"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:567
+msgid "Regular"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:128
+msgid "Related Pages Count"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:127
+msgid "Related pages encourage visitors to continue exploring."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/FormFieldHelper.php:546
+msgid "Remove"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:106
+msgid "Right"
+msgstr ""
+
+#: src/Admin/Manager/UI/Header.php:40
+msgid "Roadmap"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:212
+msgid "Save"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:198
+msgid "Save Changes"
+msgstr ""
+
+#: src/Includes/Core/Editor.php:58
+msgid "Save Page"
+msgstr ""
+
+#: src/Includes/Settings/SettingsManager.php:113
+#: src/Public/Public.php:65
+msgid "Search"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:97
+msgid "Search Button Text"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Assets/Assets.php:89
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:565
+msgid "Search icons..."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:131
+msgid "Search is one of the fastest ways to find content in a large Wiki."
+msgstr ""
+
+#: src/Public/Public.php:63
+msgid "Search ModPress"
+msgstr ""
+
+#: src/Includes/Functions/Helpers/FormFieldHelper.php:542
+msgid "Search or create"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:96
+msgid "Search Placeholder"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:100
+msgid "Search Results Per Page"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:98
+msgid "Search Scope"
+msgstr ""
+
+#: src/Includes/Settings/SettingsManager.php:112
+#: src/Public/Public.php:64
+msgid "Search the Wiki"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:98
+msgid "Searching titles and content gives visitors the broadest results."
+msgstr ""
+
+#: src/Admin/Manager/Tools/ImportManager.php:37
+msgid "Select a JSON export generated by ModPress."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Assets/Assets.php:92
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:581
+msgid "Select Icon"
+msgstr ""
+
+#: src/Includes/Functions/Helpers/FormFieldHelper.php:547
+msgid "Select options"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:116
+#: src/Admin/Manager/Settings/SettingsManager.php:163
+msgid "Set the minimum WordPress capabilities required for ModPress tasks."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:107
+msgid "Set the preferred width of the Wiki navigation sidebar in pixels."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:63
+msgid "Set the version of the bundled Font Awesome package to load."
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:151
+#: src/Admin/Manager/Settings/SettingsManager.php:120
+#: src/Admin/Manager/Settings/SettingsPlugins.php:162
+#: src/Admin/Manager/Settings/SettingsPlugins.php:337
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:117
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:147
+msgid "Settings"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:168
+msgid "Settings information"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:136
+msgid "Share ideas that can make ModPress better."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:566
+msgid "Sharp"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:566
+msgid "Sharp Duotone"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:116
+#: src/Admin/Manager/Settings/SettingsLayout.php:132
+msgid "Show Breadcrumbs"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:109
+msgid "Show Categories"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:110
+msgid "Show Category Counts"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:111
+msgid "Show child categories when the sidebar loads."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:121
+msgid "Show Last Updated Date"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:122
+msgid "Show Page Author"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:112
+msgid "Show Page Counts"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:125
+msgid "Show Page Feedback"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:115
+msgid "Show Page Title"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:126
+msgid "Show Previous and Next Links"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:123
+msgid "Show Reading Time"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:127
+msgid "Show Related Pages"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:117
+msgid "Show Table of Contents"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:116
+msgid "Show the Wiki hierarchy above the page content."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:105
+#: src/Admin/Manager/Settings/SettingsLayout.php:133
+msgid "Show Wiki Sidebar"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:106
+msgid "Sidebar Position"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:107
+msgid "Sidebar Width"
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:567
+msgid "Solid"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:108
+msgid "Sticky navigation is useful for long Wiki pages."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:108
+msgid "Sticky Sidebar"
+msgstr ""
+
+#: src/Admin/Manager/UI/Header.php:36
+msgid "Support"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:30
+msgid "Supporting text shown on Wiki archive and index views."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:118
+msgid "Table of Contents Position"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:142
+msgid "Tags"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:136
+msgid "Tell us what you think"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:96
+msgid "Text shown before a visitor enters a search term."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:97
+msgid "Text shown on the search submit button."
+msgstr ""
+
+#: src/Includes/Tools/DataTransfer.php:58
+msgid "The %s export section must be an array."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:120
+msgid "The deepest heading included in the table of contents."
+msgstr ""
+
+#: src/Includes/Tools/DataTransfer.php:50
+msgid "The import data must be an object."
+msgstr ""
+
+#: src/Includes/Tools/ImportValidator.php:24
+msgid "The import file contains invalid JSON."
+msgstr ""
+
+#: src/Includes/Tools/ImportValidator.php:36
+#: src/Includes/Tools/ImportValidator.php:40
+msgid "The import file could not be read."
+msgstr ""
+
+#: src/Includes/Tools/ImportValidator.php:33
+msgid "The import file could not be uploaded."
+msgstr ""
+
+#: src/Includes/Tools/ImportValidator.php:19
+msgid "The import file is empty."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsPlugins.php:44
+msgid "The ModPress plugin state could not be saved."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:27
+msgid "The name used for the main ModPress area."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:34
+msgid "The permalink structure used by ModPress content."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsPlugins.php:59
+msgid "The requested ModPress plugin settings were not found."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsPlugins.php:37
+msgid "The requested ModPress plugin was not found."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/PermalinkHelper.php:23
+msgid "The root ModPress slug."
+msgstr ""
+
+#: src/Admin/Manager/Tools/ExportManager.php:45
+msgid "The settings table is managed automatically during plugin activation."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:119
+msgid "The shallowest heading included in the table of contents."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:105
+msgid "The sidebar is the primary navigation structure for ModPress."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:133
+msgid "The sidebar keeps parent and child Wiki pages discoverable."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:117
+msgid "The table of contents helps visitors scan long pages."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/PermalinkHelper.php:25
+msgid "The tags assigned to the Wiki container."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/PermalinkHelper.php:28
+msgid "The tags assigned to the Wiki page."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:29
+msgid "The title shown on Wiki archive and index views."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsImport.php:35
+msgid "The uploaded file is not valid JSON."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:31
+msgid "The URL slug for the ModPress root."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:32
+msgid "The URL slug used for ModPress categories."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:33
+msgid "The URL slug used for ModPress tags."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/PermalinkHelper.php:24
+msgid "The Wiki categories, from parent to child."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/PermalinkHelper.php:27
+msgid "The Wiki page categories, from parent to child."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/PermalinkHelper.php:29
+msgid "The Wiki page slug."
+msgstr ""
+
+#: src/Includes/Functions/Helpers/PermalinkHelper.php:26
+msgid "The Wiki slug."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:114
+#: src/Admin/Manager/Settings/SettingsManager.php:161
+msgid "These settings affect how ModPress content is identified and linked throughout the site."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/IconPicker.php:567
+msgid "Thin"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:118
+#: src/Admin/Manager/Settings/SettingsManager.php:165
+msgid "Third-party plugin settings are managed through WordPress or the plugin author’s own settings page."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:28
+msgid "This can be used by themes and integrations when describing the ModPress area."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:27
+msgid "This controls editing access to mod page content."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:126
+msgid "This gives visitors another way to move through a Wiki."
+msgstr ""
+
+#: src/Includes/Tools/DataTransfer.php:53
+msgid "This ModPress export version is not supported."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:27
+msgid "This name appears in the admin interface and generated titles."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:121
+msgid "This reassures visitors that the page is maintained."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:56
+msgid "This value is used only when Icon source is set to Font Awesome Kit."
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:80
+msgid "TinyMCE"
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:81
+msgid "TinyMCE integration"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:98
+msgid "Titles and Content"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:98
+msgid "Titles Only"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:120
+msgid "TOC Maximum Heading"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:119
+msgid "TOC Minimum Heading"
+msgstr ""
+
+#: src/Includes/Functions/Helpers/FormFieldHelper.php:331
+msgid "Toggle Dropdown"
+msgstr ""
+
+#: src/Admin/Manager/UI/Header.php:55
+msgid "Toggle header navigation"
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:124
+#: src/Includes/Functions/Admin/FunctionsSidebar.php:158
+msgid "Tools"
+msgstr ""
+
+#: src/Admin/Manager/Tools/AnalyticsManager.php:52
+msgid "Total Wiki Page Views"
+msgstr ""
+
+#: src/Includes/Plugins/TinyMCE/Includes/Settings/Settings.php:97
+msgid "UI skins control the toolbar, menus, dialogs, and editor chrome."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:334
+#: src/Admin/Manager/Settings/SettingsPlugins.php:335
+msgid "Unknown"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:102
+msgid "Update suggestions while visitors type."
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:119
+#: src/Public/Public.php:86
+msgid "Updated %s"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:97
+msgid "Use a clear action such as Search."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:29
+msgid "Use a concise title that makes the documentation area clear to visitors."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:124
+msgid "Use a lower value when your audience benefits from a slower estimate."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:100
+msgid "Use a smaller value for compact result lists."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:29
+msgid "Use a trusted administrator-level capability for plugin management."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:64
+msgid "Use a version supported by the installed Font Awesome assets."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:31
+msgid "Use lowercase letters, numbers, and hyphens for the most reliable URLs."
+msgstr ""
+
+#: src/Includes/Plugins/FontAwesome/Includes/Settings/Settings.php:45
+msgid "Use the base package for the bundled icons or a Kit when you need a custom Font Awesome configuration."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:106
+msgid "Use the position that best matches your site layout."
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:53
+msgid "Use this during frontend troubleshooting and disable it afterward."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:122
+msgid "Useful when Wikis are maintained by multiple contributors."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:26
+msgid "Users without this capability cannot create new mods."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:196
+msgid "Version"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:159
+#: src/Admin/Manager/Settings/SettingsPlugins.php:335
+msgid "Version:"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:52
+msgid "View Access Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:57
+msgid "View Analytics Tools"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:56
+msgid "View Debug Tools"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsPlugins.php:160
+#: src/Admin/Manager/Settings/SettingsPlugins.php:336
+msgid "View documentation"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:50
+msgid "View External Plugin Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:43
+msgid "View General Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:48
+msgid "View Internal Plugin Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:45
+msgid "View Layout Settings"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:47
+msgid "View Plugin Settings"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:117
+#: src/Admin/Manager/Settings/SettingsManager.php:164
+msgid "View the ModPress plugins installed on this site."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:118
+#: src/Admin/Manager/Settings/SettingsManager.php:165
+msgid "View third-party plugins installed on this site."
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:34
+msgid "View Wiki Pages Administration"
+msgstr ""
+
+#: src/Includes/Core/Capabilities.php:25
+msgid "View Wikis Administration"
+msgstr ""
+
+#: src/Admin/Manager/Tools/AnalyticsManager.php:53
+msgid "Views"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:95
+msgid "Visitors can search Wiki pages without browsing the sidebar."
+msgstr ""
+
+#: src/Admin/Manager/Mods/ModManager.php:147
+msgid "Visitors:"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:77
+msgid "Welcome to ModPress"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:28
+msgid "Who can check analytics?"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:26
+msgid "Who can create mods?"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:29
+msgid "Who can manage plugins?"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsAccess.php:27
+msgid "Who can write mod pages?"
+msgstr ""
+
+#: src/Includes/Core/PostType.php:44
+msgid "Wiki"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:30
+msgid "Wiki Archive Description"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsGeneral.php:29
+msgid "Wiki Archive Title"
+msgstr ""
+
+#: src/Includes/Core/Taxonomy.php:27
+msgid "Wiki Categories"
+msgstr ""
+
+#: src/Includes/Core/Taxonomy.php:27
+msgid "Wiki Category"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:30
+#: src/Includes/Core/PostType.php:66
+msgid "Wiki Page"
+msgstr ""
+
+#: src/Includes/Core/PostType.php:65
+msgid "Wiki Pages"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:28
+msgid "Wiki Search"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:118
+#: src/Admin/Manager/Settings/SettingsLayout.php:29
+msgid "Wiki Sidebar"
+msgstr ""
+
+#: src/Includes/Core/Taxonomy.php:43
+msgid "Wiki Tag"
+msgstr ""
+
+#: src/Includes/Core/Taxonomy.php:43
+msgid "Wiki Tags"
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:63
+#: src/Includes/Core/PostType.php:43
+msgid "Wikis"
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsLayout.php:124
+msgid "Words per minute used to calculate reading time."
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:52
+msgid "Write diagnostic information to the browser console."
+msgstr ""
+
+#: src/Admin/Manager/Tools/DebugManager.php:44
+msgid "Write diagnostic information to the WordPress debug log."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsExport.php:26
+msgid "You are not allowed to export ModPress data."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsImport.php:26
+msgid "You are not allowed to import ModPress data."
+msgstr ""
+
+#: src/Admin/Manager/Tools/ToolsManager.php:109
+msgid "You are not authorized to access this ModPress tool."
+msgstr ""
+
+#: src/Admin/Admin.php:159
+msgid "You are not authorized to load ModPress settings."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsPlugins.php:40
+msgid "You are not authorized to manage external ModPress plugins."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsPlugins.php:29
+msgid "You are not authorized to manage ModPress plugins."
+msgstr ""
+
+#: src/Includes/Functions/Admin/FunctionsPlugins.php:64
+msgid "You are not authorized to save ModPress plugin settings."
+msgstr ""
+
+#: src/Admin/Manager/Settings/SettingsManager.php:149
+msgid "You are not authorized to view these ModPress settings."
+msgstr ""
+
+#: src/Admin/Manager/Dashboard/DashboardManager.php:76
+msgid "Your knowledge workspace"
+msgstr ""

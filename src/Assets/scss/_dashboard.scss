@@ -1,0 +1,76 @@
+.modpress-admin {
+	.modpress-summary-card,
+	.modpress-resource-card {
+		background: #fff;
+		border: 1px solid var(--modpress-line);
+		border-radius: 0.75rem;
+		box-shadow: 0 0.5rem 1.5rem rgba(16, 42, 67, 0.06);
+		color: var(--modpress-ink);
+		display: flex;
+		text-decoration: none;
+		transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+
+		&:hover,
+		&:focus-visible {
+			border-color: var(--modpress-blue);
+			transform: translateY(-2px);
+			box-shadow: var(--bs-box-shadow) !important;
+		}
+	}
+
+	.modpress-summary-card {
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1.25rem;
+
+		strong { line-height: 1; margin-left: auto; }
+	}
+
+	.modpress-summary-icon {
+		align-items: center;
+		background: #e8f0ff;
+		border-radius: 0.5rem;
+		color: var(--modpress-blue);
+		display: inline-flex;
+		font-size: 1.25rem;
+		height: 2.5rem;
+		justify-content: center;
+		width: 2.5rem;
+	}
+
+	.modpress-welcome-card {
+		background: linear-gradient(125deg, #e8f0ff 0%, #fff 72%);
+		border-left: 4px solid var(--modpress-blue) !important;
+	}
+
+	.modpress-recent-card .list-group-item-action {
+		transition: background-color 140ms ease, padding-left 140ms ease;
+
+		&:hover,
+		&:focus-visible { background: #f2f6ff; padding-left: 1.6rem !important; }
+	}
+
+	.modpress-resource-card {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 0.55rem;
+		padding: 1.25rem;
+
+		.dashicons { color: var(--modpress-blue); font-size: 1.35rem; height: 1.35rem; width: 1.35rem; }
+	}
+
+	.modpress-count-ready {
+		animation: modpress-count-ready 420ms ease-out both;
+	}
+}
+
+@keyframes modpress-count-ready {
+	from { opacity: 0; transform: translateY(4px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.modpress-admin .modpress-summary-card,
+	.modpress-admin .modpress-resource-card,
+	.modpress-admin .modpress-recent-card .list-group-item-action { transition: none; }
+}

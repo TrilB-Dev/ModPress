@@ -1,0 +1,199 @@
+// Keep WordPress admin form rules from overriding Bootstrap on ModPress screens.
+.modpress-admin {
+	button,
+	input,
+	select,
+	textarea {
+		box-sizing: border-box;
+		font-family: var(--bs-body-font-family);
+		font-size: var(--bs-body-font-size);
+		font-weight: var(--bs-body-font-weight);
+		line-height: var(--bs-body-line-height);
+	}
+
+	input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+	textarea,
+	select:not(.selectpicker) {
+		appearance: none;
+		background-clip: padding-box;
+		background-color: var(--bs-body-bg);
+		border: var(--bs-border-width) solid var(--bs-border-color);
+		border-radius: var(--bs-border-radius);
+		color: var(--bs-body-color);
+		display: block;
+		margin: 0;
+		max-width: 100%;
+		padding: 0.375rem 0.75rem;
+		transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+		width: 100%;
+	}
+
+	input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+	select:not(.selectpicker) {
+		min-height: 38px;
+	}
+
+	select:not([multiple]):not(.selectpicker) {
+		background-image: var(--bs-form-select-bg-img);
+		background-position: right 0.75rem center;
+		background-repeat: no-repeat;
+		background-size: 16px 12px;
+		padding-right: 2.25rem;
+	}
+
+	textarea {
+		min-height: 100px;
+		resize: vertical;
+	}
+
+	input:focus:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+	textarea:focus,
+	select:focus:not(.selectpicker) {
+		background-color: var(--bs-body-bg);
+		border-color: var(--bs-primary);
+		box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+		color: var(--bs-body-color);
+		outline: 0;
+	}
+
+	input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+	textarea,
+	select:not(.selectpicker) {
+		color: var(--bs-body-color);
+	}
+
+	input:focus:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+	textarea:focus,
+	select:focus:not(.selectpicker) {
+		border-color: var(--bs-primary);
+		box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+	}
+
+	input:disabled:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
+	textarea:disabled,
+	select:disabled {
+		background-color: var(--bs-secondary-bg);
+		opacity: 1;
+	}
+
+	input[type='checkbox'],
+	input[type='radio'] {
+		-webkit-appearance: none;
+		appearance: none;
+		background-color: var(--bs-form-control-bg);
+		border: var(--bs-border-width) solid var(--bs-border-color);
+		box-shadow: none;
+		clear: none;
+		cursor: pointer;
+		display: inline-block;
+		float: none;
+		height: 1em;
+		margin: 0 0.35rem 0 0;
+		padding: 0;
+		vertical-align: -0.125em;
+		width: 1em;
+	}
+
+	input[type='checkbox'] {
+		border-radius: 0.25em;
+	}
+
+	input[type='radio'] {
+		border-radius: 50%;
+	}
+
+	.form-switch {
+		padding-left: 2.5em;
+
+		.form-check-input {
+			--bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%27-4 -4 8 8%27%3e%3ccircle r=%273%27 fill=%27rgba%280, 0, 0, 0.25%29%27/%3e%3c/svg%3e");
+			background-image: var(--bs-form-switch-bg);
+			background-position: right center;
+			background-repeat: no-repeat;
+			background-size: contain;
+			border-radius: 2em;
+			height: 1em;
+			margin-left: -2.5em;
+			width: 2em;
+		}
+
+		.form-check-input:checked {
+			--bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%27-4 -4 8 8%27%3e%3ccircle r=%273%27 fill=%27%23fff%27/%3e%3c/svg%3e");
+			background-image: var(--bs-form-switch-bg);
+			background-position: left center;
+			background-repeat: no-repeat;
+		}
+	}
+
+	input[type='checkbox']::before,
+	input[type='checkbox']::after,
+	input[type='radio']::before,
+	input[type='radio']::after {
+		content: none !important;
+		display: none !important;
+	}
+
+	input[type='checkbox']:checked,
+	input[type='radio']:checked {
+		background-color: var(--bs-primary);
+		border-color: var(--bs-primary);
+	}
+
+	input[type='checkbox']:checked,
+	input[type='radio']:checked {
+		background-image: var(--bs-form-check-bg-image);
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: contain;
+	}
+
+	input[type='checkbox']:focus,
+	input[type='radio']:focus {
+		border-color: var(--bs-primary);
+		box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+		outline: 0;
+	}
+
+	input[type='checkbox']:checked,
+	input[type='radio']:checked {
+		background-color: var(--bs-primary);
+		border-color: var(--bs-primary);
+	}
+
+	.form-switch .form-check-input:focus {
+		background-image: var(--bs-form-switch-bg);
+	}
+
+	input[type='file'] {
+		font-size: inherit;
+		max-width: 100%;
+	}
+
+	input[readonly],
+	textarea[readonly] {
+		background-color: var(--bs-secondary-bg);
+		opacity: 1;
+	}
+
+	.form-control,
+	.form-select,
+	.form-check-input {
+		margin-left: 0;
+		margin-right: 0;
+	}
+
+	.form-check-input {
+		float: none;
+	}
+
+	.selectpicker {
+		margin: 0;
+	}
+
+	// WordPress adds Dashicons pseudo-elements to invalid form cells.
+	.form-table .form-required.form-invalid td::after,
+	.form-table .form-required.user-pass1-wrap.form-invalid .password-input-wrapper::after {
+		content: none;
+		display: none;
+	}
+}
