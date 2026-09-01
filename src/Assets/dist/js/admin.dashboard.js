@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll("[data-modpress-count]").forEach(e=>{e.classList.add("modpress-count-ready")})});
