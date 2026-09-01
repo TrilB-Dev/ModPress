@@ -22,7 +22,7 @@ final class ImageHelper {
     public static function get_image_url( string $type, string $file ): string {
         $file = self::sanitize_file_path( $file );
         if ( '' === $file ) {
-            return '';
+            return 'error';
         }
 
         if ( 'core' === strtolower( trim( $type ) ) ) {

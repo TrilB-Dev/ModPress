@@ -52,7 +52,7 @@ final class Header {
 			<nav class="navbar navbar-expand-lg" aria-label="<?php esc_attr_e( 'ModPress header navigation', 'modpress' ); ?>">
 				<div class="container-fluid modpress-shell px-3 px-lg-4">
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=modpress' ) ); ?>">
-						<img class="navbar-brand d-flex align-items-center gap-2" src="<?php echo esc_url( Assets::get_image( '/Logo/ModPressLogo.svg' ) ); ?>" alt="" />
+						<img class="navbar-brand d-flex align-items-center gap-2" src="<?php echo esc_url( Assets::get_image( '/Logo/ModPress-Logo.svg' ) ); ?>" alt="" />
 					</a>
 					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#modpress-header-menu" aria-controls="modpress-header-menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Toggle header navigation', 'modpress' ); ?>">
 						<span class="navbar-toggler-icon"></span>
