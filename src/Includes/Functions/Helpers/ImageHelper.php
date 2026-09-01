@@ -50,7 +50,7 @@ final class ImageHelper {
         }
 
         $plugin_slug_variants = [ $plugin_slug ];
-        if ( str_starts_with( $plugin_slug, 'mspress-' ) ) {
+        if ( str_starts_with( $plugin_slug, 'modpress-' ) ) {
             $plugin_slug_variants[] = substr( $plugin_slug, 8 );
         }
         if ( str_ends_with( $plugin_slug, '-plugin' ) ) {

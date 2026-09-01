@@ -201,10 +201,10 @@ final class Assets {
         }
     }
     /**
-     * Retrieves the URL of an image asset.
+     * Get an image asset URL from the core Images directory.
      *
-     * @param string $file The image file name.
-     * @return string The URL of the image asset.
+     * @param string $file The image path relative to Assets/images.
+     * @return string The image URL, or an empty string when the path is invalid.
      */
     public static function get_image( string $file ): string {
 
