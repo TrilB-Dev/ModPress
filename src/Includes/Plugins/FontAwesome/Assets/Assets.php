@@ -70,13 +70,13 @@ final class Assets {
 
         wp_enqueue_style(
             'modpress-fontawesome-icon-picker',
-            MODPRESS_URL . 'src/includes/Plugins/FontAwesome/Assets/dist/css/icon-picker.css',
+            MODPRESS_URL . 'src/Includes/Plugins/FontAwesome/Assets/dist/css/icon-picker.css',
             [],
             MODPRESS_VERSION
         );
         wp_enqueue_script(
             'modpress-fontawesome-icon-picker',
-            MODPRESS_URL . 'src/includes/Plugins/FontAwesome/Assets/dist/js/icon-picker.js',
+            MODPRESS_URL . 'src/Includes/Plugins/FontAwesome/Assets/dist/js/icon-picker.js',
             [ 'jquery' ],
             MODPRESS_VERSION,
             true

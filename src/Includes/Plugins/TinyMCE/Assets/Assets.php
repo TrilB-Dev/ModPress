@@ -44,7 +44,7 @@ final class Assets {
      * @return array The modified assets array with TinyMCE assets added.
      */
     public function register_admin_assets( array $assets, string $context = '' ): array {
-        $base_url = MODPRESS_URL . 'src/includes/Plugins/TinyMCE/Assets/tinymce/';
+        $base_url = MODPRESS_URL . 'src/Includes/Plugins/TinyMCE/Assets/tinymce/';
 
         $assets['styles'][] = [
             'handle' => 'modpress-tinymce-skin',
@@ -57,7 +57,7 @@ final class Assets {
         ];
         $assets['scripts'][] = [
             'handle' => 'modpress-tinymce-boot',
-            'src' => MODPRESS_URL . 'src/includes/Plugins/TinyMCE/Assets/js/tinymce.js',
+            'src' => MODPRESS_URL . 'src/Includes/Plugins/TinyMCE/Assets/js/tinymce.js',
             'deps' => [ 'modpress-tinymce' ],
             'in_footer' => true,
             'localize' => [

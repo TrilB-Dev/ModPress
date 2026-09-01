@@ -39,12 +39,12 @@ define( 'MODPRESS_ASSETS', MODPRESS_DIR . 'src/Assets' );
 define( 'MODPRESS_ASSETS_URL', MODPRESS_URL . 'src/Assets' );
 define( 'MODPRESS_ADMIN', MODPRESS_DIR . 'src/Admin' );
 define( 'MODPRESS_ADMIN_URL', MODPRESS_URL . 'src/Admin' );
-define( 'MODPRESS_LANGUAGES', MODPRESS_DIR . 'src/languages' );
-define( 'MODPRESS_INCLUDES', MODPRESS_DIR . 'src/includes' );
+define( 'MODPRESS_LANGUAGES', MODPRESS_DIR . 'src/Languages' );
+define( 'MODPRESS_INCLUDES', MODPRESS_DIR . 'src/Includes' );
 define( 'MODPRESS_CORE', MODPRESS_INCLUDES . '/Core' );
 define( 'MODPRESS_SETTINGS', MODPRESS_INCLUDES . '/Settings' );
 define( 'MODPRESS_PLUGINS', MODPRESS_INCLUDES . '/Plugins' );
-define( 'MODPRESS_PLUGINS_URL', MODPRESS_URL . 'src/includes/Plugins' );
+define( 'MODPRESS_PLUGINS_URL', MODPRESS_URL . 'src/Includes/Plugins' );
 
 $modpress_autoloader = MODPRESS_DIR . 'vendor/autoload.php';
 

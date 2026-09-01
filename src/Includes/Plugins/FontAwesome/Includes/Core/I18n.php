@@ -15,7 +15,7 @@ final class I18n {
         load_plugin_textdomain(
             'modpress',
             false,
-            dirname( plugin_basename( MODPRESS_FILE ) ) . '/src/includes/Plugins/FontAwesome/Language/'
+            dirname( plugin_basename( MODPRESS_FILE ) ) . '/src/Includes/Plugins/FontAwesome/Language/'
         );
     }
 }

@@ -16,7 +16,7 @@ class I18n {
         load_plugin_textdomain(
             'modpress',
             false,
-            dirname( plugin_basename( MODPRESS_FILE ) ) . '/src/includes/Plugins/TinyMCE/Language/'
+            dirname( plugin_basename( MODPRESS_FILE ) ) . '/src/Includes/Plugins/TinyMCE/Language/'
         );
     }
 }

@@ -30,7 +30,7 @@ final class TinyMCEHelper {
         $ui_skin = Settings::ui_skin();
         $locale = function_exists( 'get_user_locale' ) ? get_user_locale() : 'en_GB';
         $language_path = '';
-        $language_dir = dirname( MODPRESS_FILE ) . '/src/includes/Plugins/TinyMCE/Assets/tinymce/langs';
+        $language_dir = dirname( MODPRESS_FILE ) . '/src/Includes/Plugins/TinyMCE/Assets/tinymce/langs';
         $locale_candidates = [ $locale, str_replace( '-', '_', $locale ), str_replace( '_', '-', $locale ), strtolower( $locale ) ];
         foreach ( glob( $language_dir . '/*.js' ) ?: [] as $candidate_path ) {
             $candidate_locale = pathinfo( $candidate_path, PATHINFO_FILENAME );
@@ -41,7 +41,7 @@ final class TinyMCEHelper {
             }
         }
         $language_url = file_exists( $language_path )
-            ? MODPRESS_URL . 'src/includes/Plugins/TinyMCE/Assets/tinymce/langs/' . basename( $language_path )
+            ? MODPRESS_URL . 'src/Includes/Plugins/TinyMCE/Assets/tinymce/langs/' . basename( $language_path )
             : '';
         $toolbar = [ 'blocks' ];
         $toolbar[] = '|';
@@ -77,10 +77,10 @@ final class TinyMCEHelper {
             'license_key' => 'gpl',
             'plugins' => implode( ' ', $plugins ),
             'toolbar' => implode( ' ', $toolbar ),
-            'base_url' => MODPRESS_URL . 'src/includes/Plugins/TinyMCE/Assets/tinymce',
+            'base_url' => MODPRESS_URL . 'src/Includes/Plugins/TinyMCE/Assets/tinymce',
             'skin' => $ui_skin,
-            'skin_url' => MODPRESS_URL . 'src/includes/Plugins/TinyMCE/Assets/tinymce/skins/ui/' . $ui_skin,
-            'content_css' => MODPRESS_URL . 'src/includes/Plugins/TinyMCE/Assets/tinymce/skins/content/' . $content_skin . '/content.min.css',
+            'skin_url' => MODPRESS_URL . 'src/Includes/Plugins/TinyMCE/Assets/tinymce/skins/ui/' . $ui_skin,
+            'content_css' => MODPRESS_URL . 'src/Includes/Plugins/TinyMCE/Assets/tinymce/skins/content/' . $content_skin . '/content.min.css',
             'media_buttons' => $media_buttons,
         ];
         if ( $language_url ) {
