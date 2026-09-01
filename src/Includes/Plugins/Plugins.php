@@ -71,7 +71,6 @@ class Plugins {
      */
     public function init(): void {
         if ( $this->initialized ) {
-            LoggerHelper::write_log( 'Plugins::init() already initialized; skipping plugin discovery.' );
             return;
         }
 
@@ -79,13 +78,9 @@ class Plugins {
         $this->auto_activate = $this->should_auto_activate();
 
         $directory = $this->resolve_plugin_directory();
-        LoggerHelper::write_log( sprintf( 'Plugins::init() directory=%s auto_activate=%s', $directory, $this->auto_activate ? 'yes' : 'no' ) );
-
         $files = $this->discover_plugin_files( $directory );
-        LoggerHelper::write_log( sprintf( 'Plugins::init() discovered_files=%d', count( $files ) ) );
 
         foreach ( $files as $file ) {
-            LoggerHelper::write_log( sprintf( 'Plugins::init() loading plugin file %s', $file ) );
             $this->load_plugin_file( $file );
         }
 
@@ -166,20 +161,16 @@ class Plugins {
     public function register_plugin_instance( PluginInterface $plugin ): void {
         $slug = trim( $plugin->get_slug() );
         if ( $slug === '' ) {
-            LoggerHelper::write_log( 'Plugins::register_plugin_instance() rejected empty slug' );
             return;
         }
 
         if ( isset( $this->registered_plugins[ $slug ] ) ) {
-            LoggerHelper::write_log( sprintf( 'Plugins::register_plugin_instance() duplicate_slug=%s', $slug ) );
             return;
         }
 
         $this->registered_plugins[ $slug ] = $plugin;
-        LoggerHelper::write_log( sprintf( 'Plugins::register_plugin_instance() registered slug=%s class=%s', $slug, get_debug_type( $plugin ) ) );
 
         if ( $this->initialized && $this->auto_activate && $this->is_plugin_enabled( $slug ) ) {
-            LoggerHelper::write_log( sprintf( 'Plugins::register_plugin_instance() initializing active plugin slug=%s', $slug ) );
             $this->initialize_plugin( $plugin );
         }
     }
@@ -208,13 +199,11 @@ class Plugins {
      */
     private function discover_plugin_files( string $directory ): array {
         if ( ! is_dir( $directory ) ) {
-            LoggerHelper::write_log( sprintf( 'Plugins::discover_plugin_files() directory_missing=%s', $directory ) );
             return [];
         }
 
         $files = glob( $directory . '/*.php' ) ?: [];
         $subdirs = glob( $directory . '/*', GLOB_ONLYDIR ) ?: [];
-        LoggerHelper::write_log( sprintf( 'Plugins::discover_plugin_files() direct_files=%d subdirs=%d directory=%s', count( $files ), count( $subdirs ), $directory ) );
 
         foreach ( $subdirs as $subdir ) {
             $subfiles = glob( $subdir . '/*.php' ) ?: [];
