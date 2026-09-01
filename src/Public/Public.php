@@ -1,6 +1,6 @@
 <?php
 
-namespace ModPress\PublicArea;
+namespace ModPress\Public;
 
 use ModPress\Includes\Core\PostType;
 use ModPress\Includes\Functions\Helpers\ContentHelper;

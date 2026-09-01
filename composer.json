@@ -5,16 +5,20 @@
     "license": "GPL-2.0-or-later",
     "autoload": {
         "files": [
-            "src/includes/Plugins/PluginsInterface.php"
+            "src/Includes/Plugins/PluginsInterface.php"
         ],
         "psr-4": {
-            "ModPress\\": "src/"
+            "ModPress\\Admin\\": "src/Admin/",
+            "ModPress\\API\\": "src/API/",
+            "ModPress\\Assets\\": "src/Assets/",
+            "ModPress\\Includes\\": "src/Includes/",
+            "ModPress\\Public\\": "src/Public/"
         },
         "classmap": [
             "src/Plugin.php"
         ],
         "exclude-from-classmap": [
-            "src/includes/Plugins/"
+            "src/Includes/Plugins/"
         ]
     },
     "authors": [
