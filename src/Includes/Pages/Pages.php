@@ -1,9 +1,9 @@
 <?php
 
-namespace WikiPress\Includes\Pages;
+namespace ModPress\Includes\Pages;
 
-use WikiPress\API\API;
-use WikiPress\Includes\Functions\Functions;
+use ModPress\API\API;
+use ModPress\Includes\Functions\Functions;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -18,7 +18,7 @@ final class Pages {
         $page = API::get_page( $page_id );
         return $page
             ? Functions::rest_response( true, '', $page )
-            : Functions::rest_response( false, __( 'Wiki page not found.', 'wikipress' ) );
+            : Functions::rest_response( false, __( 'Wiki page not found.', 'modpress' ) );
     }
 
     public static function create_from_payload( array $payload ): array {
@@ -40,7 +40,7 @@ final class Pages {
         }
 
         if ( false === $result ) {
-            return Functions::rest_response( false, __( 'Wiki page mutation failed.', 'wikipress' ) );
+            return Functions::rest_response( false, __( 'Wiki page mutation failed.', 'modpress' ) );
         }
 
         return Functions::rest_response( true, '', is_array( $result ) ? $result : [ 'deleted' => (bool) $result ] );

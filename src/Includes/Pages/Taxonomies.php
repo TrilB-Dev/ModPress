@@ -1,9 +1,9 @@
 <?php
 
-namespace WikiPress\Includes\Pages;
+namespace ModPress\Includes\Pages;
 
-use WikiPress\Includes\Core\Taxonomy;
-use WikiPress\Includes\Functions\Helpers\TaxonomyHelper;
+use ModPress\Includes\Core\Taxonomy;
+use ModPress\Includes\Functions\Helpers\TaxonomyHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
