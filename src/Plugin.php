@@ -25,7 +25,7 @@ use ModPress\Includes\Functions\Admin\FunctionsSettings;
 use ModPress\API\Routes;
 use ModPress\Includes\Analytics\Analytics;
 use ModPress\Includes\Plugins\Plugins;
-use ModPress\PublicArea\Frontend;
+use ModPress\Public\Frontend;
 /**
  * The core plugin class.
  *
