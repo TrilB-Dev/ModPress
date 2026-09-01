@@ -8,7 +8,7 @@
  * @since 1.0.0
  */
 
-namespace ModPress\Includes\Plugins\FontAwesome\Includes;
+namespace ModPress\Includes\Plugins\FontAwesome\Includes\Core;
 
 final class I18n {
     public static function load_textdomain(): void {

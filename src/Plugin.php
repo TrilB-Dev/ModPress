@@ -1,29 +1,4 @@
 <?php
-
-/**
- * The file that defines the core plugin class
- *
- * A class definition that includes attributes and functions used across both the
- * public-facing side of the site and the admin area.
- *
- * @link       https://https://trilb.dev/MrTrilB
- * @since      1.0.0
- *
- * @package    ModPress
- * @subpackage ModPress/includes
- */
-namespace ModPress;
-use ModPress\Admin\Admin;
-use ModPress\Assets\Assets;
-use ModPress\Includes\Includes;
-use ModPress\Includes\Core\WP\I18n;
-use ModPress\Includes\Functions\Helpers\LoaderHelper;
-use ModPress\Includes\Functions\Admin\FunctionsExport;
-use ModPress\Includes\Functions\Admin\FunctionsImport;
-use ModPress\Includes\Functions\Admin\FunctionsPlugins;
-use ModPress\Includes\Functions\Admin\FunctionsSettings;
-use ModPress\Includes\Plugins\Plugins;
-use ModPress\Public\Frontend;
 /**
  * The core plugin class.
  *
@@ -38,6 +13,19 @@ use ModPress\Public\Frontend;
  * @subpackage ModPress/src
  * @author     MrTrilB <mrtrilb@trilb.dev>
  */
+namespace ModPress;
+use ModPress\Admin\Admin;
+use ModPress\Assets\Assets;
+use ModPress\Includes\Includes;
+use ModPress\Includes\Core\WP\I18n;
+use ModPress\Includes\Functions\Helpers\LoaderHelper;
+use ModPress\Includes\Functions\Admin\FunctionsExport;
+use ModPress\Includes\Functions\Admin\FunctionsImport;
+use ModPress\Includes\Functions\Admin\FunctionsPlugins;
+use ModPress\Includes\Functions\Admin\FunctionsSettings;
+use ModPress\Includes\Plugins\Plugins;
+use ModPress\Public\Frontend;
+
 class Plugin {
 
 	/**
@@ -46,7 +34,7 @@ class Plugin {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @var      LoaderHelper    $loader    Maintains and registers all hooks for the plugin.
 	 */
 	protected LoaderHelper $loader;
 
@@ -134,7 +122,7 @@ class Plugin {
 	 * @access   protected
 	 * @var      string    $plugin_name    The string used to uniquely identify this plugin.
 	 */
-	protected $plugin_name;
+	protected string $plugin_name;
 
 	/**
 	 * The current version of the plugin.
@@ -143,7 +131,7 @@ class Plugin {
 	 * @access   protected
 	 * @var      string    $version    The current version of the plugin.
 	 */
-	protected $version;
+	protected string $version;
 
 	/**
 	 * Define the core functionality of the plugin.
@@ -155,12 +143,54 @@ class Plugin {
 	 * @since    1.0.0
 	 */
 	public function __construct( string $plugin_file = MODPRESS_FILE, string $plugin_name = MODPRESS_NAME, string $version = MODPRESS_VERSION ) {
+		/**
+		 * The file path to the main plugin file.
+		 *
+		 * @since    1.0.0
+		 * @access   protected
+		 * @var      string    $plugin_file    The file path to the main plugin file.
+		 */
 		$this->plugin_file = $plugin_file;
+		/**
+		 * The unique identifier of this plugin.
+		 *
+		 * @since    1.0.0
+		 * @access   protected
+		 * @var      string    $plugin_name    The string used to uniquely identify this plugin.
+		 */
 		$this->plugin_name = sanitize_key( $plugin_name );
+		/**
+		 * The current version of the plugin.
+		 *
+		 * @since    1.0.0
+		 * @access   protected
+		 * @var      string    $version    The current version of the plugin.
+		 */
 		$this->version = $version;
-
+		/**
+		 * The loader that's responsible for maintaining and registering all hooks that power
+		 * the plugin.
+		 *
+		 * @since    1.0.0
+		 * @access   protected
+		 * @var      LoaderHelper    $loader    Maintains and registers all hooks for the plugin.
+		 */
 		$this->load_dependencies();
+		/**
+		 * The instance of the Includes class that handles the plugin's includes.
+		 *
+		 * @var Includes
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->set_locale();
+		/**
+		 * The instance of the Assets class that handles the plugin's assets.
+		 *
+		 * @var Assets
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->define_core_hooks();
 
 	}
@@ -182,6 +212,7 @@ class Plugin {
 	 * @access   private
 	 */
 	private function load_dependencies() {
+
 		$this->loader = new LoaderHelper();
 
 	}
@@ -211,14 +242,77 @@ class Plugin {
 	 * @access   private
 	 */
 	private function define_core_hooks() {
+		/**
+		 * The instance of the Includes class that handles the plugin's includes.
+		 *
+		 * @var Includes
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->includes = Includes::get_instance();
+		/**
+		 * The instance of the Assets class that handles the plugin's assets.
+		 *
+		 * @var Assets
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->assets = new Assets();
+		/**
+		 * The instance of the Admin class that handles the plugin's admin functionality.
+		 *
+		 * @var Admin
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->assets->register();
+		/**
+		 * The instance of the Frontend class that handles the plugin's frontend functionality.
+		 *
+		 * @var Frontend
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->admin = new Admin( $this->assets );
+		/**
+		 * The instance of the Frontend class that handles the plugin's frontend functionality.
+		 *
+		 * @var Frontend
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->frontend = new Frontend();
+		/**
+		 * The ModPress plugin registry and discovery service.
+		 *
+		 * @var Plugins
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->plugins = Plugins::get_instance();
+		/**
+		 * The instance of the FunctionsExport class that handles the plugin's export functionality.
+		 *
+		 * @var FunctionsExport
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->export_functions = new FunctionsExport();
+		/**
+		 * The instance of the FunctionsImport class that handles the plugin's import functionality.
+		 *
+		 * @var FunctionsImport
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->import_functions = new FunctionsImport();
+		/**
+		 * The instance of the FunctionsSettings class that handles the plugin's settings functionality.
+		 *
+		 * @var FunctionsSettings
+		 * @since 1.0.0
+		 * @access protected
+		 */
 		$this->settings_functions = new FunctionsSettings( new FunctionsPlugins() );
 
 		$this->loader->add_action( 'init', $this->includes, 'init' );

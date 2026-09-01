@@ -6,7 +6,7 @@
  * @since 1.0.0
  * 
  */
-namespace ModPress\Includes\Plugins\TinyMCE\Includes;
+namespace ModPress\Includes\Plugins\TinyMCE\Includes\Core;
 
 class I18n {
     /**

@@ -1,26 +1,26 @@
 <?php
 /**
- * Font Awesome plugin integration for PuginName.
+ * Font Awesome plugin integration for ModPress.
  *
  * @package FontAwesome
  * @textdomain modpress
  * @domainpath Languages
- * @author PuginName Team
+ * @author ModPress Team
  */
 
-namespace PuginName\Includes\Plugins\FontAwesome;
+namespace ModPress\Includes\Plugins\FontAwesome;
 
-use PuginName\Includes\Plugins\AssetsProviderInterface;
-use PuginName\Includes\Plugins\I18nProviderInterface;
-use PuginName\Includes\Plugins\PluginInterface;
-use PuginName\Includes\Plugins\SettingsProviderInterface;
-use PuginName\Includes\Plugins\SettingsPageProviderInterface;
-use PuginName\Includes\Plugins\FontAwesome\Assets\Assets;
-use PuginName\Includes\Plugins\FontAwesome\Includes\IconPicker;
-use PuginName\Includes\Plugins\FontAwesome\API\FontAwesomeAPI;
-use PuginName\Includes\Plugins\FontAwesome\Includes\I18n;
-use PuginName\Includes\Plugins\FontAwesome\Includes\Includes;
-use PuginName\Includes\Core\WP\Activator;
+use ModPress\Includes\Plugins\AssetsProviderInterface;
+use ModPress\Includes\Plugins\I18nProviderInterface;
+use ModPress\Includes\Plugins\PluginInterface;
+use ModPress\Includes\Plugins\SettingsProviderInterface;
+use ModPress\Includes\Plugins\SettingsPageProviderInterface;
+use ModPress\Includes\Plugins\FontAwesome\Assets\Assets;
+use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker;
+use ModPress\Includes\Plugins\FontAwesome\API\FontAwesomeAPI;
+use ModPress\Includes\Plugins\FontAwesome\Includes\Core\I18n;
+use ModPress\Includes\Plugins\FontAwesome\Includes\Includes;
+use ModPress\Includes\Core\WP\Activator;
 
 final class FontAwesome implements PluginInterface, SettingsProviderInterface, SettingsPageProviderInterface, AssetsProviderInterface, I18nProviderInterface {
     /**
@@ -52,12 +52,24 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
         return 'FontAwesome';
     }
     /**
+     * Get the plugin icon.
+     *
+     * @return array{0: string, 1: string} The plugin icon class and color.
+     */
+    public function get_icon(): array {
+        return ['fab fa-font-awesome', '#74c1fcff'];
+    }
+    /**
      * Get the plugin version.
      *
      * @return string The plugin version.
      */
     public function get_version(): string {
-        return MODPRESS_VERSION;
+        if ( self::is_wordpress_fontawesome_active() && function_exists( 'FortAwesome\\fa' ) && class_exists( '\\FortAwesome\\FontAwesome' ) ) {
+            return \FortAwesome\fa()->version();
+        }
+
+        return '1.0.0';
     }
     /**
      * Get the plugin author.
@@ -65,7 +77,7 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @return string The plugin author.
      */
     public function get_author(): string {
-        return 'PuginName Team';
+        return 'TrilB.Dev Team';
     }
     /**
      * Get the plugin author URI.
@@ -81,7 +93,7 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @return string The plugin description.
      */
     public function get_description(): string {
-        return __( 'Provides Font Awesome loading, icon picking, and styling APIs for PuginName.', 'modpress' );
+        return __( 'Provides Font Awesome enqueueing in Admin, Frontend, Login Page, icon picking, and styling APIs for ModPress.', 'modpress' );
     }
     /**
      * Get the plugin URI.
@@ -89,7 +101,7 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @return string The plugin URI.
      */
     public function get_uri(): string {
-        return 'https://modpress.dev';
+        return 'https://trilb.dev/collection/web-extension/wordpress/modpress';
     }
     /**
      * Get the plugin license.
@@ -157,7 +169,27 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @return bool True if the FontAwesome library is available, false otherwise.
      */
     public function is_available(): bool {
-        return function_exists( 'FortAwesome\\fa' ) && class_exists( '\\FortAwesome\\FontAwesome' );
+        return self::is_wordpress_fontawesome_active() || ( function_exists( 'FortAwesome\\fa' ) && class_exists( '\\FortAwesome\\FontAwesome' ) );
+    }
+
+    /**
+     * Determine whether a FontAwesome instance is already present.
+     *
+     * WordPress FontAwesome wins first, and ModPress reuses that namespace and
+     * bootstrap instead of loading a second copy from Composer.
+     *
+     * @return bool True when an active FontAwesome loader or plugin is present.
+     */
+    public static function is_wordpress_fontawesome_active(): bool {
+        if ( function_exists( 'FortAwesome\\fa' ) || class_exists( '\\FortAwesome\\FontAwesome' ) || class_exists( '\\FortAwesome\\FontAwesome_Loader' ) ) {
+            return true;
+        }
+
+        if ( defined( 'FONTAWESOME_PLUGIN_FILE' ) && function_exists( 'is_plugin_active' ) ) {
+            return is_plugin_active( FONTAWESOME_PLUGIN_FILE );
+        }
+
+        return false;
     }
     /**
      * Get the IconPicker instance for the FontAwesome plugin.
@@ -181,6 +213,10 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
     private function __construct() {
         $this->load_vendor();
         Activator::register( static function (): void {
+            if ( self::is_wordpress_fontawesome_active() ) {
+                return;
+            }
+
             if ( class_exists( '\\FortAwesome\\FontAwesome_Loader' ) ) {
                 \FortAwesome\FontAwesome_Loader::initialize();
             }
@@ -188,9 +224,14 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
     }
 
     /**
-     * Loads the FontAwesome package as part of this internal plugin.
+     * Loads the bundled FontAwesome package only when some other active
+     * WordPress FontAwesome integration has not already claimed the namespace.
      */
     private function load_vendor(): void {
+        if ( self::is_wordpress_fontawesome_active() ) {
+            return;
+        }
+
         $vendor_file = MODPRESS_DIR . 'vendor/fortawesome/wordpress-fontawesome/index.php';
         if ( is_readable( $vendor_file ) ) {
             require_once $vendor_file;

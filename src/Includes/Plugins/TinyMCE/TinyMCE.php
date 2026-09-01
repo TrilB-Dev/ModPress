@@ -15,7 +15,7 @@ use ModPress\Includes\Plugins\SettingsProviderInterface;
 use ModPress\Includes\Plugins\SettingsPageProviderInterface;
 use ModPress\Includes\Plugins\TinyMCE\Assets\Assets;
 use ModPress\Includes\Plugins\TinyMCE\Includes\Includes;
-use ModPress\Includes\Plugins\TinyMCE\Includes\I18n;
+use ModPress\Includes\Plugins\TinyMCE\Includes\Core\I18n;
 
 final class TinyMCE implements PluginInterface, SettingsProviderInterface, SettingsPageProviderInterface, AssetsProviderInterface, I18nProviderInterface {
     /**
