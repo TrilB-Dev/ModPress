@@ -48,11 +48,15 @@ define( 'MODPRESS_PLUGINS_URL', MODPRESS_URL . 'src/includes/Plugins' );
 
 $modpress_autoloader = MODPRESS_DIR . 'vendor/autoload.php';
 
-if ( is_readable( $modpress_autoloader ) ) {
+if ( ! file_exists( $modpress_autoloader ) ) {
+    // Log error and deactivate plugin gracefully
+    add_action( 'admin_notices', function() {
+        echo '<div class="notice notice-error"><p><strong>ModPress Error:</strong> Composer dependencies are missing. Please run <code>composer install</code> in the plugin directory.</p></div>';
+    } );
+    return; // Exit early without loading the plugin
+}
 
 	require_once $modpress_autoloader;
-	
-}
 
 /**
  * The code that runs during plugin activation.
