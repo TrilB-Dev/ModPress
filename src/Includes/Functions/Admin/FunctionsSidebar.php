@@ -107,7 +107,7 @@ final class FunctionsSidebar {
 				'capability' => 'modpress_admin_view',
 			],
 			[
-				'name'       => __( 'Manage Wiki', 'modpress' ),
+				'name'       => __( 'Manage Mods', 'modpress' ),
 				'slug'       => 'modpress-manage',
 				'parent'     => 'modpress',
 				'callback'   => [ $admin, 'render_mods' ],
@@ -134,13 +134,13 @@ final class FunctionsSidebar {
 	private static function core_sidebar_groups(): array {
 		return [
 			'manage-mod' => [
-				'label' => __( 'Manage Wiki', 'modpress' ),
+				'label' => __( 'Manage Mods', 'modpress' ),
 				'icon'  => 'fa-solid fa-file-lines',
 				'items' => [
-					'modpress-manage'                  => [ 'label' => __( 'Manage Wiki', 'modpress' ), 'icon' => 'fa-solid fa-book-open-lines', 'capability' => 'modpress_admin_view' ],
-					'modpress-manage&mod=categories' => [ 'label' => __( 'Categories', 'modpress' ), 'icon' => 'fa-book-open-lines-category', 'capability' => 'modpress_edit' ],
-					'modpress-manage&mod=tags'       => [ 'label' => __( 'Tags', 'modpress' ), 'icon' => 'fa-kit fa-solid-book-open-lines-tag', 'capability' => 'modpress_edit' ],
-					'modpress-manage&mod=new'        => [ 'label' => __( 'New Wiki', 'modpress' ), 'icon' => 'fa-kit fa-solid-book-open-lines-circle-plus', 'capability' => 'modpress_create' ],
+					'modpress-manage'                => [ 'label' => __( 'Manage Mods', 'modpress' ), 'icon' => 'fa-solid fa-book-open-lines', 'capability' => 'modpress_admin_view' ],
+					'modpress-manage&mod=groups' 	 => [ 'label' => __( 'Groups', 'modpress' ), 'icon' => 'fa-solid fa-book-open-lines-category', 'capability' => 'modpress_edit' ],
+					'modpress-manage&mod=tags'       => [ 'label' => __( 'Tags', 'modpress' ), 'icon' => 'fa-solid fa-book-open-lines-tag', 'capability' => 'modpress_edit' ],
+					'modpress-manage&mod=new'        => [ 'label' => __( 'New Mod', 'modpress' ), 'icon' => 'fa-kit fa-solid-book-open-lines-circle-plus', 'capability' => 'modpress_create' ],
 				],
 			],
 			'settings' => [
