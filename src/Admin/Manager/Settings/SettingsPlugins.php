@@ -9,6 +9,7 @@
 namespace ModPress\Admin\Manager\Settings;
 
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
+use ModPress\Includes\Functions\Helpers\LoggerHelper;
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
 use ModPress\Includes\Settings\Settings;
 use ModPress\Includes\Plugins\Plugins;
@@ -74,6 +75,8 @@ final class SettingsPlugins {
      * @param string $tab The tab to render.
      */
     public function render( string $tab ): void {
+        LoggerHelper::write_log( sprintf( 'SettingsPlugins::render() tab=%s registered_plugins=%d', $tab, count( Plugins::get_instance()->get_registered_plugins() ) ) );
+
         if ( 'third-party' === $tab ) {
             $this->render_third_party_plugins();
             return;
@@ -106,10 +109,17 @@ final class SettingsPlugins {
      * @since 1.0.0
      */
     private function render_modpress_plugins(): void {
+        $plugins = Plugins::get_instance()->get_registered_plugins();
+        LoggerHelper::write_log( sprintf( 'SettingsPlugins::render_modpress_plugins() count=%d', count( $plugins ) ) );
+
+        foreach ( $plugins as $slug => $plugin ) {
+            LoggerHelper::write_log( sprintf( 'SettingsPlugins plugin candidate slug=%s class=%s instance_of_plugin_interface=%s can_view=%s can_edit=%s', $slug, get_debug_type( $plugin ), $plugin instanceof PluginInterface ? 'yes' : 'no', $plugin instanceof PluginInterface && $this->can_view_plugin( $plugin ) ? 'yes' : 'no', $plugin instanceof PluginInterface && $this->can_edit_plugin( $plugin ) ? 'yes' : 'no' ) );
+        }
         ?>
         <div class="row g-4">
-            <?php foreach ( Plugins::get_instance()->get_registered_plugins() as $plugin ) : ?>
+            <?php foreach ( $plugins as $plugin ) : ?>
                 <?php if ( $plugin instanceof PluginInterface && $this->can_view_plugin( $plugin ) ) : ?>
+                    <?php LoggerHelper::write_log( sprintf( 'SettingsPlugins rendering card for slug=%s', $plugin->get_slug() ) ); ?>
                     <?php $this->render_modpress_plugin_card( $plugin ); ?>
                 <?php endif; ?>
             <?php endforeach; ?>
@@ -144,6 +154,7 @@ final class SettingsPlugins {
         $settings_page = $plugin instanceof SettingsPageProviderInterface ? $plugin->get_settings_page() : [];
         $modal_id = SanitizationHelper::key( $plugin->get_slug() );
         $can_edit = $this->can_edit_plugin( $plugin );
+        LoggerHelper::write_log( sprintf( 'SettingsPlugins::render_modpress_plugin_card() slug=%s enabled=%s can_edit=%s settings_fields=%d', $plugin->get_slug(), $enabled ? 'yes' : 'no', $can_edit ? 'yes' : 'no', is_array( $settings_page['fields'] ?? null ) ? count( $settings_page['fields'] ) : 0 ) );
         ?>
         <div class="col-12 col-md-6 col-xl-4 d-flex">
             <article class="card modpress-plugin-card shadow-sm h-100 w-100">
