@@ -26,7 +26,16 @@ final class ImageHelper {
         }
 
         if ( 'core' === strtolower( trim( $type ) ) ) {
-            return MODPRESS_ASSETS_URL . '/images/' . $file;
+            $base_url = defined( 'MODPRESS_ASSETS_URL' ) && MODPRESS_ASSETS_URL ? rtrim( MODPRESS_ASSETS_URL, '/' ) : '';
+            if ( '' === $base_url && function_exists( 'plugins_url' ) && defined( 'MODPRESS_FILE' ) ) {
+                $base_url = rtrim( plugins_url( 'src/Assets', MODPRESS_FILE ), '/' );
+            }
+
+            if ( '' !== $base_url ) {
+                return $base_url . '/images/' . $file;
+            }
+
+            return '';
         }
 
         $plugin_directory = self::get_plugin_directory( $type );
@@ -34,7 +43,16 @@ final class ImageHelper {
             return '';
         }
 
-        return MODPRESS_PLUGINS_URL . '/' . $plugin_directory . '/Assets/images/' . $file;
+        $plugin_base_url = defined( 'MODPRESS_PLUGINS_URL' ) && MODPRESS_PLUGINS_URL ? rtrim( MODPRESS_PLUGINS_URL, '/' ) : '';
+        if ( '' === $plugin_base_url && function_exists( 'plugins_url' ) && defined( 'MODPRESS_FILE' ) ) {
+            $plugin_base_url = rtrim( plugins_url( 'src/Includes/Plugins', MODPRESS_FILE ), '/' );
+        }
+
+        if ( '' === $plugin_base_url ) {
+            return '';
+        }
+
+        return $plugin_base_url . '/' . $plugin_directory . '/Assets/images/' . $file;
     }
 
     /**
