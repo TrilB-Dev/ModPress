@@ -85,13 +85,6 @@ final class Admin {
         $this->loader->register_component( $this, [
             [ 'type' => 'action', 'hook' => 'wp_ajax_modpress_load_settings_tab', 'callback' => 'load_settings_tab' ],
         ] );
-        $this->loader->register_component( $this->mod_functions, [
-            [ 'type' => 'action', 'hook' => 'wp_ajax_modpress_save_mod_settings', 'callback' => 'save_mod_settings' ],
-            [ 'type' => 'action', 'hook' => 'wp_ajax_modpress_delete_mod', 'callback' => 'delete_mod' ],
-            [ 'type' => 'action', 'hook' => 'wp_ajax_modpress_delete_mod_page', 'callback' => 'delete_mod_page' ],
-            [ 'type' => 'action', 'hook' => 'wp_ajax_modpress_save_mod_term', 'callback' => 'save_mod_term' ],
-            [ 'type' => 'action', 'hook' => 'wp_ajax_modpress_delete_mod_term', 'callback' => 'delete_mod_term' ],
-        ] );
         $this->loader->register_component( $this->plugin_functions, [
             [ 'type' => 'action', 'hook' => 'wp_ajax_modpress_toggle_plugin', 'callback' => 'toggle_plugin' ],
             [ 'type' => 'action', 'hook' => 'wp_ajax_modpress_save_plugin_settings', 'callback' => 'save_plugin_settings' ],
