@@ -26,7 +26,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MODPRESS_VERSION', '0.4.2-Dev' );
+define( 'MODPRESS_VERSION', '0.0.5' );
 define( 'MODPRESS_NAME', 'modpress' );
 define( 'MODPRESS_FILE', __FILE__ );
 define( 'MODPRESS_DIR', plugin_dir_path( __FILE__ ) );
@@ -47,8 +47,11 @@ define( 'MODPRESS_PLUGINS', MODPRESS_INCLUDES . '/Plugins' );
 define( 'MODPRESS_PLUGINS_URL', MODPRESS_URL . 'src/includes/Plugins' );
 
 $modpress_autoloader = MODPRESS_DIR . 'vendor/autoload.php';
+
 if ( is_readable( $modpress_autoloader ) ) {
+
 	require_once $modpress_autoloader;
+	
 }
 
 /**
