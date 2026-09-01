@@ -22,8 +22,6 @@ use ModPress\Includes\Functions\Admin\FunctionsExport;
 use ModPress\Includes\Functions\Admin\FunctionsImport;
 use ModPress\Includes\Functions\Admin\FunctionsPlugins;
 use ModPress\Includes\Functions\Admin\FunctionsSettings;
-use ModPress\API\Routes;
-use ModPress\Includes\Analytics\Analytics;
 use ModPress\Includes\Plugins\Plugins;
 use ModPress\Public\Frontend;
 /**
@@ -231,10 +229,8 @@ class Plugin {
 		$this->loader->add_action( 'admin_post_modpress_import', $this->import_functions, 'import_data' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $this->assets, 'enqueue_admin' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $this->assets, 'enqueue_frontend' );
-		$this->loader->add_action( 'wp_head', Analytics::class, 'track_view' );
 		$this->loader->add_filter( 'the_content', $this->frontend, 'filter_content' );
 		$this->loader->add_filter( 'body_class', $this->frontend, 'body_classes' );
-		$this->loader->add_action( 'rest_api_init', Routes::class, 'register_routes' );
 	}
 
 	/**
