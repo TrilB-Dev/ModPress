@@ -20,14 +20,14 @@ const entries = {
 
 const fontAwesomeEntries = {
   'icon-picker': [
-    './src/includes/Plugins/FontAwesome/Assets/js/icon-picker.js',
-    './src/includes/Plugins/FontAwesome/Assets/scss/icon-picker.scss',
+    './src/Includes/Plugins/FontAwesome/Assets/js/icon-picker.js',
+    './src/Includes/Plugins/FontAwesome/Assets/scss/icon-picker.scss',
   ],
 };
 const tinyMCEEntries = {
   'tinyMCE': [
-    './src/includes/Plugins/TinyMCE/Assets/js/tinymce.js',
-    './src/includes/Plugins/TinyMCE/Assets/scss/tinymce.scss',
+    './src/Includes/Plugins/TinyMCE/Assets/js/tinymce.js',
+    './src/Includes/Plugins/TinyMCE/Assets/scss/tinymce.scss',
   ],
 };
 
@@ -93,7 +93,7 @@ module.exports = [
     ...shared,
     entry: fontAwesomeEntries,
     output: {
-      path: path.resolve(__dirname, 'src/includes/Plugins/FontAwesome/Assets/dist'),
+      path: path.resolve(__dirname, 'src/Includes/Plugins/FontAwesome/Assets/dist'),
       filename: 'js/[name].js',
       clean: true,
     },
@@ -105,7 +105,7 @@ module.exports = [
     ...shared,
     entry: tinyMCEEntries,
     output: {
-      path: path.resolve(__dirname, 'src/includes/Plugins/TinyMCE/Assets/dist'),
+      path: path.resolve(__dirname, 'src/Includes/Plugins/TinyMCE/Assets/dist'),
       filename: 'js/[name].js',
       clean: true,
     },
