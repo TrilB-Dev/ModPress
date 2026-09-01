@@ -206,7 +206,7 @@ final class Assets {
      * @param string $file The image file name.
      * @return string The URL of the image asset.
      */
-    public function get_image( string $file ): string {
+    public static function get_image( string $file ): string {
 
         return ImageHelper::get_image_url( 'core', $file );
     }
