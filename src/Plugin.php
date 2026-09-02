@@ -47,6 +47,14 @@ class Plugin {
 	 */
 	protected string $plugin_file;
 	/**
+	 * The unique identifier of this plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @var      string    $plugin_name    The string used to uniquely identify this plugin.
+	 */
+	protected string $plugin_name;
+	/**
 	 * The instance of the Includes class that handles the plugin's includes.
 	 *
 	 * @var Includes
@@ -114,15 +122,6 @@ class Plugin {
 	 * @access protected
 	 */
 	protected FunctionsSettings $settings_functions;
-
-	/**
-	 * The unique identifier of this plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      string    $plugin_name    The string used to uniquely identify this plugin.
-	 */
-	protected string $plugin_name;
 
 	/**
 	 * The current version of the plugin.
