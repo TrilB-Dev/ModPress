@@ -90,7 +90,7 @@ class Plugins {
          * Plugins installed via the normal WordPress plugin system can hook
          * into this action and call ModPress\Plugins::register_plugin().
          */
-        do_action( 'pluginpress_register_plugin', $this );
+        do_action( 'modpress_register_plugin', $this );
     }
     /**
      * Retrieves the list of loaded plugin class names.

@@ -90,13 +90,13 @@ final class SettingsManager {
         return [
             'general' => [
                 'root_name' => 'ModPress',
-                'root_description' => __( 'A searchable knowledge base powered by ModPress.', 'modpress' ),
-                'archive_title' => __( 'ModPress Documentation', 'modpress' ),
-                'archive_description' => __( 'Browse the ModPress knowledge base.', 'modpress' ),
-                'root_slug' => 'mod',
-                'category_slug' => 'mod-category',
-                'tag_slug' => 'mod-tag',
-                'permalink' => '%root%/%root_category%/%mod%/%mod_category%/%mod_tag%/%mod_page%',
+                'root_description' => __( 'A searchable catalogue powered by ModPress.', 'modpress' ),
+                'archive_title' => __( 'ModPress Catalogue', 'modpress' ),
+                'archive_description' => __( 'Browse the ModPress catalogue.', 'modpress' ),
+                'root_slug' => 'catalogue',
+                'category_slug' => 'catalogue-group',
+                'tag_slug' => 'catalogue-tag',
+                'permalink' => '%root%/%mod_category%/%mod_tag%/%mod_page%',
                 'enable_schema' => true,
             ],
             'layout' => [
@@ -109,10 +109,10 @@ final class SettingsManager {
                 'show_feedback' => true,
                 'show_related_pages' => true,
                 'related_pages_count' => 4,
-                'search_placeholder' => __( 'Search the Wiki', 'modpress' ),
+                'search_placeholder' => __( 'Search the catalogue', 'modpress' ),
                 'search_button_text' => __( 'Search', 'modpress' ),
                 'search_scope' => 'all',
-                'search_no_results_message' => __( 'No Wiki pages found.', 'modpress' ),
+                'search_no_results_message' => __( 'No catalogue entries found.', 'modpress' ),
                 'search_results_count' => 10,
                 'search_min_chars' => 2,
                 'search_live_results' => true,
@@ -133,7 +133,10 @@ final class SettingsManager {
                 'reading_time_wpm' => 200,
             ],
             'access' => [],
-            'tools' => [ 'debug_logging' => false, 'console_logging' => false ],
+            'tools' => [ 
+                'debug_logging' => false,
+                'console_logging' => false 
+            ],
         ];
     }
 
