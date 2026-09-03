@@ -33,18 +33,62 @@ final class FunctionsSettings {
      * @return void
      */
     public function register_settings(): void {
-        register_setting( 'modpress_settings', 'modpress_general', [ 'sanitize_callback' => [ $this, 'sanitize_general' ] ] );
-        register_setting( 'modpress_settings', 'modpress_layout', [ 'sanitize_callback' => [ $this, 'sanitize_layout' ] ] );
-        register_setting( 'modpress_settings', 'modpress_access', [ 'sanitize_callback' => [ $this, 'sanitize_access' ] ] );
-        register_setting( 'modpress_settings', 'modpress_tools', [ 'sanitize_callback' => [ $this, 'sanitize_tools' ] ] );
+        // ModPress stores settings in its own custom table rather than the default
+        // WordPress options table. The regular settings API is intentionally not used
+        // here; form submissions are handled through the custom admin-post flow.
+    }
 
-        foreach ( $this->plugin_functions->plugin_settings_pages() as $page ) {
-            register_setting(
-                'modpress_settings',
-                'modpress_' . $page['slug'],
-                [ 'sanitize_callback' => $page['provider']->sanitize_settings( ... ) ]
-            );
+    /**
+     * Save ModPress settings submitted from the admin settings screens.
+     *
+     * @return void
+     */
+    public function save_settings(): void {
+        if ( ! isset( $_POST['_wpnonce_modpress_save_settings'] ) ) {
+            wp_die( esc_html__( 'Invalid ModPress settings request.', 'modpress' ) );
         }
+
+        $nonce = sanitize_text_field( wp_unslash( $_POST['_wpnonce_modpress_save_settings'] ) );
+        if ( ! wp_verify_nonce( $nonce, 'modpress_save_settings' ) ) {
+            wp_die( esc_html__( 'Security check failed while saving ModPress settings.', 'modpress' ) );
+        }
+
+        $tab = sanitize_key( wp_unslash( $_POST['modpress_tab'] ?? $_POST['tab'] ?? 'general' ) );
+        $allowed_tabs = [ 'general', 'layout', 'access' ];
+        if ( ! in_array( $tab, $allowed_tabs, true ) ) {
+            $tab = 'general';
+        }
+
+        $capability = [
+            'general' => 'modpress_settings_general_edit',
+            'layout' => 'modpress_settings_layout_edit',
+            'access' => 'modpress_settings_access_edit',
+        ][ $tab ];
+
+        if ( ! current_user_can( $capability ) ) {
+            wp_die( esc_html__( 'You are not authorized to save these ModPress settings.', 'modpress' ) );
+        }
+
+        $raw_input = isset( $_POST[ 'modpress_' . $tab ] ) && is_array( $_POST[ 'modpress_' . $tab ] ) ? wp_unslash( $_POST[ 'modpress_' . $tab ] ) : [];
+
+        $sanitized = match ( $tab ) {
+            'general' => $this->sanitize_general( $raw_input ),
+            'layout' => $this->sanitize_layout( $raw_input ),
+            'access' => $this->sanitize_access( $raw_input ),
+            default => [],
+        };
+
+        if ( 'general' === $tab ) {
+            Settings::set_group( Settings::GENERAL, $sanitized );
+        } elseif ( 'layout' === $tab ) {
+            Settings::set_group( Settings::LAYOUT, $sanitized );
+        } elseif ( 'access' === $tab ) {
+            Settings::set_group( Settings::ACCESS, $sanitized );
+        }
+
+        $redirect = admin_url( 'admin.php?page=modpress-settings&tab=' . $tab );
+        wp_safe_redirect( $redirect );
+        exit;
     }
 
     public function sanitize_general( $input ): array {

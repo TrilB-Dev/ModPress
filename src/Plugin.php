@@ -317,7 +317,7 @@ class Plugin {
 		$this->loader->add_action( 'init', $this->includes, 'init' );
 		$this->loader->add_action( 'init', $this->plugins, 'init', -10 );
 		$this->loader->add_action( 'admin_menu', $this->admin, 'register_admin_menu' );
-		$this->loader->add_action( 'admin_init', $this->settings_functions, 'register_settings' );
+		$this->loader->add_action( 'admin_post_modpress_save_settings', $this->settings_functions, 'save_settings' );
 		$this->loader->add_action( 'admin_post_modpress_export', $this->export_functions, 'export_data' );
 		$this->loader->add_action( 'admin_post_modpress_import', $this->import_functions, 'import_data' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $this->assets, 'enqueue_admin' );
