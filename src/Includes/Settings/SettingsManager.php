@@ -96,7 +96,7 @@ final class SettingsManager {
                 'root_slug' => 'catalogue',
                 'category_slug' => 'catalogue-group',
                 'tag_slug' => 'catalogue-tag',
-                'permalink' => '%root%/%mod_category%/%mod_tag%/%mod_page%',
+                'permalink' => '%root%/%mod_group%/%mod_tag%/%mod_page%',
                 'enable_schema' => true,
             ],
             'layout' => [
