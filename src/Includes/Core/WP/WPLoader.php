@@ -127,6 +127,29 @@ class WPLoader {
     }
 
     private function record_callback( array $record ): callable {
-        return null === $record['component'] ? $record['callback'] : [ $record['component'], $record['callback'] ];
+        $component = $record['component'] ?? null;
+        $callback = $record['callback'] ?? null;
+
+        if ( null === $component && is_callable( $callback ) ) {
+            return $callback;
+        }
+
+        if ( is_array( $component ) && isset( $component[0], $component[1] ) && is_callable( $component ) ) {
+            return $component;
+        }
+
+        if ( is_string( $component ) && is_string( $callback ) && is_callable( [ $component, $callback ] ) ) {
+            return [ $component, $callback ];
+        }
+
+        if ( is_object( $component ) && is_string( $callback ) && is_callable( [ $component, $callback ] ) ) {
+            return [ $component, $callback ];
+        }
+
+        if ( is_string( $component ) && is_string( $callback ) && class_exists( $component ) && method_exists( $component, $callback ) ) {
+            return [ $component, $callback ];
+        }
+
+        throw new \InvalidArgumentException( sprintf( 'Hook callback %s is not callable.', is_string( $callback ) ? $callback : 'unknown' ) );
     }
 }
