@@ -21,14 +21,14 @@ final class PermalinkHelper {
     public static function token_definitions(): array {
         return [
             '%root%' => __( 'The root ModPress slug.', 'modpress' ),
-            '%mod_category%' => __( 'The Mod Post categories, from parent to child.', 'modpress' ),
+            '%mod_group%' => __( 'The Mod Post categories, from parent to child.', 'modpress' ),
             '%mod_tag%' => __( 'The tags assigned to the Mod Post.', 'modpress' ),
             '%mod_page%' => __( 'The Mod Post page slug.', 'modpress' ),
         ];
     }
 
     public static function default_pattern(): string {
-        return '%root%/%mod_category%/%mod_tag%/%mod_page%';
+        return '%root%/%mod_group%/%mod_tag%/%mod_page%';
     }
 
     public static function sanitize_pattern( $pattern ): string {
@@ -70,7 +70,7 @@ final class PermalinkHelper {
     public static function expand( string $pattern, \WP_Post $page, ?\WP_Post $mod = null ): string {
         $values = [
             '%root%' => sanitize_title( (string) Settings::get( 'root_slug', 'mod' ) ),
-            '%mod_category%' => self::term_path( Taxonomy::CATEGORY, $page->ID ),
+            '%mod_group%' => self::term_path( Taxonomy::CATEGORY, $page->ID ),
             '%mod_tag%' => self::term_path( Taxonomy::TAG, $page->ID ),
             '%mod_page%' => sanitize_title( $page->post_name ?: $page->post_title ),
         ];
