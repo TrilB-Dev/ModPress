@@ -1,6 +1,32 @@
 const path = require('path');
 const fs = require('fs');
+const { copyFileSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+class CopyUnprocessedAssetPlugin {
+  constructor(patterns) {
+    this.patterns = patterns;
+  }
+
+  apply(compiler) {
+    compiler.hooks.afterEmit.tap('CopyUnprocessedAssetPlugin', () => {
+      this.patterns.forEach(({ from, to }) => {
+        const src = path.resolve(__dirname, from);
+        const dest = path.resolve(__dirname, to);
+
+        mkdirSync(path.dirname(dest), { recursive: true });
+
+        if (path.basename(dest) === 'bs-country-data.min.css') {
+          const css = readFileSync(src, 'utf8').replace(/url\(\s*['"]?\.\.\/images\//g, 'url(../../images/');
+          writeFileSync(dest, css);
+          return;
+        }
+
+        copyFileSync(src, dest);
+      });
+    });
+  }
+}
 
 const entries = {
   bootstrap: [
@@ -77,6 +103,36 @@ const shared = {
 };
 
 module.exports = [
+  {
+    ...shared,
+    entry: entries,
+    output: {
+      path: path.resolve(__dirname, 'src/Assets/dist'),
+      filename: 'js/[name].js',
+      clean: true,
+    },
+    plugins: [
+      new MiniCssExtractPlugin({ filename: 'css/[name].css' }),
+      new CopyUnprocessedAssetPlugin([
+        {
+          from: 'node_modules/@crestapps/bootstrap-select/dist/css/bootstrap-select.min.css',
+          to: 'src/Assets/dist/css/bootstrap-select.min.css',
+        },
+        {
+          from: 'node_modules/@crestapps/bootstrap-select/dist/js/bootstrap-select.min.js',
+          to: 'src/Assets/dist/js/bootstrap-select.min.js',
+        },
+        {
+          from: 'node_modules/@trilbdev/boostrap-select-country-data/dist/js/bs-country-data.min.js',
+          to: 'src/Assets/dist/js/bs-country-data.min.js',
+        },
+        {
+          from: 'node_modules/@trilbdev/boostrap-select-country-data/dist/css/bs-country-data.min.css',
+          to: 'src/Assets/dist/css/bs-country-data.min.css',
+        },
+      ]),
+    ],
+  },
   {
     ...shared,
     entry: entries,

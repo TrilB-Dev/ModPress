@@ -78,11 +78,20 @@ final class SettingsManager {
     public static function get_all(): array {
         global $wpdb;
         $rows = $wpdb->get_results( 'SELECT setting_group, setting_value FROM ' . self::table_name(), ARRAY_A );
-        $settings = [];
+        $settings = self::registered_defaults();
+
         foreach ( $rows ?: [] as $row ) {
             $group = self::logical_group( $row['setting_group'] );
-            $settings[ $group ] = maybe_unserialize( $row['setting_value'] );
+            $stored = maybe_unserialize( $row['setting_value'] );
+
+            if ( ! is_array( $stored ) ) {
+                continue;
+            }
+
+            $defaults = self::registered_defaults()[ $group ] ?? [];
+            $settings[ $group ] = array_merge( $defaults, $stored );
         }
+
         return $settings;
     }
 
@@ -142,9 +151,16 @@ final class SettingsManager {
 
     public static function get_group( string $group ): ?array {
         global $wpdb;
+        $group = self::normalize_group( $group );
         $value = $wpdb->get_var( $wpdb->prepare( 'SELECT setting_value FROM ' . self::table_name() . ' WHERE setting_group = %s', self::storage_group( $group ) ) );
         $settings = $value === null ? null : maybe_unserialize( $value );
-        return is_array( $settings ) ? $settings : null;
+
+        if ( ! is_array( $settings ) ) {
+            return self::registered_defaults()[ $group ] ?? null;
+        }
+
+        $defaults = self::registered_defaults()[ $group ] ?? [];
+        return array_merge( $defaults, $settings );
     }
 
     public static function set_group( string $group, array $settings ): bool {

@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Database class for ModPress plugin.
+ *
+ * @package ModPress
+ * @since 1.0.0
+ */
 namespace ModPress\Includes\Core\WP;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,7 +18,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * than modifying the core schema registry.
  */
 final class Database {
-    /** @var array<string, callable> */
+    /**
+     * Registered custom database tables.
+     *
+     * @var array<string, callable>
+     */
     private static array $registered_tables = [];
 
     /**

@@ -1,5 +1,5 @@
-// Keep WordPress admin form rules from overriding Bootstrap on ModPress screens.
-.modpress-admin {
+// Keep WordPress admin form rules from overriding Bootstrap on WikiPress screens.
+.licencepress-admin {
 	button,
 	input,
 	select,
@@ -25,7 +25,7 @@
 		max-width: 100%;
 		padding: 0.375rem 0.75rem;
 		transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-		width: 100%;
+		width: auto;
 	}
 
 	input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']),
@@ -91,7 +91,7 @@
 		margin: 0 0.35rem 0 0;
 		padding: 0;
 		vertical-align: -0.125em;
-		width: 1em;
+		width: 2em;
 	}
 
 	input[type='checkbox'] {

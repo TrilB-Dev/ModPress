@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Deactivator class for ModPress plugin.
+ *
+ * @package ModPress
+ * @since 1.0.0
+ */
 namespace ModPress\Includes\Core\WP;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -7,7 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Deactivator {
-    /** @var array<int, callable> */
+    /**
+     * Registered deactivation callbacks.
+     *
+     * @var array<int, callable>
+     */
     private static array $callbacks = array();
 
     /**

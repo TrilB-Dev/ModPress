@@ -31,17 +31,32 @@ jobs:
 
       - name: Install Node dependencies
         shell: bash
-        run: npm ci
+        run: npm install
 
-      - name: Build frontend assets
+      - name: Build Node frontend assets
         shell: bash
         run: npm run build
 
-      - name: Install production dependencies
+      - name: Add Node changes
+        shell: bash
+        run: |
+          shopt -s globstar
+          git add src/**/build/** || true
+
+      - name: Commit Node changes
+        shell: bash
+        run: |
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Build Node frontend assets"
+          fi
+
+      - name: Install Composer production dependencies
         shell: bash
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Add composer changes
+      - name: Add Composer changes
         shell: bash
         run: git add vendor/ composer.lock || true
 
@@ -58,7 +73,7 @@ jobs:
         shell: bash
         run: git push origin Deploy
 
-      - name: Checkout master branch
+      - name: Checkout Master branch
         shell: bash
         run: git checkout master
 
@@ -74,12 +89,15 @@ jobs:
         shell: bash
         run: |
           # Force removal of directories
+          rm -rf .vscode || true
           rm -rf .github || true
+          rm -rf .kiota || true
           rm -rf dev-stubs || true
-          rm -rf Docs || true
           rm -rf node_modules || true
           rm -rf Test || true
           rm -rf scripts || true
+          rm -rf Docs || true
+          rm -rf PluginBackup || true
           
       - name: Remove Root Non Production Files
         shell: bash
@@ -87,11 +105,12 @@ jobs:
           # Force removal of files    
           rm -f .deployignore || true
           rm -f .gitignore || true
-          rm -f phpcs.xml.dist || true
-          rm -f phpunit.xml.dist || true
           rm -f package-lock.json || true
           #rm -f package.json || true
+          rm -f phpunit.xml.dist || true
+          rm -f phpcs.xml.dist || true
           rm -f webpack.config.js || true
+          rm -f .wp-env.json || true
 
       - name: Add all remaining files
         shell: bash
@@ -103,7 +122,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No deployment cleanup changes to commit"
           else
-            git commit -m "Remove development files and update to latest master"
+            git commit -m "Deployment Ready - Remove development files and update to latest Master"
           fi
 
       - name: Push Deploy

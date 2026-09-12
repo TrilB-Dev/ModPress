@@ -17,6 +17,7 @@
   "dependencies": {
     "@crestapps/bootstrap-select": "^1.2.1",
     "@popperjs/core": "^2.11.8",
+    "@trilbdev/boostrap-select-country-data": "^1.0.4",
     "bootstrap": "^5.3.8",
     "tinymce": "^8.8.2"
   },

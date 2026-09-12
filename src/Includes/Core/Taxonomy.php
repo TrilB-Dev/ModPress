@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Taxonomy management for ModPress.
+ *
+ * @package ModPress\Includes\Core
+ * @since 1.0.0
+ */
 namespace ModPress\Includes\Core;
 
 use ModPress\Includes\Settings\Settings;
@@ -9,9 +14,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Taxonomy {
+    /**
+     * Taxonomy slugs used by ModPress.
+     * 
+     * @since 1.0.0
+     * @var string The taxonomy slug for the group taxonomy.
+     */
     public const GROUP = 'modpress_group';
+    /**
+     * Taxonomy slug for the category taxonomy.
+     *
+     * @since 1.0.0
+     * @var string The taxonomy slug for the category taxonomy.
+     */
     public const CATEGORY = 'modpress_category';
+    /**
+     * Taxonomy slug for the tag taxonomy.
+     *
+     * @since 1.0.0
+     * @var string The taxonomy slug for the tag taxonomy.
+     */
     public const TAG = 'modpress_tag';
+    /**
+     * Taxonomy slug for the games taxonomy.
+     *
+     * @since 1.0.0
+     * @var string The taxonomy slug for the games taxonomy.
+     */
     public const GAMES = 'modpress_game';
 
     /**
@@ -115,11 +144,25 @@ final class Taxonomy {
 
         return apply_filters( 'modpress_feature_taxonomy_definitions', $definitions );
     }
-
+    /**
+     * Feature group taxonomy slugs used by ModPress.
+     *
+     * @since 1.0.0
+     * @return array<string, string> Feature group taxonomy slugs.
+     */
     private static function feature_groups(): array {
         return apply_filters( 'modpress_feature_taxonomy_groups', self::FEATURE_GROUPS );
     }
-
+    /**
+     * Restrict game terms based on their assigned content group.
+     *
+     * @param array<int, int> $terms Term IDs.
+     * @param int $object_id Object ID.
+     * @param string $taxonomy Taxonomy slug.
+     * @param bool $append Whether to append terms.
+     * @param array<int, int> $old_term_taxonomy_ids Old term taxonomy IDs.
+     * @return array<int, int>|\WP_Error Filtered term IDs or WP_Error on failure.
+     */
     public static function restrict_game_terms( $terms, int $object_id, string $taxonomy, bool $append, array $old_term_taxonomy_ids ) {
         if ( self::GAMES !== $taxonomy ) {
             return $terms;
@@ -139,7 +182,12 @@ final class Taxonomy {
 
         return $terms;
     }
-
+    /**
+     * Get the arguments for the group taxonomy.
+     *
+     * @since 1.0.0
+     * @return array<string, mixed> Taxonomy arguments.
+     */
     public static function group_args(): array {
         return apply_filters( 'modpress_group_taxonomy_args', [
             'labels' => [ 'name' => __( 'Groups', 'modpress' ), 'singular_name' => __( 'Group', 'modpress' ) ],
@@ -150,7 +198,12 @@ final class Taxonomy {
             'rewrite' => [ 'slug' => self::setting_slug( 'group_slug', 'group' ) ],
         ], self::GROUP );
     }
-
+    /**
+     * Get the arguments for the games taxonomy.
+     *
+     * @since 1.0.0
+     * @return array<string, mixed> Taxonomy arguments.
+     */
     public static function games_args(): array {
         return apply_filters( 'modpress_games_taxonomy_args', [
             'labels' => [ 'name' => __( 'Games', 'modpress' ), 'singular_name' => __( 'Game', 'modpress' ) ],
@@ -161,7 +214,11 @@ final class Taxonomy {
             'rewrite' => [ 'slug' => self::setting_slug( 'games_slug', 'game' ) ],
         ], self::GAMES );
     }
-
+    /**
+     * Seed the root groups for the group taxonomy.
+     *
+     * @since 1.0.0
+     */
     private static function seed_root_groups(): void {
         $groups = apply_filters( 'modpress_root_groups', self::ROOT_GROUPS );
 
@@ -208,11 +265,23 @@ final class Taxonomy {
             'rewrite' => [ 'slug' => self::setting_slug( 'tag_slug', 'mod-tag' ) ],
         ], self::TAG );
     }
-
+    /**
+     * Get all registered taxonomy names.
+     *
+     * @since 1.0.0
+     * @return array<int, string> Taxonomy slugs.
+     */
     public static function get_taxonomy_names(): array {
         return [ self::GROUP, self::CATEGORY, self::TAG, self::GAMES ];
     }
-
+    /**
+     * Get the sanitized slug for a taxonomy setting.
+     *
+     * @since 1.0.0
+     * @param string $key Setting key.
+     * @param string $fallback Fallback slug.
+     * @return string Sanitized slug.
+     */
     private static function setting_slug( string $key, string $fallback ): string {
         $value = sanitize_title( (string) Settings::get( $key, $fallback ) );
         return $value !== '' ? $value : $fallback;

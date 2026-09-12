@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Core capability definitions and management.
+ *
+ * @package ModPress\Includes\Core
+ * @since 1.0.0
+ */
 namespace ModPress\Includes\Core;
 
 if ( ! defined( 'ABSPATH' ) ) {

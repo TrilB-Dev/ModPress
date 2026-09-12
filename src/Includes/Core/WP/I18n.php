@@ -32,13 +32,25 @@ final class I18n {
 	 */
 	public const DEFAULT_LOCALE = 'en_GB';
 
-	/** @var string */
+	/**
+	 * Text domain for the plugin.
+	 *
+	 * @var string
+	 */
 	private string $domain;
 
-	/** @var string */
+	/**
+	 * Relative path to the languages directory.
+	 *
+	 * @var string
+	 */
 	private string $languages_path;
 
-	/** @var string */
+	/**
+	 * Default locale for the plugin.
+	 *
+	 * @var string
+	 */
 	private string $default_locale;
 
 	/**

@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * Core editor functionality for ModPress.
+ *
+ * @package ModPress\Includes\Core
+ */
 namespace ModPress\Includes\Core;
 
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
@@ -10,6 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Editor {
+    /**
+     * Save a ModPress page.
+     *
+     * @param int $mod_id Mod ID.
+     * @param int $page_id Page ID.
+     * @return bool Success state.
+     */
     public static function save_mod_page( int $mod_id, int $page_id = 0 ): bool {
         if ( 'POST' !== strtoupper( $_SERVER['REQUEST_METHOD'] ?? '' ) || 'save_mod_page' !== ( $_POST['modpress_action'] ?? '' ) || ! check_admin_referer( 'modpress_save_mod_page', 'modpress_save_mod_page_nonce' ) ) {
             return false;
@@ -48,7 +59,12 @@ final class Editor {
         update_post_meta( $post_id, '_modpress_mod_id', $mod_id );
         return true;
     }
-
+    /**
+     * Render the ModPress page form.
+     *
+     * @param \WP_Post|null $page Page object.
+     * @return void
+     */
     public static function render_mod_page_form( ?\WP_Post $page = null ): void {
         ?>
         <form method="post" class="card shadow-sm">

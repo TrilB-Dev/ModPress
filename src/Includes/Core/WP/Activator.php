@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Activator class for ModPress plugin.
+ *
+ * @package ModPress
+ * @since 1.0.0
+ */
 namespace ModPress\Includes\Core\WP;
 
 use ModPress\Includes\Core\Capabilities;
@@ -11,7 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Activator {
-    /** @var array<int, callable> */
+    
+    /**
+     * Registered activation callbacks.
+     *
+     * @var array<int, callable>
+     */
     private static array $callbacks = array();
 
     /**

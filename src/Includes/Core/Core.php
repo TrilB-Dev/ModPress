@@ -13,26 +13,28 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-/**
- * Coordinate ModPress core registration and reusable WordPress services.
- *
- * Post types and taxonomies remain separate components; this class provides a
- * single lifecycle boundary for ModPress and extension plugins.
- */
 final class Core {
     /**
+     * Post type registrar instance.
+     * 
      * @var PostType Post type registrar.
      */
     private PostType $post_types;
     /**
+     * Taxonomy registrar instance.
+     * 
      * @var Taxonomy Taxonomy registrar.
      */
     private Taxonomy $taxonomies;
     /**
+     * Shortcode registrar instance.
+     *
      * @var Shortcodes Shortcode registrar.
      */
     private Shortcodes $shortcodes;
     /**
+     * Registration state for the core components.
+     *
      * @var bool Whether core registration has run.
      */
     private bool $registered = false;

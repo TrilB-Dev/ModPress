@@ -1,0 +1,13 @@
+{
+  "core": "WordPress/WordPress#6.6.3",
+  "plugins": [
+    "."
+  ],
+  "themes": [],
+  "config": {
+    "WP_DEBUG": true,
+    "SCRIPT_DEBUG": true,
+    "FS_METHOD": "direct"
+  },
+  "testsEnvironment": false
+}
