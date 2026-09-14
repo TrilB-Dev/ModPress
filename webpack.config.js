@@ -35,13 +35,15 @@ const entries = {
   ],
   'admin.ui': [
     './src/Assets/js/admin.ui.js',
+    './src/Assets/js/admin.dashboard.js',
+    './src/Assets/js/admin.page.js',
+    './src/Assets/js/admin.plugins.js',
+    './src/Assets/js/admin.settings.js',
+    './src/Assets/js/admin.tools.js',
     './src/Assets/scss/admin.ui.scss',
   ],
-  'wpoverride': './src/Assets/scss/wpoverride.scss',
-  'bootstrap-select': [
-    './src/Assets/js/bootstrap-select.js',
-    './src/Assets/scss/bootstrap-select.scss',
-  ],
+  'bootstrap-select-control': './src/Assets/js/bootstrap-select-control.js',
+  'wpoverride': './src/Assets/scss/wpoverride.scss'
 };
 
 const fontAwesomeEntries = {
@@ -129,7 +131,7 @@ module.exports = [
         {
           from: 'node_modules/@trilbdev/boostrap-select-country-data/dist/css/bs-country-data.min.css',
           to: 'src/Assets/dist/css/bs-country-data.min.css',
-        },
+        }
       ]),
     ],
   },

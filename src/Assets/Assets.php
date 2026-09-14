@@ -60,49 +60,71 @@ final class Assets {
             'styles'  => [
                 [
                     'handle' => 'modpress-wp-override',
-                    'src' => MODPRESS_URL . 'src/Assets/dist/css/wpoverride.css',
+                    'src' => MODPRESS_ASSETS_URL . 'dist/css/wpoverride.css',
                     'deps' => [ 'forms' ],
                 ],
                 [
                     'handle' => 'modpress-bootstrap',
-                    'src' => MODPRESS_URL . 'src/Assets/dist/css/bootstrap.css',
+                    'src' => MODPRESS_ASSETS_URL . 'dist/css/bootstrap.css',
                     'version' => '5.3.8',
                     'deps' => [ 'modpress-wp-override' ],
                 ],
                 [
                     'handle' => 'modpress-bootstrap-select',
-                    'src' => MODPRESS_URL . 'src/Assets/dist/css/bootstrap-select.css',
+                    'src' => MODPRESS_ASSETS_URL . 'dist/css/bootstrap-select.min.css',
                     'version' => '1.2.2',
                     'deps' => [
                         'modpress-bootstrap'
                         ]
                 ],
+                [
+                    'handle' => 'modpress-bs-country-data',
+                    'src' => MODPRESS_ASSETS_URL . 'dist/css/bs-country-data.min.css',
+                    'version' => '1.2.2',
+                    'deps' => [
+                        'modpress-bootstrap-select'
+                    ]
+                ]
             ],
             'scripts' => [
                 [
                     'handle' => 'modpress-bootstrap',
-                    'src' => MODPRESS_URL . 'src/Assets/dist/js/bootstrap.js',
+                    'src' => MODPRESS_ASSETS_URL . 'dist/js/bootstrap.js',
                     'version' => '5.3.8',
                     'in_footer' => true
                 ],
                 [
                     'handle' => 'modpress-bootstrap-select',
-                    'src' => MODPRESS_URL . 'src/Assets/dist/js/bootstrap-select.js',
+                    'src' => MODPRESS_ASSETS_URL . 'dist/js/bootstrap-select.min.js',
                     'version' => '1.2.2',
                     'deps' => [ 'modpress-bootstrap' ],
                     'in_footer' => true
                 ],
+                [
+                    'handle' => 'modpress-bs-country-data',
+                    'src' => MODPRESS_ASSETS_URL . 'dist/js/bs-country-data.min.js',
+                    'version' => '1.2.2',
+                    'deps' => [ 'modpress-bootstrap-select' ],
+                    'in_footer' => true
+                ],
+                [
+                    'handle' => 'modpress-bootstrap-select-control',
+                    'src' => MODPRESS_ASSETS_URL . 'dist/js/bootstrap-select-control.js',
+                    'version' => '1.0.0',
+                    'deps' => [ 'modpress-bootstrap-select' ],
+                    'in_footer' => true
+                ]
             ],
         ];
 
         if ( 'admin' === $context ) {
             $defaults['styles'][] = [
                 'handle' => 'modpress-admin-ui',
-                'src' => MODPRESS_URL . 'src/Assets/dist/css/admin.ui.css',
+                'src' => MODPRESS_ASSETS_URL . 'dist/css/admin.ui.css',
             ];
             $defaults['scripts'][] = [
                 'handle' => 'modpress-admin-ui',
-                'src' => MODPRESS_URL . 'src/Assets/dist/js/admin.ui.js',
+                'src' => MODPRESS_ASSETS_URL . 'dist/js/admin.ui.js',
                 'deps' => [ 'modpress-bootstrap' ],
                 'in_footer' => true,
             ];
@@ -123,8 +145,8 @@ final class Assets {
 
         $assets = apply_filters( 'modpress_base_assets', [], 'frontend' );
         $this->enqueue_registered( 'frontend', [
-            'styles'  => array_merge( $assets['base']['styles'] ?? [], [ [ 'handle' => 'modpress-public', 'src' => MODPRESS_URL . 'src/Assets/dist/css/public.css' ] ] ),
-            'scripts' => array_merge( $assets['base']['scripts'] ?? [], [ [ 'handle' => 'modpress-public', 'src' => MODPRESS_URL . 'src/Assets/dist/js/public.js', 'in_footer' => true ] ] ),
+            'styles'  => array_merge( $assets['base']['styles'] ?? [], [ [ 'handle' => 'modpress-public', 'src' => MODPRESS_ASSETS_URL . 'dist/css/public.css' ] ] ),
+            'scripts' => array_merge( $assets['base']['scripts'] ?? [], [ [ 'handle' => 'modpress-public', 'src' => MODPRESS_ASSETS_URL . 'dist/js/public.js', 'in_footer' => true ] ] ),
         ] );
     }
     /**
@@ -166,10 +188,10 @@ final class Assets {
      */
     private function enqueue_bundle( array $assets ): void {
         if ( isset( $assets['styles'] ) && is_string( $assets['styles'] ) ) {
-            $assets['styles'] = [ [ 'handle' => 'modpress-admin-' . $assets['styles'], 'src' => MODPRESS_URL . 'src/Assets/dist/css/admin.' . $assets['styles'] . '.css' ] ];
+            $assets['styles'] = [ [ 'handle' => 'modpress-admin-' . $assets['styles'], 'src' => MODPRESS_ASSETS_URL . 'dist/css/admin.' . $assets['styles'] . '.css' ] ];
         }
         if ( isset( $assets['scripts'] ) && is_string( $assets['scripts'] ) ) {
-            $assets['scripts'] = [ [ 'handle' => 'modpress-admin-' . $assets['scripts'], 'src' => MODPRESS_URL . 'src/Assets/dist/js/admin.' . $assets['scripts'] . '.js', 'deps' => [ 'modpress-bootstrap' ] ] ];
+            $assets['scripts'] = [ [ 'handle' => 'modpress-admin-' . $assets['scripts'], 'src' => MODPRESS_ASSETS_URL . 'dist/js/admin.' . $assets['scripts'] . '.js', 'deps' => [ 'modpress-bootstrap' ] ] ];
         }
         foreach ( $assets['styles'] ?? [] as $style ) {
             wp_enqueue_style( $style['handle'], $style['src'], $style['deps'] ?? [], $style['version'] ?? MODPRESS_VERSION, $style['media'] ?? 'all' );

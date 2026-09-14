@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",()=>{const e=document,t=e.querySelector("#modpress-reset-scope"),n=e.querySelector("#modpress-reset-plugins");if(!t||!n)return;const o=()=>{const e="plugins"===t.value;n.hidden=!e,n.querySelectorAll('input[type="checkbox"]').forEach(t=>{t.disabled=!e})};t.addEventListener("change",o),o()});
