@@ -172,14 +172,15 @@ final class SettingsManager extends Manager {
             echo '</div>';
             return;
         }
+        echo '<div class="modpress-settings-card card shadow-sm">';
+
         if ( $can_edit ) {
-            echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="modpress-settings-form card shadow-sm">';
+            echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="modpress-settings-form">';
             echo '<input type="hidden" name="action" value="modpress_save_settings" />';
             echo '<input type="hidden" name="modpress_tab" value="' . esc_attr( $tab ) . '" />';
             echo wp_nonce_field( 'modpress_save_settings', '_wpnonce_modpress_save_settings', true, false );
-        } else {
-            echo '<div class="modpress-settings-form card shadow-sm">';
         }
+
         echo '<div class="card-body">';
         if ( 'layout' === $tab ) {
             $this->layout_page->render( $values, SanitizationHelper::key( $layout_section, 'general' ) );
@@ -203,7 +204,11 @@ final class SettingsManager extends Manager {
                 'class' => 'btn-primary',
             ] );
         }
-        echo '</div>' . ( $can_edit ? '</form>' : '' );
+        echo '</div>';
+
+        if ( $can_edit ) {
+            echo '</form>';
+        }
         echo '</div>';
     }
     /**
