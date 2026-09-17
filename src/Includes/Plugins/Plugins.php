@@ -163,6 +163,11 @@ class Plugins {
         if ( $slug === '' ) {
             return;
         }
+        
+		if ( preg_match( '/-demo$/', $slug ) === 1 ) {
+			LoggerHelper::write_log( sprintf( 'ModPress plugin %s is ignored because plugin slugs ending in -demo are reserved for demo-only plugins.', $slug ) );
+			return;
+		}
 
         if ( isset( $this->registered_plugins[ $slug ] ) ) {
             return;

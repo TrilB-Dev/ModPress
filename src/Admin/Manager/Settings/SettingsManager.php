@@ -156,60 +156,95 @@ final class SettingsManager extends Manager {
         $can_edit = isset( $edit_capabilities[ $tab ] ) && current_user_can( $edit_capabilities[ $tab ] );
         $groups = Settings::get_all();
         $values = $groups[ $tab ] ?? [];
-        echo '<div class="modpress-settings-tab-content" role="tabpanel">';
         $tab_context = [
-            'general' => [ 'description' => __( 'Configure ModPress names, URL slugs, and permalink settings.', 'modpress' ), 'tooltip' => __( 'These settings affect how ModPress content is identified and linked throughout the site.', 'modpress' ) ],
-            'layout' => [ 'description' => __( 'Choose which navigation and page layout features ModPress displays.', 'modpress' ), 'tooltip' => __( 'Layout settings control the visitor-facing ModPress interface.', 'modpress' ) ],
-            'access' => [ 'description' => __( 'Set the minimum WordPress capabilities required for ModPress tasks.', 'modpress' ), 'tooltip' => __( 'Choose carefully so editors and administrators retain the access they need.', 'modpress' ) ],
-            'plugins' => [ 'description' => __( 'View the ModPress plugins installed on this site.', 'modpress' ), 'tooltip' => __( 'Plugin-specific configuration is available from each plugin settings page when provided.', 'modpress' ) ],
-            'third-party' => [ 'description' => __( 'View third-party plugins installed on this site.', 'modpress' ), 'tooltip' => __( 'Third-party plugin settings are managed through WordPress or the plugin author’s own settings page.', 'modpress' ) ],
+            'general' => [
+                'description' => __( 'Configure ModPress names, URL slugs, and permalink settings.', 'modpress' ),
+                'tooltip' => __( 'These settings affect how ModPress content is identified and linked throughout the site.', 'modpress' ),
+            ],
+            'layout' => [
+                'description' => __( 'Choose which navigation and page layout features ModPress displays.', 'modpress' ),
+                'tooltip' => __( 'Layout settings control the visitor-facing ModPress interface.', 'modpress' ),
+            ],
+            'access' => [
+                'description' => __( 'Set the minimum WordPress capabilities required for ModPress tasks.', 'modpress' ),
+                'tooltip' => __( 'Choose carefully so editors and administrators retain the access they need.', 'modpress' ),
+            ],
+            'plugins' => [
+                'description' => __( 'View the ModPress plugins installed on this site.', 'modpress' ),
+                'tooltip' => __( 'Plugin-specific configuration is available from each plugin settings page when provided.', 'modpress' ),
+            ],
+            'third-party' => [
+                'description' => __( 'View third-party plugins installed on this site.', 'modpress' ),
+                'tooltip' => __( 'Third-party plugin settings are managed through WordPress or the plugin author’s own settings page.', 'modpress' ),
+            ],
         ];
-        if ( isset( $tab_context[ $tab ] ) ) {
-            echo '<p class="text-secondary mb-4">' . esc_html( $tab_context[ $tab ]['description'] ) . ' ' . FormFieldHelper::label( 'modpress-settings-context', __( 'Settings information', 'modpress' ), [ 'tooltip' => $tab_context[ $tab ]['tooltip'], 'tooltip_type' => 'info', 'tooltip_icon' => 'fa-circle-info', 'class' => 'visually-hidden' ] ) . '</p>';
-        }
-        if ( in_array( $tab, [ 'plugins', 'third-party' ], true ) ) {
-            $this->plugins_page->render( $tab );
-            echo '</div>';
-            return;
-        }
-        echo '<div class="modpress-settings-card card shadow-sm">';
+        ?>
+        <div class="modpress-settings-tab-content" role="tabpanel">
+            <?php if ( isset( $tab_context[ $tab ] ) ) : ?>
+                <p class="text-secondary mb-4">
+                    <?php echo esc_html( $tab_context[ $tab ]['description'] ); ?>
+                    <?php echo FormFieldHelper::label(
+                        'modpress-settings-context',
+                        __( 'Settings information', 'modpress' ),
+                        [
+                            'tooltip' => $tab_context[ $tab ]['tooltip'],
+                            'tooltip_type' => 'info',
+                            'tooltip_icon' => 'fa-circle-info',
+                            'class' => 'visually-hidden',
+                        ]
+                    ); ?>
+                </p>
+            <?php endif; ?>
 
-        if ( $can_edit ) {
-            echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="modpress-settings-form">';
-            echo '<input type="hidden" name="action" value="modpress_save_settings" />';
-            echo '<input type="hidden" name="modpress_tab" value="' . esc_attr( $tab ) . '" />';
-            echo wp_nonce_field( 'modpress_save_settings', '_wpnonce_modpress_save_settings', true, false );
-        }
+            <?php if ( in_array( $tab, [ 'plugins', 'third-party' ], true ) ) : ?>
+                <?php $this->plugins_page->render( $tab ); ?>
+            <?php return; ?>
+        </div>
+        <?php endif; ?>
 
-        echo '<div class="card-body">';
-        if ( 'layout' === $tab ) {
-            $this->layout_page->render( $values, SanitizationHelper::key( $layout_section, 'general' ) );
-        } else {
-            echo '<table class="form-table table align-middle"><tbody>';
-        }
-        if ( 'general' === $tab ) {
-            $this->general_page->render( $values );
-        } elseif ( 'access' === $tab ) {
-            $this->access_page->render( $values );
-        } elseif ( $this->plugins_page->has_settings_page( $tab ) ) {
-            $this->plugins_page->render_settings_page( $tab, $values );
-        }
-        if ( 'layout' !== $tab ) {
-            echo '</tbody></table>';
-        }
-        if ( $can_edit ) {
-            echo FormFieldHelper::button( __( 'Save Changes', 'modpress' ), [
-                'type' => 'submit',
-                'name' => 'submit',
-                'class' => 'btn-primary',
-            ] );
-        }
-        echo '</div>';
+        <div class="modpress-settings-page">
+            <div class="modpress-settings-card card shadow-sm">
+                <?php if ( $can_edit ) : ?>
+                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="modpress-settings-form">
+                        <input type="hidden" name="action" value="modpress_save_settings" />
+                        <input type="hidden" name="modpress_tab" value="<?php echo esc_attr( $tab ); ?>" />
+                        <?php wp_nonce_field( 'modpress_save_settings', '_wpnonce_modpress_save_settings', true, false ); ?>
+                <?php endif; ?>
 
-        if ( $can_edit ) {
-            echo '</form>';
-        }
-        echo '</div>';
+                <div class="card-body">
+                    <?php if ( 'layout' === $tab ) : ?>
+                        <?php $this->layout_page->render( $values, SanitizationHelper::key( $layout_section, 'general' ) ); ?>
+                    <?php else : ?>
+                        <table class="form-table table align-middle" role="presentation">
+                            <tbody>
+                                <?php if ( 'general' === $tab ) : ?>
+                                    <?php $this->general_page->render( $values ); ?>
+                                <?php elseif ( 'access' === $tab ) : ?>
+                                    <?php $this->access_page->render( $values ); ?>
+                                <?php elseif ( $this->plugins_page->has_settings_page( $tab ) ) : ?>
+                                    <?php $this->plugins_page->render_settings_page( $tab, $values ); ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+
+                    <?php if ( $can_edit ) : ?>
+                        <div class="modpress-settings-actions d-flex justify-content-end mt-3">
+                            <?php echo FormFieldHelper::button( __( 'Save Changes', 'modpress' ), [
+                                'type' => 'submit',
+                                'name' => 'submit',
+                                'class' => 'btn-primary',
+                            ] ); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ( $can_edit ) : ?>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php
     }
     /**
      * Normalize the tab name to ensure it is valid.
