@@ -9,6 +9,7 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "build:watch": "webpack --watch --mode development --config webpack.config.js",
+    "replace": "powershell -ExecutionPolicy Bypass -File ./scripts/search-replace.ps1",
     "rename": "node Scripts/rename-plugin.js",
     "i18n:pot": "node scripts/generate-pot.js",
     "i18n:mo": "node scripts/generate-mo.js",

@@ -10,8 +10,8 @@ namespace ModPress\Includes\Functions\Admin;
 
 use ModPress\Admin\Admin;
 use ModPress\Includes\Functions\Helpers\LoggerHelper;
-use ModPress\Includes\Functions\Helpers\MPAMHelper;
-use ModPress\Includes\Functions\Helpers\MPASMHelper;
+use ModPress\Includes\Functions\Helpers\AMHelper;
+use ModPress\Includes\Functions\Helpers\ASMHelper;
 use ModPress\Includes\Plugins\AdminMenuProviderInterface;
 use ModPress\Includes\Plugins\AdminSidebarProviderInterface;
 use ModPress\Includes\Plugins\Plugins;
@@ -38,7 +38,7 @@ final class FunctionsSidebar {
 			self::register_wordpress_menu( $menu );
 		}
 
-		foreach ( MPAMHelper::filter( self::plugin_wordpress_menus() ) as $menu ) {
+		foreach ( AMHelper::filter( self::plugin_wordpress_menus() ) as $menu ) {
 			self::register_wordpress_menu( $menu );
 		}
 	}
@@ -50,7 +50,7 @@ final class FunctionsSidebar {
 	 */
 	public static function get_sidebar_groups(): array {
 		$groups = self::core_sidebar_groups();
-		$menus  = MPASMHelper::filter( self::plugin_sidebar_menus() );
+		$menus  = ASMHelper::filter( self::plugin_sidebar_menus() );
 
 		// Create parents first so children can target a parent in any order.
 		foreach ( $menus as $menu ) {
@@ -66,15 +66,20 @@ final class FunctionsSidebar {
 			}
 		}
 
-		foreach ( $groups as &$group ) {
-			$group['items'] = array_filter(
-				$group['items'],
-				static fn ( array $item ): bool => '' === ( $capability = sanitize_key( (string) ( $item['capability'] ?? '' ) ) ) || current_user_can( $capability )
-			);
+		foreach ( $groups as $group_key => $group ) {
+			$filtered_items = array();
+			foreach ( $group['items'] as $item ) {
+				$capability = sanitize_key( (string) ( $item['capability'] ?? '' ) );
+				if ( self::can_view_menu_item( $capability ) ) {
+					$filtered_items[] = $item;
+				}
+			}
+			$groups[ $group_key ]['items'] = $filtered_items;
 		}
-		unset( $group );
 
-		return array_filter( $groups, static fn ( array $group ): bool => ! empty( $group['items'] ) );
+		$groups = array_filter( $groups, static fn ( array $group ): bool => ! empty( $group['items'] ) );
+
+		return $groups;
 	}
 
 	/**
@@ -137,58 +142,148 @@ final class FunctionsSidebar {
 				'label' => __( 'Manage Mods', 'modpress' ),
 				'icon'  => 'fa-solid fa-file-lines',
 				'items' => [
-					'modpress-manage'                => [ 'label' => __( 'Manage Mods', 'modpress' ), 'icon' => 'fa-solid fa-book-open-lines', 'capability' => 'modpress_admin_view' ],
-					'modpress-manage&mod=groups' 	 => [ 'label' => __( 'Groups', 'modpress' ), 'icon' => 'fa-solid fa-book-open-lines-category', 'capability' => 'modpress_edit' ],
-					'modpress-manage&mod=tags'       => [ 'label' => __( 'Tags', 'modpress' ), 'icon' => 'fa-solid fa-book-open-lines-tag', 'capability' => 'modpress_edit' ],
-					'modpress-manage&mod=new'        => [ 'label' => __( 'New Mod', 'modpress' ), 'icon' => 'fa-kit fa-solid-book-open-lines-circle-plus', 'capability' => 'modpress_create' ],
+					'manage' => [
+						'label'      => __( 'Manage Mods', 'modpress' ),
+						'icon'       => 'fa-solid fa-book-open-lines',
+						'link'       => 'modpress&group=manage-mod&tab=manage',
+						'capability' => 'modpress_admin_view',
+					],
+					'groups' => [
+						'label'      => __( 'Groups', 'modpress' ),
+						'icon'       => 'fa-solid fa-book-open-lines-category',
+						'link'       => 'modpress&group=manage-mod&tab=groups',
+						'capability' => 'modpress_edit',
+					],
+					'tags' => [
+						'label'      => __( 'Tags', 'modpress' ),
+						'icon'       => 'fa-solid fa-book-open-lines-tag',
+						'link'       => 'modpress&group=manage-mod&tab=tags',
+						'capability' => 'modpress_edit',
+					],
+					'new' => [
+						'label'      => __( 'New Mod', 'modpress' ),
+						'icon'       => 'fa-kit fa-solid-book-open-lines-circle-plus',
+						'link'       => 'modpress&group=manage-mod&tab=new',
+						'capability' => 'modpress_create',
+					],
 				],
 			],
 			'settings' => [
 				'label' => __( 'Settings', 'modpress' ),
 				'icon'  => 'fa-solid fa-gear',
 				'items' => [
-					'modpress-settings&tab=general'     => [ 'label' => __( 'General', 'modpress' ), 'icon' => 'fa-solid fa-sliders', 'capability' => 'modpress_settings_general_view' ],
-					'modpress-settings&tab=layout'      => [ 'label' => __( 'Layout', 'modpress' ), 'icon' => 'fa-solid fa-table-columns', 'capability' => 'modpress_settings_layout_view' ],
-					'modpress-settings&tab=plugins'     => [ 'label' => __( 'Plugins', 'modpress' ), 'icon' => 'fa-solid fa-puzzle-piece', 'capability' => 'modpress_settings_plugins_view' ],
-					'modpress-settings&tab=third-party' => [ 'label' => __( '3rd Party', 'modpress' ), 'icon' => 'fa-solid fa-plug', 'capability' => 'modpress_settings_plugins_ext_view' ],
-					'modpress-settings&tab=access'      => [ 'label' => __( 'Access', 'modpress' ), 'icon' => 'fa-solid fa-user-shield', 'capability' => 'modpress_settings_access_view' ],
+					'general' => [
+						'label'      => __( 'General', 'modpress' ),
+						'icon'       => 'fa-solid fa-sliders',
+						'link'       => 'modpress&group=settings&tab=general',
+						'capability' => 'modpress_settings_general_view',
+					],
+					'layout' => [
+						'label'      => __( 'Layout', 'modpress' ),
+						'icon'       => 'fa-solid fa-table-columns',
+						'link'       => 'modpress&group=settings&tab=layout',
+						'capability' => 'modpress_settings_layout_view',
+					],
+					'plugins' => [
+						'label'      => __( 'Plugins', 'modpress' ),
+						'icon'       => 'fa-solid fa-puzzle-piece',
+						'link'       => 'modpress&group=settings&tab=plugins',
+						'capability' => 'modpress_settings_plugins_view',
+					],
+					'third-party' => [
+						'label'      => __( '3rd Party', 'modpress' ),
+						'icon'       => 'fa-solid fa-plug',
+						'link'       => 'modpress&group=settings&tab=third-party',
+						'capability' => 'modpress_settings_plugins_ext_view',
+					],
+					'access' => [
+						'label'      => __( 'Access', 'modpress' ),
+						'icon'       => 'fa-solid fa-user-shield',
+						'link'       => 'modpress&group=settings&tab=access',
+						'capability' => 'modpress_settings_access_view',
+					],
 				],
 			],
 			'tools' => [
 				'label' => __( 'Tools', 'modpress' ),
 				'icon'  => 'fa-solid fa-toolbox',
 				'items' => [
-					'modpress-tools&tool=debug'     => [ 'label' => __( 'Debug', 'modpress' ), 'icon' => 'fa-solid fa-bug-slash', 'capability' => 'modpress_tools_debug' ],
-					'modpress-tools&tool=import'    => [ 'label' => __( 'Import', 'modpress' ), 'icon' => 'fa-solid fa-file-import', 'capability' => 'modpress_tools_import' ],
-					'modpress-tools&tool=export'    => [ 'label' => __( 'Export', 'modpress' ), 'icon' => 'fa-solid fa-file-export', 'capability' => 'modpress_tools_export' ],
-					'modpress-tools&tool=analytics' => [ 'label' => __( 'Analytics', 'modpress' ), 'icon' => 'fa-solid fa-chart-line', 'capability' => 'modpress_tools_analytics' ],
+					'debug' => [
+						'label'      => __( 'Debug', 'modpress' ),
+						'icon'       => 'fa-solid fa-bug-slash',
+						'link'       => 'modpress&group=tools&tab=debug',
+						'capability' => 'modpress_tools_debug',
+					],
+					'import' => [
+						'label'      => __( 'Import', 'modpress' ),
+						'icon'       => 'fa-solid fa-file-import',
+						'link'       => 'modpress&group=tools&tab=import',
+						'capability' => 'modpress_tools_import',
+					],
+					'export' => [
+						'label'      => __( 'Export', 'modpress' ),
+						'icon'       => 'fa-solid fa-file-export',
+						'link'       => 'modpress&group=tools&tab=export',
+						'capability' => 'modpress_tools_export',
+					],
+					'analytics' => [
+						'label'      => __( 'Analytics', 'modpress' ),
+						'icon'       => 'fa-solid fa-chart-line',
+						'link'       => 'modpress&group=tools&tab=analytics',
+						'capability' => 'modpress_tools_analytics',
+					],
 				],
 			],
 		];
 	}
-
+	/**
+	 * Register a WordPress menu.
+	 *
+	 * @param array<string, mixed> $menu The menu definition.
+	 * @return void
+	 */
 	private static function register_wordpress_menu( array $menu ): void {
 		$callback   = $menu['callback'] ?? null;
-		$slug       = sanitize_key( (string) ( $menu['slug'] ?? '' ) );
+		$raw_slug   = (string) ( $menu['slug'] ?? '' );
+		$slug       = self::menu_page_slug( $raw_slug );
 		$name       = (string) ( $menu['name'] ?? '' );
 		$parent     = self::admin_parent_slug( (string) ( $menu['parent'] ?? '' ) );
-		$capability = sanitize_key( (string) ( $menu['capability'] ?? 'manage_options' ) );
+		$capability = self::resolve_menu_capability( sanitize_key( (string) ( $menu['capability'] ?? 'manage_options' ) ) );
 
 		if ( '' === $slug || '' === $name || ! is_callable( $callback ) ) {
+			LoggerHelper::write_log( sprintf( 'ModPress skipped menu registration for empty or invalid page: %s', $raw_slug ) );
 			return;
 		}
 
-		if ( '' === $parent ) {
-			add_menu_page( $name, $name, $capability, $slug, $callback, $menu['icon'] ?? 'dashicons-admin-generic', $menu['position'] ?? null );
-			return;
-		}
+		LoggerHelper::write_log( sprintf( 'ModPress registering admin menu: %s (slug=%s, parent=%s, capability=%s)', $name, $slug, $parent, $capability ) );
 
-		add_submenu_page( $parent, $name, $name, $capability, $slug, $callback, $menu['position'] ?? null );
+		try {
+			if ( '' === $parent ) {
+				add_menu_page( $name, $name, $capability, $slug, $callback, $menu['icon'] ?? 'dashicons-admin-generic', $menu['position'] ?? null );
+				return;
+			}
+
+			if ( $slug === $parent ) {
+				LoggerHelper::write_log( sprintf( 'ModPress skipped submenu registration because slug matches parent: %s', $slug ) );
+				return;
+			}
+
+			add_submenu_page( $parent, $name, $name, $capability, $slug, $callback, $menu['position'] ?? null );
+		} catch ( \Throwable $e ) {
+			LoggerHelper::write_log( sprintf( 'ModPress menu registration failed for %s (%s): %s', $name, $slug, $e->getMessage() ) );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				wp_die( esc_html( $e->getMessage() ), __( 'ModPress menu registration error', 'licencepress' ), array( 'back_link' => true ) );
+			}
+		}
 	}
 
-	/** @return array<int, array<string, mixed>> */
+	/**
+	 * Get the WordPress menus provided by active ModPress plugins.
+	 *
+	 * @return array<int, array<string, mixed>> The WordPress menus.
+	*/
 	private static function plugin_wordpress_menus(): array {
-		$menus = [];
+		$menus = array();
 
 		foreach ( Plugins::get_instance()->get_registered_plugins() as $plugin ) {
 			if ( ! $plugin instanceof AdminMenuProviderInterface || ! $plugin->is_active() ) {
@@ -202,10 +297,10 @@ final class FunctionsSidebar {
 					}
 
 					$menus[] = self::normalize_wordpress_menu( $definition );
-					foreach ( $definition['children'] ?? [] as $child ) {
+					foreach ( $definition['children'] ?? array() as $child ) {
 						if ( is_array( $child ) ) {
 							$child['parent'] = $definition['menu_slug'] ?? '';
-							$menus[] = self::normalize_wordpress_menu( $child );
+							$menus[]         = self::normalize_wordpress_menu( $child );
 						}
 					}
 				}
@@ -217,9 +312,14 @@ final class FunctionsSidebar {
 		return array_values( array_filter( $menus, static fn ( $menu ): bool => is_array( $menu ) ) );
 	}
 
-	/** @param array<string, mixed> $definition @return array<string, mixed> */
+	/**
+	 * Normalize a WordPress menu definition.
+	 *
+	 * @param array<string, mixed> $definition The menu definition.
+	 * @return array<string, mixed> The normalized menu.
+	 */
 	private static function normalize_wordpress_menu( array $definition ): array {
-		return [
+		return array(
 			'name'       => $definition['menu_title'] ?? $definition['page_title'] ?? '',
 			'slug'       => $definition['menu_slug'] ?? '',
 			'icon'       => $definition['icon'] ?? 'dashicons-admin-generic',
@@ -227,17 +327,49 @@ final class FunctionsSidebar {
 			'callback'   => $definition['callback'] ?? null,
 			'capability' => $definition['capability'] ?? 'manage_options',
 			'position'   => $definition['position'] ?? null,
-		];
+		);
 	}
-
+	/**
+	 * Sanitize an admin parent slug.
+	 *
+	 * @param string $parent The parent slug to sanitize.
+	 * @return string The sanitized parent slug.
+	 */
 	private static function admin_parent_slug( string $parent ): string {
 		$parent = strtolower( sanitize_text_field( $parent ) );
 		return (string) preg_replace( '/[^a-z0-9._-]/', '', $parent );
 	}
+	/**
+	 * Sanitize a menu page slug.
+	 *
+	 * @param string $slug The menu page slug.
+	 * @return string The sanitized menu page slug.
+	 */
+	private static function menu_page_slug( string $slug ): string {
+		$slug = trim( (string) $slug );
+		if ( '' === $slug || preg_match( '/^\d+$/', $slug ) ) {
+			return '';
+		}
 
-	/** @return array<int, array<string, mixed>> */
+		if ( false !== strpos( $slug, '&' ) ) {
+			$base = trim( (string) strtok( $slug, '&' ) );
+			if ( '' === $base || preg_match( '/^\d+$/', $base ) ) {
+				return '';
+			}
+			return $base . substr( $slug, strlen( $base ) );
+		}
+
+		$base = sanitize_key( $slug );
+		return '' !== $base && ! preg_match( '/^\d+$/', $base ) ? $base : '';
+	}
+
+	/**
+	 * Get the sidebar menus provided by active ModPress plugins.
+	 *
+	 * @return array<int, array<string, mixed>> The sidebar menus.
+	 */
 	private static function plugin_sidebar_menus(): array {
-		$menus = [];
+		$menus = array();
 
 		foreach ( Plugins::get_instance()->get_registered_plugins() as $plugin ) {
 			if ( ! $plugin instanceof AdminSidebarProviderInterface || ! $plugin->is_active() ) {
@@ -251,16 +383,16 @@ final class FunctionsSidebar {
 					}
 
 					if ( 'group' === ( $definition['type'] ?? '' ) ) {
-						$menus[] = MPASMHelper::define( $definition['label'] ?? '', $definition['slug'] ?? '', $definition['icon'] ?? '', '', $definition['capability'] ?? '' );
-						foreach ( $definition['items'] ?? [] as $child ) {
+						$menus[] = ASMHelper::define( $definition['label'] ?? '', $definition['slug'] ?? '', $definition['icon'] ?? '', '', $definition['capability'] ?? '' );
+						foreach ( $definition['items'] ?? array() as $child ) {
 							if ( is_array( $child ) ) {
-								$menus[] = MPASMHelper::define( $child['label'] ?? '', self::sidebar_slug( $child ), $child['icon'] ?? '', $definition['slug'] ?? '', $child['capability'] ?? '' );
+								$menus[] = ASMHelper::define( $child['label'] ?? '', self::sidebar_slug( $child ), $child['icon'] ?? '', $definition['slug'] ?? '', $child['capability'] ?? '' );
 							}
 						}
 						continue;
 					}
 
-					$menus[] = MPASMHelper::define( $definition['label'] ?? '', self::sidebar_slug( $definition ), $definition['icon'] ?? '', $definition['parent'] ?? '', $definition['capability'] ?? '' );
+					$menus[] = ASMHelper::define( $definition['label'] ?? '', self::sidebar_slug( $definition ), $definition['icon'] ?? '', $definition['parent'] ?? '', $definition['capability'] ?? '' );
 				}
 			} catch ( \Throwable $e ) {
 				LoggerHelper::write_log( sprintf( 'ModPress plugin %s failed to provide sidebar menus: %s', $plugin->get_slug(), $e->getMessage() ) );
@@ -270,10 +402,15 @@ final class FunctionsSidebar {
 		return $menus;
 	}
 
-	/** @param array<string, mixed> $definition */
+	/**
+	 * Generate a sidebar slug from a menu definition.
+	 *
+	 * @param array<string, mixed> $definition The menu definition.
+	 * @return string The generated sidebar slug.
+	 */
 	private static function sidebar_slug( array $definition ): string {
 		$page  = (string) ( $definition['page'] ?? $definition['slug'] ?? '' );
-		$query = $definition['query'] ?? [];
+		$query = $definition['query'] ?? array();
 
 		if ( ! is_array( $query ) || empty( $query ) ) {
 			return $page;
@@ -282,36 +419,109 @@ final class FunctionsSidebar {
 		return $page . '&' . http_build_query( array_filter( $query, 'is_scalar' ), '', '&', PHP_QUERY_RFC3986 );
 	}
 
-	/** @param array<string, array<string, mixed>> $groups @param array<string, mixed> $menu */
+	/**
+	 * Add a sidebar group to the collection of groups.
+	 *
+	 * @param array<string, array<string, mixed>> $groups The collection of sidebar groups.
+	 * @param array<string, mixed> $menu The menu definition for the group.
+	 * @return void
+	 */
 	private static function add_sidebar_group( array &$groups, array $menu ): void {
 		$slug  = self::menu_slug( $menu );
 		$label = (string) ( $menu['name'] ?? '' );
 		$icon  = (string) ( $menu['icon'] ?? '' );
 
-		if ( '' !== $slug && '' !== $label && '' !== $icon ) {
-			$groups[ $slug ] = [ 'label' => $label, 'icon' => $icon, 'items' => [] ];
+		if ( '' !== $slug && ! preg_match( '/^\d+$/', $slug ) && '' !== $label && '' !== $icon ) {
+			$groups[ $slug ] = array(
+				'label' => $label,
+				'icon'  => $icon,
+				'items' => array(),
+			);
 		}
 	}
 
-	/** @param array<string, array<string, mixed>> $groups @param array<string, mixed> $menu */
+	/**
+	 * Add a sidebar item to a parent group.
+	 *
+	 * @param array<string, array<string, mixed>> $groups The collection of sidebar groups.
+	 * @param string $parent The parent group slug.
+	 * @param array<string, mixed> $menu The menu definition for the item.
+	 * @return void
+	 */
 	private static function add_sidebar_item( array &$groups, string $parent, array $menu ): void {
-		$slug  = (string) ( $menu['slug'] ?? '' );
+		$slug  = trim( (string) ( $menu['slug'] ?? '' ) );
 		$label = (string) ( $menu['name'] ?? '' );
 		$icon  = (string) ( $menu['icon'] ?? '' );
 
 		$capability = sanitize_key( (string) ( $menu['capability'] ?? '' ) );
-		if ( isset( $groups[ $parent ] ) && '' !== $slug && '' !== $label && '' !== $icon && ( '' === $capability || current_user_can( $capability ) ) ) {
-			$groups[ $parent ]['items'][ $slug ] = [ 'label' => $label, 'icon' => $icon, 'capability' => $capability ];
+		if ( isset( $groups[ $parent ] ) && '' !== $slug && ! preg_match( '/^\d+$/', $slug ) && '' !== $label && '' !== $icon && ( '' === $capability || current_user_can( $capability ) ) ) {
+			$groups[ $parent ]['items'][ $slug ] = array(
+				'label'      => $label,
+				'icon'       => $icon,
+				'capability' => $capability,
+			);
 		}
 	}
 
-	/** @param array<string, mixed> $menu */
+	/**
+	 * Get the parent slug from a menu definition.
+	 *
+	 * @param array<string, mixed> $menu The menu definition.
+	 * @return string The parent slug.
+	 */
 	private static function parent_slug( array $menu ): string {
 		return sanitize_key( (string) ( $menu['parent'] ?? '' ) );
 	}
 
-	/** @param array<string, mixed> $menu */
+	/**
+	 * Get the menu slug from a menu definition.
+	 *
+	 * @param array<string, mixed> $menu The menu definition.
+	 * @return string The menu slug.
+	 */
 	private static function menu_slug( array $menu ): string {
 		return sanitize_key( (string) ( $menu['slug'] ?? '' ) );
+	}
+
+	/**
+	 * Determine if the current user can view a menu item.
+	 *
+	 * Administrators keep access even when a fresh role capability install has not
+	 * yet refreshed their user capability cache.
+	 *
+	 * @param string $capability The capability to check.
+	 * @return bool True if the menu item should be visible.
+	 */
+	private static function can_view_menu_item( string $capability ): bool {
+		if ( '' === $capability ) {
+			return true;
+		}
+
+		if ( current_user_can( 'manage_options' ) ) {
+			return true;
+		}
+
+		return current_user_can( $capability );
+	}
+
+	/**
+	 * Resolve the effective capability to use when registering a WordPress menu.
+	 *
+	 * Admins should remain able to see the ModPress menu while the custom
+	 * role capability map catches up after activation or a role refresh.
+	 *
+	 * @param string $capability The capability to normalize.
+	 * @return string The effective capability.
+	 */
+	private static function resolve_menu_capability( string $capability ): string {
+		if ( '' === $capability ) {
+			return 'manage_options';
+		}
+
+		if ( current_user_can( 'manage_options' ) ) {
+			return 'manage_options';
+		}
+
+		return $capability;
 	}
 }
