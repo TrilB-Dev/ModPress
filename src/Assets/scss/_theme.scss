@@ -1,0 +1,100 @@
+.modpress-admin {
+    --modpress-blue: #2563eb;        /* WordPress-inspired primary */
+	--modpress-light-blue: #3b82f6;  /* Lighter accent for hovers */
+	--modpress-deep-blue: #1e3a8a;   /* Darker accent for headers */
+	--modpress-microsoft-red: #d83b01;
+	--modpress-microsoft-green: #107c10;
+	--modpress-microsoft-yellow: #ffb900;
+
+	--modpress-ink: #152238;         /* Deep text / dark mode anchor */
+	--modpress-navy: #102a43;        /* Sidebar / panel background */
+	--modpress-paper: #f6f8fb;       /* Main background */
+	--modpress-card: #ffffff;        /* Card surfaces */
+	--modpress-line: #dce4ed;        /* Borders, dividers */
+	--modpress-header: #eaf3f7;      /* Header + toolbar background */
+
+	--modpress-success: #0f9d58;     /* Google/Microsoft hybrid green */
+	--modpress-warning: #f4b400;     /* Warm amber */
+	--modpress-danger: #d93025;      /* Strong red */
+	--modpress-info: #1a73e8;        /* Informational blue */
+
+	--modpress-text: #1f2937;        /* Primary text */
+	--modpress-text-muted: #6b7280;  /* Secondary text */
+	--modpress-link: #2563eb;        /* Links */
+	--modpress-link-hover: #1d4ed8;  /* Hover links */
+	--modpress-focus-ring: #3b82f6;  /* Focus outlines */
+
+	--modpress-dark-bg: #0d1117;
+	--modpress-dark-card: #161b22;
+	--modpress-dark-line: #30363d;
+	--modpress-dark-text: #c9d1d9;
+	--modpress-dark-text-muted: #8b949e;
+
+	--bs-blue: var(--modpress-blue);
+	--bs-primary: var(--modpress-blue);
+	--bs-primary-rgb: 37, 99, 235;
+	--bs-secondary: var(--modpress-text-muted);
+	--bs-secondary-rgb: 107, 114, 128;
+	--bs-success: var(--modpress-success);
+	--bs-success-rgb: 15, 157, 88;
+	--bs-warning: var(--modpress-warning);
+	--bs-warning-rgb: 244, 180, 0;
+	--bs-danger: var(--modpress-danger);
+	--bs-danger-rgb: 217, 48, 37;
+	--bs-info: var(--modpress-info);
+	--bs-info-rgb: 26, 115, 232;
+	--bs-light: var(--modpress-paper);
+	--bs-light-rgb: 246, 248, 251;
+	--bs-dark: var(--modpress-ink);
+	--bs-dark-rgb: 21, 34, 56;
+	--bs-body-color: var(--modpress-text);
+	--bs-body-color-rgb: 31, 41, 55;
+	--bs-body-bg: var(--modpress-paper);
+	--bs-body-bg-rgb: 246, 248, 251;
+	--bs-emphasis-color: var(--modpress-ink);
+	--bs-emphasis-color-rgb: 21, 34, 56;
+	--bs-secondary-color: var(--modpress-text-muted);
+	--bs-secondary-color-rgb: 107, 114, 128;
+	--bs-tertiary-color: var(--modpress-text-muted);
+	--bs-tertiary-color-rgb: 107, 114, 128;
+	--bs-secondary-bg: var(--modpress-card);
+	--bs-secondary-bg-rgb: 255, 255, 255;
+	--bs-tertiary-bg: var(--modpress-header);
+	--bs-tertiary-bg-rgb: 234, 243, 247;
+	--bs-heading-color: var(--modpress-ink);
+	--bs-link-color: var(--modpress-link);
+	--bs-link-color-rgb: 37, 99, 235;
+	--bs-link-hover-color: var(--modpress-link-hover);
+	--bs-link-hover-color-rgb: 29, 78, 216;
+	--bs-border-color: var(--modpress-line);
+	--bs-border-color-translucent: rgba(220, 228, 237, 0.75);
+	--bs-focus-ring-color: rgba(59, 130, 246, 0.25);
+
+	&[data-bs-theme='dark'],
+	[data-bs-theme='dark'] & {
+		--bs-primary: var(--modpress-light-blue);
+		--bs-primary-rgb: 59, 130, 246;
+		--bs-body-color: var(--modpress-dark-text);
+		--bs-body-color-rgb: 201, 209, 217;
+		--bs-body-bg: var(--modpress-dark-bg);
+		--bs-body-bg-rgb: 13, 17, 23;
+		--bs-emphasis-color: #f0f6fc;
+		--bs-emphasis-color-rgb: 240, 246, 252;
+		--bs-secondary-color: var(--modpress-dark-text-muted);
+		--bs-secondary-color-rgb: 139, 148, 158;
+		--bs-tertiary-color: var(--modpress-dark-text-muted);
+		--bs-tertiary-color-rgb: 139, 148, 158;
+		--bs-secondary-bg: var(--modpress-dark-card);
+		--bs-secondary-bg-rgb: 22, 27, 34;
+		--bs-tertiary-bg: var(--modpress-dark-line);
+		--bs-tertiary-bg-rgb: 48, 54, 61;
+		--bs-heading-color: var(--bs-emphasis-color);
+		--bs-link-color: var(--modpress-light-blue);
+		--bs-link-color-rgb: 59, 130, 246;
+		--bs-link-hover-color: #93c5fd;
+		--bs-link-hover-color-rgb: 147, 197, 253;
+		--bs-border-color: var(--modpress-dark-line);
+		--bs-border-color-translucent: rgba(48, 54, 61, 0.75);
+		--bs-focus-ring-color: rgba(59, 130, 246, 0.35);
+	}
+}

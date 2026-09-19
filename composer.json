@@ -29,9 +29,10 @@
         }
     ],
     "require": {
-        "fortawesome/wordpress-fontawesome": "^5.2"
+        
     },
     "require-dev": {
+        "fortawesome/wordpress-fontawesome": "^5.2",
         "php-stubs/wordpress-stubs": "^6.9",
         "arts/elementor-stubs": "^4.2",
         "phpunit/phpunit": "^9.6",

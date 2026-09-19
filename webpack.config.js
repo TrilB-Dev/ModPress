@@ -42,7 +42,6 @@ const entries = {
     './src/Assets/js/admin.tools.js',
     './src/Assets/scss/admin.ui.scss',
   ],
-  'bootstrap-select-control': './src/Assets/js/bootstrap-select-control.js',
   'wpoverride': './src/Assets/scss/wpoverride.scss'
 };
 
