@@ -39,7 +39,7 @@ final class Schema {
                 setting_value longtext DEFAULT NULL,
                 autoload varchar(20) DEFAULT 'yes',
                 updated_at datetime DEFAULT NULL,
-                PRIMARY KEY  (id),
+                PRIMARY KEY (id),
                 UNIQUE KEY setting_group (setting_group)
             ) {$charset};";
             }

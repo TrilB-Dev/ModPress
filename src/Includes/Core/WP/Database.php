@@ -119,6 +119,10 @@ final class Database {
 			return false;
 		}
 
+		if ( self::table_exists( $table ) ) {
+			return true;
+		}
+
 		$schema = self::$registered_core_tables[ $table ] ?? self::$registered_plugin_tables[ $table ] ?? null;
 		if ( ! is_callable( $schema ) ) {
 			return false;
@@ -198,10 +202,16 @@ final class Database {
 		Schema::register_tables();
 
 		foreach ( self::$registered_core_tables as $table => $schema ) {
+			if ( self::table_exists( $table ) ) {
+				continue;
+			}
 			self::create_table( $table );
 		}
 
 		foreach ( self::$registered_plugin_tables as $table => $schema ) {
+			if ( self::table_exists( $table ) ) {
+				continue;
+			}
 			self::create_table( $table );
 		}
 
