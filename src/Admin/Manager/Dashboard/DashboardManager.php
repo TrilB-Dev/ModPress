@@ -19,7 +19,7 @@ final class DashboardManager extends Manager {
      * @access protected
      * @var string $page The page variable.
 	 */
-	 protected $page;
+	 protected string $page;
 
     /**
      * `Constructor` method for the `DashboardManager` class. 
