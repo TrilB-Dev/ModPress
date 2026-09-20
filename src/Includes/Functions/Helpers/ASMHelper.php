@@ -28,6 +28,7 @@ class ASMHelper {
 	 * @param string $icon Font Awesome icon classes.
 	 * @param string $parent Existing group slug, or empty for a new group.
 	 * @return array<string, mixed>
+	 * @since 1.0.0
 	 */
 	public static function define( string $name, string $slug, string $icon, string $parent = '', string $capability = '' ): array {
 		$clean_slug = self::sanitize_slug( $slug );
@@ -47,6 +48,7 @@ class ASMHelper {
 	 *
 	 * @param array<int, array<string, mixed>> $menus Menu definitions.
 	 * @return array<int, array<string, mixed>>
+	 * @since 1.0.0
 	 */
 	public static function filter( array $menus ): array {
 		$filtered = apply_filters( self::FILTER, $menus );
@@ -57,6 +59,7 @@ class ASMHelper {
 	 *
 	 * @param string $slug The menu slug.
 	 * @return string The URL for the menu item.
+	 * @since 1.0.0
 	 */
 	public static function get_url( string $slug ): string {
 		return admin_url( 'admin.php?page=' . self::sanitize_slug( $slug ) );
@@ -66,6 +69,7 @@ class ASMHelper {
 	 *
 	 * @param string $slug The menu slug.
 	 * @return string The sanitized slug.
+	 * @since 1.0.0
 	 */
 	private static function sanitize_slug( string $slug ): string {
 		$slug = trim( (string) $slug );
@@ -82,6 +86,3 @@ class ASMHelper {
 		return $page . ( isset( $parts[1] ) && '' !== $parts[1] ? '&' . sanitize_text_field( $parts[1] ) : '' );
 	}
 }
-
-
-

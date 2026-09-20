@@ -29,6 +29,7 @@ class AMHelper {
 	 * @param string $icon Dashicon or icon URL.
 	 * @param string $parent Parent menu slug, or empty for a top-level menu.
 	 * @return array<string, mixed>
+	 * @since 1.0.0
 	 */
 	public static function define( string $name, string $slug, string $icon = 'dashicons-admin-generic', string $parent = '' ): array {
 		$clean_slug = self::normalize_slug( $slug );
@@ -47,6 +48,7 @@ class AMHelper {
 	 *
 	 * @param string $slug Slug candidate.
 	 * @return string Normalized slug or empty string when invalid.
+	 * @since 1.0.0
 	 */
 	private static function normalize_slug( string $slug ): string {
 		$slug = trim( (string) $slug );
@@ -70,6 +72,7 @@ class AMHelper {
 	 *
 	 * @param array<int, array<string, mixed>> $menus Menu definitions.
 	 * @return array<int, array<string, mixed>>
+	 * @since 1.0.0
 	 */
 	public static function filter( array $menus ): array {
 		$filtered = apply_filters( self::FILTER, $menus );
@@ -81,11 +84,9 @@ class AMHelper {
 	 *
 	 * @param string $slug The slug of the admin menu page.
 	 * @return string The URL of the admin menu page.
+	 * @since 1.0.0
 	 */
 	public static function get_admin_menu_page_url( string $slug ): string {
 		return admin_url( 'admin.php?page=' . $slug );
 	}
 }
-
-
-

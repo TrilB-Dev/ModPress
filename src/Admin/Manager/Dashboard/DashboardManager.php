@@ -53,8 +53,8 @@ final class DashboardManager extends Manager {
     }
 
     private function render_summary(): void {
-        $mod_counts  = wp_count_posts( PostType::MOD );
-        $page_counts  = wp_count_posts( PostType::PAGE );
+        $mod_counts  = '0';
+        $page_counts  = '0';
         $mod_total   = $this->total_count( $mod_counts );
         $page_total   = $this->total_count( $page_counts );
         $page_publish = absint( $page_counts->publish ?? 0 );

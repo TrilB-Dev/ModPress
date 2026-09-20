@@ -44,7 +44,7 @@ final class FunctionsSidebar {
 	}
 
 	/**
-	 * Return the built-in and filtered ModPress sidebar groups.
+	 * Return the built-in and filtered AccessPress sidebar groups.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
@@ -83,16 +83,22 @@ final class FunctionsSidebar {
 	}
 
 	/**
-	 * Get a ModPress sidebar page URL.
+	 * Get a AccessPress sidebar page URL.
 	 *
 	 * @param string $slug Page slug, optionally followed by a query string.
 	 * @return string
+	 * @since 1.0.0
 	 */
 	public static function get_admin_sidebar_menu_page_url( string $slug ): string {
 		return admin_url( 'admin.php?page=' . $slug );
 	}
 
-	/** @return array<int, array<string, mixed>> */
+	/** 
+	 * Get the core WordPress admin menus.
+	 * 
+	 * @return array<int, array<string, mixed>>
+	 * @since 1.0.0
+	 */
 	private static function core_wordpress_menus( Admin $admin ): array {
 		return [
 			[
@@ -135,7 +141,12 @@ final class FunctionsSidebar {
 		];
 	}
 
-	/** @return array<string, array<string, mixed>> */
+	/**
+	 * Get the core sidebar groups.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 * @since 1.0.0
+	 */
 	private static function core_sidebar_groups(): array {
 		return [
 			'manage-mod' => [
@@ -241,6 +252,7 @@ final class FunctionsSidebar {
 	 *
 	 * @param array<string, mixed> $menu The menu definition.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	private static function register_wordpress_menu( array $menu ): void {
 		$callback   = $menu['callback'] ?? null;
@@ -251,11 +263,11 @@ final class FunctionsSidebar {
 		$capability = self::resolve_menu_capability( sanitize_key( (string) ( $menu['capability'] ?? 'manage_options' ) ) );
 
 		if ( '' === $slug || '' === $name || ! is_callable( $callback ) ) {
-			LoggerHelper::write_log( sprintf( 'ModPress skipped menu registration for empty or invalid page: %s', $raw_slug ) );
+			LoggerHelper::write_log( sprintf( 'AccessPress skipped menu registration for empty or invalid page: %s', $raw_slug ) );
 			return;
 		}
 
-		LoggerHelper::write_log( sprintf( 'ModPress registering admin menu: %s (slug=%s, parent=%s, capability=%s)', $name, $slug, $parent, $capability ) );
+		LoggerHelper::write_log( sprintf( 'AccessPress registering admin menu: %s (slug=%s, parent=%s, capability=%s)', $name, $slug, $parent, $capability ) );
 
 		try {
 			if ( '' === $parent ) {
@@ -264,23 +276,24 @@ final class FunctionsSidebar {
 			}
 
 			if ( $slug === $parent ) {
-				LoggerHelper::write_log( sprintf( 'ModPress skipped submenu registration because slug matches parent: %s', $slug ) );
+				LoggerHelper::write_log( sprintf( 'AccessPress skipped submenu registration because slug matches parent: %s', $slug ) );
 				return;
 			}
 
 			add_submenu_page( $parent, $name, $name, $capability, $slug, $callback, $menu['position'] ?? null );
 		} catch ( \Throwable $e ) {
-			LoggerHelper::write_log( sprintf( 'ModPress menu registration failed for %s (%s): %s', $name, $slug, $e->getMessage() ) );
+			LoggerHelper::write_log( sprintf( 'AccessPress menu registration failed for %s (%s): %s', $name, $slug, $e->getMessage() ) );
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				wp_die( esc_html( $e->getMessage() ), __( 'ModPress menu registration error', 'licencepress' ), array( 'back_link' => true ) );
+				wp_die( esc_html( $e->getMessage() ), __( 'AccessPress menu registration error', 'licencepress' ), array( 'back_link' => true ) );
 			}
 		}
 	}
 
 	/**
-	 * Get the WordPress menus provided by active ModPress plugins.
+	 * Get the WordPress menus provided by active AccessPress plugins.
 	 *
 	 * @return array<int, array<string, mixed>> The WordPress menus.
+	 * @since 1.0.0
 	*/
 	private static function plugin_wordpress_menus(): array {
 		$menus = array();
@@ -305,7 +318,7 @@ final class FunctionsSidebar {
 					}
 				}
 			} catch ( \Throwable $e ) {
-				LoggerHelper::write_log( sprintf( 'ModPress plugin %s failed to provide WordPress menus: %s', $plugin->get_slug(), $e->getMessage() ) );
+				LoggerHelper::write_log( sprintf( 'AccessPress plugin %s failed to provide WordPress menus: %s', $plugin->get_slug(), $e->getMessage() ) );
 			}
 		}
 
@@ -317,6 +330,7 @@ final class FunctionsSidebar {
 	 *
 	 * @param array<string, mixed> $definition The menu definition.
 	 * @return array<string, mixed> The normalized menu.
+	 * @since 1.0.0
 	 */
 	private static function normalize_wordpress_menu( array $definition ): array {
 		return array(
@@ -334,6 +348,7 @@ final class FunctionsSidebar {
 	 *
 	 * @param string $parent The parent slug to sanitize.
 	 * @return string The sanitized parent slug.
+	 * @since 1.0.0
 	 */
 	private static function admin_parent_slug( string $parent ): string {
 		$parent = strtolower( sanitize_text_field( $parent ) );
@@ -344,6 +359,7 @@ final class FunctionsSidebar {
 	 *
 	 * @param string $slug The menu page slug.
 	 * @return string The sanitized menu page slug.
+	 * @since 1.0.0
 	 */
 	private static function menu_page_slug( string $slug ): string {
 		$slug = trim( (string) $slug );
@@ -364,9 +380,10 @@ final class FunctionsSidebar {
 	}
 
 	/**
-	 * Get the sidebar menus provided by active ModPress plugins.
+	 * Get the sidebar menus provided by active AccessPress plugins.
 	 *
 	 * @return array<int, array<string, mixed>> The sidebar menus.
+	 * @since 1.0.0
 	 */
 	private static function plugin_sidebar_menus(): array {
 		$menus = array();
@@ -395,7 +412,7 @@ final class FunctionsSidebar {
 					$menus[] = ASMHelper::define( $definition['label'] ?? '', self::sidebar_slug( $definition ), $definition['icon'] ?? '', $definition['parent'] ?? '', $definition['capability'] ?? '' );
 				}
 			} catch ( \Throwable $e ) {
-				LoggerHelper::write_log( sprintf( 'ModPress plugin %s failed to provide sidebar menus: %s', $plugin->get_slug(), $e->getMessage() ) );
+				LoggerHelper::write_log( sprintf( 'AccessPress plugin %s failed to provide sidebar menus: %s', $plugin->get_slug(), $e->getMessage() ) );
 			}
 		}
 
@@ -407,6 +424,7 @@ final class FunctionsSidebar {
 	 *
 	 * @param array<string, mixed> $definition The menu definition.
 	 * @return string The generated sidebar slug.
+	 * @since 1.0.0
 	 */
 	private static function sidebar_slug( array $definition ): string {
 		$page  = (string) ( $definition['page'] ?? $definition['slug'] ?? '' );
@@ -425,6 +443,7 @@ final class FunctionsSidebar {
 	 * @param array<string, array<string, mixed>> $groups The collection of sidebar groups.
 	 * @param array<string, mixed> $menu The menu definition for the group.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	private static function add_sidebar_group( array &$groups, array $menu ): void {
 		$slug  = self::menu_slug( $menu );
@@ -447,6 +466,7 @@ final class FunctionsSidebar {
 	 * @param string $parent The parent group slug.
 	 * @param array<string, mixed> $menu The menu definition for the item.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	private static function add_sidebar_item( array &$groups, string $parent, array $menu ): void {
 		$slug  = trim( (string) ( $menu['slug'] ?? '' ) );
@@ -468,6 +488,7 @@ final class FunctionsSidebar {
 	 *
 	 * @param array<string, mixed> $menu The menu definition.
 	 * @return string The parent slug.
+	 * @since 1.0.0
 	 */
 	private static function parent_slug( array $menu ): string {
 		return sanitize_key( (string) ( $menu['parent'] ?? '' ) );
@@ -478,6 +499,7 @@ final class FunctionsSidebar {
 	 *
 	 * @param array<string, mixed> $menu The menu definition.
 	 * @return string The menu slug.
+	 * @since 1.0.0
 	 */
 	private static function menu_slug( array $menu ): string {
 		return sanitize_key( (string) ( $menu['slug'] ?? '' ) );
@@ -491,6 +513,7 @@ final class FunctionsSidebar {
 	 *
 	 * @param string $capability The capability to check.
 	 * @return bool True if the menu item should be visible.
+	 * @since 1.0.0
 	 */
 	private static function can_view_menu_item( string $capability ): bool {
 		if ( '' === $capability ) {
@@ -507,11 +530,12 @@ final class FunctionsSidebar {
 	/**
 	 * Resolve the effective capability to use when registering a WordPress menu.
 	 *
-	 * Admins should remain able to see the ModPress menu while the custom
+	 * Admins should remain able to see the AccessPress menu while the custom
 	 * role capability map catches up after activation or a role refresh.
 	 *
 	 * @param string $capability The capability to normalize.
 	 * @return string The effective capability.
+	 * @since 1.0.0
 	 */
 	private static function resolve_menu_capability( string $capability ): string {
 		if ( '' === $capability ) {
