@@ -1,0 +1,46 @@
+.modpress-admin {
+  .modpress-groups-page .tab-pane {
+    min-height: 280px;
+  }
+  .modpress-groups-page .group-nav-item {
+    position: relative;
+  }
+  .modpress-groups-page .group-nav-item .nav-link {
+    padding-right: 2.8rem;
+  }
+  .modpress-groups-page .modpress-tab-edit-btn {
+    display: none;
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+  }
+  .modpress-groups-page
+    .group-nav-item
+    .nav-link.active
+    + .modpress-tab-edit-btn,
+  .modpress-groups-page
+    .group-nav-item
+    .nav-link.show
+    + .modpress-tab-edit-btn {
+    display: inline-flex;
+  }
+  .modpress-groups-page .modpress-custom-field-row {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--bs-tertiary-bg);
+  }
+  .modpress-groups-page .modpress-field-options {
+    display: none;
+  }
+  .modpress-groups-page .modpress-field-options.is-visible {
+    display: block;
+  }
+  .modpress-groups-page .btn-delete-selected:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}

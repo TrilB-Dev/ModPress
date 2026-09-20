@@ -40,6 +40,7 @@ const entries = {
     './src/Assets/js/admin.plugins.js',
     './src/Assets/js/admin.settings.js',
     './src/Assets/js/admin.tools.js',
+    './src/Assets/js/admin.mods.js',
     './src/Assets/scss/admin.ui.scss',
   ],
   'wpoverride': './src/Assets/scss/wpoverride.scss'

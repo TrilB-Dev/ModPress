@@ -1,9 +1,9 @@
 <?php
 /**
- * Shortcodes management class.
- * Handles the registration and processing of shortcodes within ModPress.
- * 
- * @package ModPress\Includes\Core
+ * Core shortcode definitions for ModPress.
+ *
+ * @package ModPress
+ * @subpackage Includes\Core
  * @since 1.0.0
  */
 namespace ModPress\Includes\Core;
@@ -12,32 +12,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-
+/**
+ * Register and process ModPress shortcode definitions.
+ */
 final class Shortcodes {
 	/**
 	 * Registered shortcode definitions.
-	 * 
-	 * @var array<string, array<string, mixed>> Registered shortcode definitions.
+	 *
+	 * @var array<string, array<string, mixed>>
 	 */
-	private array $definitions = [];
+	private array $definitions = array();
 
 	/**
 	 * Register a new shortcode.
 	 *
 	 * @param array<string, mixed> $definition Shortcode definition.
 	 * @param bool $replace Whether to replace an existing shortcode with the same tag.
-	 * @return bool True if the shortcode was registered, false otherwise.
+	 * @return bool True if the shortcode was successfully registered, false otherwise.
+	 * @param array<string, mixed> $definition Shortcode definition.
 	 */
 	public function register( array $definition, bool $replace = false ): bool {
 		$definition = $this->normalize_definition( $definition );
-		$tag = $definition['tag'];
+		$tag        = $definition['tag'];
 
 		if ( isset( $this->definitions[ $tag ] ) && ! $replace ) {
 			return false;
 		}
 
 		$this->definitions[ $tag ] = $definition;
-		add_shortcode( $tag, [ $this, 'process' ] );
+		add_shortcode( $tag, array( $this, 'process' ) );
 
 		return true;
 	}
@@ -45,12 +48,12 @@ final class Shortcodes {
 	/**
 	 * Register multiple shortcodes at once.
 	 *
-	 * @param bool $replace Whether to replace existing shortcodes with the same tags.
 	 * @param array<int, array<string, mixed>> $definitions Shortcode definitions.
+	 * @param bool $replace Whether to replace existing shortcodes with the same tags.
 	 * @return array<int, string> Registered tags.
 	 */
 	public function register_many( array $definitions, bool $replace = false ): array {
-		$registered = [];
+		$registered = array();
 
 		foreach ( $definitions as $definition ) {
 			if ( $this->register( $definition, $replace ) ) {
@@ -63,8 +66,8 @@ final class Shortcodes {
 	/**
 	 * Unregister a shortcode by its tag.
 	 *
-	 * @param string $tag Shortcode tag.
-	 * @return bool True if the shortcode was unregistered, false otherwise.
+	 * @param string $tag Shortcode tag to unregister.
+	 * @return bool True if the shortcode was successfully unregistered, false otherwise.
 	 */
 	public function unregister( string $tag ): bool {
 		$tag = $this->normalize_tag( $tag );
@@ -81,7 +84,7 @@ final class Shortcodes {
 	/**
 	 * Get all registered shortcode definitions.
 	 *
-	 * @return array<string, array<string, mixed>> Registered shortcode definitions.
+	 * @return array<string, array<string, mixed>> All registered shortcode definitions.
 	 */
 	public function definitions(): array {
 		return $this->definitions;
@@ -115,28 +118,30 @@ final class Shortcodes {
 	 * @param string       $tag Shortcode tag.
 	 * @return string Shortcode output.
 	 */
-	public function process( $atts = [], $content = null, string $tag = '' ): string {
-		$tag = $this->normalize_tag( $tag );
+	public function process( $atts = array(), $content = null, string $tag = '' ): string {
+		$tag        = $this->normalize_tag( $tag );
 		$definition = $this->definition( $tag );
 		if ( null === $definition ) {
 			return '';
 		}
 
-		$attributes = is_array( $atts ) ? array_change_key_case( $atts, CASE_LOWER ) : [];
-		$defaults = $definition['attributes'];
+		$attributes = is_array( $atts ) ? array_change_key_case( $atts, CASE_LOWER ) : array();
+		$defaults   = $definition['attributes'];
 		$attributes = function_exists( 'shortcode_atts' )
 			? shortcode_atts( $defaults, $attributes, $tag )
 			: array_merge( $defaults, $attributes );
-		$output = call_user_func( $definition['callback'], $attributes, $content, $tag );
+		$output     = call_user_func( $definition['callback'], $attributes, $content, $tag );
 
 		return is_string( $output ) ? $output : (string) $output;
 	}
 
 	/**
-	 * Normalize a shortcode definition.
+	 * Normalize a shortcode definition to ensure it has all required fields.
+	 * This includes validating the tag, callback, and attributes.
 	 *
-	 * @param array $definition Shortcode definition.
-	 * @return array<string, mixed> Normalized shortcode definition.
+	 * @param array<string, mixed> $definition Shortcode definition.
+	 * @return array<string, mixed>
+	 * @throws \InvalidArgumentException If a shortcode definition is invalid.
 	 */
 	private function normalize_definition( array $definition ): array {
 		$tag = $this->normalize_tag( $definition['tag'] ?? '' );
@@ -144,35 +149,37 @@ final class Shortcodes {
 			throw new \InvalidArgumentException( 'A shortcode tag is required.' );
 		}
 		if ( ! isset( $definition['callback'] ) || ! is_callable( $definition['callback'] ) ) {
-            throw new \InvalidArgumentException( sprintf( 'Shortcode callback for "%s" must be callable.', wp_strip_all_tags( $tag ) ) );
-        }
+			throw new \InvalidArgumentException( sprintf( 'Shortcode callback for "%s" must be callable.', wp_strip_all_tags( $tag ) ) );
+		}
 
-        $attributes = $definition['attributes'] ?? $definition['defaults'] ?? [];
-        if ( ! is_array( $attributes ) ) {
-            throw new \InvalidArgumentException( sprintf( 'Shortcode attributes for "%s" must be an array.', wp_strip_all_tags( $tag ) ) );
-        }
+		$attributes = $definition['attributes'] ?? $definition['defaults'] ?? array();
+		if ( ! is_array( $attributes ) ) {
+			throw new \InvalidArgumentException( sprintf( 'Shortcode attributes for "%s" must be an array.', wp_strip_all_tags( $tag ) ) );
+		}
 
-        return array_merge(
-			[
-				'tag' => $tag,
-				'callback' => $definition['callback'],
-				'attributes' => array_change_key_case( $attributes, CASE_LOWER ),
+		return array_merge(
+			array(
+				'tag'         => $tag,
+				'callback'    => $definition['callback'],
+				'attributes'  => array_change_key_case( $attributes, CASE_LOWER ),
 				'description' => '',
-				'category' => '',
-				'enclosing' => false,
-				'tinymce' => false,
-			],
+				'category'    => '',
+				'enclosing'   => false,
+				'tinymce'     => false,
+			),
 			$definition,
-			[ 'tag' => $tag, 'attributes' => array_change_key_case( $attributes, CASE_LOWER ) ]
+			array(
+				'tag'        => $tag,
+				'attributes' => array_change_key_case( $attributes, CASE_LOWER ),
+			)
 		);
 	}
-	/**
-	 * Normalize a shortcode tag.
-	 *
-	 * @param string $tag Shortcode tag.
-	 * @return string Normalized shortcode tag.
-	 */
+
 	private function normalize_tag( $tag ): string {
 		return strtolower( trim( (string) $tag ) );
 	}
 }
+
+
+
+

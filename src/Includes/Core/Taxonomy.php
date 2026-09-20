@@ -1,289 +1,448 @@
 <?php
 /**
- * Taxonomy management for ModPress.
+ * Core taxonomy registry for ModPress.
  *
- * @package ModPress\Includes\Core
+ * Supports multiple taxonomies and dynamic metadata registration.
+ *
+ * @package ModPress
+ * @subpackage Includes\Core
  * @since 1.0.0
  */
 namespace ModPress\Includes\Core;
 
-use ModPress\Includes\Settings\Settings;
+use ModPress\Includes\Functions\Helpers\SanitizationHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 final class Taxonomy {
-    /**
-     * Taxonomy slugs used by ModPress.
-     * 
-     * @since 1.0.0
-     * @var string The taxonomy slug for the group taxonomy.
-     */
-    public const GROUP = 'modpress_group';
-    /**
-     * Taxonomy slug for the category taxonomy.
-     *
-     * @since 1.0.0
-     * @var string The taxonomy slug for the category taxonomy.
-     */
-    public const CATEGORY = 'modpress_category';
-    /**
-     * Taxonomy slug for the tag taxonomy.
-     *
-     * @since 1.0.0
-     * @var string The taxonomy slug for the tag taxonomy.
-     */
-    public const TAG = 'modpress_tag';
-    /**
-     * Taxonomy slug for the games taxonomy.
-     *
-     * @since 1.0.0
-     * @var string The taxonomy slug for the games taxonomy.
-     */
-    public const GAMES = 'modpress_game';
+	/**
+	 * Registered taxonomy definitions.
+	 *
+	 * @var array<string, array<string, mixed>>
+	 */
+	private static array $registered = array();
 
-    /**
-     * Root groups created when the taxonomy is first registered.
-     *
-     * @var array<string, string>
-     */
-    private const ROOT_GROUPS = [
-        'assets' => 'Assets',
-        'game-mods' => 'Game Mods',
-        'software-extensions' => 'Software Extensions',
-        'web-extensions' => 'Web Extensions',
-    ];
+	/**
+	 * Register the configured taxonomies.
+	 *
+	 * @since 1.0.0
+	 */
+	public function register(): void {
+		foreach ( self::definitions() as $taxonomy => $config ) {
+			self::register_single( $taxonomy, $config );
+		}
+	}
 
-    /**
-     * Feature taxonomy ownership. Each taxonomy has exactly one group.
-     *
-     * @var array<string, string>
-     */
-    private const FEATURE_GROUPS = [
-        self::GAMES => 'game-mods',
-    ];
+	/**
+	 * Create a taxonomy from a generic definition.
+	 *
+	 * @param string $taxonomy Taxonomy slug.
+	 * @param array<string, mixed> $config Registration config.
+	 * @return bool
+	 */
+	public static function create( string $taxonomy, array $config = array() ): bool {
+		$taxonomy = self::normalize_taxonomy( $taxonomy );
+		if ( '' === $taxonomy || taxonomy_exists( $taxonomy ) ) {
+			return false;
+		}
 
-    public function register(): void {
-        register_taxonomy( self::GROUP, [ PostType::MOD, PostType::PAGE ], self::group_args() );
-        register_taxonomy( self::CATEGORY, [ PostType::MOD, PostType::PAGE ], self::category_args() );
-        register_taxonomy( self::TAG, [ PostType::MOD, PostType::PAGE ], self::tag_args() );
-        register_taxonomy( self::GAMES, [ PostType::MOD, PostType::PAGE ], self::games_args() );
-        add_filter( 'pre_set_object_terms', [ self::class, 'restrict_game_terms' ], 10, 5 );
-        self::seed_root_groups();
-    }
+		$definition = self::normalize_definition( $taxonomy, $config );
+		self::$registered[ $taxonomy ] = $definition;
+		self::register_single( $taxonomy, $definition );
 
-    /**
-     * Return the group assigned to a feature taxonomy.
-     *
-     * @param string $taxonomy Feature taxonomy name.
-     * @return string Group slug.
-     */
-    public static function group_for( string $taxonomy ): string {
-        $groups = self::feature_groups();
-        $group = $groups[ $taxonomy ] ?? '';
+		return true;
+	}
 
-        if ( ! is_string( $group ) || sanitize_title( $group ) !== $group || $group === '' ) {
-            return '';
-        }
+	/**
+	 * Create a taxonomy from UI input.
+	 *
+	 * @param array<string, mixed> $data UI payload.
+	 * @return bool
+	 */
+	public static function dynamically_create( array $data = array() ): bool {
+		$taxonomy = self::normalize_taxonomy( $data['taxonomy'] ?? $data['slug'] ?? '' );
+		if ( '' === $taxonomy ) {
+			return false;
+		}
 
-        return $group;
-    }
+		$labels = array(
+			'name'          => $data['name'] ?? self::humanize_slug( $taxonomy ),
+			'singular_name' => $data['singular_name'] ?? self::humanize_slug( $taxonomy, true ),
+			'menu_name'     => $data['menu_name'] ?? self::humanize_slug( $taxonomy ),
+			'all_items'     => $data['all_items'] ?? sprintf( __( 'All %s', 'modpress' ), self::humanize_slug( $taxonomy ) ),
+			'edit_item'     => $data['edit_item'] ?? sprintf( __( 'Edit %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+			'view_item'     => $data['view_item'] ?? sprintf( __( 'View %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+			'update_item'   => $data['update_item'] ?? sprintf( __( 'Update %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+			'add_new_item'  => $data['add_new_item'] ?? sprintf( __( 'Add New %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+			'new_item_name' => $data['new_item_name'] ?? sprintf( __( 'New %s Name', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+			'parent_item'   => $data['parent_item'] ?? sprintf( __( 'Parent %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+			'search_items'  => $data['search_items'] ?? sprintf( __( 'Search %s', 'modpress' ), self::humanize_slug( $taxonomy ) ),
+			'popular_items' => $data['popular_items'] ?? sprintf( __( 'Popular %s', 'modpress' ), self::humanize_slug( $taxonomy ) ),
+		);
 
-    /**
-     * Validate that every registered feature taxonomy has one group owner.
-     *
-     * @return bool True when the registry is valid.
-     */
-    public static function has_valid_feature_groups(): bool {
-        $definitions = self::feature_definitions();
-        $registered = [ self::GAMES ];
+		$config = array(
+			'object_type'          	=> self::normalize_object_types( $data['object_type'] ?? $data['object_types'] ?? array() ),
+			'label'                	=> $data['label'] ?? self::humanize_slug( $taxonomy ),
+			'description'          	=> $data['description'] ?? '',
+			'labels'               	=> array_merge( $labels, (array) ( $data['labels'] ?? array() ) ),
+			'hierarchical'         	=> self::normalize_bool( $data['hierarchical'] ?? false ),
+			'public'               	=> self::normalize_bool( $data['public'] ?? true ),
+			'show_ui'              	=> self::normalize_bool( $data['show_ui'] ?? true ),
+			'show_in_menu'         	=> self::normalize_bool( $data['show_in_menu'] ?? true ),
+			'show_tagcloud'        	=> self::normalize_bool( $data['show_tagcloud'] ?? true ),
+			'show_in_quick_edit'   	=> self::normalize_bool( $data['show_in_quick_edit'] ?? true ),
+			'show_admin_column'    	=> self::normalize_bool( $data['show_admin_column'] ?? false ),
+			'meta_box_cb'          	=> $data['meta_box_cb'] ?? null,
+			'sort'                 	=> self::normalize_bool( $data['sort'] ?? false ),
+			'update_count_callback' => $data['update_count_callback'] ?? null,
+			'query_var'            	=> isset( $data['query_var'] ) ? $data['query_var'] : true,
+			'rewrite'              	=> self::normalize_rewrite( $data['rewrite'] ?? array(), $taxonomy ),
+			'capabilities'         	=> self::normalize_capabilities( (array) ( $data['capabilities'] ?? array() ) ),
+			'default_term'         	=> isset( $data['default_term'] ) ? $data['default_term'] : null,
+			'show_in_rest'         	=> self::normalize_bool( $data['show_in_rest'] ?? true ),
+			'rest_base'            	=> isset( $data['rest_base'] ) ? SanitizationHelper::key( $data['rest_base'], $taxonomy ) : $taxonomy,
+			'rest_namespace'       	=> isset( $data['rest_namespace'] ) ? SanitizationHelper::key( $data['rest_namespace'], 'wp/v2' ) : 'wp/v2',
+			'rest_controller_class' => isset( $data['rest_controller_class'] ) ? SanitizationHelper::text( $data['rest_controller_class'], 'WP_REST_Terms_Controller' ) : 'WP_REST_Terms_Controller',
+		);
 
-        if ( count( $definitions ) !== count( $registered ) || array_diff( $registered, array_keys( $definitions ) ) ) {
-            return false;
-        }
+		if ( isset( $data['meta'] ) ) {
+			$config['meta'] = self::normalize_meta( $data['meta'] );
+		}
 
-        foreach ( $registered as $taxonomy ) {
-            $definition = $definitions[ $taxonomy ] ?? null;
-            $group = is_array( $definition ) ? ( $definition['group'] ?? '' ) : '';
-            $post_types = is_array( $definition ) ? ( $definition['post_types'] ?? [] ) : [];
+		if ( isset( $data['custom_meta'] ) ) {
+			$config['custom_meta'] = self::normalize_meta( $data['custom_meta'] );
+		}
 
-            if ( ! is_string( $group ) || $group === '' || sanitize_title( $group ) !== $group || ! is_array( $post_types ) || array_diff( [ PostType::MOD, PostType::PAGE ], $post_types ) ) {
-                return false;
-            }
+		return self::create( $taxonomy, $config );
+	}
 
-            $owner = term_exists( $group, self::GROUP );
-            if ( ! $owner ) {
-                return false;
-            }
+	/**
+	 * Register multiple taxonomies using a definition map.
+	 *
+	 * @param array<string, array<string, mixed>> $taxonomies Taxonomy definitions.
+	 * @return void
+	 */
+	public static function register_taxonomies( array $taxonomies = array() ): void {
+		foreach ( $taxonomies as $taxonomy => $config ) {
+			self::create( (string) $taxonomy, (array) $config );
+		}
+	}
 
-            $owner_id = is_array( $owner ) ? absint( $owner['term_id'] ?? 0 ) : absint( $owner );
-            $owner_term = $owner_id ? get_term( $owner_id, self::GROUP ) : null;
-            if ( ! $owner_term || is_wp_error( $owner_term ) || (int) $owner_term->parent !== 0 ) {
-                return false;
-            }
-        }
+	/**
+	 * Get all taxonomy definitions for the plugin.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	public static function definitions(): array {
+		return apply_filters( 'modpress_taxonomy_definitions', self::$registered );
+	}
 
-        return true;
-    }
+	/**
+	 * Register a single taxonomy and any custom term metadata.
+	 *
+	 * @param string $taxonomy Taxonomy key.
+	 * @param array<string, mixed> $config Definition payload.
+	 * @return void
+	 */
+	private static function register_single( string $taxonomy, array $config ): void {
+		if ( taxonomy_exists( $taxonomy ) ) {
+			return;
+		}
 
-    /**
-     * Return the feature taxonomy definitions used by ModPress consumers.
-     *
-     * @return array<string, array{group: string, post_types: array<int, string>}>
-     */
-    public static function feature_definitions(): array {
-        $definitions = [];
+		$args = $config;
+		$meta = array();
 
-        foreach ( self::feature_groups() as $taxonomy => $group ) {
-            $definitions[ $taxonomy ] = [
-                'group' => $group,
-                'post_types' => [ PostType::MOD, PostType::PAGE ],
-            ];
-        }
+		if ( array_key_exists( 'object_type', $args ) ) {
+			$object_types = $args['object_type'];
+			unset( $args['object_type'] );
+		} elseif ( array_key_exists( 'object_types', $args ) ) {
+			$object_types = $args['object_types'];
+			unset( $args['object_types'] );
+		} else {
+			$object_types = array();
+		}
 
-        return apply_filters( 'modpress_feature_taxonomy_definitions', $definitions );
-    }
-    /**
-     * Feature group taxonomy slugs used by ModPress.
-     *
-     * @since 1.0.0
-     * @return array<string, string> Feature group taxonomy slugs.
-     */
-    private static function feature_groups(): array {
-        return apply_filters( 'modpress_feature_taxonomy_groups', self::FEATURE_GROUPS );
-    }
-    /**
-     * Restrict game terms based on their assigned content group.
-     *
-     * @param array<int, int> $terms Term IDs.
-     * @param int $object_id Object ID.
-     * @param string $taxonomy Taxonomy slug.
-     * @param bool $append Whether to append terms.
-     * @param array<int, int> $old_term_taxonomy_ids Old term taxonomy IDs.
-     * @return array<int, int>|\WP_Error Filtered term IDs or WP_Error on failure.
-     */
-    public static function restrict_game_terms( $terms, int $object_id, string $taxonomy, bool $append, array $old_term_taxonomy_ids ) {
-        if ( self::GAMES !== $taxonomy ) {
-            return $terms;
-        }
+		if ( array_key_exists( 'meta', $args ) ) {
+			$meta = (array) $args['meta'];
+			unset( $args['meta'] );
+		}
 
-        if ( ! self::has_valid_feature_groups() ) {
-            return new \WP_Error( 'modpress_invalid_feature_groups', __( 'Games cannot be assigned until their content group configuration is valid.', 'modpress' ) );
-        }
+		if ( array_key_exists( 'custom_meta', $args ) ) {
+			$meta = array_merge( $meta, (array) $args['custom_meta'] );
+			unset( $args['custom_meta'] );
+		}
 
-        $owner = term_exists( self::group_for( self::GAMES ), self::GROUP );
-        $owner_id = is_array( $owner ) ? absint( $owner['term_id'] ?? 0 ) : absint( $owner );
-        $assigned_groups = wp_get_object_terms( $object_id, self::GROUP, [ 'fields' => 'ids' ] );
+		register_taxonomy( $taxonomy, self::normalize_object_types( $object_types ), $args );
 
-        if ( is_wp_error( $assigned_groups ) || ! in_array( $owner_id, array_map( 'absint', (array) $assigned_groups ), true ) ) {
-            return new \WP_Error( 'modpress_game_group_required', __( 'Games can only be assigned to content in the Game Mods group.', 'modpress' ) );
-        }
+		if ( ! empty( $meta ) ) {
+			foreach ( $meta as $meta_key => $meta_config ) {
+				$meta_args = array(
+					'type'              => 'string',
+					'single'            => true,
+					'show_in_rest'      => true,
+					'sanitize_callback' => static function ( $value ) {
+						return SanitizationHelper::text( $value );
+					},
+				);
 
-        return $terms;
-    }
-    /**
-     * Get the arguments for the group taxonomy.
-     *
-     * @since 1.0.0
-     * @return array<string, mixed> Taxonomy arguments.
-     */
-    public static function group_args(): array {
-        return apply_filters( 'modpress_group_taxonomy_args', [
-            'labels' => [ 'name' => __( 'Groups', 'modpress' ), 'singular_name' => __( 'Group', 'modpress' ) ],
-            'hierarchical' => true,
-            'public' => true,
-            'show_ui' => true,
-            'show_in_rest' => true,
-            'rewrite' => [ 'slug' => self::setting_slug( 'group_slug', 'group' ) ],
-        ], self::GROUP );
-    }
-    /**
-     * Get the arguments for the games taxonomy.
-     *
-     * @since 1.0.0
-     * @return array<string, mixed> Taxonomy arguments.
-     */
-    public static function games_args(): array {
-        return apply_filters( 'modpress_games_taxonomy_args', [
-            'labels' => [ 'name' => __( 'Games', 'modpress' ), 'singular_name' => __( 'Game', 'modpress' ) ],
-            'hierarchical' => true,
-            'public' => true,
-            'show_ui' => true,
-            'show_in_rest' => true,
-            'rewrite' => [ 'slug' => self::setting_slug( 'games_slug', 'game' ) ],
-        ], self::GAMES );
-    }
-    /**
-     * Seed the root groups for the group taxonomy.
-     *
-     * @since 1.0.0
-     */
-    private static function seed_root_groups(): void {
-        $groups = apply_filters( 'modpress_root_groups', self::ROOT_GROUPS );
+				if ( is_array( $meta_config ) ) {
+					$meta_args = array_merge( $meta_args, $meta_config );
+				}
 
-        foreach ( $groups as $slug => $name ) {
-            $slug = sanitize_title( (string) $slug );
-            $name = sanitize_text_field( (string) $name );
+				register_term_meta( $taxonomy, (string) $meta_key, $meta_args );
+			}
+		}
+	}
 
-            if ( $slug === '' || $name === '' || term_exists( $slug, self::GROUP ) ) {
-                continue;
-            }
+	/**
+	 * Get all taxonomy identifiers for the plugin.
+	 *
+	 * @return array<int, string>
+	 */
+	public static function get_taxonomy_names(): array {
+		return array_keys( self::definitions() );
+	}
 
-            wp_insert_term( $name, self::GROUP, [ 'slug' => $slug, 'parent' => 0 ] );
-        }
-    }
+	/**
+	 * Normalize a taxonomy slug.
+	 *
+	 * @param string $taxonomy Raw taxonomy slug.
+	 * @return string
+	 */
+	private static function normalize_taxonomy( string $taxonomy ): string {
+		$taxonomy = trim( (string) $taxonomy );
+		if ( '' === $taxonomy ) {
+			return '';
+		}
 
-    /**
-    * Build the hierarchical Mod category taxonomy definition.
-     *
-     * @return array<string, mixed> Registration arguments.
-     */
-    public static function category_args(): array {
-        return apply_filters( 'modpress_category_taxonomy_args', [
-            'labels' => [ 'name' => __( 'Mod Categories', 'modpress' ), 'singular_name' => __( 'Mod Category', 'modpress' ) ],
-            'hierarchical' => true,
-            'public' => true,
-            'show_ui' => false,
-            'show_in_rest' => true,
-            'rewrite' => [ 'slug' => self::setting_slug( 'category_slug', 'mod-category' ) ],
-        ], self::CATEGORY );
-    }
+		return SanitizationHelper::key( str_replace( array( ' ', '/' ), array( '-', '-' ), $taxonomy ) );
+	}
 
-    /**
-    * Build the non-hierarchical Mod tag taxonomy definition.
-     *
-     * @return array<string, mixed> Registration arguments.
-     */
-    public static function tag_args(): array {
-        return apply_filters( 'modpress_tag_taxonomy_args', [
-            'labels' => [ 'name' => __( 'Mod Tags', 'modpress' ), 'singular_name' => __( 'Mod Tag', 'modpress' ) ],
-            'hierarchical' => false,
-            'public' => true,
-            'show_ui' => false,
-            'show_in_rest' => true,
-            'rewrite' => [ 'slug' => self::setting_slug( 'tag_slug', 'mod-tag' ) ],
-        ], self::TAG );
-    }
-    /**
-     * Get all registered taxonomy names.
-     *
-     * @since 1.0.0
-     * @return array<int, string> Taxonomy slugs.
-     */
-    public static function get_taxonomy_names(): array {
-        return [ self::GROUP, self::CATEGORY, self::TAG, self::GAMES ];
-    }
-    /**
-     * Get the sanitized slug for a taxonomy setting.
-     *
-     * @since 1.0.0
-     * @param string $key Setting key.
-     * @param string $fallback Fallback slug.
-     * @return string Sanitized slug.
-     */
-    private static function setting_slug( string $key, string $fallback ): string {
-        $value = sanitize_title( (string) Settings::get( $key, $fallback ) );
-        return $value !== '' ? $value : $fallback;
-    }
+	/**
+	 * Normalize a taxonomy object type list.
+	 *
+	 * @param mixed $object_type Object type payload.
+	 * @return array<int, string>
+	 */
+	private static function normalize_object_types( $object_type ): array {
+		if ( is_string( $object_type ) ) {
+			$object_type = array( $object_type );
+		}
+
+		if ( ! is_array( $object_type ) ) {
+			return array();
+		}
+
+		$normalized = array();
+		foreach ( $object_type as $type ) {
+			if ( is_string( $type ) ) {
+				$normalized[] = SanitizationHelper::key( $type );
+			}
+		}
+
+		return array_values( array_filter( array_unique( $normalized ) ) );
+	}
+
+	/**
+	 * Normalize a boolean-style value.
+	 *
+	 * @param mixed $value Value to normalize.
+	 * @return bool
+	 */
+	private static function normalize_bool( $value ): bool {
+		if ( is_bool( $value ) ) {
+			return $value;
+		}
+
+		if ( is_numeric( $value ) ) {
+			return (bool) $value;
+		}
+
+		return filter_var( $value, FILTER_VALIDATE_BOOLEAN );
+	}
+	/**
+	 * Normalize a rewrite array for a taxonomy.
+	 *
+	 * @param array<string, mixed>|string $rewrite Rewrite config.
+	 * @param string $taxonomy Taxonomy slug.
+	 * @return array<string, mixed>
+	 */
+	private static function normalize_rewrite( $rewrite, string $taxonomy ): array {
+		$defaults = array(
+			'slug'       => self::normalize_taxonomy( $taxonomy ),
+			'with_front' => true,
+			'pages'      => true,
+			'feeds'      => true,
+		);
+
+		if ( is_string( $rewrite ) ) {
+			$rewrite = array( 'slug' => $rewrite );
+		}
+
+		if ( ! is_array( $rewrite ) ) {
+			$rewrite = array();
+		}
+
+		$rewrite = array_replace_recursive( $defaults, $rewrite );
+		if ( isset( $rewrite['slug'] ) ) {
+			$rewrite['slug'] = self::normalize_taxonomy( (string) $rewrite['slug'] );
+		}
+
+		return $rewrite;
+	}
+	/**
+	 * Normalize the capabilities array.
+	 *
+	 * @param array<string, mixed> $capabilities Raw capabilities.
+	 * @return array<string, string>
+	 */
+	private static function normalize_capabilities( array $capabilities ): array {
+		$normalized = array();
+		foreach ( $capabilities as $key => $value ) {
+			$normalized[ SanitizationHelper::key( $key ) ] = SanitizationHelper::key( $value );
+		}
+
+		return $normalized;
+	}
+	/**
+	 * Normalize term meta definitions.
+	 *
+	 * @param array<string, mixed> $meta Term meta definitions.
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function normalize_meta( array $meta ): array {
+		$normalized = array();
+		foreach ( $meta as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$normalized[ (string) $key ] = $value;
+				continue;
+			}
+
+			$normalized[ (string) $key ] = array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'sanitize_callback' => static function ( $value ) {
+					return SanitizationHelper::text( $value );
+				},
+			);
+		}
+
+		return $normalized;
+	}
+	/**
+	 * Normalize taxonomy definition before registration.
+	 *
+	 * @param string $taxonomy Taxonomy slug.
+	 * @param array<string, mixed> $config Raw config.
+	 * @return array<string, mixed>
+	 */
+	private static function normalize_definition( string $taxonomy, array $config ): array {
+		$definition = array(
+			'label'                => self::humanize_slug( $taxonomy ),
+			'description'          => '',
+			'labels'               => array(
+				'name'          => self::humanize_slug( $taxonomy ),
+				'singular_name' => self::humanize_slug( $taxonomy, true ),
+				'menu_name'     => self::humanize_slug( $taxonomy ),
+				'all_items'     => sprintf( __( 'All %s', 'modpress' ), self::humanize_slug( $taxonomy ) ),
+				'edit_item'     => sprintf( __( 'Edit %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+				'view_item'     => sprintf( __( 'View %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+				'update_item'   => sprintf( __( 'Update %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+				'add_new_item'  => sprintf( __( 'Add New %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+				'new_item_name' => sprintf( __( 'New %s Name', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+				'parent_item'   => sprintf( __( 'Parent %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
+				'search_items'  => sprintf( __( 'Search %s', 'modpress' ), self::humanize_slug( $taxonomy ) ),
+			),
+			'object_type'          => array(),
+			'hierarchical'         => false,
+			'public'               => true,
+			'show_ui'              => true,
+			'show_in_menu'         => true,
+			'show_tagcloud'        => true,
+			'show_in_quick_edit'   => true,
+			'show_admin_column'    => false,
+			'sort'                 => false,
+			'query_var'            => true,
+			'rewrite'              => array(
+				'slug'       => self::normalize_taxonomy( $taxonomy ),
+				'with_front' => true,
+				'pages'      => true,
+				'feeds'      => true,
+			),
+			'capabilities'         => array(),
+			'default_term'         => null,
+			'show_in_rest'         => true,
+			'rest_base'            => $taxonomy,
+			'rest_namespace'       => 'wp/v2',
+			'rest_controller_class' => 'WP_REST_Terms_Controller',
+			'meta'                 => array(),
+		);
+
+		$definition = array_replace_recursive( $definition, $config );
+
+		if ( isset( $definition['object_type'] ) ) {
+			$definition['object_type'] = self::normalize_object_types( $definition['object_type'] );
+		}
+
+		if ( isset( $definition['object_types'] ) ) {
+			$definition['object_type'] = self::normalize_object_types( $definition['object_types'] );
+			unset( $definition['object_types'] );
+		}
+
+		if ( isset( $definition['labels'] ) && is_array( $definition['labels'] ) ) {
+			$definition['labels'] = array_merge( $definition['labels'], (array) ( $config['labels'] ?? array() ) );
+		}
+
+		if ( isset( $definition['rewrite'] ) ) {
+			$definition['rewrite'] = self::normalize_rewrite( $definition['rewrite'], $taxonomy );
+		}
+
+		if ( isset( $definition['capabilities'] ) ) {
+			$definition['capabilities'] = self::normalize_capabilities( (array) $definition['capabilities'] );
+		}
+
+		if ( isset( $definition['meta'] ) ) {
+			$definition['meta'] = self::normalize_meta( (array) $definition['meta'] );
+		}
+
+		if ( isset( $definition['custom_meta'] ) ) {
+			$definition['meta'] = array_merge( $definition['meta'], self::normalize_meta( (array) $definition['custom_meta'] ) );
+			unset( $definition['custom_meta'] );
+		}
+
+		foreach ( array( 'public', 'show_ui', 'show_in_menu', 'show_tagcloud', 'show_in_quick_edit', 'show_admin_column', 'sort', 'show_in_rest', 'hierarchical' ) as $key ) {
+			if ( isset( $definition[ $key ] ) ) {
+				$definition[ $key ] = self::normalize_bool( $definition[ $key ] );
+			}
+		}
+
+		if ( isset( $definition['rest_base'] ) ) {
+			$definition['rest_base'] = SanitizationHelper::key( $definition['rest_base'], $taxonomy );
+		}
+
+		if ( isset( $definition['rest_namespace'] ) ) {
+			$definition['rest_namespace'] = SanitizationHelper::key( $definition['rest_namespace'], 'wp/v2' );
+		}
+
+		if ( isset( $definition['query_var'] ) && false !== $definition['query_var'] ) {
+			$definition['query_var'] = ! empty( $definition['query_var'] ) ? $definition['query_var'] : true;
+		}
+
+		return $definition;
+	}
+	/**
+	 * Convert a slug into a display label.
+	 *
+	 * @param string $slug Raw slug.
+	 * @param bool $singular Whether to render singular form.
+	 * @return string
+	 */
+	private static function humanize_slug( string $slug, bool $singular = false ): string {
+		$label = str_replace( array( '-', '_' ), ' ', $slug );
+		$label = ucwords( $label );
+		return $singular ? trim( $label ) : trim( $label );
+	}
 }
