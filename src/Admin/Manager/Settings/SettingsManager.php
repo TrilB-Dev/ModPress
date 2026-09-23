@@ -70,11 +70,11 @@ final class SettingsManager extends Manager {
 
     public function __construct() {
         /**
-         * Set the page variable to 'dashboard'.
+         * Set the page variable to 'settinigs'.
          *
          * @since 1.0.0
          */
-        $this->page = 'dashboard';
+        $this->page = 'settings';
         /**
          * Initialize the General Settings pages.
          *

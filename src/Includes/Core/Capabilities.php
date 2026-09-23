@@ -127,35 +127,40 @@ class Capabilities {
 					'label' => __( 'Delete User Roles', 'modpress' ), 
 					'description' => __( 'Allows deleting user roles.', 'modpress' ) 
 				],
-				'modpress_user_management_dashboard' => array(
+				'modpress_manager_dashboard' => array(
 					'group'       => 'ModPress User Management',
 					'label'       => __( 'View User Management Dashboard', 'modpress' ),
 					'description' => __( 'Allows viewing the ModPress User Management Dashboard.', 'modpress' ),
 				),
-				'modpress_user_management_roles' => array(
+				'modpress_manager_mods_view' => array(
 					'group'       => 'ModPress User Management',
-					'label'       => __( 'Manage User Roles', 'modpress' ),
-					'description' => __( 'Allows managing user roles within ModPress User Management.', 'modpress' ),
+					'label'       => __( 'Manage Mods', 'modpress' ),
+					'description' => __( 'Allows viewing mods within ModPress User Management.', 'modpress' ),
 				),
-				'modpress_user_management_groups' => array(
+				'modpress_manager_mods_edit' => array(
+					'group'       => 'ModPress User Management',
+					'label'       => __( 'Edit Mods', 'modpress' ),
+					'description' => __( 'Allows editing mods within ModPress User Management.', 'modpress' ),
+				),
+				'modpress_manager_groups_view' => array(
 					'group'       => 'ModPress User Management',
 					'label'       => __( 'Manage User Groups', 'modpress' ),
-					'description' => __( 'Allows managing user groups within ModPress User Management.', 'modpress' ),
+					'description' => __( 'Allows viewing user groups within ModPress User Management.', 'modpress' ),
 				),
-				'modpress_user_management_login' => array(
+				'modpress_manager_groups_edit' => array(
 					'group'       => 'ModPress User Management',
-					'label'       => __( 'Manage User Login', 'modpress' ),
-					'description' => __( 'Allows managing user login within ModPress User Management.', 'modpress' ),
+					'label'       => __( 'Edit User Groups', 'modpress' ),
+					'description' => __( 'Allows editing user groups within ModPress User Management.', 'modpress' ),
 				),
-				'modpress_user_management_registration' => array(
+				'modpress_manager_tags_view' => array(
 					'group'       => 'ModPress User Management',
-					'label'       => __( 'Manage User Registration', 'modpress' ),
-					'description' => __( 'Allows managing user registration within ModPress User Management.', 'modpress' ),
+					'label'       => __( 'Manage Tags', 'modpress' ),
+					'description' => __( 'Allows viewing tags within ModPress User Management.', 'modpress' ),
 				),
-				'modpress_user_management_profile' => array(
+				'modpress_manager_tags_edit' => array(
 					'group'       => 'ModPress User Management',
-					'label'       => __( 'Manage User Profile', 'modpress' ),
-					'description' => __( 'Allows managing user profile within ModPress User Management.', 'modpress' ),
+					'label'       => __( 'Edit Tags', 'modpress' ),
+					'description' => __( 'Allows editing tags within ModPress User Management.', 'modpress' ),
 				),
 			),
 			self::$extensions

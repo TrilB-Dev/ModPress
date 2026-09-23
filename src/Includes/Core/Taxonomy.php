@@ -18,6 +18,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Taxonomy {
 	/**
+	 * Legacy compatibility aliases for older ModPress taxonomies.
+	 *
+	 * The current dynamic taxonomy registry uses mod-specific group/tag slugs, so these constants
+	 * preserve compatibility with existing helper and import code that expects category/tag labels.
+	 */
+	public const CATEGORY = 'modpress_mod_group';
+	public const TAG = 'modpress_mod_tag';
+	public const GROUP = 'modpress_mod_group';
+	public const GAMES = 'modpress_mod_group';
+
+	/**
 	 * Registered taxonomy definitions.
 	 *
 	 * @var array<string, array<string, mixed>>

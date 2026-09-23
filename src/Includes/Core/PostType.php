@@ -19,6 +19,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class PostType {
 	/**
+	 * Legacy compatibility aliases for earlier ModPress code paths and copied plugin implementations.
+	 *
+	 * The core registry is slug-based, so these constants keep older references working while the
+	 * runtime continues to use the dynamically registered slugs defined in ModManagement.
+	 */
+	public const MOD = 'modpress_mod';
+	public const PAGE = 'modpress_page';
+	public const MODPRESS = 'modpress_page';
+	public const WIKI = 'modpress_wiki';
+
+	/**
 	 * Registered post type definitions.
 	 *
 	 * @var array<string, array<string, mixed>>

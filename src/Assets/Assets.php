@@ -280,13 +280,13 @@ final class Assets {
 				}
 			}
 		}
-		if ( 'modpress-manage' === $current_page && wp_script_is( 'modpress-admin-wiki', 'enqueued' ) ) {
+		if ( 'modpress-manage' === $current_page && wp_script_is( 'modpress-admin', 'enqueued' ) ) {
 			LoaderHelper::localize_script(
-				'modpress-admin-wiki',
-				'modpressWikiManager',
+				'modpress-admin',
+				'modpressManager',
 				array(
 					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => wp_create_nonce( 'modpress_manage_wiki' ),
+					'nonce'   => wp_create_nonce( 'modpress_manage' ),
 				)
 			);
 		}

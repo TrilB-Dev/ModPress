@@ -119,7 +119,7 @@ final class FunctionsSidebar {
 			],
 			[
 				'name'       => __( 'Manage Mods', 'modpress' ),
-				'slug'       => 'modpress&group=manage-mod&tab=manage',
+				'slug'       => 'modpress&group=mod-manager&tab=dashboard',
 				'parent'     => 'modpress',
 				'callback'   => [ $admin, 'render_mods' ],
 				'capability' => 'modpress_admin_view',
@@ -149,32 +149,32 @@ final class FunctionsSidebar {
 	 */
 	private static function core_sidebar_groups(): array {
 		return [
-			'manage-mod' => [
+			'mod-manager' => [
 				'label' => __( 'Manage Mods', 'modpress' ),
 				'icon'  => 'fa-solid fa-file-lines',
 				'items' => [
 					'manage' => [
 						'label'      => __( 'Manage Mods', 'modpress' ),
 						'icon'       => 'fa-solid fa-book-open-lines',
-						'link'       => 'modpress&group=manage-mod&tab=manage',
+						'link'       => 'modpress&group=mod-manager&tab=dashboard',
 						'capability' => 'modpress_admin_view',
 					],
 					'groups' => [
 						'label'      => __( 'Groups', 'modpress' ),
 						'icon'       => 'fa-solid fa-book-open-lines-category',
-						'link'       => 'modpress&group=manage-mod&tab=groups',
+						'link'       => 'modpress&group=mod-manager&tab=groups',
 						'capability' => 'modpress_edit',
 					],
 					'tags' => [
 						'label'      => __( 'Tags', 'modpress' ),
 						'icon'       => 'fa-solid fa-book-open-lines-tag',
-						'link'       => 'modpress&group=manage-mod&tab=tags',
+						'link'       => 'modpress&group=mod-manager&tab=tags',
 						'capability' => 'modpress_edit',
 					],
 					'new' => [
 						'label'      => __( 'New Mod', 'modpress' ),
 						'icon'       => 'fa-kit fa-solid-book-open-lines-circle-plus',
-						'link'       => 'modpress&group=manage-mod&tab=new',
+						'link'       => 'modpress&group=mod-manager&tab=new',
 						'capability' => 'modpress_create',
 					],
 				],
