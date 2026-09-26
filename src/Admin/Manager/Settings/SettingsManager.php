@@ -208,7 +208,7 @@ final class SettingsManager extends Manager {
                     <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="modpress-settings-form">
                         <input type="hidden" name="action" value="modpress_save_settings" />
                         <input type="hidden" name="modpress_tab" value="<?php echo esc_attr( $tab ); ?>" />
-                        <?php wp_nonce_field( 'modpress_save_settings', '_wpnonce_modpress_save_settings', true, false ); ?>
+                        <?php echo wp_nonce_field( 'modpress_save_settings', '_wpnonce_modpress_save_settings', true, false ); ?>
                 <?php endif; ?>
 
                 <div class="card-body">
