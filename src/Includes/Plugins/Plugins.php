@@ -356,7 +356,7 @@ class Plugins {
             }
 
             if ( $plugin instanceof ShortcodeProviderInterface ) {
-                \ModPress\Includes\Functions\Helpers\ShortcodeHelper::register_many( $plugin->get_shortcodes() );
+                \ModPress\Includes\Core\Shortcodes::get_instance()->register_many( $plugin->get_shortcodes() );
             }
 
             if ( $plugin instanceof AssetsProviderInterface ) {

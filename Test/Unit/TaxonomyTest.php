@@ -37,9 +37,11 @@ namespace {
         }
     };
 
-    function sanitize_title( $title, $fallback_title = '', $context = 'save' ): string {
-        $slug = strtolower( trim( preg_replace( '/[^a-z0-9]+/', '-', (string) $title ), '-' ) );
-        return $slug !== '' ? $slug : (string) $fallback_title;
+    if ( ! function_exists( 'sanitize_title' ) ) {
+        function sanitize_title( $title, $fallback_title = '', $context = 'save' ): string {
+            $slug = strtolower( trim( preg_replace( '/[^a-z0-9]+/', '-', (string) $title ), '-' ) );
+            return $slug !== '' ? $slug : (string) $fallback_title;
+        }
     }
 
     if ( ! function_exists( 'sanitize_key' ) ) {
@@ -61,6 +63,24 @@ namespace {
     if ( ! function_exists( '__' ) ) {
         function __( $text, $domain = null ): string {
             return (string) $text;
+        }
+    }
+
+    if ( ! function_exists( 'taxonomy_exists' ) ) {
+        function taxonomy_exists( $taxonomy ): bool {
+            return isset( $GLOBALS['modpress_test_taxonomies'][ (string) $taxonomy ] );
+        }
+    }
+
+    if ( ! function_exists( 'post_type_exists' ) ) {
+        function post_type_exists( $post_type ): bool {
+            return isset( $GLOBALS['modpress_test_post_types'][ (string) $post_type ] );
+        }
+    }
+
+    if ( ! function_exists( 'register_term_meta' ) ) {
+        function register_term_meta( $taxonomy, $meta_key, $args = [] ): void {
+            $GLOBALS['modpress_test_term_meta'][ (string) $taxonomy ][ (string) $meta_key ] = $args;
         }
     }
 
@@ -159,79 +179,39 @@ namespace ModPress\Tests\Unit {
             $GLOBALS['modpress_test_terms'] = [];
             $GLOBALS['modpress_test_object_terms'] = [];
             $GLOBALS['modpress_test_filters'] = [];
+            $GLOBALS['modpress_test_term_meta'] = [];
             $GLOBALS['modpress_test_next_term_id'] = 1;
         }
 
-        public function testRegisterAddsTaxonomiesFilterAndRootGroups(): void {
-            ( new Taxonomy() )->register();
+        public function testCreateRegistersGenericTaxonomyDefinitions(): void {
+            $this->assertTrue( Taxonomy::create( 'modpress_mod_group', array( 'object_type' => array( 'modpress_mod' ), 'hierarchical' => true ) ) );
+            $this->assertTrue( Taxonomy::create( 'modpress_mod_tag', array( 'object_type' => array( 'modpress_mod' ), 'hierarchical' => false ) ) );
 
-            $this->assertSame( Taxonomy::get_taxonomy_names(), array_keys( $GLOBALS['modpress_test_taxonomies'] ) );
-            $this->assertCount( 1, $GLOBALS['modpress_test_filters']['pre_set_object_terms'] );
-            $this->assertSame( 5, $GLOBALS['modpress_test_filters']['pre_set_object_terms'][0]['accepted_args'] );
-            $this->assertCount( 4, $GLOBALS['modpress_test_terms'][ Taxonomy::GROUP ] );
-            $this->assertSame( 4, count( array_unique( array_column( $GLOBALS['modpress_test_terms'][ Taxonomy::GROUP ], 'slug' ) ) ) );
+            $this->assertContains( 'modpress_mod_group', Taxonomy::get_taxonomy_names() );
+            $this->assertContains( 'modpress_mod_tag', Taxonomy::get_taxonomy_names() );
+            $this->assertSame( array( 'modpress_mod' ), $GLOBALS['modpress_test_taxonomies']['modpress_mod_group']['object_type'] );
         }
 
-        public function testRootGroupSeedingIsIdempotent(): void {
-            ( new Taxonomy() )->register();
-            ( new Taxonomy() )->register();
+        public function testDynamicallyCreateNormalizesConfigurationAndSlug(): void {
+            $result = Taxonomy::dynamically_create(
+                array(
+                    'taxonomy' => 'Mod Group',
+                    'object_type' => array( 'modpress_mod' ),
+                    'hierarchical' => true,
+                    'public' => true,
+                )
+            );
 
-            $this->assertCount( 4, $GLOBALS['modpress_test_terms'][ Taxonomy::GROUP ] );
+            $this->assertTrue( $result );
+            $this->assertArrayHasKey( 'mod_group', $GLOBALS['modpress_test_taxonomies'] );
+            $this->assertSame( array( 'modpress_mod' ), $GLOBALS['modpress_test_taxonomies']['mod_group']['object_type'] );
+            $this->assertTrue( $GLOBALS['modpress_test_taxonomies']['mod_group']['args']['public'] );
         }
 
-        public function testValidFeatureOwnershipAndGameAssignment(): void {
-            ( new Taxonomy() )->register();
-            $game_mods = term_exists( 'game-mods', Taxonomy::GROUP );
-            $GLOBALS['modpress_test_object_terms'][42][ Taxonomy::GROUP ] = [ $game_mods['term_id'] ];
-
-            $this->assertTrue( Taxonomy::has_valid_feature_groups() );
-            $this->assertSame( 'game-mods', Taxonomy::group_for( Taxonomy::GAMES ) );
-            $this->assertSame( [ 'game-term' ], Taxonomy::restrict_game_terms( [ 'game-term' ], 42, Taxonomy::GAMES, false, [] ) );
-        }
-
-        public function testInvalidOwnershipConfigurationsFailClosed(): void {
-            ( new Taxonomy() )->register();
-
-            add_filter( 'modpress_feature_taxonomy_groups', static function (): array {
-                return [ Taxonomy::GAMES => 'missing-owner' ];
-            } );
-            $this->assertFalse( Taxonomy::has_valid_feature_groups() );
-            $this->assertInstanceOf( \WP_Error::class, Taxonomy::restrict_game_terms( [ 1 ], 42, Taxonomy::GAMES, false, [] ) );
-
-            $GLOBALS['modpress_test_filters'] = [];
-            add_filter( 'modpress_feature_taxonomy_groups', static function (): array {
-                return [ Taxonomy::GAMES => 'Game Mods' ];
-            } );
-            $this->assertFalse( Taxonomy::has_valid_feature_groups() );
-
-            $GLOBALS['modpress_test_filters'] = [];
-            add_filter( 'modpress_feature_taxonomy_definitions', static function (): array {
-                return [];
-            } );
-            $this->assertFalse( Taxonomy::has_valid_feature_groups() );
-        }
-
-        public function testGameAssignmentIsRejectedOutsideGameMods(): void {
-            ( new Taxonomy() )->register();
-            $assets = term_exists( 'assets', Taxonomy::GROUP );
-            $GLOBALS['modpress_test_object_terms'][42][ Taxonomy::GROUP ] = [ $assets['term_id'] ];
-
-            $result = Taxonomy::restrict_game_terms( [ 'game-term' ], 42, Taxonomy::GAMES, false, [] );
-
-            $this->assertInstanceOf( \WP_Error::class, $result );
-            $this->assertSame( 'modpress_game_group_required', $result->get_error_code() );
-        }
-
-        public function testNonRootOwnerIsInvalid(): void {
-            ( new Taxonomy() )->register();
-            $parent = term_exists( 'assets', Taxonomy::GROUP );
-            foreach ( $GLOBALS['modpress_test_terms'][ Taxonomy::GROUP ] as $term ) {
-                if ( 'game-mods' === $term->slug ) {
-                    $term->parent = $parent['term_id'];
-                }
-            }
-
-            $this->assertFalse( Taxonomy::has_valid_feature_groups() );
+        public function testCreateRejectsEmptyAndDuplicateValues(): void {
+            $this->assertFalse( Taxonomy::create( '', array() ) );
+            $this->assertTrue( Taxonomy::create( 'modpress_mod_group', array( 'object_type' => array( 'modpress_mod' ) ) ) );
+            $this->assertFalse( Taxonomy::create( 'modpress_mod_group', array( 'object_type' => array( 'modpress_mod' ) ) ) );
         }
     }
 }

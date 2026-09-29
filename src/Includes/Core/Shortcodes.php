@@ -17,11 +17,144 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class Shortcodes {
 	/**
+	 * Shared registry singleton.
+	 *
+	 * @var self|null
+	 */
+	private static ?self $instance = null;
+
+	/**
 	 * Registered shortcode definitions.
 	 *
 	 * @var array<string, array<string, mixed>>
 	 */
+	private static array $registered = array();
+
+	/**
+	 * Registered shortcode definitions on the current instance.
+	 *
+	 * @var array<string, array<string, mixed>>
+	 */
 	private array $definitions = array();
+
+	/**
+	 * Get the shared shortcode registry singleton.
+	 *
+	 * @return self
+	 */
+	public static function get_instance(): self {
+		return self::$instance ??= new self();
+	}
+
+	/**
+	 * Build a normalized shortcode definition array.
+	 *
+	 * @param string $tag Shortcode tag.
+	 * @param callable $callback Callback to execute when shortcode is rendered.
+	 * @param array<string, mixed> $attributes Default shortcode attributes.
+	 * @param array<string, mixed> $metadata Optional definition metadata.
+	 * @return array<string, mixed>
+	 */
+	public static function define( string $tag, callable $callback, array $attributes = array(), array $metadata = array() ): array {
+		return self::normalize_definition(
+			array_merge(
+				array(
+					'tag'        => $tag,
+					'callback'   => $callback,
+					'attributes' => $attributes,
+				),
+				$metadata
+			)
+		);
+	}
+
+	/**
+	 * Register a shortcode definition by tag.
+	 *
+	 * @param string $tag Shortcode tag.
+	 * @param array<string, mixed> $config Registration configuration.
+	 * @return bool
+	 */
+	public static function create( string $tag, array $config = array() ): bool {
+		$tag = self::normalize_tag( $tag );
+		if ( '' === $tag ) {
+			return false;
+		}
+
+		if ( isset( self::$registered[ $tag ] ) || shortcode_exists( $tag ) ) {
+			return false;
+		}
+
+		$definition = self::normalize_definition( array_merge( array( 'tag' => $tag ), $config ) );
+		self::$registered[ $tag ] = $definition;
+		self::get_instance()->register( $definition, true );
+
+		return true;
+	}
+
+	/**
+	 * Register multiple shortcodes from a definition map.
+	 *
+	 * @param array<string, array<string, mixed>> $shortcodes Shortcode definitions.
+	 * @return void
+	 */
+	public static function register_shortcodes( array $shortcodes = array() ): void {
+		foreach ( $shortcodes as $tag => $config ) {
+			self::create( (string) $tag, (array) $config );
+		}
+	}
+
+	/**
+	 * Create a shortcode from a UI or request payload.
+	 *
+	 * @param array<string, mixed> $data UI payload.
+	 * @return bool
+	 */
+	public static function dynamically_create( array $data = array() ): bool {
+		$tag = self::normalize_tag( $data['tag'] ?? $data['shortcode'] ?? $data['slug'] ?? '' );
+		if ( '' === $tag ) {
+			return false;
+		}
+
+		$callback = $data['callback'] ?? null;
+		if ( ! is_callable( $callback ) ) {
+			return false;
+		}
+
+		$config = array(
+			'tag'         => $tag,
+			'callback'    => $callback,
+			'attributes'  => isset( $data['attributes'] ) && is_array( $data['attributes'] ) ? $data['attributes'] : array(),
+			'description' => $data['description'] ?? '',
+			'category'    => $data['category'] ?? '',
+			'enclosing'   => ! empty( $data['enclosing'] ),
+			'tinymce'     => ! empty( $data['tinymce'] ),
+		);
+
+		return self::create( $tag, $config );
+	}
+
+	/**
+	 * Create a shortcode registry and optionally register a batch of definitions.
+	 *
+	 * @param array<int, array<string, mixed>> $definitions Shortcode definitions.
+	 * @param bool $replace Whether to replace existing shortcodes with the same tags.
+	 * @return self
+	 */
+	public static function create_registry( array $definitions = array(), bool $replace = false ): self {
+		$registry = new self();
+		$registry->register_many( $definitions, $replace );
+		return $registry;
+	}
+
+	/**
+	 * Get all registered shortcode definitions.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	public static function definitions(): array {
+		return apply_filters( 'modpress_shortcode_definitions', self::$registered );
+	}
 
 	/**
 	 * Register a new shortcode.
@@ -36,6 +169,10 @@ final class Shortcodes {
 		$tag        = $definition['tag'];
 
 		if ( isset( $this->definitions[ $tag ] ) && ! $replace ) {
+			return false;
+		}
+
+		if ( shortcode_exists( $tag ) && ! $replace ) {
 			return false;
 		}
 
@@ -82,11 +219,11 @@ final class Shortcodes {
 	}
 
 	/**
-	 * Get all registered shortcode definitions.
+	 * Get all shortcode definitions registered on the current instance.
 	 *
-	 * @return array<string, array<string, mixed>> All registered shortcode definitions.
+	 * @return array<string, array<string, mixed>>
 	 */
-	public function definitions(): array {
+	public function registered_definitions(): array {
 		return $this->definitions;
 	}
 
@@ -143,8 +280,8 @@ final class Shortcodes {
 	 * @return array<string, mixed>
 	 * @throws \InvalidArgumentException If a shortcode definition is invalid.
 	 */
-	private function normalize_definition( array $definition ): array {
-		$tag = $this->normalize_tag( $definition['tag'] ?? '' );
+	private static function normalize_definition( array $definition ): array {
+		$tag = self::normalize_tag( $definition['tag'] ?? '' );
 		if ( '' === $tag ) {
 			throw new \InvalidArgumentException( 'A shortcode tag is required.' );
 		}
@@ -175,7 +312,7 @@ final class Shortcodes {
 		);
 	}
 
-	private function normalize_tag( $tag ): string {
+	private static function normalize_tag( $tag ): string {
 		return strtolower( trim( (string) $tag ) );
 	}
 }

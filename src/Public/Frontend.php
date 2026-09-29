@@ -2,7 +2,6 @@
 
 namespace ModPress\Public;
 
-use ModPress\Includes\Core\PostType;
 use ModPress\Includes\Functions\Helpers\ContentHelper;
 use ModPress\Includes\Settings\Settings;
 
@@ -12,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Frontend {
     public function filter_content( string $content ): string {
-        if ( ! is_singular( PostType::PAGE ) || ! is_main_query() || ! in_the_loop() ) {
+        if ( ! is_singular( 'modpress_page' ) || ! is_main_query() || ! in_the_loop() ) {
             return $content;
         }
 
@@ -48,7 +47,7 @@ final class Frontend {
     }
 
     public function body_classes( array $classes ): array {
-        if ( is_singular( PostType::PAGE ) ) {
+        if ( is_singular( 'modpress_page' ) ) {
             $classes[] = 'modpress-page-template';
             if ( Settings::get_bool( 'show_search', true ) ) {
                 $classes[] = 'modpress-search-enabled';
@@ -69,7 +68,7 @@ final class Frontend {
     }
 
     private function render_breadcrumbs(): string {
-        $items = [ '<a href="' . esc_url( get_post_type_archive_link( PostType::PAGE ) ?: home_url( '/' ) ) . '">' . esc_html( Settings::get_string( 'root_name', __( 'ModPress', 'modpress' ) ) ) . '</a>' ];
+        $items = [ '<a href="' . esc_url( get_post_type_archive_link( 'modpress_page' ) ?: home_url( '/' ) ) . '">' . esc_html( Settings::get_string( 'root_name', __( 'ModPress', 'modpress' ) ) ) . '</a>' ];
         $ancestors = array_reverse( get_post_ancestors( get_the_ID() ) );
         foreach ( $ancestors as $ancestor ) {
             $items[] = '<a href="' . esc_url( get_permalink( $ancestor ) ) . '">' . esc_html( get_the_title( $ancestor ) ) . '</a>';

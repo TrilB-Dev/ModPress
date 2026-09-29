@@ -2,9 +2,14 @@
 
 namespace ModPress\Includes;
 
-use ModPress\Includes\Core\Core;
+use ModPress\Includes\Core\Capabilities;
 use ModPress\Includes\Core\WP\WPLoader;
 use ModPress\Includes\Functions\Helpers\LoggerHelper;
+use ModPress\Includes\ModManagement\ModManagement;
+use ModPress\Includes\Pages\CronJobs;
+use ModPress\Includes\Pages\PostTypes;
+use ModPress\Includes\Pages\Shortcodes;
+use ModPress\Includes\Pages\Taxonomies;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -17,31 +22,28 @@ final class Includes {
      * @var self|null
      */
     private static ?self $instance = null;
-    /**
-     * Core instance for managing core functionalities.
-     *
-     * @var Core
-     */
-    private Core $core;
+
     /**
      * Array of registered extension initializers.
      *
      * @var array
      */
-    private array $extensions = [];
+    private array $extensions = array();
+
     /**
      * Flag indicating whether the Includes instance has been initialized.
      *
      * @var bool
      */
     private bool $initialized = false;
+
     /**
      * Private constructor to prevent direct instantiation.
      */
     private function __construct() {
-        $this->core = new Core();
-        LoggerHelper::write_log( 'ModPress core includes initialized.' );
+        LoggerHelper::write_log( 'ModPress includes initialized.' );
     }
+
     /**
      * Get the singleton instance of the Includes class.
      *
@@ -50,27 +52,66 @@ final class Includes {
     public static function get_instance(): self {
         return self::$instance ??= new self();
     }
+
     /**
-     * Initialize the Includes instance and register core and extension functionalities.
+     * Initialize the core ModPress runtime registrations.
+     *
+     * @return void
      */
-    public function init(): void {
+    public function register_core(): void {
         if ( $this->initialized ) {
             return;
         }
 
-        $this->core->register();
+        /**
+         * Capabilities installation.
+         * 
+         * @since 1.0.0
+         */
+        Capabilities::install();
+        /**
+         * Mod management registration.
+         * 
+         * @since 1.0.0
+         */
+        ModManagement::register();
+        /**
+         * Post types registration.
+         * 
+         * @since 1.0.0
+         */
+        PostTypes::register();
+        /**
+         * Taxonomies registration.
+         * 
+         * @since 1.0.0
+         */
+        Taxonomies::register();
+        /**
+         * Shortcodes registration.
+         * 
+         * @since 1.0.0
+         */
+        Shortcodes::register();
+        /**
+         * Cron jobs registration.
+         * 
+         * @since 1.0.0
+         */
+        CronJobs::register();
+
+        $this->initialized = true;
+    }
+
+    /**
+     * Initialize the Includes instance and register core and extension functionalities.
+     */
+    public function init(): void {
+        $this->register_core();
+
         foreach ( $this->extensions as $extension ) {
             call_user_func( $extension, $this );
         }
-        $this->initialized = true;
-    }
-    /**
-     * Get the Core instance for managing core functionalities.
-     *
-     * @return Core The Core instance.
-     */
-    public function core(): Core {
-        return $this->core;
     }
 
     /**
@@ -92,17 +133,18 @@ final class Includes {
     }
 
     /**
-     * Attach Core registration to an external ModPress loader.
+     * Attach the shared init lifecycle to an external ModPress loader.
      *
-    * @param WPLoader $loader Loader owned by the main runtime or an extension.
+     * @param WPLoader $loader Loader owned by the main runtime or an extension.
      * @param string $hook WordPress action name.
      * @param int $priority Hook priority.
      * @return self
      */
     public function register_hooks( WPLoader $loader, string $hook = 'init', int $priority = 10 ): self {
-        $this->core->register_hooks( $loader, $hook, $priority );
+        $loader->add_action( $hook, $this, 'init', $priority, 0 );
         return $this;
     }
+
     /**
      * Check if the Includes instance has been initialized.
      *

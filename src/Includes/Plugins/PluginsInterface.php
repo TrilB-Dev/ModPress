@@ -126,7 +126,7 @@ interface DatabaseProviderInterface {
  */
 interface ShortcodeProviderInterface {
     /**
-     * Return definitions created with ShortcodeHelper::define().
+     * Return definitions created with Shortcodes::define().
      *
      * @return array<int, array<string, mixed>>
      */

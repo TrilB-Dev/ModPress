@@ -30,7 +30,16 @@ final class SettingsGeneral {
 		$root_slug = isset( $values['root_slug'] ) ? SanitizationHelper::key( (string) $values['root_slug'] ) : 'catalogue';
 		$category_slug = isset( $values['category_slug'] ) ? SanitizationHelper::key( (string) $values['category_slug'] ) : 'catalogue-group';
 		$tag_slug = isset( $values['tag_slug'] ) ? SanitizationHelper::key( (string) $values['tag_slug'] ) : 'catalogue-tag';
-		$permalink = isset( $values['permalink'] ) ? PermalinkHelper::sanitize_pattern( (string) $values['permalink'] ) : '%root%/%mod_category%/%mod_tag%/%mod_page%';
+		$permalink = isset( $values['permalink'] ) ? PermalinkHelper::sanitize_pattern( (string) $values['permalink'] ) : '%root%/%object_category%/%object_tag%/%object_slug%';
+		$token_definitions = array(
+			'%root%'            => __( 'The root ModPress slug.', 'modpress' ),
+			'%root_category%'   => __( 'The category path from the root object.', 'modpress' ),
+			'%root_tags%'       => __( 'The tag path from the root object.', 'modpress' ),
+			'%object%'          => __( 'The current object slug.', 'modpress' ),
+			'%object_category%' => __( 'The category path for the current object.', 'modpress' ),
+			'%object_tag%'      => __( 'The tag path for the current object.', 'modpress' ),
+			'%object_slug%'     => __( 'The current object slug.', 'modpress' ),
+		);
 		$enable_schema = ! empty( $values['enable_schema'] ?? true );
 		?>
 		<table class="form-table table align-middle" role="presentation">
@@ -108,7 +117,7 @@ final class SettingsGeneral {
 					<td>
 						<?php echo FormFieldHelper::text_input( 'modpress_general[permalink]', $permalink, [ 'id' => 'modpress-permalink', 'data-permalink-field' => 'permalink' ] ); ?>
 						<div class="modpress-permalink-tokens mt-2" aria-label="<?php echo esc_attr__( 'Available permalink tokens', 'modpress' ); ?>">
-							<?php foreach ( PermalinkHelper::token_definitions() as $token => $description ) : ?>
+							<?php foreach ( $token_definitions as $token => $description ) : ?>
 								<?php echo FormFieldHelper::button(
 									$token,
 									[

@@ -10,6 +10,8 @@ namespace ModPress\Admin\Manager\Settings;
 
 use ModPress\Admin\Manager\Manager;
 use ModPress\Assets\Assets;
+use ModPress\Includes\Functions\Admin\FunctionsPlugins;
+use ModPress\Includes\Functions\Admin\FunctionsSettings;
 use ModPress\Includes\Settings\Settings;
 use ModPress\Admin\Manager\Settings\SettingsPlugins;
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
@@ -52,6 +54,20 @@ final class SettingsManager extends Manager {
      * @var SettingsPlugins $plugins_page The SettingsPlugins instance.
      */
     private SettingsPlugins $plugins_page;
+
+    /**
+     * The settings handler instance.
+     *
+     * @var FunctionsSettings
+     */
+    private FunctionsSettings $settings_functions;
+
+    /**
+     * The plugin admin handler instance.
+     *
+     * @var FunctionsPlugins
+     */
+    private FunctionsPlugins $plugin_functions;
 
     /**
      * The Page variable.
@@ -99,6 +115,35 @@ final class SettingsManager extends Manager {
          * @since 1.0.0
          */
         $this->plugins_page = new SettingsPlugins();
+        /**
+         * Initialize the Plugin and Settings function handlers.
+         *
+         * @since 1.0.0
+         */
+        $this->plugin_functions = new FunctionsPlugins();
+        /**
+         * Initialize the Settings function handler.
+         *
+         * @since 1.0.0
+         */
+        $this->settings_functions = new FunctionsSettings( $this->plugin_functions );
+        /**
+         * Register the admin actions for the settings manager.
+         *
+         * @since 1.0.0
+         */
+        $this->register_actions();
+    }
+
+    /**
+     * Register the Settings Manager admin actions.
+     *
+     * @return void
+     */
+    private function register_actions(): void {
+        add_action( 'admin_post_modpress_save_settings', array( $this->settings_functions, 'save_settings' ) );
+        add_action( 'wp_ajax_modpress_toggle_plugin', array( $this->plugin_functions, 'toggle_plugin' ) );
+        add_action( 'wp_ajax_modpress_save_plugin_settings', array( $this->plugin_functions, 'save_plugin_settings' ) );
     }
     /**
      * Renders the settings page.

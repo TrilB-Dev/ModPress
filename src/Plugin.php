@@ -19,10 +19,6 @@ use ModPress\Assets\Assets;
 use ModPress\Includes\Includes;
 use ModPress\Includes\Core\WP\I18n;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
-use ModPress\Includes\Functions\Admin\FunctionsExport;
-use ModPress\Includes\Functions\Admin\FunctionsImport;
-use ModPress\Includes\Functions\Admin\FunctionsPlugins;
-use ModPress\Includes\Functions\Admin\FunctionsSettings;
 use ModPress\Includes\Plugins\Plugins;
 use ModPress\Public\Frontend;
 
@@ -98,31 +94,6 @@ class Plugin {
 	 * @access protected
 	 */
 	protected Plugins $plugins;
-	/**
-	 * The instance of the FunctionsExport class that handles the plugin's export functionality.
-	 *
-	 * @var FunctionsExport
-	 * @since 1.0.0
-	 * @access protected
-	 */
-	protected FunctionsExport $export_functions;
-	/**
-	 * The instance of the FunctionsImport class that handles the plugin's import functionality.
-	 *
-	 * @var FunctionsImport
-	 * @since 1.0.0
-	 * @access protected
-	 */
-	protected FunctionsImport $import_functions;
-	/**
-	 * The instance of the FunctionsSettings class that handles the plugin's settings functionality.
-	 *
-	 * @var FunctionsSettings
-	 * @since 1.0.0
-	 * @access protected
-	 */
-	protected FunctionsSettings $settings_functions;
-
 	/**
 	 * The current version of the plugin.
 	 *
@@ -289,37 +260,9 @@ class Plugin {
 		 * @access protected
 		 */
 		$this->plugins = Plugins::get_instance();
-		/**
-		 * The instance of the FunctionsExport class that handles the plugin's export functionality.
-		 *
-		 * @var FunctionsExport
-		 * @since 1.0.0
-		 * @access protected
-		 */
-		$this->export_functions = new FunctionsExport();
-		/**
-		 * The instance of the FunctionsImport class that handles the plugin's import functionality.
-		 *
-		 * @var FunctionsImport
-		 * @since 1.0.0
-		 * @access protected
-		 */
-		$this->import_functions = new FunctionsImport();
-		/**
-		 * The instance of the FunctionsSettings class that handles the plugin's settings functionality.
-		 *
-		 * @var FunctionsSettings
-		 * @since 1.0.0
-		 * @access protected
-		 */
-		$this->settings_functions = new FunctionsSettings( new FunctionsPlugins() );
-
 		$this->loader->add_action( 'init', $this->includes, 'init' );
 		$this->loader->add_action( 'init', $this->plugins, 'init', -10 );
 		$this->loader->add_action( 'admin_menu', $this->admin, 'register_admin_menu' );
-		$this->loader->add_action( 'admin_post_modpress_save_settings', $this->settings_functions, 'save_settings' );
-		$this->loader->add_action( 'admin_post_modpress_export', $this->export_functions, 'export_data' );
-		$this->loader->add_action( 'admin_post_modpress_import', $this->import_functions, 'import_data' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $this->assets, 'enqueue_admin' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $this->assets, 'enqueue_frontend' );
 		$this->loader->add_filter( 'the_content', $this->frontend, 'filter_content' );

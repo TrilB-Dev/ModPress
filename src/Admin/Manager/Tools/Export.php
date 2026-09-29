@@ -8,6 +8,7 @@
  */
 namespace ModPress\Admin\Manager\Tools;
 
+use ModPress\Includes\Functions\Admin\FunctionsExport;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\Functions\Helpers\UrlHelper;
 
@@ -17,12 +18,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Export extends ToolsManager {
 	/**
+	 * Export handler instance.
+	 *
+	 * @var FunctionsExport
+	 */
+	private FunctionsExport $export_functions;
+
+	/**
 	 * Constructor for the Export class.
 	 *
 	 * @return void
 	 */
 	public function __construct() {
 		parent::__construct( false );
+		$this->export_functions = new FunctionsExport();
+		add_action( 'admin_post_modpress_export', array( $this->export_functions, 'export_data' ) );
 	}
 	/**
 	 * Render the export form.

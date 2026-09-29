@@ -4,7 +4,6 @@ namespace ModPress\Admin\Manager\Dashboard;
 
 use ModPress\Admin\Manager\Manager;
 use ModPress\Assets\Assets;
-use ModPress\Includes\Core\PostType;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -94,7 +93,7 @@ final class DashboardManager extends Manager {
 
     private function render_recent_pages(): void {
         $query = new \WP_Query( [
-            'post_type'      => PostType::PAGE,
+            'post_type'      => 'modpress_page',
             'post_status'    => 'publish',
             'posts_per_page' => 6,
             'orderby'        => 'modified',
@@ -130,10 +129,30 @@ final class DashboardManager extends Manager {
 
     private function render_resources(): void {
         $resources = [
-            [ __( 'Documentation', 'modpress' ), __( 'Read the ModPress guides and product notes.', 'modpress' ), 'dashicons-media-document', 'https://trilb.dev/collection/web-extension/wordpress/modpress' ],
-            [ __( 'Community', 'modpress' ), __( 'Connect with other people building their knowledge base.', 'modpress' ), 'dashicons-groups', 'https://trilb.dev/community/' ],
-            [ __( 'Ask for Help', 'modpress' ), __( 'Get support when you need a hand with your setup.', 'modpress' ), 'dashicons-sos', 'https://trilb.dev/contact/' ],
-            [ __( 'Tell us what you think', 'modpress' ), __( 'Share ideas that can make ModPress better.', 'modpress' ), 'dashicons-format-chat', 'https://trilb.dev/contact/' ],
+            [ 
+                __( 'Documentation', 'modpress' ), 
+                __( 'Read the ModPress guides and product notes.', 'modpress' ), 
+                'dashicons-media-document', 
+                'https://trilb.dev/collection/web-extension/wordpress/modpress' 
+            ],
+            [ 
+                __( 'Community', 'modpress' ), 
+                __( 'Connect with other people building their knowledge base.', 'modpress' ), 
+                'dashicons-groups', 
+                'https://trilb.dev/community/' 
+            ],
+            [ 
+                __( 'Ask for Help', 'modpress' ), 
+                __( 'Get support when you need a hand with your setup.', 'modpress' ), 
+                'dashicons-sos', 
+                'https://trilb.dev/contact/' 
+            ],
+            [ 
+                __( 'Tell us what you think', 'modpress' ), 
+                __( 'Share ideas that can make ModPress better.', 'modpress' ), 
+                'dashicons-format-chat', 
+                'https://trilb.dev/contact/' 
+            ],
         ];
         ?>
         <div class="row g-3">

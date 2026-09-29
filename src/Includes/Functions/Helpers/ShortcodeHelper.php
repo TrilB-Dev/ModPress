@@ -1,6 +1,6 @@
 <?php
 /**
- * Convenience methods for defining ModPress shortcodes.
+ * Backward-compatible shortcode helper.
  *
  * @package ModPress
  * @subpackage Includes\Functions\Helpers
@@ -8,7 +8,7 @@
  */
 namespace ModPress\Includes\Functions\Helpers;
 
-use ModPress\Includes\Includes;
+use ModPress\Includes\Core\Shortcodes;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -16,24 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class ShortcodeHelper {
 	/**
-	 * Create a shortcode definition for a plugin shortcode list.
+	 * Build a normalized shortcode definition array.
 	 *
-	 * @param array<string, mixed> $metadata Optional descriptor metadata.
+	 * @param string $tag Shortcode tag.
+	 * @param callable $callback Callback to execute when shortcode is rendered.
+	 * @param array<string, mixed> $attributes Default shortcode attributes.
+	 * @param array<string, mixed> $metadata Optional definition metadata.
 	 * @return array<string, mixed>
 	 */
 	public static function define( string $tag, callable $callback, array $attributes = array(), array $metadata = array() ): array {
-		return array_merge(
-			array(
-				'tag'         => $tag,
-				'callback'    => $callback,
-				'attributes'  => $attributes,
-				'description' => '',
-				'category'    => '',
-				'enclosing'   => false,
-				'tinymce'     => false,
-			),
-			$metadata
-		);
+		return Shortcodes::define( $tag, $callback, $attributes, $metadata );
 	}
 
 	/**
@@ -42,10 +34,9 @@ final class ShortcodeHelper {
 	 * @param array<string, mixed> $definition Shortcode definition array.
 	 * @param bool $replace Whether to replace an existing shortcode with the same tag.
 	 * @return bool True on success, false on failure.
-	 * @since 1.0.0
 	 */
 	public static function register( array $definition, bool $replace = false ): bool {
-		return Includes::get_instance()->core()->shortcodes()->register( $definition, $replace );
+		return Shortcodes::get_instance()->register( $definition, $replace );
 	}
 
 	/**
@@ -54,10 +45,9 @@ final class ShortcodeHelper {
 	 * @param array<int, array<string, mixed>> $definitions Array of shortcode definitions.
 	 * @param bool $replace Whether to replace existing shortcodes with the same tags.
 	 * @return array<int, string> List of registered shortcode tags.
-	 * @since 1.0.0
 	 */
 	public static function register_many( array $definitions, bool $replace = false ): array {
-		return Includes::get_instance()->core()->shortcodes()->register_many( $definitions, $replace );
+		return Shortcodes::get_instance()->register_many( $definitions, $replace );
 	}
 }
 

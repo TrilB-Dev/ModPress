@@ -1,27 +1,101 @@
 <?php
-
+/**
+ * Taxonomies class for registering plugin taxonomies.
+ *
+ * @package ModPress
+ * @subpackage Includes\Pages
+ * @since 1.0.0
+ */
 namespace ModPress\Includes\Pages;
 
 use ModPress\Includes\Core\Taxonomy;
-use ModPress\Includes\Functions\Helpers\TaxonomyHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 final class Taxonomies {
-    public static function get_terms( string $taxonomy, int $limit = 50, string $search = '' ): array {
-        $terms = TaxonomyHelper::terms( $taxonomy, 0, max( 1, $limit ), $search );
+	/**
+	 * Register the page-layer taxonomies.
+	 *
+	 * @return void
+	 * @since 1.0.0
+	 */
+	public static function register(): void {
+		self::type_taxonomy();
+		self::group_taxonomy();
+		self::tag_taxonomy();
+	}
 
-        return array_map( static fn( $term ) => [
-            'id' => absint( $term->term_id ?? 0 ),
-            'name' => sanitize_text_field( $term->name ?? '' ),
-            'slug' => sanitize_title( $term->slug ?? '' ),
-            'count' => absint( $term->count ?? 0 ),
-            'description' => sanitize_textarea_field( $term->description ?? '' ),
-        ], $terms );
-    }
+	/**
+	 * Register the mod type taxonomy.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function type_taxonomy(): bool {
+		return Taxonomy::create(
+			'mod_type',
+			array(
+				'label'             => __( 'Mod Types', 'modpress' ),
+				'description'       => __( 'Types used to classify mods.', 'modpress' ),
+				'object_type'       => array( 'modpress_mod' ),
+				'hierarchical'      => true,
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => true,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'rewrite'           => array( 'slug' => 'mod-type' ),
+			)
+		);
+	}
 
-    public static function get_categories( int $limit = 50, string $search = '' ): array { return self::get_terms( Taxonomy::CATEGORY, $limit, $search ); }
-    public static function get_tags( int $limit = 50, string $search = '' ): array { return self::get_terms( Taxonomy::TAG, $limit, $search ); }
+	/**
+	 * Register the mod group taxonomy.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function group_taxonomy(): bool {
+		return Taxonomy::create(
+			'mod_group',
+			array(
+				'label'             => __( 'Mod Groups', 'modpress' ),
+				'description'       => __( 'Groups used to organize mods.', 'modpress' ),
+				'object_type'       => array( 'modpress_mod' ),
+				'hierarchical'      => true,
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => true,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'rewrite'           => array( 'slug' => 'mod-group' ),
+			)
+		);
+	}
+
+	/**
+	 * Register the mod tag taxonomy.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function tag_taxonomy(): bool {
+		return Taxonomy::create(
+			'mod_tag',
+			array(
+				'label'             => __( 'Mod Tags', 'modpress' ),
+				'description'       => __( 'Tags used to describe mods.', 'modpress' ),
+				'object_type'       => array( 'modpress_mod' ),
+				'hierarchical'      => false,
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => true,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'rewrite'           => array( 'slug' => 'mod-tag' ),
+			)
+		);
+	}
 }

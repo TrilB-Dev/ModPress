@@ -7,7 +7,6 @@
 
 namespace ModPress\Includes\Functions\Admin;
 
-use ModPress\Includes\Core\PostType;
 use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
 
@@ -64,7 +63,7 @@ class FunctionsMod {
 				'post_content' => $content,
 				'post_status'  => 'publish',
 				'post_author'  => get_current_user_id(),
-				'post_type'    => PostType::MOD,
+				'post_type'    => 'modpress_mod',
 			],
 			true
 		);

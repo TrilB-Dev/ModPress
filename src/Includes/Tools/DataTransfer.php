@@ -2,8 +2,6 @@
 
 namespace ModPress\Includes\Tools;
 
-use ModPress\Includes\Core\PostType;
-use ModPress\Includes\Core\Taxonomy;
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
 use ModPress\Includes\Functions\Helpers\PostHelper;
 use ModPress\Includes\Functions\Helpers\QueryHelper;
@@ -18,7 +16,7 @@ final class DataTransfer {
 
     public static function export(): array {
         $data = [ 'version' => self::VERSION, 'mods' => [], 'pages' => [], 'categories' => [], 'tags' => [] ];
-        $query = QueryHelper::posts( [ 'post_type' => [ PostType::MOD, PostType::PAGE ], 'post_status' => 'any', 'posts_per_page' => -1 ] );
+        $query = QueryHelper::posts( [ 'post_type' => [ 'modpress_mod', 'modpress_page' ], 'post_status' => 'any', 'posts_per_page' => -1 ] );
         while ( $query->have_posts() ) {
             $query->the_post();
             $post = PostHelper::current();
@@ -26,11 +24,11 @@ final class DataTransfer {
                 continue;
             }
 
-            $item = [ 'id' => $post->ID, 'title' => $post->post_title, 'content' => $post->post_content, 'excerpt' => $post->post_excerpt, 'status' => $post->post_status, 'mod_id' => absint( get_post_meta( $post->ID, '_modpress_mod_id', true ) ), 'categories' => TaxonomyHelper::names( TaxonomyHelper::terms( Taxonomy::CATEGORY, $post->ID ) ), 'tags' => TaxonomyHelper::names( TaxonomyHelper::terms( Taxonomy::TAG, $post->ID ) ) ];
-            $data[ $post->post_type === PostType::MOD ? 'mods' : 'pages' ][] = $item;
+            $item = [ 'id' => $post->ID, 'title' => $post->post_title, 'content' => $post->post_content, 'excerpt' => $post->post_excerpt, 'status' => $post->post_status, 'mod_id' => absint( get_post_meta( $post->ID, '_modpress_mod_id', true ) ), 'categories' => TaxonomyHelper::names( TaxonomyHelper::terms( 'modpress_mod_group', $post->ID ) ), 'tags' => TaxonomyHelper::names( TaxonomyHelper::terms( 'modpress_mod_tag', $post->ID ) ) ];
+            $data[ $post->post_type === 'modpress_mod' ? 'mods' : 'pages' ][] = $item;
         }
         wp_reset_postdata();
-        foreach ( [ 'categories' => Taxonomy::CATEGORY, 'tags' => Taxonomy::TAG ] as $key => $taxonomy ) {
+        foreach ( [ 'categories' => 'modpress_mod_group', 'tags' => 'modpress_mod_tag' ] as $key => $taxonomy ) {
             $terms = TaxonomyHelper::terms( $taxonomy );
             foreach ( $terms as $term ) {
                 $data[ $key ][] = [ 'name' => $term->name, 'slug' => $term->slug, 'description' => $term->description ];
@@ -74,7 +72,7 @@ final class DataTransfer {
                 $result['errors'][] = __( 'A mod entry was skipped because it was invalid.', 'modpress' );
                 continue;
             }
-            $id = wp_insert_post( [ 'post_type' => PostType::MOD, 'post_title' => SanitizationHelper::text( $mod['title'] ?? '' ), 'post_content' => self::content( $mod['content'] ?? '' ), 'post_status' => self::status( $mod['status'] ?? 'draft' ) ], true );
+            $id = wp_insert_post( [ 'post_type' => 'modpress_mod', 'post_title' => SanitizationHelper::text( $mod['title'] ?? '' ), 'post_content' => self::content( $mod['content'] ?? '' ), 'post_status' => self::status( $mod['status'] ?? 'draft' ) ], true );
             if ( ! is_wp_error( $id ) ) {
                 $mod_map[ absint( $mod['id'] ?? 0 ) ] = (int) $id;
                 $result['mods']++;
@@ -87,20 +85,20 @@ final class DataTransfer {
                 $result['errors'][] = __( 'A page entry was skipped because it was invalid.', 'modpress' );
                 continue;
             }
-            $id = wp_insert_post( [ 'post_type' => PostType::PAGE, 'post_title' => SanitizationHelper::text( $page['title'] ?? '' ), 'post_content' => self::content( $page['content'] ?? '' ), 'post_excerpt' => SanitizationHelper::text( $page['excerpt'] ?? '' ), 'post_status' => self::status( $page['status'] ?? 'draft' ) ], true );
+            $id = wp_insert_post( [ 'post_type' => 'modpress_page', 'post_title' => SanitizationHelper::text( $page['title'] ?? '' ), 'post_content' => self::content( $page['content'] ?? '' ), 'post_excerpt' => SanitizationHelper::text( $page['excerpt'] ?? '' ), 'post_status' => self::status( $page['status'] ?? 'draft' ) ], true );
             if ( ! is_wp_error( $id ) ) {
                 $result['pages']++;
                 if ( ! empty( $mod_map[ absint( $page['mod_id'] ?? 0 ) ] ) ) {
                     update_post_meta( (int) $id, '_modpress_mod_id', $mod_map[ absint( $page['mod_id'] ?? 0 ) ] );
                 }
-                self::set_terms( (int) $id, $page['categories'] ?? [], Taxonomy::CATEGORY );
-                self::set_terms( (int) $id, $page['tags'] ?? [], Taxonomy::TAG );
+                self::set_terms( (int) $id, $page['categories'] ?? [], 'modpress_mod_group' );
+                self::set_terms( (int) $id, $page['tags'] ?? [], 'modpress_mod_tag' );
             } else {
                 $result['errors'][] = $id->get_error_message();
             }
         }
-        $result['categories'] = self::import_terms( (array) ( $data['categories'] ?? [] ), Taxonomy::CATEGORY );
-        $result['tags'] = self::import_terms( (array) ( $data['tags'] ?? [] ), Taxonomy::TAG );
+        $result['categories'] = self::import_terms( (array) ( $data['categories'] ?? [] ), 'modpress_mod_group' );
+        $result['tags'] = self::import_terms( (array) ( $data['tags'] ?? [] ), 'modpress_mod_tag' );
         return $result;
     }
 

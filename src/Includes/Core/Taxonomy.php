@@ -18,17 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Taxonomy {
 	/**
-	 * Legacy compatibility aliases for older ModPress taxonomies.
-	 *
-	 * The current dynamic taxonomy registry uses mod-specific group/tag slugs, so these constants
-	 * preserve compatibility with existing helper and import code that expects category/tag labels.
-	 */
-	public const CATEGORY = 'modpress_mod_group';
-	public const TAG = 'modpress_mod_tag';
-	public const GROUP = 'modpress_mod_group';
-	public const GAMES = 'modpress_mod_group';
-
-	/**
 	 * Registered taxonomy definitions.
 	 *
 	 * @var array<string, array<string, mixed>>
@@ -228,7 +217,11 @@ final class Taxonomy {
 			return '';
 		}
 
-		return SanitizationHelper::key( str_replace( array( ' ', '/' ), array( '-', '-' ), $taxonomy ) );
+		$taxonomy = preg_replace( '/[\s\/]+/', '_', $taxonomy );
+		$taxonomy = str_replace( '-', '_', SanitizationHelper::key( $taxonomy ) );
+		$taxonomy = preg_replace( '/_+/', '_', $taxonomy );
+
+		return $taxonomy;
 	}
 
 	/**
@@ -404,7 +397,10 @@ final class Taxonomy {
 		}
 
 		if ( isset( $definition['labels'] ) && is_array( $definition['labels'] ) ) {
-			$definition['labels'] = array_merge( $definition['labels'], (array) ( $config['labels'] ?? array() ) );
+			$definition['labels'] = array_merge(
+				$definition['labels'],
+				(array) ( $config['labels'] ?? array() )
+			);
 		}
 
 		if ( isset( $definition['rewrite'] ) ) {

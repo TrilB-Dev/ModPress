@@ -8,8 +8,6 @@
  */
 
 namespace ModPress\Includes\Functions\Helpers;
-
-use ModPress\Includes\Core\PostType;
 use ModPress\Includes\Functions\Helpers\QueryHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -91,28 +89,6 @@ final class PostHelper {
 	public static function is_type( $post, string $post_type ): bool {
 		$post = self::get( $post );
 		return null !== $post && $post->post_type === $post_type;
-	}
-
-	/**
-	 * Check if a post is a wiki post.
-	 *
-	 * @param int|\WP_Post|null $post The post ID, WP_Post instance, or null for the current post.
-	 * @return bool True if the post is a wiki post, false otherwise.
-	 * @since 1.0.0
-	 */
-	public static function is_wiki( $post ): bool {
-		return self::is_type( $post, PostType::WIKI );
-	}
-
-	/**
-	 * Check if a post is a wiki page.
-	 *
-	 * @param int|\WP_Post|null $post The post ID, WP_Post instance, or null for the current post.
-	 * @return bool True if the post is a wiki page, false otherwise.
-	 * @since 1.0.0
-	 */
-	public static function is_wiki_page( $post ): bool {
-		return self::is_type( $post, PostType::PAGE );
 	}
 
 	/**

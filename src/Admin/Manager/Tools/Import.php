@@ -8,6 +8,7 @@
  */
 namespace ModPress\Admin\Manager\Tools;
 
+use ModPress\Includes\Functions\Admin\FunctionsImport;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\Functions\Helpers\UrlHelper;
 
@@ -17,12 +18,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Import extends ToolsManager {
 	/**
+	 * Import handler instance.
+	 *
+	 * @var FunctionsImport
+	 */
+	private FunctionsImport $import_functions;
+
+	/**
 	 * Render the JSON import form below the tools settings form.
 	 *
 	 * @return void
 	 */
 	public function __construct() {
 		parent::__construct( false );
+		$this->import_functions = new FunctionsImport();
+		add_action( 'admin_post_modpress_import', array( $this->import_functions, 'import_data' ) );
 	}
 	/**
 	 * Render the import form.

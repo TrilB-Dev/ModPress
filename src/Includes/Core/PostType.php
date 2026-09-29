@@ -5,7 +5,9 @@
  * This is the single entry point for creating or registering custom post types.
  * It is intentionally generic and should not contain type-specific data.
  *
- * @package ModPress\Includes\Core
+ * @package ModPress
+ * @subpackage Includes\Core
+ * @since 1.0.0
  */
 namespace ModPress\Includes\Core;
 
@@ -19,20 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class PostType {
 	/**
-	 * Legacy compatibility aliases for earlier ModPress code paths and copied plugin implementations.
-	 *
-	 * The core registry is slug-based, so these constants keep older references working while the
-	 * runtime continues to use the dynamically registered slugs defined in ModManagement.
-	 */
-	public const MOD = 'modpress_mod';
-	public const PAGE = 'modpress_page';
-	public const MODPRESS = 'modpress_page';
-	public const WIKI = 'modpress_wiki';
-
-	/**
 	 * Registered post type definitions.
 	 *
 	 * @var array<string, array<string, mixed>>
+	 * @since 1.0.0
 	 */
 	private static array $registered = array();
 
@@ -44,6 +36,7 @@ final class PostType {
 	 * @param string $slug Post type slug.
 	 * @param array<string, mixed> $config Registration config.
 	 * @return bool
+	 * @since 1.0.0
 	 */
 	public static function create( string $slug, array $config = array() ): bool {
 		$slug = self::normalize_slug( $slug );
@@ -63,6 +56,7 @@ final class PostType {
 	 *
 	 * @param array<string, array<string, mixed>> $post_types Post type definitions.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public static function register_post_types( array $post_types = array() ): void {
 		foreach ( $post_types as $slug => $config ) {
@@ -75,6 +69,7 @@ final class PostType {
 	 *
 	 * @param array<string, mixed> $data UI payload.
 	 * @return bool
+	 * @since 1.0.0
 	 */
 	public static function dynamically_create( array $data = array() ): bool {
 		$slug = self::normalize_slug( $data['slug'] ?? $data['post_type'] ?? '' );
@@ -190,6 +185,7 @@ final class PostType {
 	 * Get all registered post type definitions.
 	 *
 	 * @return array<string, array<string, mixed>>
+	 * @since 1.0.0
 	 */
 	public static function definitions(): array {
 		return apply_filters( 'modpress_post_type_definitions', self::$registered );
@@ -199,6 +195,7 @@ final class PostType {
 	 * Get all registered post type names.
 	 *
 	 * @return array<int, string>
+	 * @since 1.0.0
 	 */
 	public static function get_post_type_names(): array {
 		return array_keys( self::definitions() );
@@ -208,6 +205,7 @@ final class PostType {
 	 * Build the rewrite slug for a post type.
 	 *
 	 * @return string
+	 * @since 1.0.0
 	 */
 	public static function page_rewrite_slug(): string {
 		return self::setting_slug( 'root_slug', 'modpress' );
@@ -219,6 +217,7 @@ final class PostType {
 	 * @param string $slug Raw slug.
 	 * @param bool $allow_hyphen Whether to allow hyphen separators.
 	 * @return string
+	 * @since 1.0.0
 	 */
 	private static function normalize_slug( string $slug, bool $allow_hyphen = false ): string {
 		$slug = trim( (string) $slug );
@@ -239,6 +238,7 @@ final class PostType {
 	 *
 	 * @param array<string, mixed> $meta Meta definitions.
 	 * @return array<string, array<string, mixed>>
+	 * @since 1.0.0
 	 */
 	private static function normalize_meta( array $meta ): array {
 		$normalized = array();
@@ -264,6 +264,7 @@ final class PostType {
 	 *
 	 * @param mixed $value Value to normalize.
 	 * @return bool
+	 * @since 1.0.0
 	 */
 	private static function normalize_bool( $value ): bool {
 		if ( is_bool( $value ) ) {
@@ -283,6 +284,7 @@ final class PostType {
 	 * @param array<string, mixed>|string $rewrite Rewrite config.
 	 * @param string $slug Post type slug.
 	 * @return array<string, mixed>
+	 * @since 1.0.0
 	 */
 	private static function normalize_rewrite( $rewrite, string $slug ): array {
 		$rewrite_defaults = array(
@@ -313,6 +315,7 @@ final class PostType {
 	 *
 	 * @param mixed $taxonomies Taxonomies payload.
 	 * @return array<int, string>
+	 * @since 1.0.0
 	 */
 	private static function normalize_taxonomies( $taxonomies ): array {
 		if ( is_string( $taxonomies ) ) {
@@ -338,6 +341,7 @@ final class PostType {
 	 *
 	 * @param array<string, mixed> $capabilities Raw capabilities.
 	 * @return array<string, string>
+	 * @since 1.0.0
 	 */
 	private static function normalize_capabilities( array $capabilities ): array {
 		$normalized = array();
@@ -353,6 +357,7 @@ final class PostType {
 	 *
 	 * @param mixed $value Raw value.
 	 * @return bool|string
+	 * @since 1.0.0
 	 */
 	private static function normalize_has_archive( $value ) {
 		if ( is_bool( $value ) ) {
@@ -375,6 +380,7 @@ final class PostType {
 	 *
 	 * @param array<int, string> $supports Supports list.
 	 * @return array<int, string>
+	 * @since 1.0.0
 	 */
 	private static function normalize_supports( array $supports ): array {
 		$valid = array( 
@@ -409,6 +415,7 @@ final class PostType {
 	 * @param string $slug Post type slug.
 	 * @param array<string, mixed> $config Raw config.
 	 * @return array<string, mixed>
+	 * @since 1.0.0
 	 */
 	private static function normalize_definition( string $slug, array $config ): array {
 		$definition = array(
@@ -459,7 +466,10 @@ final class PostType {
 		$definition = array_replace_recursive( $definition, $config );
 
 		if ( isset( $definition['labels'] ) && is_array( $definition['labels'] ) ) {
-			$definition['labels'] = array_merge( $definition['labels'], (array) $config['labels'] ?? array() );
+			$definition['labels'] = array_merge(
+				$definition['labels'],
+				(array) ( $config['labels'] ?? array() )
+			);
 		}
 
 		if ( isset( $definition['rewrite'] ) ) {
@@ -551,6 +561,7 @@ final class PostType {
 	 * @param string $slug Raw slug.
 	 * @param bool $singular Whether to render singular form.
 	 * @return string
+	 * @since 1.0.0
 	 */
 	private static function humanize_slug( string $slug, bool $singular = false ): string {
 		$label = str_replace( array( '-', '_' ), ' ', $slug );
@@ -567,6 +578,7 @@ final class PostType {
 	 * @param string $key The setting key.
 	 * @param string $fallback The fallback slug.
 	 * @return string
+	 * @since 1.0.0
 	 */
 	private static function setting_slug( string $key, string $fallback ): string {
 		$value = SanitizationHelper::slug( Settings::get( $key, $fallback ), $fallback );
@@ -579,6 +591,7 @@ final class PostType {
 	 * @param string $slug Post type slug.
 	 * @param array<string, mixed> $config Definition payload.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	private static function register_single( string $slug, array $config ): void {
 		if ( post_type_exists( $slug ) ) {

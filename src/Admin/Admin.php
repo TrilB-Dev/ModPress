@@ -9,7 +9,6 @@
 namespace ModPress\Admin;
 
 use ModPress\Includes\Settings\Settings;
-use ModPress\Includes\Functions\Admin\FunctionsPlugins;
 use ModPress\Includes\Functions\Helpers\AjaxHelper;
 use ModPress\Includes\Core\Capabilities;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
@@ -66,12 +65,6 @@ final class Admin {
 	 */
 	private LoaderHelper $loader;
 	/**
-	 * FunctionsPlugins instance for managing plugin-related admin functions.
-	 *
-	 * @var FunctionsPlugins
-	 */
-	private FunctionsPlugins $plugin_functions;
-	/**
 	 * Assets instance for managing admin assets.
 	 *
 	 * @var Assets
@@ -108,10 +101,6 @@ final class Admin {
 		 */
 		$this->tools_manager     = $this->managers['tools'];
 		/**
-		 * Initialize the plugin functions manager.
-		 */
-		$this->plugin_functions = new FunctionsPlugins();
-		/**
 		 * Initialize the loader helper.
 		 */
 		$this->loader = new LoaderHelper();
@@ -138,21 +127,7 @@ final class Admin {
 				),
 			)
 		);
-		$this->loader->register_component(
-			$this->plugin_functions,
-			array(
-				array(
-					'type'     => 'action',
-					'hook'     => 'wp_ajax_modpress_toggle_plugin',
-					'callback' => 'toggle_plugin',
-				),
-				array(
-					'type'     => 'action',
-					'hook'     => 'wp_ajax_modpress_save_plugin_settings',
-					'callback' => 'save_plugin_settings',
-				),
-			)
-		)->run();
+		$this->loader->run();
 	}
 	/**
 	 * Register admin menu pages and subpages.
