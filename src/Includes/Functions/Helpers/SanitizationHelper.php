@@ -22,7 +22,11 @@ final class SanitizationHelper {
 	 * @return string Sanitized text.
 	 */
 	public static function text( $value, string $fallback = '' ): string {
-		return is_scalar( $value ) ? sanitize_text_field( (string) $value ) : $fallback;
+		if ( ! is_scalar( $value ) ) {
+			return $fallback;
+		}
+
+		return function_exists( '\\sanitize_text_field' ) ? \sanitize_text_field( (string) $value ) : trim( strip_tags( (string) $value ) );
 	}
 
 	/**
@@ -33,7 +37,11 @@ final class SanitizationHelper {
 	 * @return string Sanitized textarea value.
 	 */
 	public static function textarea( $value, string $fallback = '' ): string {
-		return is_scalar( $value ) ? sanitize_textarea_field( (string) $value ) : $fallback;
+		if ( ! is_scalar( $value ) ) {
+			return $fallback;
+		}
+
+		return function_exists( '\\sanitize_textarea_field' ) ? \sanitize_textarea_field( (string) $value ) : trim( strip_tags( (string) $value ) );
 	}
 
 	/**
@@ -48,7 +56,7 @@ final class SanitizationHelper {
 			return $fallback;
 		}
 
-		$sanitized = sanitize_key( (string) $value );
+		$sanitized = function_exists( '\\sanitize_key' ) ? \sanitize_key( (string) $value ) : strtolower( preg_replace( '/[^a-z0-9_\-]+/', '', (string) $value ) );
 		return '' !== $sanitized ? $sanitized : $fallback;
 	}
 
@@ -64,7 +72,8 @@ final class SanitizationHelper {
 			return $fallback;
 		}
 
-		$sanitized = sanitize_title( (string) $value );
+		$sanitized = function_exists( '\\sanitize_title' ) ? \sanitize_title( (string) $value ) : strtolower( preg_replace( '/[^a-z0-9]+/', '-', (string) $value ) );
+		$sanitized = trim( (string) $sanitized, '-' );
 		return '' !== $sanitized ? $sanitized : $fallback;
 	}
 

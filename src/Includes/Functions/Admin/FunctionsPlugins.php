@@ -13,6 +13,7 @@ use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Plugins\PluginInterface;
 use ModPress\Includes\Plugins\Plugins;
 use ModPress\Includes\Plugins\SettingsPageProviderInterface;
+use ModPress\Includes\Settings\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -67,6 +68,12 @@ final class FunctionsPlugins {
 
         $input = isset( $_POST['settings'] ) && is_array( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : [];
         $settings = $plugin->sanitize_settings( $input );
+
+        $page = $plugin->get_settings_page();
+        $group = sanitize_key( $page['slug'] ?? $slug );
+        if ( '' !== $group ) {
+            Settings::set_group( $group, $settings );
+        }
 
         AjaxHelper::success(
             [

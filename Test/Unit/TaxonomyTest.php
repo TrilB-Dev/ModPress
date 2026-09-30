@@ -84,8 +84,10 @@ namespace {
         }
     }
 
-    function maybe_unserialize( $value ) {
-        return $value;
+    if ( ! function_exists( 'maybe_unserialize' ) ) {
+        function maybe_unserialize( $value ) {
+            return $value;
+        }
     }
 
     if ( ! function_exists( 'is_wp_error' ) ) {
@@ -111,13 +113,15 @@ namespace {
         return true;
     }
 
-    function apply_filters( $hook_name, $value, ...$args ) {
-        foreach ( $GLOBALS['modpress_test_filters'][ $hook_name ] ?? [] as $filter ) {
-            $filter_args = array_slice( array_merge( [ $value ], $args ), 0, $filter['accepted_args'] );
-            $value = $filter['callback']( ...$filter_args );
-        }
+    if ( ! function_exists( 'apply_filters' ) ) {
+        function apply_filters( $hook_name, $value, ...$args ) {
+            foreach ( $GLOBALS['modpress_test_filters'][ $hook_name ] ?? [] as $filter ) {
+                $filter_args = array_slice( array_merge( [ $value ], $args ), 0, $filter['accepted_args'] );
+                $value = $filter['callback']( ...$filter_args );
+            }
 
-        return $value;
+            return $value;
+        }
     }
 
     function term_exists( $term, $taxonomy = '', $parent_term = null ) {

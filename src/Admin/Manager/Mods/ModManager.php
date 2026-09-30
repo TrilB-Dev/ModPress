@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 exit;
 }
 
-final class ModManager extends Manager {
+class ModManager extends Manager {
     /**
      * The page slug for the mod manager group.
      *

@@ -27,7 +27,7 @@ if ( ! function_exists( 'sanitize_title' ) ) {
 
 if ( ! function_exists( 'sanitize_text_field' ) ) {
 	function sanitize_text_field( $text ): string {
-		return trim( (string) $text );
+		return trim( strip_tags( (string) $text ) );
 	}
 }
 

@@ -217,11 +217,14 @@ final class Taxonomy {
 			return '';
 		}
 
-		$taxonomy = preg_replace( '/[\s\/]+/', '_', $taxonomy );
-		$taxonomy = str_replace( '-', '_', SanitizationHelper::key( $taxonomy ) );
+		$taxonomy = preg_replace( '/[\s\/\\\\]+/', '_', $taxonomy );
+		$taxonomy = preg_replace( '/-+/', '_', $taxonomy );
+		$taxonomy = preg_replace( '/[^a-zA-Z0-9_]+/', '_', $taxonomy );
 		$taxonomy = preg_replace( '/_+/', '_', $taxonomy );
+		$taxonomy = trim( $taxonomy, '_' );
+		$taxonomy = strtolower( $taxonomy );
 
-		return $taxonomy;
+		return '' === $taxonomy ? '' : $taxonomy;
 	}
 
 	/**
