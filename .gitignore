@@ -75,9 +75,9 @@ coverage/
 local-config.php
 .env
 .env.*
-src/Assets/Images/*.ai
-src/Assets/Images/Logo/*.ai
-src/Assets/Images/Logo/*@2x.png
-src/Assets/Images/Logo/*@3x.png
-src/Assets/Images/Logo/copilot*
+src/Assets/images/*.ai
+src/Assets/images/logo/*.ai
+src/Assets/images/logo/*@2x.png
+src/Assets/images/logo/*@3x.png
+src/Assets/images/logo/copilot*
 #src/Includes/Elementor/Assets/images/widgets/post-list/
