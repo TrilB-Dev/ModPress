@@ -41,7 +41,7 @@ final class PostTypes {
 				'taxonomies'      => array( 'modpress_mod_group', 'modpress_mod_tag' ),
 				'public'          => true,
 				'show_ui'         => true,
-				'show_in_menu'    => true,
+				'show_in_menu'    => false,
 				'menu_position'   => 20,
 				'menu_icon'       => 'dashicons-archive',
 				'has_archive'     => true,

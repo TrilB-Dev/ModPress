@@ -60,7 +60,8 @@ final class SettingsGeneral {
 							'modpress_general[root_name]', 
 							$root_name, 
 							[ 
-								'id' => 'modpress-root-name' 
+								'id' => 'modpress-root-name',
+								'class' => 'w-100',
 							] 
 						); ?>
 					</td>
@@ -82,7 +83,8 @@ final class SettingsGeneral {
 							$root_description, 
 							[ 
 								'id' => 'modpress-root-description', 
-								'rows' => 3 
+								'rows' => 3,
+								'class' => 'w-100',
 							] 
 						); ?>
 					</td>

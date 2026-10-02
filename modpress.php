@@ -6,10 +6,10 @@
  * This is the main plugin file for the ModPress WordPress plugin. It contains the plugin metadata and initializes the plugin by including necessary files and setting up activation and deactivation hooks.
  *
  * Plugin Name:       ModPress
- * Plugin URI:        https://modpress.dev
+ * Plugin URI:        https://trilb.dev/
  * Description:       Modpres is a Wordpress plugin designed to manage and display plugins, mods & extensions in a portfolio.
- * MrTrilB:            MrTrilB
- * MrTrilB URI:        https://trilb.dev
+ * Author:            MrTrilB
+ * Author URI:        https://trilb.dev/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       modpress
@@ -47,20 +47,13 @@ define( 'MODPRESS_PLUGINS', MODPRESS_INCLUDES . '/Plugins' );
 define( 'MODPRESS_PLUGINS_URL', MODPRESS_URL . 'src/Includes/Plugins' );
 
 $modpress_autoloader = MODPRESS_DIR . 'vendor/autoload.php';
-
-if ( ! file_exists( $modpress_autoloader ) ) {
-    // Log error and deactivate plugin gracefully
-    add_action( 'admin_notices', function() {
-        echo '<div class="notice notice-error"><p><strong>ModPress Error:</strong> Composer dependencies are missing. Please run <code>composer install</code> in the plugin directory.</p></div>';
-    } );
-    return; // Exit early without loading the plugin
-}
-
+if ( is_readable( $modpress_autoloader ) ) {
 	require_once $modpress_autoloader;
+}
 
 /**
  * The code that runs during plugin activation.
- * This action is documented in includes/class-modpress-activator.php
+ * This action is documented in includes/class-accesspress-activator.php
  */
 function activate_modpress() {
 	\ModPress\Includes\Core\WP\Activator::activate();
@@ -69,7 +62,7 @@ function activate_modpress() {
 register_activation_hook( __FILE__, 'activate_modpress' );
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/class-modpress-deactivator.php
+ * This action is documented in includes/class-accesspress-deactivator.php
  */
 function deactivate_modpress() {
 	\ModPress\Includes\Core\WP\Deactivator::deactivate();
