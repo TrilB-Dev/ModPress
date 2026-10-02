@@ -28,14 +28,8 @@ final class SettingsManager {
         Database::install();
 
         foreach ( self::registered_defaults() as $group => $settings ) {
-            $stored_settings = self::get_group( $group );
-            if ( null === $stored_settings ) {
-                $legacy_settings = self::get_legacy_group( $group );
-                $stored_settings = is_array( $legacy_settings ) ? $legacy_settings : [];
-            }
-
+            $stored_settings = self::get_group( $group ) ?? [];
             self::set_group( $group, array_merge( $settings, $stored_settings ) );
-            self::delete_legacy_group( $group );
         }
     }
 
@@ -208,17 +202,6 @@ final class SettingsManager {
 
     private static function logical_group( string $group ): string {
         return str_starts_with( $group, 'modpress_' ) ? substr( $group, 10 ) : $group;
-    }
-
-    private static function get_legacy_group( string $group ): ?array {
-        global $wpdb;
-        $value = $wpdb->get_var( $wpdb->prepare( 'SELECT setting_value FROM ' . self::table_name() . ' WHERE setting_group = %s', sanitize_key( $group ) ) );
-        return $value === null ? null : maybe_unserialize( $value );
-    }
-
-    private static function delete_legacy_group( string $group ): void {
-        global $wpdb;
-        $wpdb->delete( self::table_name(), [ 'setting_group' => sanitize_key( $group ) ], [ '%s' ] );
     }
 
     private static function group_for_key( string $key ): string {

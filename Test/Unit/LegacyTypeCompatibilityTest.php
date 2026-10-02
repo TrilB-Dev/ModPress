@@ -16,4 +16,9 @@ final class LegacyTypeCompatibilityTest extends TestCase {
         $this->assertContains( 'modpress_mod', PostType::get_post_type_names() );
         $this->assertContains( 'modpress_mod_group', Taxonomy::get_taxonomy_names() );
     }
+
+    public function testDuplicatePostTypeRegistrationsAreRejectedByTheCoreRegistry(): void {
+        $this->assertTrue( PostType::create( 'modpress_duplicate', array( 'public' => false, 'show_ui' => false ) ) );
+        $this->assertFalse( PostType::create( 'modpress_duplicate', array( 'public' => false, 'show_ui' => false ) ) );
+    }
 }

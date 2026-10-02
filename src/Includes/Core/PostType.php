@@ -40,7 +40,11 @@ final class PostType {
 	 */
 	public static function create( string $slug, array $config = array() ): bool {
 		$slug = self::normalize_slug( $slug );
-		if ( '' === $slug || post_type_exists( $slug ) ) {
+		if ( '' === $slug ) {
+			return false;
+		}
+
+		if ( array_key_exists( $slug, self::$registered ) || post_type_exists( $slug ) ) {
 			return false;
 		}
 
@@ -60,6 +64,14 @@ final class PostType {
 	 */
 	public static function register_post_types( array $post_types = array() ): void {
 		foreach ( $post_types as $slug => $config ) {
+			if ( '' === trim( (string) $slug ) ) {
+				continue;
+			}
+
+			if ( array_key_exists( (string) $slug, self::$registered ) || post_type_exists( (string) $slug ) ) {
+				continue;
+			}
+
 			self::create( (string) $slug, (array) $config );
 		}
 	}
@@ -174,6 +186,10 @@ final class PostType {
 	 */
 	public function register(): void {
 		foreach ( self::$registered as $slug => $config ) {
+			if ( post_type_exists( $slug ) ) {
+				continue;
+			}
+
 			self::register_single( $slug, $config );
 		}
 
@@ -439,7 +455,7 @@ final class PostType {
 			'hierarchical'          => false,
 			'public'                => true,
 			'show_ui'               => true,
-			'show_in_menu'          => true,
+			'show_in_menu'          => false,
 			'menu_position'         => 5,
 			'menu_icon'             => 'dashicons-admin-post',
 			'show_in_admin_bar'     => true,
