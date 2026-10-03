@@ -32,9 +32,16 @@ final class Assets {
      * @since 1.0.0
      */
     public function register(): void {
-        $this->loader->register_component( $this, [
-            [ 'type' => 'action', 'hook' => 'admin_enqueue_scripts', 'callback' => 'enqueue_admin_assets' ],
-        ] )->run();
+        $this->loader->register_component( 
+            $this, 
+            [
+                [
+                    'type' => 'action', 
+                    'hook' => 'admin_enqueue_scripts', 
+                    'callback' => 'enqueue_admin_assets'
+                ],
+            ] 
+        )->run();
     }
     /**
      * Enqueues the admin assets for the FontAwesome plugin.
@@ -43,7 +50,7 @@ final class Assets {
      * @since 1.0.0
      */
     public function enqueue_admin_assets( string $hook_suffix = '' ): void {
-        $this->enqueue_fontawesome_vendor_assets( $hook_suffix );
+        $this->enqueue_fontawesome_assets( $hook_suffix );
         $this->enqueue_icon_picker();
     }
     /**
@@ -52,8 +59,8 @@ final class Assets {
      * @param string $hook_suffix The current admin page hook suffix.
      * @since 1.0.0
      */
-    private function enqueue_fontawesome_vendor_assets( string $hook_suffix ): void {
-        if ( ! $this->should_enqueue_vendor_assets( $hook_suffix ) ) {
+    private function enqueue_fontawesome_assets( string $hook_suffix ): void {
+        if ( ! $this->should_enqueue_assets( $hook_suffix ) ) {
             return;
         }
 
@@ -61,25 +68,7 @@ final class Assets {
             return;
         }
 
-        $source = FontAwesomeSettings::source();
-        $kit_id = FontAwesomeSettings::kit_id();
-
-        wp_add_inline_script(
-            'modpress-admin-ui',
-            'window.modpressFontAwesomeSettings = ' . wp_json_encode( [
-                'source' => $source,
-                'kit_id' => $kit_id,
-            ] ) . ';',
-            'before'
-        );
-
-        if ( 'kit' === $source && '' !== $kit_id ) {
-            $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official' );
-            $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official' );
-            $this->enqueue_fontawesome_handle( 'style', 'font-awesome-svg-styles' );
-            return;
-        }
-
+        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-admin' );
         $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official' );
         $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-v4shim' );
         $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official' );
@@ -94,7 +83,7 @@ final class Assets {
      * @param string $hook_suffix The current admin page hook suffix.
      * @return bool True when the current screen belongs to ModPress.
      */
-    private function should_enqueue_vendor_assets( string $hook_suffix ): bool {
+    private function should_enqueue_assets( string $hook_suffix ): bool {
         $page = sanitize_key( $_GET['page'] ?? '' );
         $screen = get_current_screen();
         $screen_id = $screen ? $screen->id : '';
@@ -171,6 +160,10 @@ final class Assets {
      * @since 1.0.0
      */
     private function should_enqueue_icon_picker(): bool {
+        if ( ! FontAwesomeSettings::enable_icon_picker() ) {
+            return false;
+        }
+
         $screen = get_current_screen();
         if ( ! $screen ) {
             return false;

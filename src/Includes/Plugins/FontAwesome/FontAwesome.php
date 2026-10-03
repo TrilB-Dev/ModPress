@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Font Awesome plugin integration for ModPress.
  *
@@ -29,159 +29,173 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @var self|null
      */
     private static ?self $instance = null;
+
     /**
      * IconPicker instance for the FontAwesome plugin.
      *
      * @var IconPicker|null
      */
     private ?IconPicker $icon_picker = null;
+
     /**
-     * Check if the FontAwesome library is available.
+     * Get the plugin slug.
      *
-     * @return bool True if the FontAwesome library is available, false otherwise.
+     * @return string
      */
     public function get_slug(): string {
         return 'modpress-fontawesome';
     }
+
     /**
      * Get the plugin name.
      *
-     * @return string The plugin name.
+     * @return string
      */
     public function get_name(): string {
         return 'FontAwesome';
     }
+
     /**
      * Get the plugin icon.
      *
-     * @return array{0: string, 1: string} The plugin icon class and color.
+     * @return array{0: string, 1: string}
      */
     public function get_icon(): array {
-        return ['fab fa-font-awesome', '#74c1fcff'];
+        return [ 'fab fa-font-awesome', '#74c1fcff' ];
     }
+
     /**
      * Get the plugin version.
      *
-     * @return string The plugin version.
+     * @return string
      */
     public function get_version(): string {
-        if ( self::is_wordpress_fontawesome_active() && function_exists( 'FortAwesome\\fa' ) && class_exists( '\\FortAwesome\\FontAwesome' ) ) {
+        if ( self::is_wordpress_fontawesome_active() && function_exists( 'FortAwesome\fa' ) && class_exists( '\FortAwesome\FontAwesome' ) ) {
             return \FortAwesome\fa()->version();
         }
 
         return '1.0.0';
     }
+
     /**
      * Get the plugin author.
      *
-     * @return string The plugin author.
+     * @return string
      */
     public function get_author(): string {
         return 'TrilB.Dev Team';
     }
+
     /**
      * Get the plugin author URI.
      *
-     * @return string The plugin author URI.
+     * @return string
      */
     public function get_author_uri(): string {
         return 'https://trilb.dev';
     }
+
     /**
      * Get the plugin description.
      *
-     * @return string The plugin description.
+     * @return string
      */
     public function get_description(): string {
         return __( 'Provides Font Awesome enqueueing in Admin, Frontend, Login Page, icon picking, and styling APIs for ModPress.', 'modpress' );
     }
+
     /**
      * Get the plugin URI.
      *
-     * @return string The plugin URI.
+     * @return string
      */
     public function get_uri(): string {
         return 'https://trilb.dev/collection/web-extension/wordpress/modpress';
     }
+
     /**
      * Get the plugin license.
      *
-     * @return string The plugin license.
+     * @return string
      */
     public function get_license(): string {
         return 'GPL-2.0-or-later';
     }
+
     /**
      * Check if the plugin is active.
      *
-     * @return bool True if the plugin is active, false otherwise.
+     * @return bool
      */
     public function is_active(): bool {
         return true;
     }
+
     /**
-     * Register the plugin's settings.
+     * Register plugin settings.
      *
-     * This method registers the settings for the FontAwesome plugin using the
-     * Settings class.
+     * @return void
      */
     public function register_settings(): void {
         Includes::get_instance()->settings()->register();
     }
+
     /**
-     * Get the settings page for the plugin.
+     * Get the settings page config.
      *
-     * @return array The settings page configuration.
+     * @return array
      */
     public function get_settings_page(): array {
         return Includes::get_instance()->settings()->get_settings_page();
     }
+
     /**
-     * Sanitize the plugin's settings.
+     * Sanitize plugin settings.
      *
-     * @param mixed $input The input settings to sanitize.
-     * @return array The sanitized settings.
+     * @param mixed $input
+     * @return array
      */
     public function sanitize_settings( $input ): array {
         return Includes::get_instance()->settings()->sanitize( $input );
     }
+
     /**
-     * Register the plugin's assets.
+     * Register plugin assets.
      *
-     * This method registers the assets for the FontAwesome plugin using the
-     * Assets class.
+     * @return void
      */
     public function register_assets(): void {
         ( new Assets() )->register();
     }
+
     /**
-     * Load the plugin's text domain for internationalization.
+     * Load the text domain.
      *
-     * This method loads the text domain for the FontAwesome plugin using the
-     * I18n class.
+     * @return void
      */
     public function load_textdomain(): void {
         I18n::load_textdomain();
     }
+
     /**
-     * Check if the FontAwesome library is available.
+     * Check whether Font Awesome is available.
      *
-     * @return bool True if the FontAwesome library is available, false otherwise.
+     * @return bool
      */
     public function is_available(): bool {
-        return self::is_wordpress_fontawesome_active() || ( function_exists( 'FortAwesome\\fa' ) && class_exists( '\\FortAwesome\\FontAwesome' ) );
+        return self::is_wordpress_fontawesome_active() || ( function_exists( 'FortAwesome\fa' ) && class_exists( '\FortAwesome\FontAwesome' ) );
     }
 
     /**
      * Determine whether a FontAwesome instance is already present.
      *
-     * WordPress FontAwesome wins first, and ModPress reuses that namespace and
-     * bootstrap instead of loading a second copy from Composer.
+     * WordPress FontAwesome wins first. ModPress does not load the bundled
+     * composer copy when the official plugin is active.
      *
-     * @return bool True when an active FontAwesome loader or plugin is present.
+     * @return bool
      */
     public static function is_wordpress_fontawesome_active(): bool {
-        if ( function_exists( 'FortAwesome\\fa' ) || class_exists( '\\FortAwesome\\FontAwesome' ) || class_exists( '\\FortAwesome\\FontAwesome_Loader' ) ) {
+        if ( function_exists( 'FortAwesome\fa' ) || class_exists( '\FortAwesome\FontAwesome' ) || class_exists( '\FortAwesome\FontAwesome_Loader' ) ) {
             return true;
         }
 
@@ -191,83 +205,64 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
 
         return false;
     }
+
     /**
-     * Get the IconPicker instance for the FontAwesome plugin.
+     * Get the IconPicker instance.
      *
-     * @return IconPicker|null The IconPicker instance, or null if not available.
+     * @return IconPicker|null
      */
     public function get_icon_picker(): ?IconPicker {
         return $this->icon_picker;
     }
+
     /**
-     * Get the singleton instance of the FontAwesome plugin.
+     * Get the singleton instance.
      *
-     * @return self The singleton instance of the FontAwesome plugin.
+     * @return self
      */
     public static function get_instance(): self {
         return self::$instance ??= new self();
     }
 
     /**
-     * Ensures the bundled Font Awesome library has been initialized after it is
-     * loaded. This is required for the official vendor handles to register with
-     * WordPress and become available to the ModPress UI.
+     * ModPress does not initialize the bundled vendor copy.
      *
      * @return void
      */
     public static function ensure_vendor_initialized(): void {
-        if ( function_exists( 'FortAwesome\\fa' ) ) {
-            return;
-        }
-
-        if ( class_exists( '\\FortAwesome\\FontAwesome_Loader' ) && method_exists( '\\FortAwesome\\FontAwesome_Loader', 'initialize' ) ) {
-            \FortAwesome\FontAwesome_Loader::initialize();
-        }
+        return;
     }
+
     /**
      * Private constructor to prevent direct instantiation.
      */
     private function __construct() {
-        $this->load_vendor();
         Activator::register( static function (): void {
-            if ( self::is_wordpress_fontawesome_active() ) {
-                return;
-            }
-
-            self::ensure_vendor_initialized();
+            // Intentionally empty: ModPress reuses the active WordPress
+            // Font Awesome plugin and never loads the bundled vendor copy.
         } );
     }
 
     /**
-     * Loads the bundled FontAwesome package only when some other active
-     * WordPress FontAwesome integration has not already claimed the namespace.
+     * No bundled vendor fallback is allowed.
+     *
+     * @return void
      */
     private function load_vendor(): void {
-        if ( self::is_wordpress_fontawesome_active() ) {
-            return;
-        }
-
-        $vendor_file = MODPRESS_DIR . 'vendor/fortawesome/wordpress-fontawesome/index.php';
-        if ( is_readable( $vendor_file ) ) {
-            require_once $vendor_file;
-            self::ensure_vendor_initialized();
-        }
+        return;
     }
+
     /**
      * Initialize the FontAwesome plugin.
      *
-     * This method configures the FontAwesome API and initializes the IconPicker
-     * if the FontAwesome library is available. It also initializes the Includes
-     * class for additional functionality.
+     * @return void
      */
     public function init(): void {
         self::ensure_vendor_initialized();
         FontAwesomeAPI::configure();
 
         if ( $this->is_available() ) {
-
             $this->icon_picker = IconPicker::get_instance();
-
         }
 
         Includes::get_instance()->init();
