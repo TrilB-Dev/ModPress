@@ -1,44 +1,69 @@
 <?php
-
+/**
+ * Assets class for FontAwesome plugin.
+ *
+ * @package ModPress\Includes\Plugins\FontAwesome\Assets
+ */
 namespace ModPress\Includes\Plugins\FontAwesome\Assets;
 
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Plugins\FontAwesome\Includes\Settings\Settings as FontAwesomeSettings;
 
 final class Assets {
+    /**
+     * Loader helper instance.
+     *
+     * @var LoaderHelper
+     * @since 1.0.0
+     */
     private LoaderHelper $loader;
-
+    /**
+     * Constructor.
+     *
+     * @param LoaderHelper|null $loader Loader helper instance.
+     * @since 1.0.0
+     */
     public function __construct( ?LoaderHelper $loader = null ) {
         $this->loader = $loader ?? new LoaderHelper();
     }
-
+    /**
+     * Registers the assets component with the loader.
+     *
+     * @since 1.0.0
+     */
     public function register(): void {
         $this->loader->register_component( $this, [
             [ 'type' => 'action', 'hook' => 'admin_enqueue_scripts', 'callback' => 'enqueue_admin_assets' ],
         ] )->run();
     }
-
+    /**
+     * Enqueues the admin assets for the FontAwesome plugin.
+     *
+     * @param string $hook_suffix The current admin page hook suffix.
+     * @since 1.0.0
+     */
     public function enqueue_admin_assets( string $hook_suffix = '' ): void {
         $this->enqueue_fontawesome_vendor_assets( $hook_suffix );
         $this->enqueue_icon_picker();
     }
-
+    /**
+     * Enqueues the FontAwesome vendor assets for the admin area.
+     *
+     * @param string $hook_suffix The current admin page hook suffix.
+     * @since 1.0.0
+     */
     private function enqueue_fontawesome_vendor_assets( string $hook_suffix ): void {
         $page = sanitize_key( $_GET['page'] ?? '' );
         if ( false === strpos( $hook_suffix, 'modpress' ) && 0 !== strpos( $page, 'modpress' ) ) {
             return;
         }
 
+        if ( ! function_exists( 'FortAwesome\fa' ) && ! class_exists( '\FortAwesome\FontAwesome' ) ) {
+            return;
+        }
+
         $source = FontAwesomeSettings::source();
         $kit_id = FontAwesomeSettings::kit_id();
-        $use_kit = '' !== $kit_id;
-
-        if ( $use_kit ) {
-            foreach ( [ 'font-awesome-kit', 'font-awesome-cdn' ] as $handle ) {
-                wp_dequeue_style( $handle );
-                wp_dequeue_script( $handle );
-            }
-        }
 
         wp_add_inline_script(
             'modpress-admin-ui',
@@ -49,20 +74,45 @@ final class Assets {
             'before'
         );
 
-        if ( $use_kit ) {
+        if ( 'kit' === $source && '' !== $kit_id ) {
+            $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official' );
+            $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official' );
+            $this->enqueue_fontawesome_handle( 'style', 'font-awesome-svg-styles' );
             return;
         }
 
-        $handle = 'kit' === $source ? 'font-awesome-kit' : 'font-awesome-cdn';
-        if ( wp_style_is( $handle, 'registered' ) || wp_style_is( $handle, 'enqueued' ) ) {
-                wp_enqueue_style( $handle );
-        }
-
-        if ( wp_script_is( $handle, 'registered' ) || wp_script_is( $handle, 'enqueued' ) ) {
-            wp_enqueue_script( $handle );
-        }
+        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official' );
+        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-v4shim' );
+        $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official' );
+        $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official-v4shim' );
+        $this->enqueue_fontawesome_handle( 'style', 'font-awesome-svg-styles' );
     }
 
+    /**
+     * Enqueue the relevant Font Awesome vendor handle when it is registered.
+     *
+     * @param string $type The asset type: script or style.
+     * @param string $handle The vendor handle to enqueue.
+     *
+     * @return void
+     */
+    private function enqueue_fontawesome_handle( string $type, string $handle ): void {
+        if ( 'script' === $type ) {
+            if ( wp_script_is( $handle, 'registered' ) || wp_script_is( $handle, 'enqueued' ) ) {
+                wp_enqueue_script( $handle );
+            }
+            return;
+        }
+
+        if ( wp_style_is( $handle, 'registered' ) || wp_style_is( $handle, 'enqueued' ) ) {
+            wp_enqueue_style( $handle );
+        }
+    }
+    /**
+     * Enqueues the icon picker assets for the admin area.
+     *
+     * @since 1.0.0
+     */
     public function enqueue_icon_picker(): void {
         if ( ! $this->should_enqueue_icon_picker() ) {
             return;
@@ -94,7 +144,12 @@ final class Assets {
             ],
         ] );
     }
-
+    /**
+     * Determines whether the icon picker assets should be enqueued for the current admin screen.
+     *
+     * @return bool True if the icon picker assets should be enqueued, false otherwise.
+     * @since 1.0.0
+     */
     private function should_enqueue_icon_picker(): bool {
         $screen = get_current_screen();
         if ( ! $screen ) {
