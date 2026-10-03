@@ -272,7 +272,7 @@ final class Assets {
 				'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
 				'nonce'               => wp_create_nonce( 'modpress_settings_tabs' ),
 				'pluginNonce'         => wp_create_nonce( 'modpress_plugin_toggle' ),
-				'pluginSettingsNonce' => wp_create_nonce( 'modpress_plugin_settings' ),
+				'pluginSettingsNonce' => wp_create_nonce( 'modpress_save_plugin_settings' ),
 			);
 			foreach ( array( 'modpress-admin-settings', 'modpress-admin-plugins' ) as $handle ) {
 				if ( wp_script_is( $handle, 'enqueued' ) ) {

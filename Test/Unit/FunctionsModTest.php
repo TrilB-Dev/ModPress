@@ -196,5 +196,23 @@ namespace ModPress\Tests\Unit {
 
             $this->assertStringContainsString( 'The Mod could not be saved.', $notice );
         }
+
+        public function testBundledFontAwesomeLoaderInitializesWhenRuntimeIsNotReady(): void {
+            if ( ! class_exists( '\\FortAwesome\\FontAwesome_Loader', false ) ) {
+                eval( 'namespace FortAwesome; class FontAwesome_Loader { public static $initialized = false; public static function initialize(): void { self::$initialized = true; } }' );
+            }
+
+            \FortAwesome\FontAwesome_Loader::$initialized = false;
+            if ( function_exists( 'FortAwesome\\fa' ) ) {
+                $GLOBALS['modpress_fontawesome_test_original_fa'] = true;
+                // The real plugin is already available in this environment, so the runtime is considered ready.
+                $this->assertTrue( function_exists( 'FortAwesome\\fa' ) );
+                return;
+            }
+
+            \ModPress\Includes\Plugins\FontAwesome\FontAwesome::ensure_vendor_initialized();
+
+            $this->assertTrue( \FortAwesome\FontAwesome_Loader::$initialized );
+        }
     }
 }

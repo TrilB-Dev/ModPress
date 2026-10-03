@@ -53,8 +53,7 @@ final class Assets {
      * @since 1.0.0
      */
     private function enqueue_fontawesome_vendor_assets( string $hook_suffix ): void {
-        $page = sanitize_key( $_GET['page'] ?? '' );
-        if ( false === strpos( $hook_suffix, 'modpress' ) && 0 !== strpos( $page, 'modpress' ) ) {
+        if ( ! $this->should_enqueue_vendor_assets( $hook_suffix ) ) {
             return;
         }
 
@@ -86,6 +85,27 @@ final class Assets {
         $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official' );
         $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official-v4shim' );
         $this->enqueue_fontawesome_handle( 'style', 'font-awesome-svg-styles' );
+    }
+
+    /**
+     * Determines whether the Font Awesome vendor assets should be enqueued on the
+     * current admin screen.
+     *
+     * @param string $hook_suffix The current admin page hook suffix.
+     * @return bool True when the current screen belongs to ModPress.
+     */
+    private function should_enqueue_vendor_assets( string $hook_suffix ): bool {
+        $page = sanitize_key( $_GET['page'] ?? '' );
+        $screen = get_current_screen();
+        $screen_id = $screen ? $screen->id : '';
+
+        $matches_modpress = (
+            false !== strpos( $hook_suffix, 'modpress' )
+            || 0 === strpos( $page, 'modpress' )
+            || false !== strpos( $screen_id, 'modpress' )
+        );
+
+        return $matches_modpress;
     }
 
     /**

@@ -54,19 +54,39 @@ final class FunctionsPlugins {
      * @return void
      */
     public function save_plugin_settings(): void {
-        $slug = sanitize_key( wp_unslash( $_POST['slug'] ?? '' ) );
+        $slug = sanitize_key( wp_unslash( $_POST['slug'] ?? $_POST['plugin_slug'] ?? '' ) );
+        if ( '' === $slug ) {
+            $message = __( 'The ModPress plugin slug is missing.', 'modpress' );
+            AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 400 );
+        }
+
         $plugin = Plugins::get_instance()->get_registered_plugins()[ $slug ] ?? null;
         if ( ! $plugin instanceof PluginInterface || ! $plugin instanceof SettingsPageProviderInterface ) {
             $message = __( 'The requested ModPress plugin settings were not found.', 'modpress' );
             AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 404 );
         }
+
         $capability = $this->is_internal_plugin( $plugin ) ? 'modpress_settings_plugins_int_edit' : 'modpress_settings_plugins_ext_edit';
-        if ( ! AjaxHelper::authorized( 'modpress_plugin_settings', $capability ) ) {
+        $nonce_actions = array( 'modpress_save_plugin_settings', 'modpress_plugin_settings' );
+        $has_valid_nonce = false;
+        foreach ( $nonce_actions as $action ) {
+            if ( AjaxHelper::authorized( $action, $capability ) ) {
+                $has_valid_nonce = true;
+                break;
+            }
+        }
+
+        if ( ! $has_valid_nonce ) {
             $message = __( 'You are not authorized to save ModPress plugin settings.', 'modpress' );
             AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 403 );
         }
 
-        $input = isset( $_POST['settings'] ) && is_array( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : [];
+        $input = $_POST['settings'] ?? $_POST['plugin_settings'] ?? [];
+        if ( is_string( $input ) ) {
+            $decoded = json_decode( wp_unslash( $input ), true );
+            $input = is_array( $decoded ) ? $decoded : [];
+        }
+        $input = is_array( $input ) ? wp_unslash( $input ) : [];
         $settings = $plugin->sanitize_settings( $input );
 
         $page = $plugin->get_settings_page();

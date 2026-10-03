@@ -207,6 +207,23 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
     public static function get_instance(): self {
         return self::$instance ??= new self();
     }
+
+    /**
+     * Ensures the bundled Font Awesome library has been initialized after it is
+     * loaded. This is required for the official vendor handles to register with
+     * WordPress and become available to the ModPress UI.
+     *
+     * @return void
+     */
+    public static function ensure_vendor_initialized(): void {
+        if ( function_exists( 'FortAwesome\\fa' ) ) {
+            return;
+        }
+
+        if ( class_exists( '\\FortAwesome\\FontAwesome_Loader' ) && method_exists( '\\FortAwesome\\FontAwesome_Loader', 'initialize' ) ) {
+            \FortAwesome\FontAwesome_Loader::initialize();
+        }
+    }
     /**
      * Private constructor to prevent direct instantiation.
      */
@@ -217,9 +234,7 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
                 return;
             }
 
-            if ( class_exists( '\\FortAwesome\\FontAwesome_Loader' ) ) {
-                \FortAwesome\FontAwesome_Loader::initialize();
-            }
+            self::ensure_vendor_initialized();
         } );
     }
 
@@ -235,6 +250,7 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
         $vendor_file = MODPRESS_DIR . 'vendor/fortawesome/wordpress-fontawesome/index.php';
         if ( is_readable( $vendor_file ) ) {
             require_once $vendor_file;
+            self::ensure_vendor_initialized();
         }
     }
     /**
@@ -245,6 +261,7 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * class for additional functionality.
      */
     public function init(): void {
+        self::ensure_vendor_initialized();
         FontAwesomeAPI::configure();
 
         if ( $this->is_available() ) {

@@ -203,5 +203,79 @@ namespace ModPress\Tests\Unit {
                 maybe_unserialize( $GLOBALS['modpress_settings_store'][ $table ]['setting_value'] )
             );
         }
+
+        public function testSavePluginSettingsAcceptsCurrentAjaxNonceAction(): void {
+            $plugin = new class implements PluginInterface, SettingsPageProviderInterface {
+                public function get_slug(): string {
+                    return 'ajax-plugin';
+                }
+
+                public function get_name(): string {
+                    return 'Ajax Plugin';
+                }
+
+                public function get_version(): string {
+                    return '1.0.0';
+                }
+
+                public function get_author(): string {
+                    return 'ModPress';
+                }
+
+                public function get_author_uri(): string {
+                    return 'https://example.com';
+                }
+
+                public function get_description(): string {
+                    return 'Ajax Plugin';
+                }
+
+                public function get_uri(): string {
+                    return 'https://example.com';
+                }
+
+                public function get_license(): string {
+                    return 'GPL-2.0';
+                }
+
+                public function is_active(): bool {
+                    return true;
+                }
+
+                public function init(): void {
+                }
+
+                public function get_settings_page(): array {
+                    return [
+                        'slug' => 'ajax-plugin',
+                        'label' => 'Ajax Plugin',
+                        'title' => 'Ajax Plugin settings',
+                        'fields' => [
+                            [ 'key' => 'mode', 'type' => 'text' ],
+                        ],
+                    ];
+                }
+
+                public function sanitize_settings( $input ): array {
+                    return is_array( $input ) ? $input : [];
+                }
+            };
+
+            Plugins::register_plugin( $plugin );
+            $_POST = [
+                'slug' => 'ajax-plugin',
+                'settings' => [ 'mode' => 'safe' ],
+                'nonce' => 'valid-nonce',
+                'action' => 'modpress_save_plugin_settings',
+            ];
+
+            ( new FunctionsPlugins() )->save_plugin_settings();
+
+            $table = \ModPress\Includes\Core\WP\Database::table_name( 'settings' );
+            $this->assertSame(
+                [ 'mode' => 'safe' ],
+                maybe_unserialize( $GLOBALS['modpress_settings_store'][ $table ]['setting_value'] )
+            );
+        }
     }
 }
