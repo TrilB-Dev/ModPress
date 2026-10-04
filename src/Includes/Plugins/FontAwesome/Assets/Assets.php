@@ -54,7 +54,7 @@ final class Assets {
         $this->enqueue_icon_picker();
     }
     /**
-     * Enqueues the FontAwesome vendor assets for the admin area.
+     * Enqueues the official WordPress Font Awesome assets for ModPress admin screens.
      *
      * @param string $hook_suffix The current admin page hook suffix.
      * @since 1.0.0
@@ -64,16 +64,16 @@ final class Assets {
             return;
         }
 
-        if ( ! function_exists( 'FortAwesome\fa' ) && ! class_exists( '\FortAwesome\FontAwesome' ) ) {
+        if ( ! function_exists( 'FortAwesome\fa' ) && ! class_exists( '\FortAwesome\FontAwesome' ) && ! class_exists( '\FortAwesome\FontAwesome_Loader' ) ) {
             return;
         }
 
-        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-admin' );
-        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official' );
-        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-v4shim' );
         $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official' );
         $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official-v4shim' );
         $this->enqueue_fontawesome_handle( 'style', 'font-awesome-svg-styles' );
+        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official' );
+        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-admin' );
+        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-v4shim' );
     }
 
     /**
@@ -98,10 +98,10 @@ final class Assets {
     }
 
     /**
-     * Enqueue the relevant Font Awesome vendor handle when it is registered.
+     * Enqueue the relevant official Font Awesome handle when it is registered.
      *
      * @param string $type The asset type: script or style.
-     * @param string $handle The vendor handle to enqueue.
+     * @param string $handle The official handle to enqueue.
      *
      * @return void
      */
@@ -109,11 +109,21 @@ final class Assets {
         if ( 'script' === $type ) {
             if ( wp_script_is( $handle, 'registered' ) || wp_script_is( $handle, 'enqueued' ) ) {
                 wp_enqueue_script( $handle );
+                return;
+            }
+
+            if ( function_exists( 'wp_script_is' ) && wp_script_is( $handle, 'to_do' ) ) {
+                wp_enqueue_script( $handle );
             }
             return;
         }
 
         if ( wp_style_is( $handle, 'registered' ) || wp_style_is( $handle, 'enqueued' ) ) {
+            wp_enqueue_style( $handle );
+            return;
+        }
+
+        if ( function_exists( 'wp_style_is' ) && wp_style_is( $handle, 'to_do' ) ) {
             wp_enqueue_style( $handle );
         }
     }
