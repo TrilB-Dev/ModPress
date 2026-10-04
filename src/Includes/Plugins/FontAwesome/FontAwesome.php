@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Font Awesome plugin integration for ModPress.
  *
