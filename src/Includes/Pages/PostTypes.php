@@ -32,12 +32,16 @@ final class PostTypes {
 	 * @since 1.0.0
 	 */
 	public static function mods_posttype(): bool {
+		if ( post_type_exists( 'modpress_mod' ) ) {
+			return false;
+		}
+
 		return PostType::create(
-			'modpress_mods',
+			'modpress_mod',
 			array(
 				'label'           => __( 'Mods', 'modpress' ),
 				'description'     => __( 'Mod entries managed by ModPress.', 'modpress' ),
-				'supports'        => array( 'title', 'editor', 'excerpt', 'thumbnail', 'revisions' ),
+				'supports'        => array( 'title', 'editor', 'thumbnail', 'comments', 'trackbacks', 'revisions', 'custom-fields', 'page-attributes', 'post-formats' ),
 				'taxonomies'      => array( 'modpress_mod_group', 'modpress_mod_tag' ),
 				'public'          => true,
 				'show_ui'         => true,

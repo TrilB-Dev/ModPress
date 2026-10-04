@@ -24,7 +24,11 @@ final class ModManagement {
 	private static bool $registered = false;
 
 	/**
-	 * Ensure the mod post type and taxonomy registrations are available.
+	 * Ensure any database-driven plugin types are registered.
+	 *
+	 * Built-in ModPress content is registered in Pages\PostTypes and
+	 * Pages\Taxonomies only. Dynamic plugin definitions may still be created from
+	 * the database and registered here.
 	 *
 	 * @return void
 	 */
@@ -34,101 +38,48 @@ final class ModManagement {
 		}
 
 		if ( class_exists( PostType::class ) ) {
-			PostType::register_post_types( self::get_post_type_definitions() );
+			$dynamic_post_types = self::get_post_type_definitions();
+			if ( ! empty( $dynamic_post_types ) ) {
+				PostType::register_post_types( $dynamic_post_types );
+			}
 		}
 
 		if ( class_exists( Taxonomy::class ) ) {
-			Taxonomy::register_taxonomies( self::get_taxonomy_definitions() );
+			$dynamic_taxonomies = self::get_taxonomy_definitions();
+			if ( ! empty( $dynamic_taxonomies ) ) {
+				Taxonomy::register_taxonomies( $dynamic_taxonomies );
+			}
 		}
 
 		self::$registered = true;
 	}
 
 	/**
-	 * Default mod post type definitions.
+	 * Dynamic post type definitions created from plugin or database metadata.
+	 *
+	 * Built-in post types remain in Pages\PostTypes and are intentionally excluded
+	 * from this registry.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function get_post_type_definitions(): array {
-		$default_taxonomies = array( 'modpress_mod_group', 'modpress_mod_tag' );
-		$dynamic_taxonomies = array();
+		$definitions = apply_filters( 'modpress_dynamic_post_type_definitions', array() );
 
-		foreach ( Taxonomy::definitions() as $taxonomy_key => $taxonomy_config ) {
-			$object_types = $taxonomy_config['object_type'] ?? $taxonomy_config['object_types'] ?? array();
-			$object_types = is_array( $object_types ) ? $object_types : array( $object_types );
-
-			if ( in_array( 'modpress_mod', $object_types, true ) ) {
-				$dynamic_taxonomies[] = $taxonomy_key;
-			}
-		}
-
-		$taxonomies = array_values(
-			array_unique(
-				array_merge( $default_taxonomies, $dynamic_taxonomies )
-			)
-		);
-
-		return array(
-			'modpress_mod' => array(
-				'label'           => __( 'Mods', 'modpress' ),
-				'description'     => __( 'Mod entries managed by ModPress.', 'modpress' ),
-				'supports'        => array( 'title', 'editor', 'excerpt', 'thumbnail', 'revisions' ),
-				'taxonomies'      => $taxonomies,
-				'public'          => true,
-				'show_ui'         => true,
-				'show_in_menu'    => true,
-				'menu_position'   => 20,
-				'menu_icon'       => 'dashicons-archive',
-				'has_archive'     => true,
-				'show_in_rest'    => true,
-				'rewrite'         => array( 'slug' => 'mods' ),
-				'capability_type' => 'post',
-				'map_meta_cap'    => true,
-			),
-		);
+		return is_array( $definitions ) ? $definitions : array();
 	}
 
 	/**
-	 * Default mod taxonomy definitions.
+	 * Dynamic taxonomy definitions created from plugin or database metadata.
+	 *
+	 * Built-in taxonomies remain in Pages\Taxonomies and are intentionally excluded
+	 * from this registry.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function get_taxonomy_definitions(): array {
-		$default_taxonomies = array(
-			'modpress_mod_group' => array(
-				'label'             => __( 'Mod Groups', 'modpress' ),
-				'description'       => __( 'Groups used to organize mod entries.', 'modpress' ),
-				'object_type'       => array( 'modpress_mod' ),
-				'hierarchical'      => true,
-				'public'            => true,
-				'show_ui'           => true,
-				'show_in_menu'      => true,
-				'show_admin_column' => true,
-				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => 'mod-group' ),
-			),
-			'modpress_mod_tag' => array(
-				'label'             => __( 'Mod Tags', 'modpress' ),
-				'description'       => __( 'Tags used to classify mod entries.', 'modpress' ),
-				'object_type'       => array( 'modpress_mod' ),
-				'hierarchical'      => false,
-				'public'            => true,
-				'show_ui'           => true,
-				'show_in_menu'      => true,
-				'show_admin_column' => true,
-				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => 'mod-tag' ),
-			),
-		);
+		$definitions = apply_filters( 'modpress_dynamic_taxonomy_definitions', array() );
 
-		$dynamic_taxonomies = Taxonomy::definitions();
-		foreach ( $dynamic_taxonomies as $taxonomy_key => $taxonomy_config ) {
-			if ( ! array_key_exists( $taxonomy_key, $default_taxonomies ) ) {
-				$default_taxonomies[ $taxonomy_key ] = $taxonomy_config;
-			}
-		}
-
-		return $default_taxonomies;
+		return is_array( $definitions ) ? $definitions : array();
 	}
 
 	/**

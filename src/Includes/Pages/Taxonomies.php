@@ -22,33 +22,18 @@ final class Taxonomies {
 	 * @since 1.0.0
 	 */
 	public static function register(): void {
-		self::type_taxonomy();
 		self::group_taxonomy();
 		self::tag_taxonomy();
 	}
 
 	/**
-	 * Register the mod type taxonomy.
+	 * Backward-compatible alias for the canonical mod group taxonomy.
 	 *
 	 * @return bool
 	 * @since 1.0.0
 	 */
 	public static function type_taxonomy(): bool {
-		return Taxonomy::create(
-			'mod_type',
-			array(
-				'label'             => __( 'Mod Types', 'modpress' ),
-				'description'       => __( 'Types used to classify mods.', 'modpress' ),
-				'object_type'       => array( 'modpress_mod' ),
-				'hierarchical'      => true,
-				'public'            => true,
-				'show_ui'           => true,
-				'show_in_menu'      => true,
-				'show_admin_column' => true,
-				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => 'mod-type' ),
-			)
-		);
+		return self::group_taxonomy();
 	}
 
 	/**
@@ -58,8 +43,12 @@ final class Taxonomies {
 	 * @since 1.0.0
 	 */
 	public static function group_taxonomy(): bool {
+		if ( taxonomy_exists( 'modpress_mod_group' ) ) {
+			return false;
+		}
+
 		return Taxonomy::create(
-			'mod_group',
+			'modpress_mod_group',
 			array(
 				'label'             => __( 'Mod Groups', 'modpress' ),
 				'description'       => __( 'Groups used to organize mods.', 'modpress' ),
@@ -67,7 +56,7 @@ final class Taxonomies {
 				'hierarchical'      => true,
 				'public'            => true,
 				'show_ui'           => true,
-				'show_in_menu'      => true,
+				'show_in_menu'      => false,
 				'show_admin_column' => true,
 				'show_in_rest'      => true,
 				'rewrite'           => array( 'slug' => 'mod-group' ),
@@ -82,8 +71,12 @@ final class Taxonomies {
 	 * @since 1.0.0
 	 */
 	public static function tag_taxonomy(): bool {
+		if ( taxonomy_exists( 'modpress_mod_tag' ) ) {
+			return false;
+		}
+
 		return Taxonomy::create(
-			'mod_tag',
+			'modpress_mod_tag',
 			array(
 				'label'             => __( 'Mod Tags', 'modpress' ),
 				'description'       => __( 'Tags used to describe mods.', 'modpress' ),
@@ -91,7 +84,7 @@ final class Taxonomies {
 				'hierarchical'      => false,
 				'public'            => true,
 				'show_ui'           => true,
-				'show_in_menu'      => true,
+				'show_in_menu'      => false,
 				'show_admin_column' => true,
 				'show_in_rest'      => true,
 				'rewrite'           => array( 'slug' => 'mod-tag' ),

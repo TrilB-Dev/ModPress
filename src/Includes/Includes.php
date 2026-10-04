@@ -70,14 +70,12 @@ final class Includes {
          */
         Capabilities::install();
         /**
-         * Mod management registration.
-         * 
-         * @since 1.0.0
-         */
-        ModManagement::register();
-        /**
-         * Post types registration.
-         * 
+         * Page-driven ModPress content registrations.
+         *
+         * These are the only canonical registrations for the built-in ModPress
+         * content model. Dynamic database-backed extensions may register through
+         * ModManagement without duplicating the core definitions.
+         *
          * @since 1.0.0
          */
         PostTypes::register();
@@ -87,6 +85,12 @@ final class Includes {
          * @since 1.0.0
          */
         Taxonomies::register();
+        /**
+         * Dynamic plugin content registrations from database-driven definitions.
+         *
+         * @since 1.0.0
+         */
+        ModManagement::register();
         /**
          * Shortcodes registration.
          * 
