@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-final class Assets {
+class Assets {
 	/**
 	 * Array to hold registered assets for different pages.
 	 *
@@ -216,7 +216,7 @@ final class Assets {
 	 * @param array  $assets The assets to enqueue.
 	 * @return void
 	 */
-	private function enqueue_registered( string $context, array $assets ): void {
+	protected function enqueue_registered( string $context, array $assets ): void {
 		$assets = apply_filters( 'modpress_' . $context . '_assets', $assets, $context );
 		$this->enqueue_bundle( $assets );
 	}
@@ -226,7 +226,7 @@ final class Assets {
 	 * @param array $assets The assets to enqueue.
 	 * @return void
 	 */
-	private function enqueue_bundle( array $assets ): void {
+	protected function enqueue_bundle( array $assets ): void {
 		if ( isset( $assets['styles'] ) && is_string( $assets['styles'] ) ) {
 			$assets['styles'] = array(
 				array(

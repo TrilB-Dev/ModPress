@@ -18,46 +18,48 @@ use ModPress\Includes\Plugins\PluginInterface;
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
-/**
- * Class Plugins
- *
- * Manages the discovery, loading, and initialization of ModPress plugin modules.
- */
+
 class Plugins {
     /**
      * Singleton instance of the Plugins class.
      *
      * @var Plugins|null
+     * @since 1.0.0
      */
     private static ?Plugins $instance = null;
     /**
      * Array of loaded plugin class names.
      *
      * @var array
+     * @since 1.0.0
      */
     private array $loaded_plugins = [];
     /**
      * Array of registered plugin instances.
      *
      * @var array
+     * @since 1.0.0
      */
     private array $registered_plugins = [];
     /**
      * Indicates whether plugins should be auto-activated upon registration.
      *
      * @var bool
+     * @since 1.0.0
      */
     private bool $auto_activate = true;
     /**
      * Indicates whether the plugin system has been initialized.
      *
      * @var bool
+     * @since 1.0.0
      */
     private bool $initialized = false;
     /**
      * Get the singleton instance of the Plugins class.
      *
      * @return Plugins The singleton instance.
+     * @since 1.0.0
      */
     public static function get_instance(): Plugins {
         if ( self::$instance === null ) {
@@ -68,6 +70,8 @@ class Plugins {
     }
     /**
      * Initializes the plugin system by discovering and loading plugin files.
+     *
+     * @since 1.0.0
      */
     public function init(): void {
         if ( $this->initialized ) {
@@ -89,6 +93,8 @@ class Plugins {
          *
          * Plugins installed via the normal WordPress plugin system can hook
          * into this action and call ModPress\Plugins::register_plugin().
+         *
+         * @since 1.0.0
          */
         do_action( 'modpress_register_plugin', $this );
     }
@@ -96,6 +102,7 @@ class Plugins {
      * Retrieves the list of loaded plugin class names.
      *
      * @return array List of loaded plugin class names.
+     * @since 1.0.0
      */
     public function get_loaded_plugins(): array {
         return $this->loaded_plugins;
@@ -104,6 +111,7 @@ class Plugins {
      * Retrieves the list of registered plugin instances.
      *
      * @return array List of registered plugin instances.
+     * @since 1.0.0
      */
     public function get_registered_plugins(): array {
         return $this->registered_plugins;
@@ -116,6 +124,7 @@ class Plugins {
      *
      * @param string $slug Plugin slug.
      * @return bool True when the plugin is enabled.
+     * @since 1.0.0
      */
     public function is_plugin_enabled( string $slug ): bool {
         $states = Settings::get_group( 'plugins', [] );
@@ -132,6 +141,7 @@ class Plugins {
      * @param string $slug Plugin slug.
      * @param bool   $enabled Whether the plugin should be enabled.
      * @return bool True when the state is saved.
+     * @since 1.0.0
      */
     public function set_plugin_enabled( string $slug, bool $enabled ): bool {
         $slug = sanitize_key( $slug );
@@ -149,6 +159,7 @@ class Plugins {
      * Registers a plugin instance with the plugin system.
      *
      * @param PluginInterface $plugin The plugin instance to register.
+     * @since 1.0.0
      */
     public static function register_plugin( PluginInterface $plugin ): void {
         self::get_instance()->register_plugin_instance( $plugin );
@@ -157,6 +168,7 @@ class Plugins {
      * Registers a plugin instance with the plugin system.
      *
      * @param PluginInterface $plugin The plugin instance to register.
+     * @since 1.0.0
      */
     public function register_plugin_instance( PluginInterface $plugin ): void {
         $slug = trim( $plugin->get_slug() );
@@ -183,6 +195,7 @@ class Plugins {
      * Resolves the plugin directory path based on settings or defaults.
      *
      * @return string The resolved plugin directory path.
+     * @since 1.0.0
      */
     private function resolve_plugin_directory(): string {
         $path = trim( Settings::get( 'pluginpress_plugin_directory', MODPRESS_PLUGINS ) );
@@ -201,6 +214,7 @@ class Plugins {
      *
      * @param string $directory The directory to search for plugin files.
      * @return array List of discovered plugin file paths.
+     * @since 1.0.0
      */
     private function discover_plugin_files( string $directory ): array {
         if ( ! is_dir( $directory ) ) {
@@ -231,6 +245,7 @@ class Plugins {
      * Loads a plugin file, extracts its namespace and class name, and initializes the plugin if applicable.
      *
      * @param string $file The path to the plugin file.
+     * @since 1.0.0
      */
     private function load_plugin_file( string $file ): void {
         $contents = file_get_contents( $file );
@@ -282,6 +297,7 @@ class Plugins {
      * Loads additional includes for a plugin if they exist.
      *
      * @param string $plugin_directory The directory of the plugin.
+     * @since 1.0.0
      */
     private function load_plugin_includes( string $plugin_directory ): void {
         foreach ( [ 'Includes/Includes.php', 'Includes/I18n.php', 'Includes/Shortcodes.php' ] as $includes_file ) {
@@ -296,6 +312,7 @@ class Plugins {
      *
      * @param string $content The content of the PHP file.
      * @return string The extracted namespace, or an empty string if not found.
+     * @since 1.0.0
      */
     private function extract_namespace( string $content ): string {
         if ( preg_match( '/namespace\s+([^;]+);/i', $content, $matches ) ) {
@@ -309,6 +326,7 @@ class Plugins {
      *
      * @param string $content The content of the PHP file.
      * @return string The extracted class name, or an empty string if not found.
+     * @since 1.0.0
      */
     private function extract_class_name( string $content ): string {
         $tokens = token_get_all( $content );
@@ -332,6 +350,7 @@ class Plugins {
      * Determines whether plugins should be auto-activated upon registration.
      *
      * @return bool True if plugins should be auto-activated, false otherwise.
+     * @since 1.0.0
      */
     private function should_auto_activate(): bool {
         return Settings::get( 'mod_plugin_auto_activate', 'on' ) === 'on';
@@ -340,6 +359,7 @@ class Plugins {
      * Initializes a registered plugin instance if it is active.
      *
      * @param PluginInterface $plugin The plugin instance to initialize.
+     * @since 1.0.0
      */
     private function initialize_plugin( PluginInterface $plugin ): void {
         if ( ! $plugin->is_active() || ! $this->is_plugin_enabled( $plugin->get_slug() ) ) {
@@ -389,6 +409,7 @@ class Plugins {
      *
      * @param string $path The path to check.
      * @return bool True if the path is absolute, false otherwise.
+     * @since 1.0.0
      */
     private function is_absolute_path( string $path ): bool {
         return preg_match( '/^(?:[A-Za-z]:[\\\\\/]|[\\\\\\/])/', $path ) === 1;

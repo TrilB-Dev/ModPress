@@ -162,6 +162,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const isVisibleWhenMatch = (control, expected) => {
+        if (!control) {
+            return false;
+        }
+
+        const rawValue = control.type === 'checkbox'
+            ? (control.checked ? '1' : '0')
+            : control.value;
+        const value = String(rawValue ?? '');
+
+        if (Array.isArray(expected)) {
+            return expected.some((candidate) => String(candidate) === value);
+        }
+
+        return String(expected) === value;
+    };
+
+    const applyConditionalFieldVisibility = () => {
+        root.querySelectorAll('[data-modpress-visible-when]').forEach((field) => {
+            const rules = field.dataset.modpressVisibleWhen ? JSON.parse(field.dataset.modpressVisibleWhen) : {};
+            const entries = Object.entries(rules || {});
+            const visible = entries.length === 0 || entries.every(([key, expected]) => {
+                const input = field.closest('form')?.querySelector(`[name="settings[${key}]"], [name="${key}"]`);
+                return isVisibleWhenMatch(input, expected);
+            });
+
+            field.style.display = visible ? '' : 'none';
+            field.hidden = !visible;
+
+            field.querySelectorAll('input, select, textarea, button').forEach((input) => {
+                input.disabled = !visible;
+            });
+        });
+    };
+
     //
     // --- EVENT LISTENERS ---
     //
@@ -194,5 +229,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (toggle) {
             togglePlugin(toggle);
         }
+
+        const formField = event.target.closest?.('[name^="settings["]') || event.target.closest?.('[name="fontawesome_type"]');
+        if (formField) {
+            applyConditionalFieldVisibility();
+        }
     }, true);
+
+    root.addEventListener('input', (event) => {
+        const formField = event.target.closest?.('[name^="settings["]') || event.target.closest?.('[name="fontawesome_type"]');
+        if (formField) {
+            applyConditionalFieldVisibility();
+        }
+    }, true);
+
+    applyConditionalFieldVisibility();
 });

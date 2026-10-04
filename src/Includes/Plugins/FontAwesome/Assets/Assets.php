@@ -6,180 +6,146 @@
  */
 namespace ModPress\Includes\Plugins\FontAwesome\Assets;
 
+use ModPress\Assets\Assets as RootAssets;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Plugins\FontAwesome\Includes\Settings\Settings as FontAwesomeSettings;
 
-final class Assets {
+final class Assets extends RootAssets {
     /**
-     * Loader helper instance.
-     *
-     * @var LoaderHelper
-     * @since 1.0.0
-     */
-    private LoaderHelper $loader;
-    /**
-     * Constructor.
-     *
-     * @param LoaderHelper|null $loader Loader helper instance.
-     * @since 1.0.0
-     */
-    public function __construct( ?LoaderHelper $loader = null ) {
-        $this->loader = $loader ?? new LoaderHelper();
-    }
-    /**
-     * Registers the assets component with the loader.
+     * Registers the asset filters for the Font Awesome plugin.
      *
      * @since 1.0.0
      */
     public function register(): void {
-        $this->loader->register_component( 
-            $this, 
-            [
-                [
-                    'type' => 'action', 
-                    'hook' => 'admin_enqueue_scripts', 
-                    'callback' => 'enqueue_admin_assets'
-                ],
-            ] 
+        ( new LoaderHelper() )->register_component(
+            $this,
+            array(
+                array(
+                    'type' => 'filter',
+                    'hook' => 'modpress_admin_assets',
+                    'callback' => 'register_admin_assets',
+                    'accepted_args' => 2,
+                ),
+                array(
+                    'type' => 'filter',
+                    'hook' => 'modpress_frontend_assets',
+                    'callback' => 'register_frontend_assets',
+                    'accepted_args' => 2,
+                ),
+            )
         )->run();
     }
+
     /**
-     * Enqueues the admin assets for the FontAwesome plugin.
+     * Register Font Awesome asset definitions for the admin context.
      *
-     * @param string $hook_suffix The current admin page hook suffix.
-     * @since 1.0.0
+     * @param array  $assets The existing asset bundle.
+     * @param string $context The current asset context.
+     * @return array The updated asset bundle.
      */
-    public function enqueue_admin_assets( string $hook_suffix = '' ): void {
-        $this->enqueue_fontawesome_assets( $hook_suffix );
-        $this->enqueue_icon_picker();
-    }
-    /**
-     * Enqueues the official WordPress Font Awesome assets for ModPress admin screens.
-     *
-     * @param string $hook_suffix The current admin page hook suffix.
-     * @since 1.0.0
-     */
-    private function enqueue_fontawesome_assets( string $hook_suffix ): void {
-        if ( ! $this->should_enqueue_assets( $hook_suffix ) ) {
-            return;
+    public function register_admin_assets( array $assets, string $context = 'admin' ): array {
+        if ( 'admin' !== $context ) {
+            return $assets;
         }
 
-        if ( ! function_exists( 'FortAwesome\fa' ) && ! class_exists( '\FortAwesome\FontAwesome' ) && ! class_exists( '\FortAwesome\FontAwesome_Loader' ) ) {
-            return;
+        $type = FontAwesomeSettings::get_type();
+        $kit_id = trim( FontAwesomeSettings::get_kit_id() );
+
+        if ( 'kit' === $type && '' !== $kit_id ) {
+            $assets['scripts'][] = array(
+                'handle' => 'modpress-fontawesome-kit',
+                'src' => 'https://kit.fontawesome.com/' . rawurlencode( $kit_id ) . '.js',
+                'deps' => array( 'modpress-bootstrap' ),
+                'in_footer' => true,
+            );
+        } else {
+            $assets['styles'][] = array(
+                'handle' => 'modpress-fontawesome-cdn-style',
+                'src' => 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7/css/fontawesome.min.css',
+                'deps' => array( 'modpress-bootstrap' ),
+                'version' => '7.0.0',
+            );
+            $assets['scripts'][] = array(
+                'handle' => 'modpress-fontawesome-cdn-script',
+                'src' => 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7/js/fontawesome.min.js',
+                'deps' => array( 'modpress-bootstrap' ),
+                'version' => '7.0.0',
+                'in_footer' => true,
+            );
         }
 
-        $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official' );
-        $this->enqueue_fontawesome_handle( 'style', 'font-awesome-official-v4shim' );
-        $this->enqueue_fontawesome_handle( 'style', 'font-awesome-svg-styles' );
-        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official' );
-        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-admin' );
-        $this->enqueue_fontawesome_handle( 'script', 'font-awesome-official-v4shim' );
+        if ( FontAwesomeSettings::enable_icon_picker() ) {
+            $assets['styles'][] = array(
+                'handle' => 'modpress-fontawesome-icon-picker',
+                'src' => MODPRESS_URL . 'src/Includes/Plugins/FontAwesome/Assets/dist/css/icon-picker.css',
+                'deps' => array( 'modpress-bootstrap' ),
+                'version' => MODPRESS_VERSION,
+            );
+            $assets['scripts'][] = array(
+                'handle' => 'modpress-fontawesome-icon-picker',
+                'src' => MODPRESS_URL . 'src/Includes/Plugins/FontAwesome/Assets/dist/js/icon-picker.js',
+                'deps' => array( 'jquery' ),
+                'version' => MODPRESS_VERSION,
+                'in_footer' => true,
+                'localize' => array(
+                    'object_name' => 'modpress_fa_picker',
+                    'data' => array(
+                        'ajax_url' => admin_url( 'admin-ajax.php' ),
+                        'nonce' => wp_create_nonce( 'modpress_fontawesome_picker' ),
+                        'strings' => array(
+                            'search_placeholder' => __( 'Search icons...', 'modpress' ),
+                            'no_icons_found' => __( 'No icons found', 'modpress' ),
+                            'loading' => __( 'Loading...', 'modpress' ),
+                            'select_icon' => __( 'Select Icon', 'modpress' ),
+                            'close' => __( 'Close', 'modpress' ),
+                        ),
+                    ),
+                ),
+            );
+        }
+
+        return $assets;
     }
 
     /**
-     * Determines whether the Font Awesome vendor assets should be enqueued on the
-     * current admin screen.
+     * Register Font Awesome asset definitions for the frontend context.
      *
-     * @param string $hook_suffix The current admin page hook suffix.
-     * @return bool True when the current screen belongs to ModPress.
+     * @param array  $assets The existing asset bundle.
+     * @param string $context The current asset context.
+     * @return array The updated asset bundle.
      */
-    private function should_enqueue_assets( string $hook_suffix ): bool {
-        $page = sanitize_key( $_GET['page'] ?? '' );
-        $screen = get_current_screen();
-        $screen_id = $screen ? $screen->id : '';
+    public function register_frontend_assets( array $assets, string $context = 'frontend' ): array {
+        if ( 'frontend' !== $context ) {
+            return $assets;
+        }
 
-        $matches_modpress = (
-            false !== strpos( $hook_suffix, 'modpress' )
-            || 0 === strpos( $page, 'modpress' )
-            || false !== strpos( $screen_id, 'modpress' )
+        $type = FontAwesomeSettings::get_type();
+        $kit_id = trim( FontAwesomeSettings::get_kit_id() );
+
+        if ( 'kit' === $type && '' !== $kit_id ) {
+            $assets['scripts'][] = array(
+                'handle' => 'modpress-fontawesome-kit',
+                'src' => 'https://kit.fontawesome.com/' . rawurlencode( $kit_id ) . '.js',
+                'deps' => array(),
+                'in_footer' => true,
+            );
+            return $assets;
+        }
+
+        $assets['styles'][] = array(
+            'handle' => 'modpress-fontawesome-cdn-style',
+            'src' => 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7/css/fontawesome.min.css',
+            'deps' => array(),
+            'version' => '7.0.0',
+        );
+        $assets['scripts'][] = array(
+            'handle' => 'modpress-fontawesome-cdn-script',
+            'src' => 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7/js/fontawesome.min.js',
+            'deps' => array(),
+            'version' => '7.0.0',
+            'in_footer' => true,
         );
 
-        return $matches_modpress;
-    }
-
-    /**
-     * Enqueue the relevant official Font Awesome handle when it is registered.
-     *
-     * @param string $type The asset type: script or style.
-     * @param string $handle The official handle to enqueue.
-     *
-     * @return void
-     */
-    private function enqueue_fontawesome_handle( string $type, string $handle ): void {
-        if ( 'script' === $type ) {
-            if ( wp_script_is( $handle, 'registered' ) || wp_script_is( $handle, 'enqueued' ) ) {
-                wp_enqueue_script( $handle );
-                return;
-            }
-
-            if ( function_exists( 'wp_script_is' ) && wp_script_is( $handle, 'to_do' ) ) {
-                wp_enqueue_script( $handle );
-            }
-            return;
-        }
-
-        if ( wp_style_is( $handle, 'registered' ) || wp_style_is( $handle, 'enqueued' ) ) {
-            wp_enqueue_style( $handle );
-            return;
-        }
-
-        if ( function_exists( 'wp_style_is' ) && wp_style_is( $handle, 'to_do' ) ) {
-            wp_enqueue_style( $handle );
-        }
-    }
-    /**
-     * Enqueues the icon picker assets for the admin area.
-     *
-     * @since 1.0.0
-     */
-    public function enqueue_icon_picker(): void {
-        if ( ! $this->should_enqueue_icon_picker() ) {
-            return;
-        }
-
-        wp_enqueue_style(
-            'modpress-fontawesome-icon-picker',
-            MODPRESS_URL . 'src/Includes/Plugins/FontAwesome/Assets/dist/css/icon-picker.css',
-            [],
-            MODPRESS_VERSION
-        );
-        wp_enqueue_script(
-            'modpress-fontawesome-icon-picker',
-            MODPRESS_URL . 'src/Includes/Plugins/FontAwesome/Assets/dist/js/icon-picker.js',
-            [ 'jquery' ],
-            MODPRESS_VERSION,
-            true
-        );
-
-        wp_localize_script( 'modpress-fontawesome-icon-picker', 'modpress_fa_picker', [
-            'ajax_url' => admin_url( 'admin-ajax.php' ),
-            'nonce' => wp_create_nonce( 'modpress_fontawesome_picker' ),
-            'strings' => [
-                'search_placeholder' => __( 'Search icons...', 'modpress' ),
-                'no_icons_found' => __( 'No icons found', 'modpress' ),
-                'loading' => __( 'Loading...', 'modpress' ),
-                'select_icon' => __( 'Select Icon', 'modpress' ),
-                'close' => __( 'Close', 'modpress' ),
-            ],
-        ] );
-    }
-    /**
-     * Determines whether the icon picker assets should be enqueued for the current admin screen.
-     *
-     * @return bool True if the icon picker assets should be enqueued, false otherwise.
-     * @since 1.0.0
-     */
-    private function should_enqueue_icon_picker(): bool {
-        if ( ! FontAwesomeSettings::enable_icon_picker() ) {
-            return false;
-        }
-
-        $screen = get_current_screen();
-        if ( ! $screen ) {
-            return false;
-        }
-
-        return strpos( $screen->id, 'modpress' ) !== false
-            || in_array( $screen->id, [ 'post', 'page', 'custom_css', 'customize' ], true );
+        return $assets;
     }
 }
