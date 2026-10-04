@@ -83,7 +83,7 @@ final class Taxonomy {
 		);
 
 		$config = array(
-			'object_type'          	=> self::normalize_object_types( $data['object_type'] ?? $data['object_types'] ?? array() ),
+			'post_type'          	=> self::normalize_post_types( $data['post_type'] ?? $data['post_types'] ?? array() ),
 			'label'                	=> $data['label'] ?? self::humanize_slug( $taxonomy ),
 			'description'          	=> $data['description'] ?? '',
 			'labels'               	=> array_merge( $labels, (array) ( $data['labels'] ?? array() ) ),
@@ -154,14 +154,14 @@ final class Taxonomy {
 		$args = $config;
 		$meta = array();
 
-		if ( array_key_exists( 'object_type', $args ) ) {
-			$object_types = $args['object_type'];
-			unset( $args['object_type'] );
-		} elseif ( array_key_exists( 'object_types', $args ) ) {
-			$object_types = $args['object_types'];
-			unset( $args['object_types'] );
+		if ( array_key_exists( 'post_type', $args ) ) {
+			$post_types = $args['post_type'];
+			unset( $args['post_type'] );
+		} elseif ( array_key_exists( 'post_types', $args ) ) {
+			$post_types = $args['post_types'];
+			unset( $args['post_types'] );
 		} else {
-			$object_types = array();
+			$post_types = array();
 		}
 
 		if ( array_key_exists( 'meta', $args ) ) {
@@ -174,7 +174,7 @@ final class Taxonomy {
 			unset( $args['custom_meta'] );
 		}
 
-		register_taxonomy( $taxonomy, self::normalize_object_types( $object_types ), $args );
+		register_taxonomy( $taxonomy, self::normalize_post_types( $post_types ), $args );
 
 		if ( ! empty( $meta ) ) {
 			foreach ( $meta as $meta_key => $meta_config ) {
@@ -230,20 +230,20 @@ final class Taxonomy {
 	/**
 	 * Normalize a taxonomy object type list.
 	 *
-	 * @param mixed $object_type Object type payload.
+	 * @param mixed $post_type Object type payload.
 	 * @return array<int, string>
 	 */
-	private static function normalize_object_types( $object_type ): array {
-		if ( is_string( $object_type ) ) {
-			$object_type = array( $object_type );
+	private static function normalize_post_types( $post_type ): array {
+		if ( is_string( $post_type ) ) {
+			$post_type = array( $post_type );
 		}
 
-		if ( ! is_array( $object_type ) ) {
+		if ( ! is_array( $post_type ) ) {
 			return array();
 		}
 
 		$normalized = array();
-		foreach ( $object_type as $type ) {
+		foreach ( $post_type as $type ) {
 			if ( is_string( $type ) ) {
 				$normalized[] = SanitizationHelper::key( $type );
 			}
@@ -363,7 +363,7 @@ final class Taxonomy {
 				'parent_item'   => sprintf( __( 'Parent %s', 'modpress' ), self::humanize_slug( $taxonomy, true ) ),
 				'search_items'  => sprintf( __( 'Search %s', 'modpress' ), self::humanize_slug( $taxonomy ) ),
 			),
-			'object_type'          => array(),
+			'post_type'          => array(),
 			'hierarchical'         => false,
 			'public'               => true,
 			'show_ui'              => true,
@@ -390,13 +390,13 @@ final class Taxonomy {
 
 		$definition = array_replace_recursive( $definition, $config );
 
-		if ( isset( $definition['object_type'] ) ) {
-			$definition['object_type'] = self::normalize_object_types( $definition['object_type'] );
+		if ( isset( $definition['post_type'] ) ) {
+			$definition['post_type'] = self::normalize_post_types( $definition['post_type'] );
 		}
 
-		if ( isset( $definition['object_types'] ) ) {
-			$definition['object_type'] = self::normalize_object_types( $definition['object_types'] );
-			unset( $definition['object_types'] );
+		if ( isset( $definition['post_types'] ) ) {
+			$definition['post_type'] = self::normalize_post_types( $definition['post_types'] );
+			unset( $definition['post_types'] );
 		}
 
 		if ( isset( $definition['labels'] ) && is_array( $definition['labels'] ) ) {

@@ -27,16 +27,6 @@ final class Taxonomies {
 	}
 
 	/**
-	 * Backward-compatible alias for the canonical mod group taxonomy.
-	 *
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public static function type_taxonomy(): bool {
-		return self::group_taxonomy();
-	}
-
-	/**
 	 * Register the mod group taxonomy.
 	 *
 	 * @return bool
@@ -52,7 +42,7 @@ final class Taxonomies {
 			array(
 				'label'             => __( 'Mod Groups', 'modpress' ),
 				'description'       => __( 'Groups used to organize mods.', 'modpress' ),
-				'object_type'       => array( 'modpress_mod' ),
+				'post_type'       	=> array( 'modpress_mod' ),
 				'hierarchical'      => true,
 				'public'            => true,
 				'show_ui'           => true,
@@ -80,7 +70,7 @@ final class Taxonomies {
 			array(
 				'label'             => __( 'Mod Tags', 'modpress' ),
 				'description'       => __( 'Tags used to describe mods.', 'modpress' ),
-				'object_type'       => array( 'modpress_mod' ),
+				'post_type'       => array( 'modpress_mod' ),
 				'hierarchical'      => false,
 				'public'            => true,
 				'show_ui'           => true,

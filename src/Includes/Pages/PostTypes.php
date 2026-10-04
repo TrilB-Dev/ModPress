@@ -35,7 +35,6 @@ final class PostTypes {
 		if ( post_type_exists( 'modpress_mod' ) ) {
 			return false;
 		}
-
 		return PostType::create(
 			'modpress_mod',
 			array(
