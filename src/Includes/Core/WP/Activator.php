@@ -17,8 +17,6 @@ use ModPress\Includes\Core\Roles;
 use ModPress\Includes\Plugins\Plugins;
 use ModPress\Includes\Settings\SettingsManager;
 use ModPress\Includes\Settings\Settings;
-//use ModPress\Includes\Core\PostType;
-//use ModPress\Includes\Core\Taxonomy;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -63,8 +61,6 @@ final class Activator {
 		Roles::install();
 		Capabilities::install();
 		SettingsManager::install();
-		//( new PostType() )->register();
-		//( new Taxonomy() )->register();
 
 		foreach ( $callbacks ?? self::$callbacks as $callback ) {
 			call_user_func( $callback );

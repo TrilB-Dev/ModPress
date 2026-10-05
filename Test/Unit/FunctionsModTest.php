@@ -96,6 +96,7 @@ namespace {
 }
 
 namespace ModPress\Tests\Unit {
+    use ModPress\Includes\Core\Capabilities;
     use ModPress\Includes\Functions\Admin\FunctionsMod;
     use PHPUnit\Framework\TestCase;
 
@@ -195,6 +196,13 @@ namespace ModPress\Tests\Unit {
             $notice = ( new FunctionsMod() )->save_mod();
 
             $this->assertStringContainsString( 'The Mod could not be saved.', $notice );
+        }
+
+        public function testLayoutConfigurationCapabilitiesExistForSettingsAccess(): void {
+            $definitions = Capabilities::definitions();
+
+            $this->assertArrayHasKey( 'modpress_settings_layout_view', $definitions );
+            $this->assertArrayHasKey( 'modpress_settings_layout_edit', $definitions );
         }
 
         public function testBundledFontAwesomeLoaderInitializesWhenRuntimeIsNotReady(): void {

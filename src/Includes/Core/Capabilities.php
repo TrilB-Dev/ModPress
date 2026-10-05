@@ -42,6 +42,16 @@ class Capabilities {
 					'label'       => __( 'Edit Licence Settings', 'modpress' ),
 					'description' => __( 'Allows editing the licence management settings.', 'modpress' ),
 				),
+				'modpress_settings_layout_view'      => array(
+					'group'       => 'ModPress Settings',
+					'label'       => __( 'View Layout Settings', 'modpress' ),
+					'description' => __( 'Allows viewing ModPress layout and presentation settings.', 'modpress' ),
+				),
+				'modpress_settings_layout_edit'      => array(
+					'group'       => 'ModPress Settings',
+					'label'       => __( 'Edit Layout Settings', 'modpress' ),
+					'description' => __( 'Allows changing ModPress layout and presentation settings.', 'modpress' ),
+				),
 				'modpress_settings_access_view'      => array(
 					'group'       => 'ModPress Settings',
 					'label'       => __( 'View Access Controls', 'modpress' ),
