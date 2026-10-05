@@ -9,7 +9,6 @@
 namespace ModPress\Admin\Manager\Settings;
 
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
-use ModPress\Includes\Functions\Helpers\LoggerHelper;
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
 use ModPress\Includes\Settings\Settings;
 use ModPress\Includes\Plugins\Plugins;
@@ -59,11 +58,30 @@ final class SettingsPlugins {
                 ]
             );
             if ( 'select' === $type ) {
-                echo FormFieldHelper::select( $name, (array) ( $field['options'] ?? [] ), $value, [ 'id' => 'modpress-' . $key ] );
+                echo FormFieldHelper::select( 
+                    $name, 
+                    (array) ( $field['options'] ?? [] ), 
+                    $value, 
+                    [ 
+                        'id' => 'modpress-' . $key 
+                    ] 
+                );
             } elseif ( 'text' === $type ) {
-                echo FormFieldHelper::input( $name, is_scalar( $value ) ? (string) $value : '', [ 'id' => 'modpress-' . $key, 'type' => 'text' ] );
+                echo FormFieldHelper::input( 
+                    $name, 
+                    is_scalar( $value ) ? (string) $value : '', 
+                    [ 'id' => 'modpress-' . $key, 'type' => 'text' ] 
+                );
             } else {
-                echo FormFieldHelper::checkbox( $name, '1', '', [ 'id' => 'modpress-' . $key, 'checked' => ! empty( $value ) ] );
+                echo FormFieldHelper::checkbox( 
+                    $name, 
+                    '1', 
+                    '', 
+                    [ 
+                        'id' => 'modpress-' . $key, 
+                        'checked' => ! empty( $value ) 
+                    ] 
+                );
             }
             echo '</div>';
         }
@@ -151,17 +169,55 @@ final class SettingsPlugins {
             <article class="card modpress-plugin-card shadow-sm h-100 w-100">
                 <div class="card-header d-flex align-items-center gap-2">
                     <?php /* translators: %s is the plugin name. */ ?>
-                    <?php echo FormFieldHelper::switch( 'modpress-plugin-status', '1', '', [ 'id' => 'modpress-plugin-status-' . SanitizationHelper::key( $plugin->get_slug() ), 'checked' => $enabled, 'disabled' => ! $can_edit, 'data-modpress-plugin-toggle' => 'true', 'data-plugin-slug' => $plugin->get_slug(), 'aria-label' => sprintf( __( 'Enable %s', 'modpress' ), $plugin->get_name() ) ] ); ?>
-                    <span class="fw-semibold"><?php echo esc_html( $plugin->get_name() ); ?></span>
+                    <?php echo FormFieldHelper::switch( 
+                        'modpress-plugin-status', 
+                        '1', 
+                        '', 
+                        [ 
+                            'id' => 'modpress-plugin-status-' . SanitizationHelper::key( $plugin->get_slug() ), 
+                            'checked' => $enabled, 
+                            'disabled' => ! $can_edit, 
+                            'data-modpress-plugin-toggle' => 'true', 
+                            'data-plugin-slug' => $plugin->get_slug(), 
+                            'aria-label' => sprintf( 
+                                __( 'Enable %s', 'modpress' ), 
+                                $plugin->get_name() 
+                            ) 
+                        ] 
+                    ); ?>
+                    <span class="fw-semibold">
+                        <?php echo esc_html( $plugin->get_name() ); ?>
+                    </span>
                 </div>
                 <div class="card-body d-flex flex-column">
                     <span class="modpress-plugin-icon dashicons dashicons-admin-plugins" aria-hidden="true"></span>
-                    <p class="card-text text-secondary mt-3"><?php echo esc_html( $plugin->get_description() ); ?></p>
-                    <p class="card-text mb-2"><span class="text-secondary"><?php esc_html_e( 'Author:', 'modpress' ); ?></span> <?php echo esc_html( $plugin->get_author() ); ?></p>
-                    <p class="card-text mb-2"><span class="text-secondary"><?php esc_html_e( 'Version:', 'modpress' ); ?></span> <?php echo esc_html( $plugin->get_version() ); ?></p>
-                    <p class="card-text mb-3"><span class="text-secondary"><?php esc_html_e( 'Docs:', 'modpress' ); ?></span> <a href="<?php echo esc_url( $plugin->get_uri() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View documentation', 'modpress' ); ?></a></p>
+                    <p class="card-text text-secondary mt-3">
+                        <?php echo esc_html( $plugin->get_description() ); ?>
+                    </p>
+                    <p class="card-text mb-2">
+                        <span class="text-secondary">
+                            <?php esc_html_e( 'Author:', 'modpress' ); ?>
+                        </span> <?php echo esc_html( $plugin->get_author() ); ?>
+                    </p>
+                    <p class="card-text mb-2">
+                        <span class="text-secondary">
+                            <?php esc_html_e( 'Version:', 'modpress' ); ?>
+                        </span> <?php echo esc_html( $plugin->get_version() ); ?>
+                    </p>
+                    <p class="card-text mb-3">
+                        <span class="text-secondary">
+                            <?php esc_html_e( 'Docs:', 'modpress' ); ?>
+                        </span> <a href="<?php echo esc_url( $plugin->get_uri() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View documentation', 'modpress' ); ?></a></p>
                     <?php if ( ! empty( $settings_page['fields'] ) ) : ?>
-                        <?php echo FormFieldHelper::button( __( 'Settings', 'modpress' ), [ 'type' => 'button', 'class' => 'btn-primary mt-auto', 'data-bs-toggle' => 'modal', 'data-bs-target' => '#' . $modal_id ] ); ?>
+                        <?php echo FormFieldHelper::button( 
+                            __( 'Settings', 'modpress' ), 
+                            [ 
+                                'type' => 'button', 
+                                'class' => 'btn-primary mt-auto', 
+                                'data-bs-toggle' => 'modal', 
+                                'data-bs-target' => '#' . $modal_id 
+                            ] 
+                        ); ?>
                     <?php endif; ?>
                 </div>
             </article>
@@ -201,17 +257,38 @@ final class SettingsPlugins {
                                 <dd class="col-sm-9 mb-0"><?php echo esc_html( $plugin->get_license() ); ?></dd>
                             </dl>
                         </section>
-                        <form class="modpress-plugin-settings-form" data-plugin-settings-form data-plugin-slug="<?php echo esc_attr( $plugin->get_slug() ); ?>" data-internal-mod-fields>
+                        <?php echo FormFieldHelper::form_open( '', 'post', [
+                            'id' => 'modpress-plugin-settings-form-' . $modal_id,
+                            'class' => 'modpress-plugin-settings-form',
+                            'data-plugin-settings-form' => '',
+                            'data-plugin-slug' => $plugin->get_slug(),
+                            'data-internal-mod-fields' => '',
+                        ] ); ?>
                             <h3 class="h6 mb-3"><?php echo esc_html( $settings_page['title'] ?? $settings_page['label'] ); ?></h3>
                             <fieldset <?php disabled( ! $can_edit ); ?>>
                                 <?php $this->render_plugin_settings_fields( $settings_page, $values, $modal_id ); ?>
                             </fieldset>
-                        </form>
+                        <?php echo FormFieldHelper::form_close(); ?>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php esc_html_e( 'Cancel', 'modpress' ); ?></button>
+                        <?php echo FormFieldHelper::button( 
+                            __( 'Cancel', 'modpress' ), 
+                            [ 
+                                'type' => 'button', 
+                                'class' => 'btn-secondary', 
+                                'data-bs-dismiss' => 'modal' 
+                            ] 
+                        ); ?>
                         <?php if ( $can_edit ) : ?>
-                            <button type="button" class="btn btn-primary" data-plugin-settings-save><?php esc_html_e( 'Save', 'modpress' ); ?></button>
+                            <?php echo FormFieldHelper::button( 
+                                __( 'Save', 'modpress' ), 
+                                [
+                                    'type' => 'submit',
+                                    'class' => 'btn-primary',
+                                    'form' => 'modpress-plugin-settings-form-' . $modal_id,
+                                    'data-plugin-settings-save' => '',
+                                ] 
+                            ); ?>
                         <?php endif; ?>
                     </div>
                 </div>

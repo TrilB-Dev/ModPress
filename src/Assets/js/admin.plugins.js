@@ -124,16 +124,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- SAVE PLUGIN SETTINGS ---
     //
 
-    const savePluginSettings = (button) => {
-        const modal = button.closest('.modpress-plugin-settings-modal');
-        const form = modal?.querySelector('[data-plugin-settings-form]');
+    const savePluginSettings = (source) => {
+        const button = source instanceof HTMLElement ? source : null;
+        const modal = button ? button.closest('.modpress-plugin-settings-modal') : source?.closest?.('.modpress-plugin-settings-modal');
+        const form = button ? button.form || modal?.querySelector('[data-plugin-settings-form]') : source instanceof HTMLFormElement ? source : modal?.querySelector('[data-plugin-settings-form]');
+
         if (!modal || !form) return;
 
-        setButtonSaving(button);
+        const saveButton = button || modal.querySelector('[data-plugin-settings-save]');
+        if (saveButton) {
+            setButtonSaving(saveButton);
+        }
 
         const body = new URLSearchParams(new FormData(form));
         body.set('action', 'modpress_save_plugin_settings');
-        body.set('nonce', config.pluginSettingsNonce);
+        body.set('nonce', config.pluginSettingsNonce || '');
         body.set('slug', form.dataset.pluginSlug || '');
 
         fetch(config.ajaxUrl, {
@@ -154,11 +159,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         })
         .catch((error) => {
-            resetSavingButton(button);
+            if (saveButton) {
+                resetSavingButton(saveButton);
+            }
             showPluginNotice(error.alert);
         })
         .finally(() => {
-            resetSavingButton(button);
+            if (saveButton) {
+                resetSavingButton(saveButton);
+            }
         });
     };
 
@@ -201,6 +210,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS ---
     //
 
+    root.addEventListener('submit', (event) => {
+        const form = event.target.closest?.('[data-plugin-settings-form]');
+        if (!form) {
+            return;
+        }
+
+        event.preventDefault();
+        savePluginSettings(form);
+    }, true);
+
     root.addEventListener('click', (event) => {
         // Open modal
         const trigger = event.target.closest?.('[data-bs-toggle="modal"][data-bs-target]');
@@ -220,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Save settings
         const save = event.target.closest?.('[data-plugin-settings-save]');
         if (save) {
+            event.preventDefault();
             savePluginSettings(save);
         }
     }, true);
