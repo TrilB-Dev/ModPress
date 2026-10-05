@@ -5,15 +5,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!panel || !config) return;
 
   const fieldValue = (name, scope = root) => {
-    const selector = `[name="settings[${name}]"], [name="${name}"]`;
-    const field = scope.querySelector(selector) || root.querySelector(selector);
-    if (!field) return '';
-    if (field.type === 'checkbox') return field.checked ? '1' : '0';
-    if (field.type === 'radio') {
-      const checked = (scope || root).querySelector(`${selector}:checked`) || root.querySelector(`${selector}:checked`);
+    const source = scope || root;
+    const candidates = source.querySelectorAll('[name]');
+    const match = Array.from(candidates).find((field) => {
+      const fieldName = field.getAttribute('name') || '';
+      return fieldName === name || fieldName === `settings[${name}]`;
+    }) || Array.from(root.querySelectorAll('[name]')).find((field) => {
+      const fieldName = field.getAttribute('name') || '';
+      return fieldName === name || fieldName === `settings[${name}]`;
+    });
+
+    if (!match) return '';
+    if (match.type === 'checkbox') return match.checked ? '1' : '0';
+    if (match.type === 'radio') {
+      const checked = (scope || root).querySelectorAll(`input[name="${match.name}"]:checked`)[0] || root.querySelectorAll(`input[name="${match.name}"]:checked`)[0];
       return checked ? checked.value : '';
     }
-    return field.value;
+    return match.value;
   };
 
   const conditionMatches = (condition, scope = root) => {
@@ -63,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     form.querySelectorAll('input, select, textarea').forEach((input) => {
       input.addEventListener('change', updateConditionalFields);
+      input.addEventListener('input', updateConditionalFields);
     });
   });
 

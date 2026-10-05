@@ -175,9 +175,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const scopes = [field.closest('form'), document];
         for (const scope of scopes) {
             if (!scope) continue;
-            const match = scope.querySelector(`[name="settings[${key}]"], [name="${key}"]`);
-            if (match) {
-                return match;
+            const candidates = scope.querySelectorAll('[name]');
+            for (const candidate of candidates) {
+                const name = candidate.getAttribute('name') || '';
+                if (name === key || name === `settings[${key}]`) {
+                    return candidate;
+                }
             }
         }
 
@@ -289,15 +292,17 @@ document.addEventListener('DOMContentLoaded', () => {
             togglePlugin(toggle);
         }
 
-        const formField = event.target.closest?.('[name^="settings["]') || event.target.closest?.('[name="fontawesome_type"]');
-        if (formField) {
+        const target = event.target;
+        const fieldName = target && target.getAttribute ? target.getAttribute('name') : '';
+        if (fieldName && (fieldName.startsWith('settings[') || fieldName === 'fontawesome_type')) {
             applyConditionalFieldVisibility();
         }
     }, true);
 
     root.addEventListener('input', (event) => {
-        const formField = event.target.closest?.('[name^="settings["]') || event.target.closest?.('[name="fontawesome_type"]');
-        if (formField) {
+        const target = event.target;
+        const fieldName = target && target.getAttribute ? target.getAttribute('name') : '';
+        if (fieldName && (fieldName.startsWith('settings[') || fieldName === 'fontawesome_type')) {
             applyConditionalFieldVisibility();
         }
     }, true);
