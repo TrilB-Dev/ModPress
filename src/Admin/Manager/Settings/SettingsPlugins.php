@@ -36,56 +36,66 @@ final class SettingsPlugins {
         if ( ! is_array( $page ) ) {
             return;
         }
-
-        echo '<tr><th scope="row">' . esc_html( $page['title'] ?? $page['label'] ) . '</th><td>';
-        foreach ( $page['fields'] as $field ) {
-            $key = SanitizationHelper::key( $field['key'] ?? '' );
-            if ( '' === $key ) {
-                continue;
-            }
-            $default = array_key_exists( 'default', $field ) ? $field['default'] : false;
-            $name = 'modpress_' . SanitizationHelper::key( $page['slug'] ) . '[' . $key . ']';
-            $value = $values[ $key ] ?? $default;
-            $type = SanitizationHelper::key( $field['type'] ?? 'checkbox', 'checkbox' );
-            echo '<div class="mb-3">' . FormFieldHelper::label(
-                'modpress-' . $key,
-                (string) ( $field['label'] ?? $key ),
-                [
-                    'description' => (string) ( $field['description'] ?? '' ),
-                    'tooltip' => (string) ( $field['tooltip'] ?? '' ),
-                    'tooltip_type' => SanitizationHelper::key( $field['tooltip_type'] ?? 'question', 'question' ),
-                    'tooltip_icon' => (string) ( $field['tooltip_icon'] ?? '' ),
-                ]
-            );
-            if ( 'select' === $type ) {
-                echo FormFieldHelper::select( 
-                    $name, 
-                    (array) ( $field['options'] ?? [] ), 
-                    $value, 
-                    [ 
-                        'id' => 'modpress-' . $key 
-                    ] 
-                );
-            } elseif ( 'text' === $type ) {
-                echo FormFieldHelper::input( 
-                    $name, 
-                    is_scalar( $value ) ? (string) $value : '', 
-                    [ 'id' => 'modpress-' . $key, 'type' => 'text' ] 
-                );
-            } else {
-                echo FormFieldHelper::checkbox( 
-                    $name, 
-                    '1', 
-                    '', 
-                    [ 
-                        'id' => 'modpress-' . $key, 
-                        'checked' => ! empty( $value ) 
-                    ] 
-                );
-            }
-            echo '</div>';
-        }
-        echo '</td></tr>';
+        ?>
+        <tr>
+            <th scope="row"><?php echo esc_html( $page['title'] ?? $page['label'] ); ?></th>
+            <td>
+                <?php foreach ( $page['fields'] as $field ) : ?>
+                    <?php
+                    $key = SanitizationHelper::key( $field['key'] ?? '' );
+                    if ( '' === $key ) {
+                        continue;
+                    }
+                    $default = array_key_exists( 'default', $field ) ? $field['default'] : false;
+                    $name = 'modpress_' . SanitizationHelper::key( $page['slug'] ) . '[' . $key . ']';
+                    $value = $values[ $key ] ?? $default;
+                    $type = SanitizationHelper::key( $field['type'] ?? 'checkbox', 'checkbox' );
+                    ?>
+                    <div class="mb-3">
+                        <?php echo FormFieldHelper::label(
+                            'modpress-' . $key,
+                            (string) ( $field['label'] ?? $key ),
+                            [
+                                'description' => (string) ( $field['description'] ?? '' ),
+                                'tooltip' => (string) ( $field['tooltip'] ?? '' ),
+                                'tooltip_type' => SanitizationHelper::key( $field['tooltip_type'] ?? 'question', 'question' ),
+                                'tooltip_icon' => (string) ( $field['tooltip_icon'] ?? '' ),
+                            ]
+                        ); ?>
+                        <?php if ( 'select' === $type ) : ?>
+                            <?php echo FormFieldHelper::select(
+                                $name,
+                                (array) ( $field['options'] ?? [] ),
+                                $value,
+                                [
+                                    'id' => 'modpress-' . $key,
+                                ]
+                            ); ?>
+                        <?php elseif ( 'text' === $type ) : ?>
+                            <?php echo FormFieldHelper::input(
+                                $name,
+                                is_scalar( $value ) ? (string) $value : '',
+                                [
+                                    'id' => 'modpress-' . $key,
+                                    'type' => 'text',
+                                ]
+                            ); ?>
+                        <?php else : ?>
+                            <?php echo FormFieldHelper::checkbox(
+                                $name,
+                                '1',
+                                '',
+                                [
+                                    'id' => 'modpress-' . $key,
+                                    'checked' => ! empty( $value ),
+                                ]
+                            ); ?>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+        <?php
     }
     /**
      * Render the settings page for the given tab.
@@ -257,18 +267,17 @@ final class SettingsPlugins {
                                 <dd class="col-sm-9 mb-0"><?php echo esc_html( $plugin->get_license() ); ?></dd>
                             </dl>
                         </section>
-                        <?php echo FormFieldHelper::form_open( '', 'post', [
-                            'id' => 'modpress-plugin-settings-form-' . $modal_id,
-                            'class' => 'modpress-plugin-settings-form',
-                            'data-plugin-settings-form' => '',
-                            'data-plugin-slug' => $plugin->get_slug(),
-                            'data-internal-mod-fields' => '',
-                        ] ); ?>
+                        <form method="post" 
+                            id="modpress-plugin-settings-form-<?php echo esc_attr( $modal_id ); ?>" 
+                            class="modpress-plugin-settings-form" 
+                            data-plugin-settings-form="" 
+                            data-plugin-slug="<?php echo esc_attr( $plugin->get_slug() ); ?>" 
+                            data-internal-mod-fields="">
                             <h3 class="h6 mb-3"><?php echo esc_html( $settings_page['title'] ?? $settings_page['label'] ); ?></h3>
                             <fieldset <?php disabled( ! $can_edit ); ?>>
                                 <?php $this->render_plugin_settings_fields( $settings_page, $values, $modal_id ); ?>
                             </fieldset>
-                        <?php echo FormFieldHelper::form_close(); ?>
+                    </form>
                     </div>
                     <div class="modal-footer">
                         <?php echo FormFieldHelper::button( 
@@ -341,6 +350,74 @@ final class SettingsPlugins {
             static fn ( $value ) => is_array( $value ) && ! empty( $value )
         );
     }
+
+    /**
+     * Determine whether a field should be shown for the current values.
+     *
+     * @param array $field Field definition.
+     * @param array $values Current setting values.
+     * @return bool Whether the field should render.
+     */
+    private function should_render_field( array $field, array $values ): bool {
+        $condition = $this->get_field_condition_rules( $field );
+        if ( empty( $condition ) ) {
+            return true;
+        }
+
+        $check_rule = static function ( $rule ) use ( $values ) {
+            if ( ! is_array( $rule ) ) {
+                return true;
+            }
+
+            if ( empty( $rule ) ) {
+                return true;
+            }
+
+            if ( array_is_list( $rule ) ) {
+                return array_reduce(
+                    $rule,
+                    static fn ( $carry, $item ) => $carry || self::matches_rule_condition( $item, $values ),
+                    false
+                );
+            }
+
+            return self::matches_rule_condition( $rule, $values );
+        };
+
+        foreach ( $condition as $rule_type => $rule ) {
+            if ( ! $check_rule( $rule ) ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Evaluate a single condition array against current field values.
+     *
+     * @param array $rule Condition map.
+     * @param array $values Current values.
+     * @return bool Whether the condition matches.
+     */
+    private function matches_rule_condition( array $rule, array $values ): bool {
+        foreach ( $rule as $key => $expected ) {
+            $actual = $values[ $key ] ?? '';
+            if ( is_array( $expected ) ) {
+                $matches = in_array( (string) $actual, array_map( 'strval', $expected ), true );
+                if ( ! $matches ) {
+                    return false;
+                }
+                continue;
+            }
+
+            if ( (string) $actual !== (string) $expected ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
     /**
      * Render the settings fields for a plugin's settings page.
      *
@@ -352,15 +429,25 @@ final class SettingsPlugins {
         $layout = SanitizationHelper::key( $settings_page['layout'] ?? 'box', 'box' );
         $layout = in_array( $layout, [ 'table', 'box' ], true ) ? $layout : 'box';
 
-        if ( 'table' === $layout ) {
-            echo '<div class="modpress-plugin-settings-fields modpress-plugin-settings-fields-table"><table class="table align-middle"><tbody>';
-        } else {
-            echo '<div class="modpress-plugin-settings-fields modpress-plugin-settings-fields-box">';
-        }
+        if ( 'table' === $layout ) :
+            ?>
+            <div class="modpress-plugin-settings-fields modpress-plugin-settings-fields-table">
+                <table class="table align-middle">
+                    <tbody>
+            <?php
+        else :
+            ?>
+            <div class="modpress-plugin-settings-fields modpress-plugin-settings-fields-box">
+            <?php
+        endif;
 
         foreach ( $settings_page['fields'] as $field ) {
             $key = SanitizationHelper::key( $field['key'] ?? '' );
             if ( '' === $key ) {
+                continue;
+            }
+
+            if ( ! $this->should_render_field( $field, $values ) ) {
                 continue;
             }
 
@@ -389,44 +476,138 @@ final class SettingsPlugins {
                 'tooltip_type' => SanitizationHelper::key( $field['tooltip_type'] ?? 'question', 'question' ),
                 'tooltip_icon' => (string) ( $field['tooltip_icon'] ?? '' ),
             ] );
-            if ( 'table' === $layout ) {
-                echo '<tr' . ( $wrapper_attributes ? ' ' . $wrapper_attributes : '' ) . '><th scope="row" class="w-50">' . wp_kses_post( $label ) . '</th><td>';
-            } else {
-                echo '<article class="modpress-plugin-settings-field card h-100"' . ( $wrapper_attributes ? ' ' . $wrapper_attributes : '' ) . '><div class="card-body">';
-                echo '<div class="modpress-plugin-settings-field-header d-flex align-items-start justify-content-between gap-3">' . wp_kses_post( $label );
-                if ( 'checkbox' === $type ) {
-                    echo FormFieldHelper::switch( $name, '1', '', [ 'id' => $id, 'checked' => ! empty( $value ), 'wrapper_class' => 'ms-auto flex-shrink-0' ] );
-                }
-                echo '</div>';
-                if ( ! empty( $field['description'] ) ) {
-                    echo '<p class="modpress-plugin-settings-field-description text-secondary mb-3">' . esc_html( (string) $field['description'] ) . '</p>';
-                }
-            }
+            if ( 'table' === $layout ) :
+                ?>
+                <tr<?php echo $wrapper_attributes ? ' ' . $wrapper_attributes : ''; ?>>
+                    <th scope="row" class="w-50"><?php echo wp_kses_post( $label ); ?></th>
+                    <td>
+                <?php
+            else :
+                ?>
+                <article class="modpress-plugin-settings-field card h-100"<?php echo $wrapper_attributes ? ' ' . $wrapper_attributes : ''; ?>>
+                    <div class="card-body">
+                        <div class="modpress-plugin-settings-field-header d-flex align-items-start justify-content-between gap-3">
+                            <?php echo wp_kses_post( $label ); ?>
+                            <?php if ( 'checkbox' === $type ) : ?>
+                                <?php echo FormFieldHelper::switch( $name, '1', '', [ 'id' => $id, 'checked' => ! empty( $value ), 'wrapper_class' => 'ms-auto flex-shrink-0' ] ); ?>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ( ! empty( $field['description'] ) ) : ?>
+                            <p class="modpress-plugin-settings-field-description text-secondary mb-3"><?php echo esc_html( (string) $field['description'] ); ?></p>
+                        <?php endif; ?>
+                <?php
+            endif;
+
             if ( 'table' === $layout && 'select' === $type ) {
-                echo FormFieldHelper::select( $name, (array) ( $field['options'] ?? [] ), $value, [ 'id' => $id, 'attributes' => $field['attributes'] ?? [] ] );
+                echo FormFieldHelper::select( 
+                    $name, 
+                    (array) ( $field['options'] ?? [] ), 
+                    $value, 
+                    [ 
+                        'id' => $id, 
+                        'attributes' => $field['attributes'] ?? [] 
+                    ] 
+                );
             } elseif ( 'table' === $layout && 'multiselect' === $type ) {
-                echo FormFieldHelper::bootstrap_multiselect( $name, [ 'id' => $id, 'data' => (array) ( $field['options'] ?? [] ), 'selected' => (array) $value, 'dropup_auto' => $field['dropup_auto'] ?? true, 'show_tick' => $field['show_tick'] ?? null, 'selection_indicator' => $field['selection_indicator'] ?? null, 'attributes' => $field['attributes'] ?? [] ] );
+                echo FormFieldHelper::bootstrap_multiselect( 
+                    $name, 
+                    [ 
+                        'id' => $id, 
+                        'data' => (array) ( $field['options'] ?? [] ), 
+                        'selected' => (array) $value, 
+                        'dropup_auto' => $field['dropup_auto'] ?? true, 
+                        'show_tick' => $field['show_tick'] ?? null, 
+                        'selection_indicator' => $field['selection_indicator'] ?? null, 
+                        'attributes' => $field['attributes'] ?? [] 
+                    ] 
+                );
             } elseif ( 'table' === $layout && 'text' === $type ) {
-                echo FormFieldHelper::input( $name, is_scalar( $value ) ? (string) $value : '', [ 'id' => $id, 'type' => 'text' ] );
+                echo FormFieldHelper::input( 
+                    $name, 
+                    is_scalar( $value ) ? (string) $value : '', 
+                    [ 
+                        'id' => $id, 
+                        'type' => 'text' 
+                    ] 
+                );
             } elseif ( 'table' === $layout ) {
-                echo FormFieldHelper::checkbox( $name, '1', '', [ 'id' => $id, 'checked' => ! empty( $value ) ] );
+                echo FormFieldHelper::checkbox( 
+                    $name, 
+                    '1', 
+                    '', 
+                    [ 
+                        'id' => $id, 
+                        'checked' => ! empty( $value ) 
+                    ] 
+                );
             } elseif ( 'select' === $type ) {
-                echo FormFieldHelper::select( $name, (array) ( $field['options'] ?? [] ), $value, [ 'id' => $id, 'attributes' => $field['attributes'] ?? [] ] );
+                echo FormFieldHelper::select( 
+                    $name, 
+                    (array) ( $field['options'] ?? [] ), 
+                    $value, 
+                    [ 
+                        'id' => $id, 
+                        'attributes' => $field['attributes'] ?? [] 
+                    ] 
+                );
             } elseif ( 'multiselect' === $type ) {
-                echo FormFieldHelper::bootstrap_multiselect( $name, [ 'id' => $id, 'data' => (array) ( $field['options'] ?? [] ), 'selected' => (array) $value, 'dropup_auto' => $field['dropup_auto'] ?? true, 'show_tick' => $field['show_tick'] ?? null, 'selection_indicator' => $field['selection_indicator'] ?? null, 'attributes' => $field['attributes'] ?? [] ] );
+                echo FormFieldHelper::bootstrap_multiselect( 
+                    $name, 
+                    [ 
+                        'id' => $id, 
+                        'data' => (array) ( $field['options'] ?? [] ), 
+                        'selected' => (array) $value, 
+                        'dropup_auto' => $field['dropup_auto'] ?? true, 
+                        'show_tick' => $field['show_tick'] ?? null, 
+                        'selection_indicator' => $field['selection_indicator'] ?? null, 
+                        'attributes' => $field['attributes'] ?? [] 
+                    ] 
+                );
             } elseif ( 'text' === $type ) {
-                echo FormFieldHelper::input( $name, is_scalar( $value ) ? (string) $value : '', [ 'id' => $id, 'type' => 'text' ] );
+                echo FormFieldHelper::input( 
+                    $name, 
+                    is_scalar( $value ) ? (string) $value : '', 
+                    [ 
+                        'id' => $id, 
+                        'type' => 'text' 
+                    ] 
+                );
             } elseif ( 'checkbox' === $type ) {
-                echo FormFieldHelper::switch( $name, '1', '', [ 'id' => $id, 'checked' => ! empty( $value ) ] );
+                echo FormFieldHelper::switch( 
+                    $name, 
+                    '1', 
+                    '', 
+                    [ 
+                        'id' => $id, 
+                        'checked' => ! empty( $value ) 
+                    ] 
+                );
             }
-            echo 'table' === $layout ? '</td></tr>' : '</div></article>';
+
+            if ( 'table' === $layout ) :
+                ?>
+                    </td>
+                </tr>
+                <?php
+            else :
+                ?>
+                    </div>
+                </article>
+                <?php
+            endif;
         }
 
-        if ( 'table' === $layout ) {
-            echo '</tbody></table></div>';
-        } else {
-            echo '</div>';
-        }
+        if ( 'table' === $layout ) :
+            ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php
+        else :
+            ?>
+            </div>
+            <?php
+        endif;
     }
     /**
      * Render a card for a third-party plugin.
