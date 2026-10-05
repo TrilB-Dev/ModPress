@@ -366,7 +366,7 @@ final class SettingsPlugins {
             return true;
         }
 
-        $check_rule = static function ( $rule ) use ( $values ) {
+        $check_rule = function ( $rule ) use ( $values ) {
             if ( ! is_array( $rule ) ) {
                 return true;
             }
@@ -378,12 +378,12 @@ final class SettingsPlugins {
             if ( array_is_list( $rule ) ) {
                 return array_reduce(
                     $rule,
-                    static fn ( $carry, $item ) => $carry || self::matches_rule_condition( $item, $values ),
+                    fn ( $carry, $item ) => $carry || $this->matches_rule_condition( $item, $values ),
                     false
                 );
             }
 
-            return self::matches_rule_condition( $rule, $values );
+            return $this->matches_rule_condition( $rule, $values );
         };
 
         foreach ( $condition as $rule_type => $rule ) {
