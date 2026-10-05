@@ -56,21 +56,19 @@ final class Assets extends RootAssets {
                 'handle' => 'modpress-fontawesome-kit',
                 'src' => 'https://kit.fontawesome.com/' . rawurlencode( $kit_id ) . '.js',
                 'deps' => array( 'modpress-bootstrap' ),
-                'in_footer' => true,
+                'in_footer' => true
             );
         } else {
             $assets['styles'][] = array(
                 'handle' => 'modpress-fontawesome-cdn-style',
                 'src' => 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7/css/fontawesome.min.css',
-                'deps' => array( 'modpress-bootstrap' ),
-                'version' => '7.0.0',
+                'deps' => array( 'modpress-bootstrap' )
             );
             $assets['scripts'][] = array(
                 'handle' => 'modpress-fontawesome-cdn-script',
                 'src' => 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7/js/fontawesome.min.js',
                 'deps' => array( 'modpress-bootstrap' ),
-                'version' => '7.0.0',
-                'in_footer' => true,
+                'in_footer' => true
             );
         }
 
