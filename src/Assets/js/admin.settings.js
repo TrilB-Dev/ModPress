@@ -4,22 +4,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const config = window.modpressSettingsTabs;
   if (!panel || !config) return;
 
-  const fieldValue = (name) => {
+  const fieldValue = (name, scope = root) => {
     const selector = `[name="settings[${name}]"], [name="${name}"]`;
-    const field = root.querySelector(selector);
+    const field = scope.querySelector(selector) || root.querySelector(selector);
     if (!field) return '';
     if (field.type === 'checkbox') return field.checked ? '1' : '0';
     if (field.type === 'radio') {
-      const checked = root.querySelector(`${selector}:checked`);
+      const checked = (scope || root).querySelector(`${selector}:checked`) || root.querySelector(`${selector}:checked`);
       return checked ? checked.value : '';
     }
     return field.value;
   };
 
-  const conditionMatches = (condition) => {
+  const conditionMatches = (condition, scope = root) => {
     if (!condition || typeof condition !== 'object') return true;
     return Object.entries(condition).every(([key, expected]) => {
-      const actual = String(fieldValue(key) ?? '');
+      const actual = String(fieldValue(key, scope) ?? '');
       const target = Array.isArray(expected) ? expected.map(String) : String(expected ?? '');
       if (Array.isArray(expected)) return target.includes(actual);
       return actual === target;
@@ -28,8 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const updateConditionalFields = () => {
     root.querySelectorAll('[data-modpress-visible-when], [data-modpress-required-when]').forEach((field) => {
-      const condition = field.dataset.modpressVisibleWhen ? JSON.parse(field.dataset.modpressVisibleWhen) : (field.dataset.modpressRequiredWhen ? JSON.parse(field.dataset.modpressRequiredWhen) : null);
-      const visible = !condition || conditionMatches(condition);
+      const visibleRule = field.dataset.modpressVisibleWhen ? JSON.parse(field.dataset.modpressVisibleWhen) : null;
+      const requiredRule = field.dataset.modpressRequiredWhen ? JSON.parse(field.dataset.modpressRequiredWhen) : null;
+      const visible = (!visibleRule || conditionMatches(visibleRule, field.closest('form') || root)) && (!requiredRule || conditionMatches(requiredRule, field.closest('form') || root));
       field.hidden = !visible;
       field.style.display = visible ? '' : 'none';
       field.querySelectorAll('input, select, textarea, button').forEach((element) => {

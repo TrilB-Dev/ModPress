@@ -171,6 +171,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const getScopeControl = (field, key) => {
+        const scopes = [field.closest('form'), document];
+        for (const scope of scopes) {
+            if (!scope) continue;
+            const match = scope.querySelector(`[name="settings[${key}]"], [name="${key}"]`);
+            if (match) {
+                return match;
+            }
+        }
+
+        return null;
+    };
+
     const getFormControlValue = (control) => {
         if (!control) {
             return '';
@@ -189,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const matchesSingleRule = (field, key, expected) => {
-        const input = field.closest('form')?.querySelector(`[name="settings[${key}]"], [name="${key}"]`);
+        const input = getScopeControl(field, key);
         const actual = getFormControlValue(input);
 
         if (Array.isArray(expected)) {
