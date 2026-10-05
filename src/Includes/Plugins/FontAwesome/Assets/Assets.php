@@ -50,6 +50,7 @@ final class Assets extends RootAssets {
 
         $type = FontAwesomeSettings::get_type();
         $kit_id = trim( FontAwesomeSettings::get_kit_id() );
+        $cdn_technology = FontAwesomeSettings::get_cdn_technology();
 
         if ( 'kit' === $type && '' !== $kit_id ) {
             $assets['scripts'][] = array(
@@ -58,15 +59,42 @@ final class Assets extends RootAssets {
                 'deps' => array( 'modpress-bootstrap' ),
                 'in_footer' => false
             );
-        } else {
-            $assets['styles'][] = array(
+        } elseif ( 'cdn' === $type && 'webfont' === $cdn_technology ) {
+            /**$assets['styles'][] = array(
                 'handle' => 'modpress-fontawesome-cdn-style',
                 'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/fontawesome.min.css'
+            );*/
+            $assets['styles'][] = array(
+                'handle' => 'modpress-fontawesome-cdn-style',
+                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/fontawesome.min.css',
+            );
+            $assets['styles'][] = array(
+                'handle' => 'modpress-fontawesome-cdn-style-solid',
+                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/solid.min.css',
+                'deps' => array( 'modpress-fontawesome-cdn-style' ),
+            );
+            $assets['styles'][] = array(
+                'handle' => 'modpress-fontawesome-cdn-style-brands',
+                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/brands.min.css',
+                'deps' => array( 'modpress-fontawesome-cdn-style' ),
+            );
+        } elseif ( 'cdn' === $type && 'svg' === $cdn_technology ) {
+            $assets['scripts'][] = array(
+                'handle' => 'modpress-fontawesome-cdn-svg',
+                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/fontawesome.min.js',
+                'in_footer' => true
             );
             $assets['scripts'][] = array(
-                'handle' => 'modpress-fontawesome-cdn-script',
-                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/fontawesome.min.js',
-                'in_footer' => false
+                'handle' => 'modpress-fontawesome-cdn-svg-inline',
+                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/solid.min.js',
+                'deps' => array( 'modpress-fontawesome-cdn-svg' ),
+                'in_footer' => true
+            );
+            $assets['scripts'][] = array(
+                'handle' => 'modpress-fontawesome-cdn-svg-brands',
+                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/brands.min.js',
+                'deps' => array( 'modpress-fontawesome-cdn-svg' ),
+                'in_footer' => true
             );
         }
 

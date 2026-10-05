@@ -310,6 +310,37 @@ final class SettingsPlugins {
     private function is_internal_plugin( PluginInterface $plugin ): bool {
         return 0 === strpos( get_class( $plugin ), 'ModPress\\Includes\\Plugins\\' );
     }
+
+    /**
+     * Normalize conditional visibility rules for a field.
+     *
+     * Supports the common patterns used across plugin settings pages:
+     * - visible_when => [ 'fontawesome_type' => 'cdn' ]
+     * - visible_when => [ [ 'fontawesome_type' => 'cdn' ], [ 'fontawesome_type' => 'kit' ] ]
+     * - required => [ 'fontawesome_type' => 'kit' ]
+     *
+     * @param array $field Field definition.
+     * @return array{visible_when?: array<mixed>, required?: array<mixed>}
+     */
+    private function get_field_condition_rules( array $field ): array {
+        $rules = array(
+            'visible_when' => $field['visible_when'] ?? null,
+            'required'     => $field['required'] ?? null,
+        );
+
+        foreach ( $rules as $key => $value ) {
+            if ( is_array( $value ) ) {
+                continue;
+            }
+
+            $rules[ $key ] = null;
+        }
+
+        return array_filter(
+            $rules,
+            static fn ( $value ) => is_array( $value ) && ! empty( $value )
+        );
+    }
     /**
      * Render the settings fields for a plugin's settings page.
      *
@@ -345,15 +376,12 @@ final class SettingsPlugins {
             if ( ! empty( $field['wrapper_attributes'] ) && is_array( $field['wrapper_attributes'] ) ) {
                 $wrapper_attributes = array_merge( $wrapper_attributes, $field['wrapper_attributes'] );
             }
-            $condition = array();
-            if ( ! empty( $field['visible_when'] ) && is_array( $field['visible_when'] ) ) {
-                $condition = $field['visible_when'];
-            } elseif ( ! empty( $field['required'] ) && is_array( $field['required'] ) ) {
-                $condition = $field['required'];
+            $condition = $this->get_field_condition_rules( $field );
+            if ( ! empty( $condition['visible_when'] ) ) {
+                $wrapper_attributes['data-modpress-visible-when'] = wp_json_encode( $condition['visible_when'] );
             }
-            if ( ! empty( $condition ) ) {
-                $wrapper_attributes['data-modpress-visible-when'] = wp_json_encode( $condition );
-                $wrapper_attributes['data-modpress-required-when'] = wp_json_encode( $condition );
+            if ( ! empty( $condition['required'] ) ) {
+                $wrapper_attributes['data-modpress-required-when'] = wp_json_encode( $condition['required'] );
             }
             $wrapper_attributes = FormFieldHelper::attributes_to_string( $wrapper_attributes );
             $label = FormFieldHelper::label( $id, (string) ( $field['label'] ?? $key ), [

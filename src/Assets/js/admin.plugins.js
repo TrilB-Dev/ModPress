@@ -171,37 +171,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const isVisibleWhenMatch = (control, expected) => {
+    const getFormControlValue = (control) => {
         if (!control) {
-            return false;
+            return '';
         }
 
-        const rawValue = control.type === 'checkbox'
-            ? (control.checked ? '1' : '0')
-            : control.value;
-        const value = String(rawValue ?? '');
+        if (control.type === 'checkbox') {
+            return control.checked ? '1' : '0';
+        }
+
+        if (control.type === 'radio') {
+            const checked = control.form?.querySelector(`input[name="${control.name}"]:checked`);
+            return checked ? String(checked.value ?? '') : '';
+        }
+
+        return String(control.value ?? '');
+    };
+
+    const matchesSingleRule = (field, key, expected) => {
+        const input = field.closest('form')?.querySelector(`[name="settings[${key}]"], [name="${key}"]`);
+        const actual = getFormControlValue(input);
 
         if (Array.isArray(expected)) {
-            return expected.some((candidate) => String(candidate) === value);
+            return expected.some((candidate) => String(candidate) === actual);
         }
 
-        return String(expected) === value;
+        return String(expected ?? '') === actual;
+    };
+
+    const matchesCondition = (field, ruleSet) => {
+        if (!ruleSet || typeof ruleSet !== 'object') {
+            return true;
+        }
+
+        if (Array.isArray(ruleSet)) {
+            if (ruleSet.length === 0) {
+                return true;
+            }
+
+            return ruleSet.some((item) => matchesCondition(field, item));
+        }
+
+        return Object.entries(ruleSet).every(([key, expected]) => matchesSingleRule(field, key, expected));
     };
 
     const applyConditionalFieldVisibility = () => {
-        root.querySelectorAll('[data-modpress-visible-when]').forEach((field) => {
-            const rules = field.dataset.modpressVisibleWhen ? JSON.parse(field.dataset.modpressVisibleWhen) : {};
-            const entries = Object.entries(rules || {});
-            const visible = entries.length === 0 || entries.every(([key, expected]) => {
-                const input = field.closest('form')?.querySelector(`[name="settings[${key}]"], [name="${key}"]`);
-                return isVisibleWhenMatch(input, expected);
-            });
+        root.querySelectorAll('[data-modpress-visible-when], [data-modpress-required-when]').forEach((field) => {
+            const visibleRule = field.dataset.modpressVisibleWhen ? JSON.parse(field.dataset.modpressVisibleWhen) : null;
+            const requiredRule = field.dataset.modpressRequiredWhen ? JSON.parse(field.dataset.modpressRequiredWhen) : null;
+            const visible = matchesCondition(field, visibleRule) || !visibleRule;
+            const required = matchesCondition(field, requiredRule) || !requiredRule;
+            const showField = visible && required;
 
-            field.style.display = visible ? '' : 'none';
-            field.hidden = !visible;
+            field.style.display = showField ? '' : 'none';
+            field.hidden = !showField;
 
             field.querySelectorAll('input, select, textarea, button').forEach((input) => {
-                input.disabled = !visible;
+                input.disabled = !showField;
             });
         });
     };
