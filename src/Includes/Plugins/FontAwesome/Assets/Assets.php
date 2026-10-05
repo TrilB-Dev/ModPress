@@ -61,13 +61,11 @@ final class Assets extends RootAssets {
         } else {
             $assets['styles'][] = array(
                 'handle' => 'modpress-fontawesome-cdn-style',
-                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/fontawesome.min.css',
-                'deps' => array( 'modpress-bootstrap' )
+                'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/fontawesome.min.css'
             );
             $assets['scripts'][] = array(
                 'handle' => 'modpress-fontawesome-cdn-script',
                 'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/fontawesome.min.js',
-                'deps' => array( 'modpress-bootstrap' ),
                 'in_footer' => true
             );
         }
