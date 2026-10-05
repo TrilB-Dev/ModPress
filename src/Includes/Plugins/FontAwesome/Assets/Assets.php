@@ -56,7 +56,7 @@ final class Assets extends RootAssets {
                 'handle' => 'modpress-fontawesome-kit',
                 'src' => 'https://kit.fontawesome.com/' . rawurlencode( $kit_id ) . '.js',
                 'deps' => array( 'modpress-bootstrap' ),
-                'in_footer' => true
+                'in_footer' => false
             );
         } else {
             $assets['styles'][] = array(
@@ -66,7 +66,7 @@ final class Assets extends RootAssets {
             $assets['scripts'][] = array(
                 'handle' => 'modpress-fontawesome-cdn-script',
                 'src' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/fontawesome.min.js',
-                'in_footer' => true
+                'in_footer' => false
             );
         }
 
