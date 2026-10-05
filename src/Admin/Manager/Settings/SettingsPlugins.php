@@ -268,8 +268,15 @@ final class SettingsPlugins {
             if ( ! empty( $field['wrapper_attributes'] ) && is_array( $field['wrapper_attributes'] ) ) {
                 $wrapper_attributes = array_merge( $wrapper_attributes, $field['wrapper_attributes'] );
             }
+            $condition = array();
             if ( ! empty( $field['visible_when'] ) && is_array( $field['visible_when'] ) ) {
-                $wrapper_attributes['data-modpress-visible-when'] = wp_json_encode( $field['visible_when'] );
+                $condition = $field['visible_when'];
+            } elseif ( ! empty( $field['required'] ) && is_array( $field['required'] ) ) {
+                $condition = $field['required'];
+            }
+            if ( ! empty( $condition ) ) {
+                $wrapper_attributes['data-modpress-visible-when'] = wp_json_encode( $condition );
+                $wrapper_attributes['data-modpress-required-when'] = wp_json_encode( $condition );
             }
             $wrapper_attributes = FormFieldHelper::attributes_to_string( $wrapper_attributes );
             $label = FormFieldHelper::label( $id, (string) ( $field['label'] ?? $key ), [

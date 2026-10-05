@@ -4,6 +4,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const config = window.modpressSettingsTabs;
   if (!panel || !config) return;
 
+  const fieldValue = (name) => {
+    const selector = `[name="settings[${name}]"], [name="${name}"]`;
+    const field = root.querySelector(selector);
+    if (!field) return '';
+    if (field.type === 'checkbox') return field.checked ? '1' : '0';
+    if (field.type === 'radio') {
+      const checked = root.querySelector(`${selector}:checked`);
+      return checked ? checked.value : '';
+    }
+    return field.value;
+  };
+
+  const conditionMatches = (condition) => {
+    if (!condition || typeof condition !== 'object') return true;
+    return Object.entries(condition).every(([key, expected]) => {
+      const actual = String(fieldValue(key) ?? '');
+      const target = Array.isArray(expected) ? expected.map(String) : String(expected ?? '');
+      if (Array.isArray(expected)) return target.includes(actual);
+      return actual === target;
+    });
+  };
+
+  const updateConditionalFields = () => {
+    root.querySelectorAll('[data-modpress-visible-when], [data-modpress-required-when]').forEach((field) => {
+      const condition = field.dataset.modpressVisibleWhen ? JSON.parse(field.dataset.modpressVisibleWhen) : (field.dataset.modpressRequiredWhen ? JSON.parse(field.dataset.modpressRequiredWhen) : null);
+      const visible = !condition || conditionMatches(condition);
+      field.hidden = !visible;
+      field.style.display = visible ? '' : 'none';
+      field.querySelectorAll('input, select, textarea, button').forEach((element) => {
+        if (element === field) return;
+        element.disabled = !visible;
+      });
+    });
+  };
+
   const stateFromHash = () => {
     const hash = window.location.hash.replace(/^#/, '') || panel.dataset.currentTab || 'general';
     if (hash.indexOf('layout-') === 0) return { tab: 'layout', section: hash.replace('layout-', '') || 'general' };
@@ -24,6 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', () => {
       const submit = form.querySelector('[type="submit"]');
       if (submit) submit.disabled = true;
+    });
+    form.querySelectorAll('input, select, textarea').forEach((input) => {
+      input.addEventListener('change', updateConditionalFields);
     });
   });
 
@@ -112,5 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (button) activateLayoutTab(button);
   }
   if (window.location.hash && 'layout' !== initial.tab && (initial.tab !== panel.dataset.currentTab || initial.section !== panel.dataset.currentSection)) loadTab(initial.tab, initial.section, false);
+  updateConditionalFields();
   bindForms();
+  updateConditionalFields();
 });
