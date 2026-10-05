@@ -81,6 +81,7 @@ final class Settings {
                     'tooltip' => __( 'Choose between using the CDN or a Kit for FontAwesome.', 'modpress' ),
                     'tooltip_type' => 'info',
                     'type' => 'select',
+                    'class' => 'w-100',
                     'options' => [
                         'cdn' => __( 'CDN', 'modpress' ),
                         'kit' => __( 'Kit', 'modpress' ),
@@ -94,6 +95,7 @@ final class Settings {
                     'tooltip' => __( 'Choose between different CDN technologies for loading Font Awesome.', 'modpress' ),
                     'tooltip_type' => 'info',
                     'type' => 'select',
+                    'class' => 'w-100',
                     'options' => [
                         'svg' => __( 'SVG', 'modpress' ),
                         'webfont' => __( 'Web Font', 'modpress' ),
@@ -114,6 +116,7 @@ final class Settings {
                     'tooltip' => __( 'The FontAwesome Kit ID is required when using the Kit type.', 'modpress' ),
                     'tooltip_type' => 'info',
                     'type' => 'text',
+                    'class' => 'w-100',
                     'default' => '',
                     'visible_when' => [
                         'fontawesome_type' => 'kit',
