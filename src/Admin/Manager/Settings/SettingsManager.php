@@ -243,11 +243,11 @@ final class SettingsManager extends Manager {
 
             <?php if ( in_array( $tab, [ 'plugins', 'third-party' ], true ) ) : ?>
                 <?php $this->plugins_page->render( $tab ); ?>
+            </div>
             <?php return; ?>
-        </div>
-        <?php endif; ?>
+            <?php endif; ?>
 
-        <div class="modpress-settings-page">
+            <div class="modpress-settings-page">
             <div class="modpress-settings-card card shadow-sm">
                 <?php if ( $can_edit ) : ?>
                     <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="modpress-settings-form">
@@ -289,6 +289,7 @@ final class SettingsManager extends Manager {
                 <?php endif; ?>
             </div>
         </div>
+    </div>
         <?php
     }
     /**

@@ -38,7 +38,9 @@ final class SettingsPlugins {
         }
         ?>
         <tr>
-            <th scope="row"><?php echo esc_html( $page['title'] ?? $page['label'] ); ?></th>
+            <th scope="row">
+                <?php echo esc_html( $page['title'] ?? $page['label'] ); ?>
+            </th>
             <td>
                 <?php foreach ( $page['fields'] as $field ) : ?>
                     <?php
