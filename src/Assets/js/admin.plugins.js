@@ -136,10 +136,28 @@ document.addEventListener('DOMContentLoaded', () => {
             setButtonSaving(saveButton);
         }
 
-        const body = new URLSearchParams(new FormData(form));
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
+        const settings = {};
+
+        for (const [key, value] of Object.entries(payload)) {
+            if (key.startsWith('settings[') || key.startsWith('plugin_settings[')) {
+                const match = key.match(/^settings\[(.*)\]$|^plugin_settings\[(.*)\]$/);
+                if (match) {
+                    const fieldName = match[1] || match[2] || '';
+                    if (fieldName) {
+                        settings[fieldName] = value;
+                    }
+                }
+            }
+        }
+
+        const body = new URLSearchParams();
         body.set('action', 'modpress_save_plugin_settings');
         body.set('nonce', config.pluginSettingsNonce || '');
         body.set('slug', form.dataset.pluginSlug || '');
+        body.set('settings', JSON.stringify(settings));
+        body.set('plugin_settings', JSON.stringify(settings));
 
         fetch(config.ajaxUrl, {
             method: 'POST',

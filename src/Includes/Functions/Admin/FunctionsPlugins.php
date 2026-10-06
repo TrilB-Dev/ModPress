@@ -86,7 +86,22 @@ final class FunctionsPlugins {
             $decoded = json_decode( wp_unslash( $input ), true );
             $input = is_array( $decoded ) ? $decoded : [];
         }
-        $input = is_array( $input ) ? wp_unslash( $input ) : [];
+
+        if ( ! is_array( $input ) ) {
+            $input = [];
+        }
+
+        $input = wp_unslash( $input );
+        if ( isset( $_POST['settings'] ) && is_array( $_POST['settings'] ) ) {
+            $input = wp_unslash( $_POST['settings'] );
+        } elseif ( isset( $_POST['plugin_settings'] ) && is_array( $_POST['plugin_settings'] ) ) {
+            $input = wp_unslash( $_POST['plugin_settings'] );
+        }
+
+        if ( ! empty( $input ) && is_array( $input ) ) {
+            $input = $this->normalize_plugin_settings_input( $input );
+        }
+
         $settings = $plugin->sanitize_settings( $input );
 
         $page = $plugin->get_settings_page();
@@ -103,6 +118,27 @@ final class FunctionsPlugins {
                 'alert' => AlertHelper::get_admin_notice( __( 'Plugin settings saved successfully.', 'modpress' ), 'success' ),
             ]
         );
+    }
+
+    /**
+     * Normalize plugin settings payloads from either settings[] or plugin_settings[] posts.
+     *
+     * @param array $input Submitted settings payload.
+     * @return array
+     */
+    private function normalize_plugin_settings_input( array $input ): array {
+        $normalized = [];
+
+        foreach ( $input as $key => $value ) {
+            if ( is_array( $value ) ) {
+                $normalized[ $key ] = $this->normalize_plugin_settings_input( $value );
+                continue;
+            }
+
+            $normalized[ $key ] = $value;
+        }
+
+        return $normalized;
     }
 
     private function is_internal_plugin( PluginInterface $plugin ): bool {
