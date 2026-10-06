@@ -98,16 +98,24 @@ final class Assets extends RootAssets {
             );
         }
 
+        $assets['scripts'][] = array(
+            'handle' => 'modpress-fontawesome-plugin-settings',
+            'src' => MODPRESS_PLUGINS_URL . '/FontAwesome/Assets/js/admin.plugins.fontawesome.js',
+            'deps' => array( 'modpress-bootstrap' ),
+            'version' => MODPRESS_VERSION,
+            'in_footer' => true,
+        );
+
         if ( FontAwesomeSettings::enable_icon_picker() ) {
             $assets['styles'][] = array(
                 'handle' => 'modpress-fontawesome-icon-picker',
-                'src' => MODPRESS_URL . 'src/Includes/Plugins/FontAwesome/Assets/dist/css/icon-picker.css',
+                'src' => MODPRESS_PLUGINS_URL . '/FontAwesome/Assets/dist/css/icon-picker.css',
                 'deps' => array( 'modpress-bootstrap' ),
                 'version' => MODPRESS_VERSION,
             );
             $assets['scripts'][] = array(
                 'handle' => 'modpress-fontawesome-icon-picker',
-                'src' => MODPRESS_URL . 'src/Includes/Plugins/FontAwesome/Assets/dist/js/icon-picker.js',
+                'src' => MODPRESS_PLUGINS_URL . '/FontAwesome/Assets/dist/js/icon-picker.js',
                 'deps' => array( 'jquery' ),
                 'version' => MODPRESS_VERSION,
                 'in_footer' => true,

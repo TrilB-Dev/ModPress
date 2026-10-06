@@ -70,9 +70,6 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @return string
      */
     public function get_version(): string {
-        if ( self::is_wordpress_fontawesome_active() && function_exists( 'FortAwesome\fa' ) && class_exists( '\FortAwesome\FontAwesome' ) ) {
-            return \FortAwesome\fa()->version();
-        }
 
         return '1.0.0';
     }
@@ -92,7 +89,7 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @return string
      */
     public function get_author_uri(): string {
-        return 'https://trilb.dev';
+        return 'https://trilb.dev/';
     }
 
     /**
@@ -101,7 +98,7 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @return string
      */
     public function get_description(): string {
-        return __( 'Provides Font Awesome enqueueing in Admin, Frontend, Login Page, icon picking, and styling APIs for ModPress.', 'modpress' );
+        return __( 'Provides FontAwesome CDN & Kit enqueueing in Admin, Frontend & Login Page, also adds an enhanced icon picker, and styling APIs for ModPress.', 'modpress' );
     }
 
     /**

@@ -6,7 +6,7 @@
  * @since 1.0.0
  */
 
-(function($) {
+(($) => {
     'use strict';
 
     /**
@@ -35,13 +35,13 @@
             });
 
             // Close picker modal
-            $(document).on('click', '.modpress-fa-picker-close, .modpress-fa-picker-overlay, .modpress-fa-picker-cancel', function(e) {
+            $(document).on('click', '.modpress-fa-picker-close, .modpress-fa-picker-overlay, .modpress-fa-picker-cancel', (e) => {
                 e.preventDefault();
                 self.closePicker();
             });
 
             // Search icons
-            $(document).on('input', '.modpress-fa-picker-search-input', function() {
+            $(document).on('input', '.modpress-fa-picker-search-input', () => {
                 self.searchIcons();
             });
 
@@ -64,7 +64,7 @@
             });
 
             // Filter by style
-            $(document).on('change', '.modpress-fa-picker-style-filter', function() {
+            $(document).on('change', '.modpress-fa-picker-style-filter', () => {
                 self.searchIcons();
             });
 
@@ -75,12 +75,12 @@
             });
 
             // Confirm selection
-            $(document).on('click', '.modpress-fa-picker-select', function() {
+            $(document).on('click', '.modpress-fa-picker-select', () => {
                 self.confirmSelection();
             });
 
             // Load more icons (pagination)
-            $(document).on('click', '.modpress-fa-picker-load-more', function() {
+            $(document).on('click', '.modpress-fa-picker-load-more', () => {
                 self.loadMoreIcons();
             });
         },
@@ -156,14 +156,14 @@
                     page: this.currentPage,
                     per_page: 50
                 },
-                success: function(response) {
+                success: (response) => {
                     if (response.success) {
                         self.displayIcons(response.data, pack, style);
                     } else {
                         $results.html('<div class="modpress-fa-picker-error">' + response.data + '</div>');
                     }
                 },
-                error: function() {
+                error: () => {
                     $results.html('<div class="modpress-fa-picker-error">' + modpress_fa_picker.strings.no_icons_found + '</div>');
                 }
             });
@@ -188,7 +188,7 @@
 
             var html = '<div class="modpress-fa-picker-grid">';
 
-            data.icons.forEach(function(icon) {
+            data.icons.forEach((icon) => {
                 var iconClass = data.prefix + ' fa-' + icon.name;
 
                 html += '<div class="modpress-fa-picker-icon-item" data-icon-name="' + icon.name + '" data-icon-pack="' + pack + '" data-icon-style="' + style + '" data-icon-prefix="' + data.prefix + '">';
@@ -287,7 +287,7 @@
     };
 
     // Initialize when document is ready
-    $(document).ready(function() {
+    $(document).ready(() => {
         ModPressFAIconPicker.init();
     });
 

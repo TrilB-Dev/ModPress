@@ -459,6 +459,7 @@ final class SettingsPlugins {
             $id = SanitizationHelper::key( $prefix . '-' . $key );
             $name = 'settings[' . $key . ']';
             $wrapper_attributes = [];
+            $wrapper_attributes['data-modpress-field-key'] = $key;
             if ( ! empty( $field['wrapper_class'] ) ) {
                 $wrapper_attributes['class'] = (string) $field['wrapper_class'];
             }

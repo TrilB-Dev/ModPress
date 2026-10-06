@@ -51,6 +51,9 @@ const fontAwesomeEntries = {
     './src/Includes/Plugins/FontAwesome/Assets/js/icon-picker.js',
     './src/Includes/Plugins/FontAwesome/Assets/scss/icon-picker.scss',
   ],
+  'admin.plugins.fontawesome': [
+    './src/Includes/Plugins/FontAwesome/Assets/js/admin.plugins.fontawesome.js',
+  ]
 };
 const tinyMCEEntries = {
   'tinyMCE': [
