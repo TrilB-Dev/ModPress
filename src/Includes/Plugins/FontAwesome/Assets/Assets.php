@@ -98,13 +98,19 @@ final class Assets extends RootAssets {
             );
         }
 
-        $assets['scripts'][] = array(
-            'handle' => 'modpress-fontawesome-plugin-settings',
-            'src' => MODPRESS_PLUGINS_URL . '/FontAwesome/Assets/js/admin.plugins.fontawesome.js',
-            'deps' => array( 'modpress-bootstrap' ),
-            'version' => MODPRESS_VERSION,
-            'in_footer' => true,
-        );
+        $current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+        $current_group = isset( $_GET['group'] ) ? sanitize_text_field( wp_unslash( $_GET['group'] ) ) : '';
+        $current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : '';
+
+        if ( 'modpress' === $current_page && 'settings' === $current_group && 'plugins' === $current_tab ) {
+            $assets['scripts'][] = array(
+                'handle' => 'modpress-fontawesome-plugin-settings',
+                'src' => MODPRESS_PLUGINS_URL . '/FontAwesome/Assets/js/admin.plugins.fontawesome.js',
+                'deps' => array( 'modpress-bootstrap' ),
+                'version' => MODPRESS_VERSION,
+                'in_footer' => true,
+            );
+        }
 
         if ( FontAwesomeSettings::enable_icon_picker() ) {
             $assets['styles'][] = array(

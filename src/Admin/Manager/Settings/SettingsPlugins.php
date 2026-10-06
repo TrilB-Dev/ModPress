@@ -449,10 +449,6 @@ final class SettingsPlugins {
                 continue;
             }
 
-            if ( ! $this->should_render_field( $field, $values ) ) {
-                continue;
-            }
-
             $default = array_key_exists( 'default', $field ) ? $field['default'] : false;
             $value = $values[ $key ] ?? $default;
             $type = SanitizationHelper::key( $field['type'] ?? 'checkbox', 'checkbox' );
