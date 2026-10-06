@@ -32,9 +32,22 @@ final class SettingsManager {
      */
     private static array $registered_keys = [];
 
+    /**
+     * Get the table name for the custom ModPress settings storage.
+     *
+     * @return string
+     * @since 1.0.0
+     */
     public static function table_name(): string {
         return Database::table_name( 'settings' );
     }
+
+    /**
+     * Install any registered settings groups into the custom settings table.
+     *
+     * @return void
+     * @since 1.0.0
+     */
     public static function install(): void {
         Database::install();
 
