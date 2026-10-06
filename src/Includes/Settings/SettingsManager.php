@@ -250,7 +250,13 @@ final class SettingsManager {
     }
 
     private static function normalize_group( string $group ): string {
-        $group = sanitize_key( $group );
-        return str_starts_with( $group, 'modpress_' ) ? substr( $group, 10 ) : $group;
+        $group = str_replace( '-', '_', sanitize_key( $group ) );
+        $group = str_replace( ' ', '_', $group );
+
+        if ( str_starts_with( $group, 'modpress_' ) ) {
+            return preg_replace( '/^modpress_/', '', $group ) ?: $group;
+        }
+
+        return $group;
     }
 }

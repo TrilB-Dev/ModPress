@@ -98,6 +98,7 @@ namespace {
 namespace ModPress\Tests\Unit {
     use ModPress\Includes\Core\Capabilities;
     use ModPress\Includes\Functions\Admin\FunctionsMod;
+    use ModPress\Includes\Settings\SettingsManager;
     use PHPUnit\Framework\TestCase;
 
     final class FunctionsModTest extends TestCase {
@@ -205,22 +206,19 @@ namespace ModPress\Tests\Unit {
             $this->assertArrayHasKey( 'modpress_settings_layout_edit', $definitions );
         }
 
-        public function testBundledFontAwesomeLoaderInitializesWhenRuntimeIsNotReady(): void {
-            if ( ! class_exists( '\\FortAwesome\\FontAwesome_Loader', false ) ) {
-                eval( 'namespace FortAwesome; class FontAwesome_Loader { public static $initialized = false; public static function initialize(): void { self::$initialized = true; } }' );
-            }
-
-            \FortAwesome\FontAwesome_Loader::$initialized = false;
-            if ( function_exists( 'FortAwesome\\fa' ) ) {
-                $GLOBALS['modpress_fontawesome_test_original_fa'] = true;
-                // The real plugin is already available in this environment, so the runtime is considered ready.
-                $this->assertTrue( function_exists( 'FortAwesome\\fa' ) );
-                return;
-            }
-
+        public function testFontAwesomeRuntimePrefersWordPressOfficialPluginByDefault(): void {
+            $this->assertFalse( \ModPress\Includes\Plugins\FontAwesome\FontAwesome::is_wordpress_fontawesome_active() );
             \ModPress\Includes\Plugins\FontAwesome\FontAwesome::ensure_vendor_initialized();
+            $this->assertFalse( \ModPress\Includes\Plugins\FontAwesome\FontAwesome::is_wordpress_fontawesome_active() );
+        }
 
-            $this->assertTrue( \FortAwesome\FontAwesome_Loader::$initialized );
+        public function testFontAwesomePluginSettingsGroupIsNormalizedToUnderscoreStorage(): void {
+            $method = new \ReflectionMethod( SettingsManager::class, 'normalize_group' );
+            $method->setAccessible( true );
+
+            $this->assertSame( 'fontawesome', $method->invoke( null, 'modpress-fontawesome' ) );
+            $this->assertSame( 'fontawesome', $method->invoke( null, 'fontawesome' ) );
+            $this->assertSame( 'fontawesome', $method->invoke( null, 'modpress_fontawesome' ) );
         }
     }
 }
