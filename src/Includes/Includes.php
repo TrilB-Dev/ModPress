@@ -78,7 +78,7 @@ final class Includes {
          *
          * @since 1.0.0
          */
-        PostTypes::register();
+        PostTypes::register(); 
         /**
          * Taxonomies registration.
          * 
