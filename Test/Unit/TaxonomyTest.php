@@ -96,9 +96,9 @@ namespace {
         }
     }
 
-    function register_taxonomy( $taxonomy, $object_type, $args = [] ) {
+    function register_taxonomy( $taxonomy, $post_type, $args = [] ) {
         $GLOBALS['modpress_test_taxonomies'][ $taxonomy ] = [
-            'object_type' => $object_type,
+            'post_type' => $post_type,
             'args' => $args,
         ];
         return (object) [ 'name' => $taxonomy ];
@@ -188,19 +188,19 @@ namespace ModPress\Tests\Unit {
         }
 
         public function testCreateRegistersGenericTaxonomyDefinitions(): void {
-            $this->assertTrue( Taxonomy::create( 'modpress_mod_group', array( 'object_type' => array( 'modpress_mod' ), 'hierarchical' => true ) ) );
-            $this->assertTrue( Taxonomy::create( 'modpress_mod_tag', array( 'object_type' => array( 'modpress_mod' ), 'hierarchical' => false ) ) );
+            $this->assertTrue( Taxonomy::create( 'modpress_mod_group', array( 'post_type' => array( 'modpress_mod' ), 'hierarchical' => true ) ) );
+            $this->assertTrue( Taxonomy::create( 'modpress_mod_tag', array( 'post_type' => array( 'modpress_mod' ), 'hierarchical' => false ) ) );
 
             $this->assertContains( 'modpress_mod_group', Taxonomy::get_taxonomy_names() );
             $this->assertContains( 'modpress_mod_tag', Taxonomy::get_taxonomy_names() );
-            $this->assertSame( array( 'modpress_mod' ), $GLOBALS['modpress_test_taxonomies']['modpress_mod_group']['object_type'] );
+            $this->assertSame( array( 'modpress_mod' ), $GLOBALS['modpress_test_taxonomies']['modpress_mod_group']['post_type'] );
         }
 
         public function testDynamicallyCreateNormalizesConfigurationAndSlug(): void {
             $result = Taxonomy::dynamically_create(
                 array(
                     'taxonomy' => 'Mod Group',
-                    'object_type' => array( 'modpress_mod' ),
+                    'post_type' => array( 'modpress_mod' ),
                     'hierarchical' => true,
                     'public' => true,
                 )
@@ -208,14 +208,14 @@ namespace ModPress\Tests\Unit {
 
             $this->assertTrue( $result );
             $this->assertArrayHasKey( 'mod_group', $GLOBALS['modpress_test_taxonomies'] );
-            $this->assertSame( array( 'modpress_mod' ), $GLOBALS['modpress_test_taxonomies']['mod_group']['object_type'] );
+            $this->assertSame( array( 'modpress_mod' ), $GLOBALS['modpress_test_taxonomies']['mod_group']['post_type'] );
             $this->assertTrue( $GLOBALS['modpress_test_taxonomies']['mod_group']['args']['public'] );
         }
 
         public function testCreateRejectsEmptyAndDuplicateValues(): void {
             $this->assertFalse( Taxonomy::create( '', array() ) );
-            $this->assertTrue( Taxonomy::create( 'modpress_mod_group', array( 'object_type' => array( 'modpress_mod' ) ) ) );
-            $this->assertFalse( Taxonomy::create( 'modpress_mod_group', array( 'object_type' => array( 'modpress_mod' ) ) ) );
+            $this->assertTrue( Taxonomy::create( 'modpress_mod_group', array( 'post_type' => array( 'modpress_mod' ) ) ) );
+            $this->assertFalse( Taxonomy::create( 'modpress_mod_group', array( 'post_type' => array( 'modpress_mod' ) ) ) );
         }
     }
 }

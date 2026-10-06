@@ -81,27 +81,7 @@ final class FunctionsPlugins {
             AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 403 );
         }
 
-        $input = $_POST['settings'] ?? $_POST['plugin_settings'] ?? [];
-        if ( is_string( $input ) ) {
-            $decoded = json_decode( wp_unslash( $input ), true );
-            $input = is_array( $decoded ) ? $decoded : [];
-        }
-
-        if ( ! is_array( $input ) ) {
-            $input = [];
-        }
-
-        $input = wp_unslash( $input );
-        if ( isset( $_POST['settings'] ) && is_array( $_POST['settings'] ) ) {
-            $input = wp_unslash( $_POST['settings'] );
-        } elseif ( isset( $_POST['plugin_settings'] ) && is_array( $_POST['plugin_settings'] ) ) {
-            $input = wp_unslash( $_POST['plugin_settings'] );
-        }
-
-        if ( ! empty( $input ) && is_array( $input ) ) {
-            $input = $this->normalize_plugin_settings_input( $input );
-        }
-
+        $input = $this->parse_settings_payload();
         $settings = $plugin->sanitize_settings( $input );
 
         $page = $plugin->get_settings_page();
@@ -121,13 +101,52 @@ final class FunctionsPlugins {
     }
 
     /**
+     * Parse a settings payload from either JSON or bracket-notation form fields.
+     *
+     * @return array<string, mixed>
+     */
+    private function parse_settings_payload(): array {
+        $candidates = array(
+            $_POST['settings'] ?? null,
+            $_POST['plugin_settings'] ?? null,
+        );
+
+        foreach ( $candidates as $candidate ) {
+            if ( is_string( $candidate ) ) {
+                $decoded = json_decode( wp_unslash( $candidate ), true );
+                if ( is_array( $decoded ) ) {
+                    return $this->normalize_plugin_settings_input( wp_unslash( $decoded ) );
+                }
+            }
+
+            if ( is_array( $candidate ) ) {
+                return $this->normalize_plugin_settings_input( wp_unslash( $candidate ) );
+            }
+        }
+
+        $parsed = array();
+        foreach ( $_POST as $key => $value ) {
+            if ( ! is_string( $key ) ) {
+                continue;
+            }
+
+            if ( 0 === strpos( $key, 'settings[' ) || 0 === strpos( $key, 'plugin_settings[' ) ) {
+                $trail = substr( $key, strrpos( $key, '[' ) + 1, -1 );
+                $parsed[ $trail ] = $value;
+            }
+        }
+
+        return $this->normalize_plugin_settings_input( $parsed );
+    }
+
+    /**
      * Normalize plugin settings payloads from either settings[] or plugin_settings[] posts.
      *
      * @param array $input Submitted settings payload.
-     * @return array
+     * @return array<string, mixed>
      */
     private function normalize_plugin_settings_input( array $input ): array {
-        $normalized = [];
+        $normalized = array();
 
         foreach ( $input as $key => $value ) {
             if ( is_array( $value ) ) {

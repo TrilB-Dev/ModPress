@@ -26,7 +26,7 @@ final class GroupsManager {
 			$taxonomies = array(
 				'modpress_mod_group' => array(
 					'label'         => __( 'Mod Groups', 'modpress' ),
-					'object_type'   => array( 'modpress_mod' ),
+					'post_type'     => array( 'modpress_mod' ),
 					'hierarchical'  => true,
 					'show_in_rest'  => true,
 					'public'        => true,
@@ -36,7 +36,7 @@ final class GroupsManager {
 				),
 				'modpress_mod_tag' => array(
 					'label'         => __( 'Mod Tags', 'modpress' ),
-					'object_type'   => array( 'modpress_mod' ),
+					'post_type'     => array( 'modpress_mod' ),
 					'hierarchical'  => false,
 					'show_in_rest'  => true,
 					'public'        => true,
@@ -98,14 +98,14 @@ final class GroupsManager {
 	 */
 	public function dynamically_create( array $data = array() ): bool {
 		$taxonomy      = $data['taxonomy'] ?? $data['slug'] ?? '';
-		$object_type   = $data['object_type'] ?? $data['object_types'] ?? array( 'modpress_mod' );
+		$post_type     = $data['post_type'] ?? $data['post_types'] ?? array( 'modpress_mod' );
 		$group_key     = $data['group'] ?? $data['parent_group'] ?? 'modpress_group_root';
 		$taxonomy_data = array(
-			'object_type' => $object_type,
-			'public'      => true,
-			'show_ui'     => true,
+			'post_type'    => $post_type,
+			'public'       => true,
+			'show_ui'      => true,
 			'show_in_rest' => true,
-			'group'       => $group_key,
+			'group'        => $group_key,
 			'parent_group' => $group_key,
 		);
 

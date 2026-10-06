@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 final class LegacyTypeCompatibilityTest extends TestCase {
     public function testCanonicalSlugsAreRegisteredThroughTheCoreRegistry(): void {
         PostType::create( 'modpress_mod', array( 'public' => false, 'show_ui' => false ) );
-        Taxonomy::create( 'modpress_mod_group', array( 'object_type' => array( 'modpress_mod' ) ) );
+        Taxonomy::create( 'modpress_mod_group', array( 'post_type' => array( 'modpress_mod' ) ) );
 
         $this->assertContains( 'modpress_mod', PostType::get_post_type_names() );
         $this->assertContains( 'modpress_mod_group', Taxonomy::get_taxonomy_names() );
