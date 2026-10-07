@@ -220,5 +220,31 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'fontawesome', $method->invoke( null, 'fontawesome' ) );
             $this->assertSame( 'fontawesome', $method->invoke( null, 'modpress_fontawesome' ) );
         }
+
+        public function testPluginSlugLookupMatchesHyphenatedAndSanitizedSlugs(): void {
+            $plugin = new class implements \ModPress\Includes\Plugins\PluginInterface, \ModPress\Includes\Plugins\SettingsPageProviderInterface {
+                public function get_slug(): string { return 'modpress-fontawesome'; }
+                public function get_name(): string { return 'FontAwesome'; }
+                public function get_version(): string { return '1.0.0'; }
+                public function get_author(): string { return 'ModPress'; }
+                public function get_author_uri(): string { return 'https://example.com'; }
+                public function get_description(): string { return 'Example'; }
+                public function get_uri(): string { return 'https://example.com'; }
+                public function get_license(): string { return 'GPL'; }
+                public function is_active(): bool { return true; }
+                public function init(): void {}
+                public function get_settings_page(): array { return [ 'slug' => 'fontawesome', 'label' => 'FontAwesome', 'title' => 'FontAwesome', 'fields' => [] ]; }
+                public function sanitize_settings( $input ): array { return is_array( $input ) ? $input : []; }
+            };
+
+            \ModPress\Includes\Plugins\Plugins::get_instance()->register_plugin_instance( $plugin );
+
+            $handler = new \ModPress\Includes\Functions\Admin\FunctionsPlugins();
+            $method = new \ReflectionMethod( \ModPress\Includes\Functions\Admin\FunctionsPlugins::class, 'resolve_plugin_slug' );
+            $method->setAccessible( true );
+
+            $this->assertSame( 'modpress-fontawesome', $method->invoke( $handler, 'modpress-fontawesome' ) );
+            $this->assertSame( 'modpress-fontawesome', $method->invoke( $handler, 'modpressfontawesome' ) );
+        }
     }
 }

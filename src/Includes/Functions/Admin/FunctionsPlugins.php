@@ -30,7 +30,7 @@ final class FunctionsPlugins {
             AjaxHelper::unauthorized( __( 'You are not authorized to manage ModPress plugins.', 'modpress' ) );
         }
 
-        $slug = sanitize_key( wp_unslash( $_POST['slug'] ?? '' ) );
+        $slug = $this->resolve_plugin_slug( wp_unslash( $_POST['slug'] ?? '' ) );
         $enabled = ! empty( $_POST['enabled'] );
         $plugin = Plugins::get_instance()->get_registered_plugins()[ $slug ] ?? null;
 
@@ -54,7 +54,7 @@ final class FunctionsPlugins {
      * @return void
      */
     public function save_plugin_settings(): void {
-        $slug = sanitize_key( wp_unslash( $_POST['slug'] ?? $_POST['plugin_slug'] ?? '' ) );
+        $slug = $this->resolve_plugin_slug( wp_unslash( $_POST['slug'] ?? $_POST['plugin_slug'] ?? '' ) );
         if ( '' === $slug ) {
             $message = __( 'The ModPress plugin slug is missing.', 'modpress' );
             AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 400 );
@@ -158,6 +158,50 @@ final class FunctionsPlugins {
         }
 
         return $normalized;
+    }
+
+    /**
+     * Resolve a submitted plugin slug against the registry without losing the original hyphenated key.
+     *
+     * @param string $slug Submitted slug value.
+     * @return string The matching registered slug or a sanitized fallback.
+     */
+    private function resolve_plugin_slug( string $slug ): string {
+        $candidate = trim( (string) $slug );
+        if ( '' === $candidate ) {
+            return '';
+        }
+
+        $registered = Plugins::get_instance()->get_registered_plugins();
+        if ( isset( $registered[ $candidate ] ) ) {
+            return $candidate;
+        }
+
+        $normalized = $this->canonical_slug( $candidate );
+        foreach ( $registered as $key => $plugin ) {
+            if ( ! $plugin instanceof PluginInterface ) {
+                continue;
+            }
+
+            if ( $this->canonical_slug( (string) $plugin->get_slug() ) === $normalized ) {
+                return (string) $key;
+            }
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Normalize a plugin slug for comparison by removing separators and case.
+     *
+     * @param string $slug Slug to normalize.
+     * @return string
+     */
+    private function canonical_slug( string $slug ): string {
+        $slug = strtolower( trim( (string) $slug ) );
+        $slug = str_replace( array( '-', '_', ' ' ), '', $slug );
+
+        return preg_replace( '/[^a-z0-9]/', '', $slug ) ?: '';
     }
 
     private function is_internal_plugin( PluginInterface $plugin ): bool {

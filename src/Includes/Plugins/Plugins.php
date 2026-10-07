@@ -128,11 +128,26 @@ class Plugins {
      */
     public function is_plugin_enabled( string $slug ): bool {
         $states = Settings::get_group( 'plugins', [] );
-        if ( ! is_array( $states ) || ! array_key_exists( $slug, $states ) ) {
+        if ( ! is_array( $states ) ) {
             return true;
         }
 
-        return (bool) $states[ $slug ];
+        $resolved = $this->resolve_slug_key( $slug );
+        $keys = array_unique( array_filter( [ $slug, $resolved, $this->canonical_slug( $slug ) ], 'strlen' ) );
+
+        foreach ( $keys as $key ) {
+            if ( array_key_exists( $key, $states ) ) {
+                return (bool) $states[ $key ];
+            }
+        }
+
+        foreach ( array_keys( $states ) as $stored_key ) {
+            if ( $this->canonical_slug( $stored_key ) === $this->canonical_slug( $slug ) ) {
+                return (bool) $states[ $stored_key ];
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -144,15 +159,21 @@ class Plugins {
      * @since 1.0.0
      */
     public function set_plugin_enabled( string $slug, bool $enabled ): bool {
-        $slug = sanitize_key( $slug );
-        if ( '' === $slug || ! isset( $this->registered_plugins[ $slug ] ) ) {
+        $resolved = $this->resolve_slug_key( $slug );
+        if ( '' === $resolved || ! isset( $this->registered_plugins[ $resolved ] ) ) {
             return false;
         }
 
         $states = Settings::get_group( 'plugins', [] );
         $states = is_array( $states ) ? $states : [];
-        $states[ $slug ] = $enabled;
 
+        foreach ( array_keys( $states ) as $stored_key ) {
+            if ( $this->canonical_slug( $stored_key ) === $this->canonical_slug( $resolved ) ) {
+                unset( $states[ $stored_key ] );
+            }
+        }
+
+        $states[ $resolved ] = $enabled;
         return Settings::set_group( 'plugins', $states );
     }
     /**
@@ -175,13 +196,14 @@ class Plugins {
         if ( $slug === '' ) {
             return;
         }
-        
+
 		if ( preg_match( '/-demo$/', $slug ) === 1 ) {
 			LoggerHelper::write_log( sprintf( 'ModPress plugin %s is ignored because plugin slugs ending in -demo are reserved for demo-only plugins.', $slug ) );
 			return;
 		}
 
-        if ( isset( $this->registered_plugins[ $slug ] ) ) {
+        $resolved = $this->resolve_slug_key( $slug );
+        if ( '' !== $resolved && isset( $this->registered_plugins[ $resolved ] ) ) {
             return;
         }
 
@@ -190,6 +212,45 @@ class Plugins {
         if ( $this->initialized && $this->auto_activate && $this->is_plugin_enabled( $slug ) ) {
             $this->initialize_plugin( $plugin );
         }
+    }
+
+    /**
+     * Resolve a slug against the registered plugin keys, preserving the original key while supporting normalized lookups.
+     *
+     * @param string $slug Incoming slug.
+     * @return string
+     */
+    private function resolve_slug_key( string $slug ): string {
+        $candidate = trim( (string) $slug );
+        if ( '' === $candidate ) {
+            return '';
+        }
+
+        if ( isset( $this->registered_plugins[ $candidate ] ) ) {
+            return $candidate;
+        }
+
+        $normalized = $this->canonical_slug( $candidate );
+        foreach ( array_keys( $this->registered_plugins ) as $registered_slug ) {
+            if ( $this->canonical_slug( $registered_slug ) === $normalized ) {
+                return $registered_slug;
+            }
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Normalize a plugin slug for comparison by removing separators and case.
+     *
+     * @param string $slug Slug to normalize.
+     * @return string
+     */
+    private function canonical_slug( string $slug ): string {
+        $slug = strtolower( trim( (string) $slug ) );
+        $slug = str_replace( array( '-', '_', ' ' ), '', $slug );
+
+        return preg_replace( '/[^a-z0-9]/', '', $slug ) ?: '';
     }
     /**
      * Resolves the plugin directory path based on settings or defaults.
