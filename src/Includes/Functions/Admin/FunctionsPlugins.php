@@ -54,50 +54,77 @@ final class FunctionsPlugins {
      * @return void
      */
     public function save_plugin_settings(): void {
-        $slug = $this->resolve_plugin_slug( wp_unslash( $_POST['slug'] ?? $_POST['plugin_slug'] ?? '' ) );
-        if ( '' === $slug ) {
-            $message = __( 'The ModPress plugin slug is missing.', 'modpress' );
-            AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 400 );
-        }
-
-        $plugin = Plugins::get_instance()->get_registered_plugins()[ $slug ] ?? null;
-        if ( ! $plugin instanceof PluginInterface || ! $plugin instanceof SettingsPageProviderInterface ) {
-            $message = __( 'The requested ModPress plugin settings were not found.', 'modpress' );
-            AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 404 );
-        }
-
-        $capability = $this->is_internal_plugin( $plugin ) ? 'modpress_settings_plugins_int_edit' : 'modpress_settings_plugins_ext_edit';
-        $nonce_actions = array( 'modpress_save_plugin_settings', 'modpress_plugin_settings' );
-        $has_valid_nonce = false;
-        foreach ( $nonce_actions as $action ) {
-            if ( AjaxHelper::authorized( $action, $capability ) ) {
-                $has_valid_nonce = true;
-                break;
+        try {
+            $slug = $this->resolve_plugin_slug( wp_unslash( $_POST['slug'] ?? $_POST['plugin_slug'] ?? '' ) );
+            if ( '' === $slug ) {
+                $message = __( 'The ModPress plugin slug is missing.', 'modpress' );
+                AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 400 );
             }
+
+            $plugin = Plugins::get_instance()->get_registered_plugins()[ $slug ] ?? null;
+            if ( ! $plugin instanceof PluginInterface || ! $plugin instanceof SettingsPageProviderInterface ) {
+                $message = __( 'The requested ModPress plugin settings were not found.', 'modpress' );
+                AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 404 );
+            }
+
+            $capability = $this->is_internal_plugin( $plugin ) ? 'modpress_settings_plugins_int_edit' : 'modpress_settings_plugins_ext_edit';
+            $nonce_actions = array( 'modpress_save_plugin_settings', 'modpress_plugin_settings' );
+            $has_valid_nonce = false;
+            foreach ( $nonce_actions as $action ) {
+                if ( AjaxHelper::authorized( $action, $capability ) ) {
+                    $has_valid_nonce = true;
+                    break;
+                }
+            }
+
+            if ( ! $has_valid_nonce ) {
+                $message = __( 'You are not authorized to save ModPress plugin settings.', 'modpress' );
+                AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 403 );
+            }
+
+            $input = $this->parse_settings_payload();
+            if ( ! is_array( $input ) ) {
+                $message = __( 'The ModPress plugin settings payload is invalid.', 'modpress' );
+                AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 400 );
+            }
+
+            $settings = $plugin->sanitize_settings( $input );
+            if ( ! is_array( $settings ) ) {
+                $message = __( 'The ModPress plugin settings could not be sanitized.', 'modpress' );
+                AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 400 );
+            }
+
+            $page = $plugin->get_settings_page();
+            $group = sanitize_key( $page['slug'] ?? $slug );
+            if ( '' === $group ) {
+                $message = __( 'The ModPress plugin settings group could not be resolved.', 'modpress' );
+                AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 400 );
+            }
+
+            if ( ! Settings::set_group( $group, $settings ) ) {
+                $message = __( 'The ModPress plugin settings could not be saved.', 'modpress' );
+                AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 500 );
+            }
+
+            AjaxHelper::success(
+                [
+                    'slug' => $slug,
+                    'settings' => $settings,
+                    'message' => __( 'Plugin settings saved successfully.', 'modpress' ),
+                    'alert' => AlertHelper::get_admin_notice( __( 'Plugin settings saved successfully.', 'modpress' ), 'success' ),
+                ]
+            );
+        } catch ( \Throwable $exception ) {
+            $message = __( 'The ModPress plugin settings save failed unexpectedly.', 'modpress' );
+            AjaxHelper::error(
+                [
+                    'message' => $message,
+                    'alert' => AlertHelper::get_admin_notice( $message, 'error' ),
+                    'details' => $exception->getMessage(),
+                ],
+                500
+            );
         }
-
-        if ( ! $has_valid_nonce ) {
-            $message = __( 'You are not authorized to save ModPress plugin settings.', 'modpress' );
-            AjaxHelper::error( [ 'message' => $message, 'alert' => AlertHelper::get_admin_notice( $message, 'error' ) ], 403 );
-        }
-
-        $input = $this->parse_settings_payload();
-        $settings = $plugin->sanitize_settings( $input );
-
-        $page = $plugin->get_settings_page();
-        $group = sanitize_key( $page['slug'] ?? $slug );
-        if ( '' !== $group ) {
-            Settings::set_group( $group, $settings );
-        }
-
-        AjaxHelper::success(
-            [
-                'slug' => $slug,
-                'settings' => $settings,
-                'message' => __( 'Plugin settings saved successfully.', 'modpress' ),
-                'alert' => AlertHelper::get_admin_notice( __( 'Plugin settings saved successfully.', 'modpress' ), 'success' ),
-            ]
-        );
     }
 
     /**
@@ -131,8 +158,15 @@ final class FunctionsPlugins {
             }
 
             if ( 0 === strpos( $key, 'settings[' ) || 0 === strpos( $key, 'plugin_settings[' ) ) {
-                $trail = substr( $key, strrpos( $key, '[' ) + 1, -1 );
-                $parsed[ $trail ] = $value;
+                $bracket_index = strrpos( $key, '[' );
+                if ( false === $bracket_index ) {
+                    continue;
+                }
+
+                $trail = substr( $key, $bracket_index + 1, -1 );
+                if ( '' !== $trail ) {
+                    $parsed[ $trail ] = $value;
+                }
             }
         }
 
