@@ -124,17 +124,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- SAVE PLUGIN SETTINGS ---
     //
 
+    const debugLog = (...args) => {
+        if (typeof console !== 'undefined') {
+            console.log('[ModPress]', ...args);
+        }
+    };
+
     const savePluginSettings = (source) => {
         const button = source instanceof HTMLElement ? source : null;
         const modal = button ? button.closest('.modpress-plugin-settings-modal') : source?.closest?.('.modpress-plugin-settings-modal');
         const form = button ? button.form || modal?.querySelector('[data-plugin-settings-form]') : source instanceof HTMLFormElement ? source : modal?.querySelector('[data-plugin-settings-form]');
 
-        if (!modal || !form) return;
+        if (!modal || !form) {
+            debugLog('savePluginSettings: missing modal or form', { source, modal: !!modal, form: !!form });
+            return;
+        }
 
         const saveButton = button || modal.querySelector('[data-plugin-settings-save]');
         if (saveButton) {
             setButtonSaving(saveButton);
         }
+
+        debugLog('savePluginSettings: starting save', {
+            slug: form.dataset.pluginSlug || '',
+            action: 'modpress_save_plugin_settings',
+        });
 
         const formData = new FormData(form);
         const payload = Object.fromEntries(formData.entries());
@@ -152,6 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        debugLog('savePluginSettings: parsed payload', { formDataKeys: Object.keys(payload), settings });
+
         const body = new URLSearchParams();
         body.set('action', 'modpress_save_plugin_settings');
         body.set('nonce', config.pluginSettingsNonce || '');
@@ -159,14 +175,24 @@ document.addEventListener('DOMContentLoaded', () => {
         body.set('settings', JSON.stringify(settings));
         body.set('plugin_settings', JSON.stringify(settings));
 
+        debugLog('savePluginSettings: sending request', {
+            url: config.ajaxUrl,
+            slug: form.dataset.pluginSlug || '',
+            settings
+        });
+
         fetch(config.ajaxUrl, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
             body
         })
-        .then((response) => response.json())
         .then((response) => {
+            debugLog('savePluginSettings: response received', { status: response.status, ok: response.ok });
+            return response.json();
+        })
+        .then((response) => {
+            debugLog('savePluginSettings: response payload', response);
             if (!response.success) {
                 const error = new Error(response.data?.message || 'Unable to save plugin settings');
                 error.alert = response.data?.alert;
@@ -177,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         })
         .catch((error) => {
+            console.error('[ModPress] savePluginSettings: failed', error);
             if (saveButton) {
                 resetSavingButton(saveButton);
             }
