@@ -266,8 +266,11 @@ class Assets {
 		}
 
 		$current_page = RequestHelper::get_key( 'page', '' );
+		$current_group = RequestHelper::get_key( 'group', '' );
+		$current_tab = RequestHelper::get_key( 'tab', '' );
+		$settings_route = ( 'modpress' === $current_page && 'settings' === $current_group ) || 'modpress-settings' === $current_page;
 
-		if ( 'modpress-settings' === $current_page ) {
+		if ( $settings_route || ( 'modpress' === $current_page && in_array( $current_tab, array( 'plugins', 'third-party' ), true ) ) ) {
 			$settings_config = array(
 				'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
 				'nonce'               => wp_create_nonce( 'modpress_settings_tabs' ),

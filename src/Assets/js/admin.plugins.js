@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const root = document;
     const config = window.modpressSettingsTabs;
-    if (!config) return;
+    if (!config) {
+        console.warn('[ModPress] Missing modpressSettingsTabs config. Check that the settings page enqueues the admin plugin script.');
+        return;
+    }
 
     //
     // --- MODAL HANDLING (Bootstrap-native) ---
