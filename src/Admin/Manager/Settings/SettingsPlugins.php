@@ -470,11 +470,18 @@ final class SettingsPlugins {
                 $wrapper_attributes['data-modpress-required-when'] = wp_json_encode( $condition['required'] );
             }
             $wrapper_attributes = FormFieldHelper::attributes_to_string( $wrapper_attributes );
-            $label = FormFieldHelper::label( $id, (string) ( $field['label'] ?? $key ), [
-                'tooltip' => (string) ( $field['tooltip'] ?? '' ),
-                'tooltip_type' => SanitizationHelper::key( $field['tooltip_type'] ?? 'question', 'question' ),
-                'tooltip_icon' => (string) ( $field['tooltip_icon'] ?? '' ),
-            ] );
+            $label = FormFieldHelper::label( 
+                $id, 
+                (string) ( $field['label'] ?? $key ), 
+                [
+                    'tooltip' => (string) ( $field['tooltip'] ?? '' ),
+                    'tooltip_type' => SanitizationHelper::key( 
+                        $field['tooltip_type'] ?? 'question', 
+                        'question' 
+                    ),
+                    'tooltip_icon' => (string) ( $field['tooltip_icon'] ?? '' ),
+                ] 
+            );
             if ( 'table' === $layout ) :
                 ?>
                 <tr<?php echo $wrapper_attributes ? ' ' . $wrapper_attributes : ''; ?>>
@@ -621,7 +628,20 @@ final class SettingsPlugins {
             <article class="card modpress-plugin-card shadow-sm h-100 w-100">
                 <div class="card-header d-flex align-items-center gap-2">
                     <?php /* translators: %s is the plugin name. */ ?>
-                    <?php echo FormFieldHelper::switch( 'modpress-third-party-status', '1', '', [ 'id' => 'modpress-third-party-status-' . SanitizationHelper::key( $file ), 'checked' => $active, 'disabled' => true, 'aria-label' => sprintf( __( 'Enable %s', 'modpress' ), $plugin['Name'] ?? $file ) ] ); ?>
+                    <?php echo FormFieldHelper::switch( 
+                        'modpress-third-party-status', 
+                        '1', 
+                        '', 
+                        [ 
+                            'id' => 'modpress-third-party-status-' . SanitizationHelper::key( $file ), 
+                            'checked' => $active, 
+                            'disabled' => true, 
+                            'aria-label' => sprintf( 
+                                __( 'Enable %s', 'modpress' ), 
+                                $plugin['Name'] ?? $file 
+                            ) 
+                        ] 
+                    ); ?>
                     <span class="fw-semibold"><?php echo esc_html( $plugin['Name'] ?? $file ); ?></span>
                 </div>
                 <div class="card-body d-flex flex-column">

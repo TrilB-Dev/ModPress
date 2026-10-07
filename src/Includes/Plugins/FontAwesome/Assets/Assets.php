@@ -105,7 +105,7 @@ final class Assets extends RootAssets {
         if ( 'modpress' === $current_page && 'settings' === $current_group && 'plugins' === $current_tab ) {
             $assets['scripts'][] = array(
                 'handle' => 'modpress-fontawesome-plugin-settings',
-                'src' => MODPRESS_PLUGINS_URL . '/FontAwesome/Assets/js/admin.plugins.fontawesome.js',
+                'src' => MODPRESS_PLUGINS_URL . '/FontAwesome/Assets/dist/js/admin.plugins.fontawesome.js',
                 'deps' => array( 'modpress-bootstrap' ),
                 'version' => MODPRESS_VERSION,
                 'in_footer' => true,

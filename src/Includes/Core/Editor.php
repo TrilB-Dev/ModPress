@@ -174,7 +174,7 @@ final class Editor {
 				); ?>
 			</div>
 			<div class="card-footer d-flex justify-content-end gap-2">
-				<a class="btn btn-outline-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=modpress-manage' ) ); ?>">
+				<a class="btn btn-outline-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=manage-mod&tab=mods' ) ); ?>">
 					<?php esc_html_e( 'Cancel', 'modpress' ); ?>
 				</a>
 				<button class="btn btn-primary" type="submit">

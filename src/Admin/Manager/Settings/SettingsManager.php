@@ -146,6 +146,17 @@ final class SettingsManager extends Manager {
         add_action( 'wp_ajax_modpress_save_plugin_settings', array( $this->plugin_functions, 'save_plugin_settings' ) );
     }
     /**
+     * Register the settings page asset bundles.
+     *
+     * @param Assets $assets Asset registry.
+     * @return void
+     */
+    public function register_assets( Assets $assets ): void {
+        $this->register_page_assets( $assets, array( 'modpress' ), 'settings' );
+        $this->register_page_assets( $assets, array( 'modpress' ), 'plugins' );
+    }
+
+    /**
      * Renders the settings page.
      *
      * @since 1.0.0
@@ -156,11 +167,26 @@ final class SettingsManager extends Manager {
         $layout_section = SanitizationHelper::key( wp_unslash( $_GET['layout_section'] ?? 'general' ), 'general' );
         $tab = $this->normalize_tab( $tab );
         $tab_context = [
-            'general' => [ 'description' => __( 'Configure ModPress names, URL slugs, and permalink settings.', 'modpress' ), 'tooltip' => __( 'These settings affect how ModPress content is identified and linked throughout the site.', 'modpress' ) ],
-            'layout' => [ 'description' => __( 'Choose which navigation and page layout features ModPress displays.', 'modpress' ), 'tooltip' => __( 'Layout settings control the visitor-facing ModPress interface.', 'modpress' ) ],
-            'access' => [ 'description' => __( 'Set the minimum WordPress capabilities required for ModPress tasks.', 'modpress' ), 'tooltip' => __( 'Choose carefully so editors and administrators retain the access they need.', 'modpress' ) ],
-            'plugins' => [ 'description' => __( 'View the ModPress plugins installed on this site.', 'modpress' ), 'tooltip' => __( 'Plugin-specific configuration is available from each plugin settings page when provided.', 'modpress' ) ],
-            'third-party' => [ 'description' => __( 'View third-party plugins installed on this site.', 'modpress' ), 'tooltip' => __( 'Third-party plugin settings are managed through WordPress or the plugin author’s own settings page.', 'modpress' ) ],
+            'general' => [ 
+                'description' => __( 'Configure ModPress names, URL slugs, and permalink settings.', 'modpress' ), 
+                'tooltip' => __( 'These settings affect how ModPress content is identified and linked throughout the site.', 'modpress' ) 
+            ],
+            'layout' => [ 
+                'description' => __( 'Choose which navigation and page layout features ModPress displays.', 'modpress' ), 
+                'tooltip' => __( 'Layout settings control the visitor-facing ModPress interface.', 'modpress' ) 
+            ],
+            'access' => [ 
+                'description' => __( 'Set the minimum WordPress capabilities required for ModPress tasks.', 'modpress' ), 
+                'tooltip' => __( 'Choose carefully so editors and administrators retain the access they need.', 'modpress' ) 
+            ],
+            'plugins' => [ 
+                'description' => __( 'View the ModPress plugins installed on this site.', 'modpress' ), 
+                'tooltip' => __( 'Plugin-specific configuration is available from each plugin settings page when provided.', 'modpress' ) 
+            ],
+            'third-party' => [ 
+                'description' => __( 'View third-party plugins installed on this site.', 'modpress' ), 
+                'tooltip' => __( 'Third-party plugin settings are managed through WordPress or the plugin author’s own settings page.', 'modpress' ) 
+            ],
         ];
         $this->header( __( 'Settings', 'modpress' ) );
         echo '<div id="modpress-settings-panel" data-current-tab="' . esc_attr( $tab ) . '" data-current-section="' . esc_attr( $layout_section ) . '">';
@@ -177,11 +203,22 @@ final class SettingsManager extends Manager {
     public function render_tab_content( string $tab, string $layout_section = 'general' ): void {
         $tab = $this->normalize_tab( $tab );
         $view_capabilities = [
-            'general' => [ 'modpress_settings_general_view' ],
-            'layout' => [ 'modpress_settings_layout_view' ],
-            'access' => [ 'modpress_settings_access_view' ],
-            'plugins' => [ 'modpress_settings_plugins_view' ],
-            'third-party' => [ 'modpress_settings_plugins_view', 'modpress_settings_plugins_ext_view' ],
+            'general' => [ 
+                'modpress_settings_general_view' 
+            ],
+            'layout' => [ 
+                'modpress_settings_layout_view' 
+            ],
+            'access' => [ 
+                'modpress_settings_access_view' 
+            ],
+            'plugins' => [ 
+                'modpress_settings_plugins_view' 
+            ],
+            'third-party' => [ 
+                'modpress_settings_plugins_view', 
+                'modpress_settings_plugins_ext_view' 
+            ],
         ];
         $can_view = true;
         foreach ( $view_capabilities[ $tab ] ?? [] as $capability ) {
@@ -306,21 +343,6 @@ final class SettingsManager extends Manager {
         }
         return 'general';
     }
-    /**
-     * Register assets for the settings page.
-     *
-     * @since 1.0.0
-     * @param Assets $assets The Assets instance to register assets with.
-     */
-    public function register_assets( Assets $assets ): void {
-        $settings_assets = $this->assets( 'settings' );
-        $settings_assets['scripts'][] = [
-            'handle' => 'modpress-admin-plugins',
-            'src' => MODPRESS_URL . 'src/Assets/dist/js/admin.plugins.js',
-            'deps' => [ 'modpress-bootstrap' ],
-            'in_footer' => true,
-        ];
-        $assets->register_page( 'modpress-settings', $settings_assets );
-    }
+    
 
 }
