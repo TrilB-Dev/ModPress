@@ -151,10 +151,10 @@ final class SettingsManager extends Manager {
      * @param Assets $assets Asset registry.
      * @return void
      */
-    /*public function register_assets( Assets $assets ): void {
+    public function register_assets( Assets $assets ): void {
         $this->register_page_assets( $assets, array( 'modpress' ), 'settings' );
         $this->register_page_assets( $assets, array( 'modpress' ), 'plugins' );
-    }*/
+    }
 
     /**
      * Renders the settings page.

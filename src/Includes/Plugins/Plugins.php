@@ -219,6 +219,7 @@ class Plugins {
      *
      * @param string $slug Incoming slug.
      * @return string
+     * @since 1.0.0
      */
     private function resolve_slug_key( string $slug ): string {
         $candidate = trim( (string) $slug );
@@ -245,6 +246,7 @@ class Plugins {
      *
      * @param string $slug Slug to normalize.
      * @return string
+     * @since 1.0.0
      */
     private function canonical_slug( string $slug ): string {
         $slug = strtolower( trim( (string) $slug ) );

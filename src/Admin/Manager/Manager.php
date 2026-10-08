@@ -22,6 +22,7 @@ abstract class Manager {
 	 * The current manager section key.
 	 *
 	 * @var string
+	 * @since 1.0.0
 	 */
 	protected string $page = '';
 
@@ -29,6 +30,7 @@ abstract class Manager {
 	 * Get the manager section key.
 	 *
 	 * @return string
+	 * @since 1.0.0
 	 */
 	public function get_page(): string {
 		return $this->page;
@@ -41,6 +43,7 @@ abstract class Manager {
 	 *
 	 * @param Assets $assets Asset registry.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public function register_assets( Assets $assets ): void {
 		// Intentionally left empty; section managers override this when needed.
@@ -53,6 +56,7 @@ abstract class Manager {
 	 * @param array<string, string> $aliases Supported aliases.
 	 * @param string $fallback Default value.
 	 * @return string
+	 * @since 1.0.0
 	 */
 	protected function normalize_route( string $value, array $aliases, string $fallback = '' ): string {
 		$key = sanitize_key( $value );
@@ -70,20 +74,22 @@ abstract class Manager {
 	 * @param array<int, string> $pages Admin page slugs.
 	 * @param string             $bundle Compiled bundle name.
 	 * @return void
+	 * @since 1.0.0
 	 */
-	/*protected function register_page_assets( Assets $assets, array $pages, string $bundle ): void {
+	protected function register_page_assets( Assets $assets, array $pages, string $bundle ): void {
 		foreach ( $pages as $page ) {
 			$assets->register_page( $page, $this->assets( $bundle ) );
 		}
-	}*/
+	}
 
 	/**
 	 * Build the asset definition for an admin bundle.
 	 *
 	 * @param string $bundle Compiled bundle name.
 	 * @return array<string, array<int, array<string, mixed>>> Asset definition.
+	 * @since 1.0.0
 	 */
-	/*protected function assets( string $bundle ): array {
+	protected function assets( string $bundle ): array {
 		$bundle_name = $this->resolve_bundle_name( $bundle );
 		$style_name  = $this->resolve_style_bundle_name( $bundle );
 
@@ -104,15 +110,16 @@ abstract class Manager {
 				),
 			),
 		);
-	}*/
+	}
 
 	/**
 	 * Map the logical bundle name to the compiled asset file name.
 	 *
 	 * @param string $bundle Logical bundle name.
 	 * @return string Compiled bundle file name.
+	 * @since 1.0.0
 	 */
-	/*protected function resolve_bundle_name( string $bundle ): string {
+	protected function resolve_bundle_name( string $bundle ): string {
 		if ( '' === trim( $bundle ) ) {
 			return 'admin.ui';
 		}
@@ -123,7 +130,7 @@ abstract class Manager {
 
 		$mapping = array(
 			'dashboard' => 'admin.dashboard',
-			'mods'     => 'admin.mods',
+			'mods'     	=> 'admin.mods',
 			'settings'  => 'admin.settings',
 			'tools'     => 'admin.tools',
 			'plugins'   => 'admin.plugins',
@@ -131,7 +138,7 @@ abstract class Manager {
 		);
 
 		return $mapping[ $bundle ] ?? ( 'admin.' . $bundle );
-	}*/
+	}
 
 	/**
 	 * Map the logical bundle to the shared compiled CSS file.
@@ -140,20 +147,22 @@ abstract class Manager {
 	 *
 	 * @param string $bundle Logical bundle name.
 	 * @return string Compiled stylesheet bundle file name.
+	 * @since 1.0.0
 	 */
-	/*protected function resolve_style_bundle_name( string $bundle ): string {
+	protected function resolve_style_bundle_name( string $bundle ): string {
 		if ( '' === trim( $bundle ) ) {
 			return 'admin.ui';
 		}
 
 		return 'admin.ui';
-	}*/
+	}
 
 	/**
 	 * Render the shared admin page header.
 	 *
 	 * @param string $title Page title.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	protected function header( string $title ): void {
 		echo '<div class="wrap modpress-admin">';
@@ -174,6 +183,7 @@ abstract class Manager {
 	 * Render the shared admin page footer.
 	 *
 	 * @return void
+	 * @since 1.0.0
 	 */
 	protected function footer(): void {
 		Footer::render();
@@ -187,6 +197,7 @@ abstract class Manager {
 	 * @param mixed  $value Card value.
 	 * @param string $slug Destination admin page slug.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	protected function card( string $label, $value, string $slug ): void {
 		printf(
