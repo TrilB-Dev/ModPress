@@ -154,12 +154,12 @@ class ToolsManager extends Manager {
 	 * @param Assets $assets The Assets instance.
 	 * @return void
 	 */
-	public function register_assets( Assets $assets ): void {
+	/*public function register_assets( Assets $assets ): void {
 		$this->register_page_assets( $assets, array( 'modpress-tools' ), 'tools' );
 		if ( isset( $this->reset_manager ) ) {
 			$this->reset_manager->register_assets( $assets );
 		}
-	}
+	}*/
 	/**
 	 * Returns the title for the given tool.
 	 *
