@@ -71,11 +71,11 @@ abstract class Manager {
 	 * @param string             $bundle Compiled bundle name.
 	 * @return void
 	 */
-	protected function register_page_assets( Assets $assets, array $pages, string $bundle ): void {
+	/*protected function register_page_assets( Assets $assets, array $pages, string $bundle ): void {
 		foreach ( $pages as $page ) {
 			$assets->register_page( $page, $this->assets( $bundle ) );
 		}
-	}
+	}*/
 
 	/**
 	 * Build the asset definition for an admin bundle.
@@ -83,7 +83,7 @@ abstract class Manager {
 	 * @param string $bundle Compiled bundle name.
 	 * @return array<string, array<int, array<string, mixed>>> Asset definition.
 	 */
-	protected function assets( string $bundle ): array {
+	/*protected function assets( string $bundle ): array {
 		$bundle_name = $this->resolve_bundle_name( $bundle );
 		$style_name  = $this->resolve_style_bundle_name( $bundle );
 
@@ -104,7 +104,7 @@ abstract class Manager {
 				),
 			),
 		);
-	}
+	}*/
 
 	/**
 	 * Map the logical bundle name to the compiled asset file name.
@@ -112,7 +112,7 @@ abstract class Manager {
 	 * @param string $bundle Logical bundle name.
 	 * @return string Compiled bundle file name.
 	 */
-	protected function resolve_bundle_name( string $bundle ): string {
+	/*protected function resolve_bundle_name( string $bundle ): string {
 		if ( '' === trim( $bundle ) ) {
 			return 'admin.ui';
 		}
@@ -131,7 +131,7 @@ abstract class Manager {
 		);
 
 		return $mapping[ $bundle ] ?? ( 'admin.' . $bundle );
-	}
+	}*/
 
 	/**
 	 * Map the logical bundle to the shared compiled CSS file.
@@ -141,13 +141,13 @@ abstract class Manager {
 	 * @param string $bundle Logical bundle name.
 	 * @return string Compiled stylesheet bundle file name.
 	 */
-	protected function resolve_style_bundle_name( string $bundle ): string {
+	/*protected function resolve_style_bundle_name( string $bundle ): string {
 		if ( '' === trim( $bundle ) ) {
 			return 'admin.ui';
 		}
 
 		return 'admin.ui';
-	}
+	}*/
 
 	/**
 	 * Render the shared admin page header.
