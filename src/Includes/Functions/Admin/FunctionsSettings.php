@@ -86,7 +86,7 @@ final class FunctionsSettings {
             Settings::set_group( Settings::ACCESS, $sanitized );
         }
 
-        $redirect = admin_url( 'admin.php?page=modpress-settings&tab=' . $tab );
+        $redirect = admin_url( 'admin.php?page=modpress&group=settings&tab=' . $tab );
         wp_safe_redirect( $redirect );
         exit;
     }

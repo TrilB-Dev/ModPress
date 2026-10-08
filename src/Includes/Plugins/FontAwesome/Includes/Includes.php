@@ -37,6 +37,7 @@ final class Includes {
      * Returns the single instance of the class.
      *
      * @return self The single instance of the class.
+     * @since 1.0.0
      */
     public static function get_instance(): self {
         return self::$instance ??= new self();
@@ -45,12 +46,14 @@ final class Includes {
      * Initializes the plugin.
      *
      * This method is called to set up the plugin's functionality.
+     * @since 1.0.0
      */
     public function init(): void {}
     /**
      * Returns the settings instance.
      *
      * @return Settings The settings instance.
+     * @since 1.0.0
      */
     public function settings(): Settings {
         return $this->settings;
