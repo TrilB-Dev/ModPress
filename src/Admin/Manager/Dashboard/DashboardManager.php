@@ -189,7 +189,7 @@ final class DashboardManager extends Manager {
         return array_sum( array_map( 'absint', get_object_vars( $counts ) ) );
     }
 
-    public function register_assets( Assets $assets ): void {
+   /* public function register_assets( Assets $assets ): void {
         $this->register_page_assets( $assets, [ 'modpress' ], 'dashboard' );
-    }
+    }*/
 }
