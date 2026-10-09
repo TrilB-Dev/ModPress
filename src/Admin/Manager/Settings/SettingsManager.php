@@ -189,6 +189,9 @@ final class SettingsManager extends Manager {
             ],
         ];
         $this->header( __( 'Settings', 'modpress' ) );
+        if ( function_exists( 'settings_errors' ) ) {
+            settings_errors( 'modpress_settings' );
+        }
         echo '<div id="modpress-settings-panel" data-current-tab="' . esc_attr( $tab ) . '" data-current-section="' . esc_attr( $layout_section ) . '">';
         $this->render_tab_content( $tab, $layout_section );
         echo '</div>';

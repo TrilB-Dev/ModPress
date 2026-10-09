@@ -71,19 +71,38 @@ final class FunctionsSettings {
 
         $raw_input = isset( $_POST[ 'modpress_' . $tab ] ) && is_array( $_POST[ 'modpress_' . $tab ] ) ? wp_unslash( $_POST[ 'modpress_' . $tab ] ) : [];
 
-        $sanitized = match ( $tab ) {
-            'general' => $this->sanitize_general( $raw_input ),
-            'layout' => $this->sanitize_layout( $raw_input ),
-            'access' => $this->sanitize_access( $raw_input ),
-            default => [],
-        };
+        try {
+            $sanitized = match ( $tab ) {
+                'general' => $this->sanitize_general( $raw_input ),
+                'layout' => $this->sanitize_layout( $raw_input ),
+                'access' => $this->sanitize_access( $raw_input ),
+                default => [],
+            };
 
-        if ( 'general' === $tab ) {
-            Settings::set_group( Settings::GENERAL, $sanitized );
-        } elseif ( 'layout' === $tab ) {
-            Settings::set_group( Settings::LAYOUT, $sanitized );
-        } elseif ( 'access' === $tab ) {
-            Settings::set_group( Settings::ACCESS, $sanitized );
+            $saved = false;
+            if ( 'general' === $tab ) {
+                $saved = Settings::set_group( Settings::GENERAL, $sanitized );
+            } elseif ( 'layout' === $tab ) {
+                $saved = Settings::set_group( Settings::LAYOUT, $sanitized );
+            } elseif ( 'access' === $tab ) {
+                $saved = Settings::set_group( Settings::ACCESS, $sanitized );
+            }
+
+            if ( ! $saved ) {
+                throw new \RuntimeException( __( 'ModPress settings could not be written to storage.', 'modpress' ) );
+            }
+
+            if ( function_exists( 'add_settings_error' ) ) {
+                add_settings_error( 'modpress_settings', 'save_success', __( 'Settings saved successfully.', 'modpress' ), 'updated' );
+            }
+        } catch ( \Throwable $exception ) {
+            if ( function_exists( 'add_settings_error' ) ) {
+                add_settings_error( 'modpress_settings', 'save_failed', __( 'Failed to save ModPress settings. Please try again.', 'modpress' ), 'error' );
+            }
+
+            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                error_log( 'ModPress settings save failed: ' . $exception->getMessage() );
+            }
         }
 
         $redirect = admin_url( 'admin.php?page=modpress&group=settings&tab=' . $tab );
