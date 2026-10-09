@@ -122,19 +122,16 @@ final class PermalinkHelper {
 			$object_name = sanitize_title( $page->post_title );
 		}
 
-		$root_category = '';
-		$root_tags     = '';
-		$object_category = self::term_path_for_post( $page, true );
-		$object_tag      = self::term_path_for_post( $page, false );
-		$object_slug     = $object_name;
-		$values          = array(
-			'%root%'            => $root_slug,
-			'%root_category%'   => $root_category,
-			'%root_tags%'       => $root_tags,
-			'%object%'          => $object_name,
-			'%object_category%' => $object_category,
-			'%object_tag%'      => $object_tag,
-			'%object_slug%'     => $object_slug,
+		$mod_type   = self::term_path_for_post( $page, true );
+		$mod_groups = self::term_path_for_post( $page, true );
+		$mod_tags   = self::term_path_for_post( $page, false );
+		$mod_post   = $object_name;
+		$values     = array(
+			'%mod_root%'   => $root_slug,
+			'%mod_type%'   => $mod_type,
+			'%mod_tags%'   => $mod_tags,
+			'%mod_groups%' => $mod_groups,
+			'%mod_post%'   => $mod_post,
 		);
 
 		$normalized = self::sanitize_pattern( $pattern );
