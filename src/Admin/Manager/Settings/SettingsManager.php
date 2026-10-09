@@ -16,6 +16,7 @@ use ModPress\Includes\Settings\Settings;
 use ModPress\Admin\Manager\Settings\SettingsPlugins;
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
+use ModPress\Includes\Functions\Helpers\AlertHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -189,6 +190,13 @@ final class SettingsManager extends Manager {
             ],
         ];
         $this->header( __( 'Settings', 'modpress' ) );
+
+        if ( ! empty( $_GET['settings_saved'] ) ) {
+            echo AlertHelper::get_admin_notice( __( 'ModPress settings saved successfully.', 'modpress' ), 'success' );
+        } elseif ( ! empty( $_GET['settings_failed'] ) ) {
+            echo AlertHelper::get_admin_notice( __( 'Failed to save ModPress settings. Please try again.', 'modpress' ), 'error' );
+        }
+
         if ( function_exists( 'settings_errors' ) ) {
             settings_errors( 'modpress_settings' );
         }

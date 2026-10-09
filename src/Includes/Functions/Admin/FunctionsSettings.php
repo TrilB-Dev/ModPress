@@ -105,7 +105,7 @@ final class FunctionsSettings {
             }
         }
 
-        $redirect = admin_url( 'admin.php?page=modpress&group=settings&tab=' . $tab );
+        $redirect = admin_url( 'admin.php?page=modpress&group=settings&tab=' . $tab . '&' . ( isset( $saved ) && $saved ? 'settings_saved=1' : 'settings_failed=1' ) );
         wp_safe_redirect( $redirect );
         exit;
     }
