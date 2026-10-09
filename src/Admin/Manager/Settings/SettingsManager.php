@@ -222,10 +222,12 @@ final class SettingsManager extends Manager {
         ];
         $can_view = true;
         foreach ( $view_capabilities[ $tab ] ?? [] as $capability ) {
-            if ( ! current_user_can( $capability ) ) {
-                $can_view = false;
-                break;
+            if ( current_user_can( 'manage_options' ) || current_user_can( $capability ) ) {
+                continue;
             }
+
+            $can_view = false;
+            break;
         }
         if ( ! $can_view ) {
             wp_die( esc_html__( 'You are not authorized to view these ModPress settings.', 'modpress' ) );
@@ -235,7 +237,7 @@ final class SettingsManager extends Manager {
             'layout' => 'modpress_settings_layout_edit',
             'access' => 'modpress_settings_access_edit',
         ];
-        $can_edit = isset( $edit_capabilities[ $tab ] ) && current_user_can( $edit_capabilities[ $tab ] );
+        $can_edit = isset( $edit_capabilities[ $tab ] ) && ( current_user_can( 'manage_options' ) || current_user_can( $edit_capabilities[ $tab ] ) );
         $groups = Settings::get_all();
         $values = $groups[ $tab ] ?? [];
         $tab_context = [

@@ -65,7 +65,7 @@ final class FunctionsSettings {
             'access' => 'modpress_settings_access_edit',
         ][ $tab ];
 
-        if ( ! current_user_can( $capability ) ) {
+        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( $capability ) ) {
             wp_die( esc_html__( 'You are not authorized to save these ModPress settings.', 'modpress' ) );
         }
 
@@ -92,7 +92,7 @@ final class FunctionsSettings {
     }
 
     public function sanitize_general( $input ): array {
-        if ( ! current_user_can( 'modpress_settings_general_edit' ) ) {
+        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_general_edit' ) ) {
             return (array) Settings::get_group( Settings::GENERAL, [] );
         }
         $input = is_array( $input ) ? $input : [];
@@ -110,7 +110,7 @@ final class FunctionsSettings {
     }
 
     public function sanitize_layout( $input ): array {
-        if ( ! current_user_can( 'modpress_settings_layout_edit' ) ) {
+        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_layout_edit' ) ) {
             return (array) Settings::get_group( Settings::LAYOUT, [] );
         }
         $input = is_array( $input ) ? $input : [];
@@ -161,7 +161,7 @@ final class FunctionsSettings {
     }
 
     public function sanitize_access( $input ): array {
-        if ( ! current_user_can( 'modpress_settings_access_edit' ) ) {
+        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_access_edit' ) ) {
             return (array) Settings::get_group( Settings::ACCESS, [] );
         }
         $input = is_array( $input ) ? $input : [];
