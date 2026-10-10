@@ -233,12 +233,45 @@ final class SettingsManager {
      */
     public static function set_group( string $group, array $settings ): bool {
         global $wpdb;
-        return false !== $wpdb->replace( self::table_name(), [
-            'setting_group' => self::storage_group( $group ),
-            'setting_value' => maybe_serialize( $settings ),
-            'autoload' => 'yes',
-            'updated_at' => current_time( 'mysql' ),
-        ], [ '%s', '%s', '%s', '%s' ] );
+
+        $group = self::normalize_group( $group );
+        if ( '' === $group ) {
+            return false;
+        }
+
+        $storage_group = self::storage_group( $group );
+        $result = $wpdb->replace(
+            self::table_name(),
+            [
+                'setting_group' => $storage_group,
+                'setting_value' => maybe_serialize( $settings ),
+                'autoload' => 'yes',
+                'updated_at' => current_time( 'mysql' ),
+            ],
+            [ '%s', '%s', '%s', '%s' ]
+        );
+
+        if ( false === $result ) {
+            return false;
+        }
+
+        $stored = $wpdb->get_var(
+            $wpdb->prepare(
+                'SELECT setting_value FROM ' . self::table_name() . ' WHERE setting_group = %s',
+                $storage_group
+            )
+        );
+
+        if ( null === $stored ) {
+            return false;
+        }
+
+        $stored_settings = maybe_unserialize( $stored );
+        if ( ! is_array( $stored_settings ) ) {
+            return false;
+        }
+
+        return maybe_serialize( $stored_settings ) === maybe_serialize( $settings );
     }
     /**
      * Register a settings group with default values.

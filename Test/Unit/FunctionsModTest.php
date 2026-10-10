@@ -246,5 +246,37 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'modpress-fontawesome', $method->invoke( $handler, 'modpress-fontawesome' ) );
             $this->assertSame( 'modpress-fontawesome', $method->invoke( $handler, 'modpressfontawesome' ) );
         }
+
+        public function testSettingsGroupWriteFailsWhenTheDatabaseDoesNotConfirmPersistedValue(): void {
+            $wpdb = new class {
+                public string $prefix = 'wp_';
+                public array $storage = [];
+
+                public function prepare( string $query, ...$args ): string {
+                    foreach ( $args as $arg ) {
+                        $query = preg_replace( '/%s/', (string) $arg, $query, 1 );
+                    }
+                    return $query;
+                }
+
+                public function replace( string $table, array $data, array $formats = [] ): bool {
+                    $this->storage[ $table ][ $data['setting_group'] ] = serialize( $data['setting_value'] );
+                    return true;
+                }
+
+                public function get_var( string $query ) {
+                    if ( preg_match( "/WHERE setting_group = '([^']+)'/", $query, $matches ) ) {
+                        $group = $matches[1];
+                        return $this->storage[ 'modpress_settings' ][ $group ] ?? null;
+                    }
+                    return null;
+                }
+            };
+
+            $GLOBALS['wpdb'] = $wpdb;
+            $wpdb->storage['modpress_settings']['modpress_general'] = serialize( 'stale-value' );
+
+            $this->assertFalse( \ModPress\Includes\Settings\SettingsManager::set_group( 'general', [ 'root_name' => 'Updated root' ] ) );
+        }
     }
 }

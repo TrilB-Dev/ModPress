@@ -79,14 +79,14 @@ final class FunctionsSettings {
                 default => [],
             };
 
-            $saved = false;
-            if ( 'general' === $tab ) {
-                $saved = Settings::set_group( Settings::GENERAL, $sanitized );
-            } elseif ( 'layout' === $tab ) {
-                $saved = Settings::set_group( Settings::LAYOUT, $sanitized );
-            } elseif ( 'access' === $tab ) {
-                $saved = Settings::set_group( Settings::ACCESS, $sanitized );
-            }
+            $group = match ( $tab ) {
+                'general' => Settings::GENERAL,
+                'layout' => Settings::LAYOUT,
+                'access' => Settings::ACCESS,
+                default => null,
+            };
+
+            $saved = null !== $group ? Settings::set_group( $group, $sanitized ) : false;
 
             if ( ! $saved ) {
                 throw new \RuntimeException( __( 'ModPress settings could not be written to storage.', 'modpress' ) );
@@ -120,7 +120,6 @@ final class FunctionsSettings {
             $value = in_array( $key, [ 'root_slug', 'category_slug', 'tag_slug' ], true ) ? sanitize_title( $input[ $key ] ?? '' ) : ( 'permalink' === $key ? PermalinkHelper::sanitize_pattern( $input[ $key ] ?? '' ) : ( 'enable_schema' === $key ? ! empty( $input[ $key ] ) : sanitize_textarea_field( $input[ $key ] ?? '' ) ) );
             $rewrite_changed = $rewrite_changed || $value !== (string) Settings::get( $key, '' );
             $input[ $key ] = $value;
-            Settings::set( $key, $input[ $key ] );
         }
         if ( $rewrite_changed ) {
             flush_rewrite_rules();
@@ -148,33 +147,27 @@ final class FunctionsSettings {
             }
             $value = ! empty( $input[ $key ] );
             $input[ $key ] = $value;
-            Settings::set( $key, $value );
         }
         foreach ( [ 'search_placeholder', 'search_button_text', 'search_no_results_message' ] as $key ) {
             if ( ! in_array( $key, $active_keys, true ) ) {
                 continue;
             }
             $input[ $key ] = sanitize_text_field( $input[ $key ] ?? '' );
-            Settings::set( $key, $input[ $key ] );
         }
         if ( in_array( 'search_scope', $active_keys, true ) ) {
             $input['search_scope'] = in_array( $input['search_scope'] ?? '', [ 'all', 'title', 'content' ], true ) ? $input['search_scope'] : 'all';
-            Settings::set( 'search_scope', $input['search_scope'] );
         }
         if ( in_array( 'sidebar_position', $active_keys, true ) ) {
             $input['sidebar_position'] = in_array( $input['sidebar_position'] ?? '', [ 'left', 'right' ], true ) ? $input['sidebar_position'] : 'left';
-            Settings::set( 'sidebar_position', $input['sidebar_position'] );
         }
         if ( in_array( 'page_toc_position', $active_keys, true ) ) {
             $input['page_toc_position'] = in_array( $input['page_toc_position'] ?? '', [ 'sidebar', 'content' ], true ) ? $input['page_toc_position'] : 'sidebar';
-            Settings::set( 'page_toc_position', $input['page_toc_position'] );
         }
         foreach ( [ 'related_pages_count' => [ 1, 12 ], 'search_results_count' => [ 1, 50 ], 'search_min_chars' => [ 1, 5 ], 'sidebar_width' => [ 180, 480 ], 'toc_min_level' => [ 1, 5 ], 'toc_max_level' => [ 2, 6 ], 'reading_time_wpm' => [ 100, 400 ] ] as $key => [ $minimum, $maximum ] ) {
             if ( ! in_array( $key, $active_keys, true ) ) {
                 continue;
             }
             $input[ $key ] = max( $minimum, min( $maximum, absint( $input[ $key ] ?? $minimum ) ) );
-            Settings::set( $key, $input[ $key ] );
         }
         return $input;
     }
@@ -189,7 +182,6 @@ final class FunctionsSettings {
             $values = is_array( $input[ $key ] ?? null ) ? $input[ $key ] : [ $input[ $key ] ?? 'manage_options' ];
             $values = array_values( array_unique( array_intersect( $allowed, array_map( 'sanitize_key', $values ) ) ) );
             $input[ $key ] = empty( $values ) ? [ 'manage_options' ] : $values;
-            Settings::set( $key, $input[ $key ] );
         }
         return $input;
     }
@@ -198,7 +190,6 @@ final class FunctionsSettings {
         $input = is_array( $input ) ? $input : [];
         foreach ( [ 'debug_logging', 'console_logging' ] as $key ) {
             $input[ $key ] = ! empty( $input[ $key ] );
-            Settings::set( $key, $input[ $key ] );
         }
         return $input;
     }
