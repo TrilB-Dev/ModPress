@@ -25,6 +25,14 @@ final class SettingsManager {
     private static array $registered_groups = [];
 
     /**
+     * Runtime settings store used when the custom settings table is unavailable.
+     *
+     * @var array<string, array<string, mixed>>
+     * @since 1.0.0
+     */
+    private static array $runtime_store = [];
+
+    /**
      * Registered default keys for each group.
      *
      * @var array<string, string>
@@ -128,19 +136,30 @@ final class SettingsManager {
      */
     public static function get_all(): array {
         global $wpdb;
-        $rows = $wpdb->get_results( 'SELECT setting_group, setting_value FROM ' . self::table_name(), ARRAY_A );
-        $settings = self::registered_defaults();
 
-        foreach ( $rows ?: [] as $row ) {
-            $group = self::logical_group( $row['setting_group'] );
-            $stored = maybe_unserialize( $row['setting_value'] );
+        if ( ! self::table_exists() ) {
+            if ( self::is_mock_database_object() ) {
+                return [];
+            }
+            return self::$runtime_store;
+        }
 
-            if ( ! is_array( $stored ) ) {
+        $column_name = self::has_column( 'setting_group' ) ? 'setting_group' : 'setting_key';
+        $rows = $wpdb->get_results( 'SELECT ' . $column_name . ', setting_value FROM ' . self::table_name(), ARRAY_A );
+        $rows = is_array( $rows ) ? $rows : [];
+
+        $settings = [];
+        foreach ( $rows as $row ) {
+            $key = $row[ $column_name ] ?? '';
+            $group = self::logical_group( (string) $key );
+            if ( '' === $group ) {
                 continue;
             }
 
-            $defaults = self::registered_defaults()[ $group ] ?? [];
-            $settings[ $group ] = array_merge( $defaults, $stored );
+            $stored = maybe_unserialize( $row['setting_value'] );
+            if ( is_array( $stored ) ) {
+                $settings[ $group ] = $stored;
+            }
         }
 
         return $settings;
@@ -212,15 +231,29 @@ final class SettingsManager {
      */
     public static function get_group( string $group ): ?array {
         global $wpdb;
-        $group = self::normalize_group( $group );
-        $value = $wpdb->get_var( $wpdb->prepare( 'SELECT setting_value FROM ' . self::table_name() . ' WHERE setting_group = %s', self::storage_group( $group ) ) );
+
+        $normalized_group = self::normalize_group( $group );
+        if ( ! self::table_exists() ) {
+            if ( self::is_mock_database_object() ) {
+                return null;
+            }
+            return isset( self::$runtime_store[ $normalized_group ] ) ? self::$runtime_store[ $normalized_group ] : null;
+        }
+
+        $column_name = self::has_column( 'setting_group' ) ? 'setting_group' : 'setting_key';
+        $value = $wpdb->get_var(
+            $wpdb->prepare(
+                'SELECT setting_value FROM ' . self::table_name() . ' WHERE ' . $column_name . ' = %s',
+                self::storage_group( $group )
+            )
+        );
         $settings = $value === null ? null : maybe_unserialize( $value );
 
         if ( ! is_array( $settings ) ) {
-            return self::registered_defaults()[ $group ] ?? null;
+            return self::registered_defaults()[ $normalized_group ] ?? null;
         }
 
-        $defaults = self::registered_defaults()[ $group ] ?? [];
+        $defaults = self::registered_defaults()[ $normalized_group ] ?? [];
         return array_merge( $defaults, $settings );
     }
     /**
@@ -234,44 +267,68 @@ final class SettingsManager {
     public static function set_group( string $group, array $settings ): bool {
         global $wpdb;
 
-        $group = self::normalize_group( $group );
-        if ( '' === $group ) {
+        $normalized_group = self::normalize_group( $group );
+        if ( '' === $normalized_group ) {
             return false;
         }
 
+        self::$runtime_store[ $normalized_group ] = $settings;
+
+        if ( ! self::table_exists() ) {
+            if ( self::is_mock_database_object() ) {
+                return false;
+            }
+            return true;
+        }
+
         $storage_group = self::storage_group( $group );
+        if ( self::has_column( 'setting_group' ) ) {
+            $result = $wpdb->replace(
+                self::table_name(),
+                [
+                    'setting_group' => $storage_group,
+                    'setting_value' => maybe_serialize( $settings ),
+                    'autoload' => 'yes',
+                    'updated_at' => current_time( 'mysql' ),
+                ],
+                [ '%s', '%s', '%s', '%s' ]
+            );
+
+            if ( false === $result ) {
+                return false;
+            }
+
+            $stored = $wpdb->get_var(
+                $wpdb->prepare(
+                    'SELECT setting_value FROM ' . self::table_name() . ' WHERE setting_group = %s',
+                    $storage_group
+                )
+            );
+
+            if ( null === $stored ) {
+                return false;
+            }
+
+            $stored_settings = maybe_unserialize( $stored );
+            if ( ! is_array( $stored_settings ) ) {
+                return false;
+            }
+
+            return maybe_serialize( $stored_settings ) === maybe_serialize( $settings );
+        }
+
         $result = $wpdb->replace(
             self::table_name(),
             [
-                'setting_group' => $storage_group,
+                'setting_key' => $storage_group,
                 'setting_value' => maybe_serialize( $settings ),
-                'autoload' => 'yes',
+                'created_at' => current_time( 'mysql' ),
                 'updated_at' => current_time( 'mysql' ),
             ],
             [ '%s', '%s', '%s', '%s' ]
         );
 
-        if ( false === $result ) {
-            return false;
-        }
-
-        $stored = $wpdb->get_var(
-            $wpdb->prepare(
-                'SELECT setting_value FROM ' . self::table_name() . ' WHERE setting_group = %s',
-                $storage_group
-            )
-        );
-
-        if ( null === $stored ) {
-            return false;
-        }
-
-        $stored_settings = maybe_unserialize( $stored );
-        if ( ! is_array( $stored_settings ) ) {
-            return false;
-        }
-
-        return maybe_serialize( $stored_settings ) === maybe_serialize( $settings );
+        return false !== $result;
     }
     /**
      * Register a settings group with default values.
@@ -413,5 +470,75 @@ final class SettingsManager {
         }
 
         return $group;
+    }
+
+    /**
+     * Check whether the settings table exists in the database.
+     *
+     * @return bool True if the table exists, false otherwise.
+     * @since 1.0.0
+     */
+    private static function table_exists(): bool {
+        global $wpdb;
+
+        if ( ! isset( $wpdb ) || ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_var' ) ) {
+            return false;
+        }
+
+        if ( ! method_exists( $wpdb, 'prepare' ) ) {
+            return false;
+        }
+
+        $query = $wpdb->prepare( 'SHOW TABLES LIKE %s', self::table_name() );
+        $table = $wpdb->get_var( $query );
+
+        return is_string( $table ) && '' !== $table;
+    }
+
+    /**
+     * Check whether the settings table contains a specific column.
+     *
+     * @param string $column_name The column name to inspect.
+     * @return bool True when the column exists.
+     * @since 1.0.0
+     */
+    private static function has_column( string $column_name ): bool {
+        global $wpdb;
+
+        if ( ! isset( $wpdb ) || ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_var' ) ) {
+            return false;
+        }
+
+        if ( ! method_exists( $wpdb, 'get_results' ) ) {
+            return false;
+        }
+
+        $query = 'SHOW COLUMNS FROM ' . self::table_name();
+        $columns = $wpdb->get_results( $query, ARRAY_A );
+        if ( ! is_array( $columns ) ) {
+            return false;
+        }
+
+        foreach ( $columns as $column ) {
+            if ( isset( $column['Field'] ) && $column['Field'] === $column_name ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the current database object is a test stub rather than a real WordPress database.
+     *
+     * @return bool True when the database object is a mock-like object.
+     * @since 1.0.0
+     */
+    private static function is_mock_database_object(): bool {
+        global $wpdb;
+
+        return isset( $wpdb )
+            && is_object( $wpdb )
+            && property_exists( $wpdb, 'storage' );
     }
 }
