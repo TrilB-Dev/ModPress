@@ -21,8 +21,13 @@ final class SettingsGeneral {
 	 *
 	 * @param array<string, mixed> $values Current settings.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public function render( array $values ): void {
+		$edit_capabilities = array(
+			'general' => 'modpress_settings_general_edit',
+		);
+		$can_edit = isset( $edit_capabilities[ 'general' ] ) && current_user_can( $edit_capabilities[ 'general' ] );
 		$root_name = isset( $values['root_name'] ) ? SanitizationHelper::text( (string) $values['root_name'] ) : __( 'ModPress', 'modpress' );
 		$root_description = isset( $values['root_description'] ) ? SanitizationHelper::text( (string) $values['root_description'] ) : __( 'A searchable catalogue powered by ModPress.', 'modpress' );
 		$archive_title = isset( $values['archive_title'] ) ? SanitizationHelper::text( (string) $values['archive_title'] ) : __( 'ModPress Catalogue', 'modpress' );
@@ -40,228 +45,248 @@ final class SettingsGeneral {
 		);
 		$enable_schema = ! empty( $values['enable_schema'] ?? true );
 		?>
-		<table class="form-table table align-middle" role="presentation">
-			<tbody>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-root-name', 
-							__( 'ModPress Root Name', 'modpress' ), 
-							[
-								'description' => __( 'The name used for the main ModPress area.', 'modpress' ),
-								'tooltip' => __( 'This name appears in the admin interface and generated titles.', 'modpress' ),
-							] 
-						); ?>
-					</th>
-					<td>
-						<?php echo FormFieldHelper::text_input( 
-							'modpress_general[root_name]', 
-							$root_name, 
-							[ 
-								'id' => 'modpress-root-name',
-								'class' => 'w-100',
-							] 
-						); ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-root-description', 
-							__( 'ModPress Description', 'modpress' ), 
-							[
-								'description' => __( 'A short description for the ModPress knowledge base.', 'modpress' ),
-								'tooltip' => __( 'This can be used by themes and integrations when describing the ModPress area.', 'modpress' ),
-							] 
-						); ?>
-					</th>
-					<td>
-						<?php echo FormFieldHelper::textarea( 
-							'modpress_general[root_description]', 
-							$root_description, 
-							[ 
-								'id' => 'modpress-root-description', 
-								'rows' => 3,
-								'class' => 'w-100',
-							] 
-						); ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-archive-title', 
-							__( 'ModPress Archive Title', 'modpress' ), 
-							[
-								'description' => __( 'The title shown on ModPress archive and index views.', 'modpress' ),
-								'tooltip' => __( 'Use a concise title that makes the documentation area clear to visitors.', 'modpress' ),
-							] ); ?></th>
-					<td>
-						<?php echo FormFieldHelper::text_input( 
-							'modpress_general[archive_title]', 
-							$archive_title, 
-							[ 
-								'id' => 'modpress-archive-title',
-								'class' => 'w-100',
-							] 
-						); ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-archive-description', 
-							__( 'ModPress Archive Description', 'modpress' ), 
-							[
-								'description' => __( 'Supporting text shown on ModPress archive and index views.', 'modpress' ),
-								'tooltip' => __( 'A short introduction helps visitors understand what they can find in the ModPress area.', 'modpress' ),
-							] 
-						); ?>
-					</th>
-					<td>
-						<?php echo FormFieldHelper::textarea( 
-							'modpress_general[archive_description]', 
-							$archive_description, 
-							[ 
-								'id' => 'modpress-archive-description', 
-								'rows' => 3,
-								'class' => 'w-100',
-							] 
-						); ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-root-slug', 
-							__( 'ModPress Root Slug', 'modpress' ), 
-							[
-								'description' => __( 'The URL slug for the ModPress root.', 'modpress' ),
-								'tooltip' => __( 'Use lowercase letters, numbers, and hyphens for the most reliable URLs.', 'modpress' ),
-							] 
-						); ?>
-					</th>
-					<td>
-						<?php echo FormFieldHelper::text_input( 
-							'modpress_general[root_slug]', 
-							$root_slug, 
-							[ 
-								'id' => 'modpress-root-slug',
-								'class' => 'w-100',
-							] 
-						); ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-category-slug', 
-							__( 'Custom Category Slug', 'modpress' ), 
-							[
-								'description' => __( 'The URL slug used for ModPress categories.', 'modpress' ),
-								'tooltip' => __( 'Changing this value flushes the WordPress rewrite rules.', 'modpress' ),
-								'tooltip_type' => 'info',
-							] 
-						); ?>
-					</th>
-					<td>
-						<?php echo FormFieldHelper::text_input( 
-							'modpress_general[category_slug]', 
-							$category_slug, 
-							[ 
-								'id' => 'modpress-category-slug',
-								'class' => 'w-100',
-							] 
-						); ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-tag-slug', 
-							__( 'Custom Tags Slug', 'modpress' ), 
-							[
-								'description' => __( 'The URL slug used for ModPress tags.', 'modpress' ),
-								'tooltip' => __( 'Changing this value flushes the WordPress rewrite rules.', 'modpress' ),
-								'tooltip_type' => 'info',
-							] 
-						); ?>
-					</th>
-					<td>
-						<?php echo FormFieldHelper::text_input( 
-							'modpress_general[tag_slug]', 
-							$tag_slug, 
-							[ 
-								'id' => 'modpress-tag-slug',
-								'class' => 'w-100',
-							] 
-						); ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-permalink', 
-							__( 'ModPress Permalink', 'modpress' ), 
-							[
-								'description' => __( 'The permalink structure used by ModPress content.', 'modpress' ),
-								'tooltip' => __( 'Choose a structure that remains readable and stable after publication.', 'modpress' ),
-							] 
-						); ?>
-					</th>
-					<td>
-						<?php echo FormFieldHelper::text_input( 
-							'modpress_general[permalink]', 
-							$permalink, 
-							[ 
-								'id' => 'modpress-permalink', 
-								'data-permalink-field' => 'permalink',
-								'class' => 'w-100',
-							] 
-						); ?>
-						<div class="modpress-permalink-tokens mt-2" aria-label="<?php echo esc_attr__( 'Available permalink tokens', 'modpress' ); ?>">
-							<?php foreach ( $token_definitions as $token => $description ) : ?>
-								<?php echo FormFieldHelper::button(
-									$token,
-									[
-										'class' => 'btn-sm btn-outline-secondary me-1 mb-1',
-										'type' => 'button',
-										'attributes' => [
-											'data-permalink-token' => $token,
-											'title' => $description,
-										],
-									]
-								); ?>
-							<?php endforeach; ?>
-						</div>
-						<div class="form-text"><?php echo esc_html__( 'Click a token to add it to the pattern. Tokens are inserted with a trailing slash and reappear when removed.', 'modpress' ); ?></div>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<?php echo FormFieldHelper::label( 
-							'modpress-enable-schema', 
-							__( 'Enable ModPress Schema', 'modpress' ), 
-							[
-								'description' => __( 'Allow themes and integrations to expose ModPress metadata.', 'modpress' ),
-								'tooltip' => __( 'Keep this enabled when search engines and integrations should understand the ModPress structure.', 'modpress' ),
-							] 
-						); ?>
-					</th>
-					<td>
-						<?php echo FormFieldHelper::checkbox( 
-							'modpress_general[enable_schema]', 
-							'1', 
-							__( 'Enable ModPress Schema', 'modpress' ), 
-							[ 
-								'id' => 'modpress-enable-schema', 
-								'checked' => $enable_schema 
-							] 
-						); ?>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<?php if ( $can_edit ) : ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="licencepress-settings-form">
+			<input type="hidden" name="action" value="modpress_save_general_settings" />
+			<input type="hidden" name="modpress_tab" value="general" />
+			<?php wp_nonce_field( 'modpress_save_general_settings' ); ?>
+		<?php endif; ?>
+			<table class="form-table table align-middle" role="presentation">
+				<tbody>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-root-name', 
+								__( 'ModPress Root Name', 'modpress' ), 
+								[
+									'description' => __( 'The name used for the main ModPress area.', 'modpress' ),
+									'tooltip' => __( 'This name appears in the admin interface and generated titles.', 'modpress' ),
+								] 
+							); ?>
+						</th>
+						<td>
+							<?php echo FormFieldHelper::text_input( 
+								'modpress_general[root_name]', 
+								$root_name, 
+								[ 
+									'id' => 'modpress-root-name',
+									'class' => 'w-100',
+								] 
+							); ?>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-root-description', 
+								__( 'ModPress Description', 'modpress' ), 
+								[
+									'description' => __( 'A short description for the ModPress knowledge base.', 'modpress' ),
+									'tooltip' => __( 'This can be used by themes and integrations when describing the ModPress area.', 'modpress' ),
+								] 
+							); ?>
+						</th>
+						<td>
+							<?php echo FormFieldHelper::textarea( 
+								'modpress_general[root_description]', 
+								$root_description, 
+								[ 
+									'id' => 'modpress-root-description', 
+									'rows' => 3,
+									'class' => 'w-100',
+								] 
+							); ?>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-archive-title', 
+								__( 'ModPress Archive Title', 'modpress' ), 
+								[
+									'description' => __( 'The title shown on ModPress archive and index views.', 'modpress' ),
+									'tooltip' => __( 'Use a concise title that makes the documentation area clear to visitors.', 'modpress' ),
+								] ); ?></th>
+						<td>
+							<?php echo FormFieldHelper::text_input( 
+								'modpress_general[archive_title]', 
+								$archive_title, 
+								[ 
+									'id' => 'modpress-archive-title',
+									'class' => 'w-100',
+								] 
+							); ?>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-archive-description', 
+								__( 'ModPress Archive Description', 'modpress' ), 
+								[
+									'description' => __( 'Supporting text shown on ModPress archive and index views.', 'modpress' ),
+									'tooltip' => __( 'A short introduction helps visitors understand what they can find in the ModPress area.', 'modpress' ),
+								] 
+							); ?>
+						</th>
+						<td>
+							<?php echo FormFieldHelper::textarea( 
+								'modpress_general[archive_description]', 
+								$archive_description, 
+								[ 
+									'id' => 'modpress-archive-description', 
+									'rows' => 3,
+									'class' => 'w-100',
+								] 
+							); ?>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-root-slug', 
+								__( 'ModPress Root Slug', 'modpress' ), 
+								[
+									'description' => __( 'The URL slug for the ModPress root.', 'modpress' ),
+									'tooltip' => __( 'Use lowercase letters, numbers, and hyphens for the most reliable URLs.', 'modpress' ),
+								] 
+							); ?>
+						</th>
+						<td>
+							<?php echo FormFieldHelper::text_input( 
+								'modpress_general[root_slug]', 
+								$root_slug, 
+								[ 
+									'id' => 'modpress-root-slug',
+									'class' => 'w-100',
+								] 
+							); ?>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-category-slug', 
+								__( 'Custom Category Slug', 'modpress' ), 
+								[
+									'description' => __( 'The URL slug used for ModPress categories.', 'modpress' ),
+									'tooltip' => __( 'Changing this value flushes the WordPress rewrite rules.', 'modpress' ),
+									'tooltip_type' => 'info',
+								] 
+							); ?>
+						</th>
+						<td>
+							<?php echo FormFieldHelper::text_input( 
+								'modpress_general[category_slug]', 
+								$category_slug, 
+								[ 
+									'id' => 'modpress-category-slug',
+									'class' => 'w-100',
+								] 
+							); ?>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-tag-slug', 
+								__( 'Custom Tags Slug', 'modpress' ), 
+								[
+									'description' => __( 'The URL slug used for ModPress tags.', 'modpress' ),
+									'tooltip' => __( 'Changing this value flushes the WordPress rewrite rules.', 'modpress' ),
+									'tooltip_type' => 'info',
+								] 
+							); ?>
+						</th>
+						<td>
+							<?php echo FormFieldHelper::text_input( 
+								'modpress_general[tag_slug]', 
+								$tag_slug, 
+								[ 
+									'id' => 'modpress-tag-slug',
+									'class' => 'w-100',
+								] 
+							); ?>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-permalink', 
+								__( 'ModPress Permalink', 'modpress' ), 
+								[
+									'description' => __( 'The permalink structure used by ModPress content.', 'modpress' ),
+									'tooltip' => __( 'Choose a structure that remains readable and stable after publication.', 'modpress' ),
+								] 
+							); ?>
+						</th>
+						<td>
+							<?php echo FormFieldHelper::text_input( 
+								'modpress_general[permalink]', 
+								$permalink, 
+								[ 
+									'id' => 'modpress-permalink', 
+									'data-permalink-field' => 'permalink',
+									'class' => 'w-100',
+								] 
+							); ?>
+							<div class="modpress-permalink-tokens mt-2" aria-label="<?php echo esc_attr__( 'Available permalink tokens', 'modpress' ); ?>">
+								<?php foreach ( $token_definitions as $token => $description ) : ?>
+									<?php echo FormFieldHelper::button(
+										$token,
+										[
+											'class' => 'btn-sm btn-outline-secondary me-1 mb-1',
+											'type' => 'button',
+											'attributes' => [
+												'data-permalink-token' => $token,
+												'title' => $description,
+											],
+										]
+									); ?>
+								<?php endforeach; ?>
+							</div>
+							<div class="form-text"><?php echo esc_html__( 'Click a token to add it to the pattern. Tokens are inserted with a trailing slash and reappear when removed.', 'modpress' ); ?></div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php echo FormFieldHelper::label( 
+								'modpress-enable-schema', 
+								__( 'Enable ModPress Schema', 'modpress' ), 
+								[
+									'description' => __( 'Allow themes and integrations to expose ModPress metadata.', 'modpress' ),
+									'tooltip' => __( 'Keep this enabled when search engines and integrations should understand the ModPress structure.', 'modpress' ),
+								] 
+							); ?>
+						</th>
+						<td>
+							<?php echo FormFieldHelper::checkbox( 
+								'modpress_general[enable_schema]', 
+								'1', 
+								__( 'Enable ModPress Schema', 'modpress' ), 
+								[ 
+									'id' => 'modpress-enable-schema', 
+									'checked' => $enable_schema 
+								] 
+							); ?>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<?php if ( $can_edit ) : ?>
+                <div class="modpress-settings-actions d-flex justify-content-end mt-3">
+                    <?php echo FormFieldHelper::button( 
+						__( 'Save Changes', 'modpress' ), 
+						[
+                            'type' => 'submit',
+                            'name' => 'submit',
+                            'class' => 'btn-primary',
+                        ] 
+					); ?>
+                </div>
+		</form>
+        <?php endif; ?>
+		
 		<?php
 	}
 }

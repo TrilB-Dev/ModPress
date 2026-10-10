@@ -143,6 +143,9 @@ final class SettingsManager extends Manager {
      */
     private function register_actions(): void {
         add_action( 'admin_post_modpress_save_settings', array( $this->settings_functions, 'save_settings' ) );
+        add_action( 'admin_post_modpress_save_general_settings', array( $this->settings_functions, 'general_save' ) );
+        add_action( 'admin_post_modpress_save_access_settings', array( $this->settings_functions, 'access_save' ) );
+        add_action( 'admin_post_modpress_save_layout_settings', array( $this->settings_functions, 'layout_save' ) );
         add_action( 'wp_ajax_modpress_toggle_plugin', array( $this->plugin_functions, 'toggle_plugin' ) );
         add_action( 'wp_ajax_modpress_save_plugin_settings', array( $this->plugin_functions, 'save_plugin_settings' ) );
     }
@@ -299,13 +302,6 @@ final class SettingsManager extends Manager {
 
             <div class="modpress-settings-page">
             <div class="modpress-settings-card card shadow-sm">
-                <?php if ( $can_edit ) : ?>
-                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="modpress-settings-form">
-                        <input type="hidden" name="action" value="modpress_save_settings" />
-                        <input type="hidden" name="modpress_tab" value="<?php echo esc_attr( $tab ); ?>" />
-                        <?php echo wp_nonce_field( 'modpress_save_settings', '_wpnonce_modpress_save_settings', true, false ); ?>
-                <?php endif; ?>
-
                 <div class="card-body">
                     <?php if ( 'layout' === $tab ) : ?>
                         <?php $this->layout_page->render( $values, SanitizationHelper::key( $layout_section, 'general' ) ); ?>
@@ -322,21 +318,7 @@ final class SettingsManager extends Manager {
                             </tbody>
                         </table>
                     <?php endif; ?>
-
-                    <?php if ( $can_edit ) : ?>
-                        <div class="modpress-settings-actions d-flex justify-content-end mt-3">
-                            <?php echo FormFieldHelper::button( __( 'Save Changes', 'modpress' ), [
-                                'type' => 'submit',
-                                'name' => 'submit',
-                                'class' => 'btn-primary',
-                            ] ); ?>
-                        </div>
-                    <?php endif; ?>
                 </div>
-
-                <?php if ( $can_edit ) : ?>
-                    </form>
-                <?php endif; ?>
             </div>
         </div>
     </div>

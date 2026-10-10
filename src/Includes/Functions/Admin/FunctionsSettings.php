@@ -8,8 +8,10 @@
  */
 namespace ModPress\Includes\Functions\Admin;
 
+use ModPress\Includes\Functions\Admin\FunctionsPlugins;
 use ModPress\Includes\Functions\Helpers\PermalinkHelper;
 use ModPress\Includes\Settings\Settings;
+use ModPress\Includes\Functions\Helpers\LoaderHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -39,92 +41,184 @@ final class FunctionsSettings {
     }
 
     /**
-     * Save ModPress settings submitted from the admin settings screens.
-     *
-     * @return void
-     */
-    public function save_settings(): void {
-        if ( ! isset( $_POST['_wpnonce_modpress_save_settings'] ) ) {
-            wp_die( esc_html__( 'Invalid ModPress settings request.', 'modpress' ) );
-        }
+	 * Register the WordPress admin-post actions used by the settings forms.
+	 *
+	 * @param LoaderHelper $loader Loader instance used to register hooks.
+	 * @return void
+	 */
+	public function register_admin_post_hooks( LoaderHelper $loader ): void {
+		$loader->register_component(
+			$this,
+			array(
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_save_general_settings',
+					'callback' => 'handle_general_save',
+				),
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_save_access_settings',
+					'callback' => 'handle_access_save',
+				),
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_save_layout_settings',
+					'callback' => 'handle_layout_save',
+				),
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_save_billing_invoice_settings',
+					'callback' => 'handle_billing_invoice_save',
+				),
+			)
+		)->run();
+	}
+    /**
+	 * Save settings using the direct admin POST flow used by the custom table store.
+	 *
+	 * @return void
+	 */
+	public function save_settings(): void {
+		$action = isset( $_POST['action'] ) ? sanitize_key( wp_unslash( $_POST['action'] ) ) : '';
+		if ( '' === $action ) {
+			return;
+		}
 
-        $nonce = sanitize_text_field( wp_unslash( $_POST['_wpnonce_modpress_save_settings'] ) );
-        if ( ! wp_verify_nonce( $nonce, 'modpress_save_settings' ) ) {
-            wp_die( esc_html__( 'Security check failed while saving ModPress settings.', 'modpress' ) );
-        }
+		if ( 'modpress_save_general_settings' === $action ) {
+			$this->general_save();
+		}
 
-        $tab = sanitize_key( wp_unslash( $_POST['modpress_tab'] ?? $_POST['tab'] ?? 'general' ) );
-        $allowed_tabs = [ 'general', 'layout', 'access' ];
-        if ( ! in_array( $tab, $allowed_tabs, true ) ) {
-            $tab = 'general';
-        }
+		if ( in_array( $action, array( 'modpress_save_access_settings' ), true ) ) {
+			$this->access_save();
+		}
 
-        $capability = [
-            'general' => 'modpress_settings_general_edit',
-            'layout' => 'modpress_settings_layout_edit',
-            'access' => 'modpress_settings_access_edit',
-        ][ $tab ];
+		if ( 'modpress_save_layout_settings' === $action ) {
+			$this->layout_save();
+		}
+	}
 
-        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( $capability ) ) {
-            wp_die( esc_html__( 'You are not authorized to save these ModPress settings.', 'modpress' ) );
-        }
+	/**
+	 * Validate a save nonce against the standard WordPress field and the legacy plugin-specific field.
+	 *
+	 * @param string $action Nonce action.
+	 * @return void
+     * @since 1.0.0
+	 */
+	private function validate_save_nonce( string $action ): void {
+		if ( isset( $_REQUEST['_wpnonce'] ) ) {
+			check_admin_referer( $action, '_wpnonce' );
+			return;
+		}
 
-        $raw_input = isset( $_POST[ 'modpress_' . $tab ] ) && is_array( $_POST[ 'modpress_' . $tab ] ) ? wp_unslash( $_POST[ 'modpress_' . $tab ] ) : [];
+		check_admin_referer( $action );
+	}
+    /**
+	 * Save the general settings.
+	 *
+	 * @return void
+     * @since 1.0.0
+	 */
+	public function general_save(): void {
+		if ( ! user_can( get_current_user_id(), 'modpress_settings_general_edit' ) ) {
+			wp_die( esc_html__( 'You are not allowed to save ModPress general settings.', 'modpress' ), 403 );
+		}
 
-        try {
-            $sanitized = match ( $tab ) {
-                'general' => $this->sanitize_general( $raw_input ),
-                'layout' => $this->sanitize_layout( $raw_input ),
-                'access' => $this->sanitize_access( $raw_input ),
-                default => [],
-            };
+		$this->validate_save_nonce( 'modpress_save_general_settings' );
+		$input = isset( $_POST['modpress_general'] ) && is_array( $_POST['modpress_general'] ) ? wp_unslash( $_POST['modpress_general'] ) : array();
+		$this->sanitize_general( $input );
+		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=general' ) );
+		exit;
+	}
 
-            $group = match ( $tab ) {
-                'general' => Settings::GENERAL,
-                'layout' => Settings::LAYOUT,
-                'access' => Settings::ACCESS,
-                default => null,
-            };
+	/**
+	 * Save the access settings.
+	 *
+	 * @return void
+	 */
+	public function access_save(): void {
+		if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_access_edit' ) ) {
+			wp_die( esc_html__( 'You are not allowed to save ModPress access settings.', 'modpress' ), 403 );
+		}
 
-            $saved = null !== $group ? Settings::set_group( $group, $sanitized ) : false;
+		$this->validate_save_nonce( 'modpress_save_access_settings' );
+		$input = isset( $_POST['modpress_access'] ) && is_array( $_POST['modpress_access'] ) ? wp_unslash( $_POST['modpress_access'] ) : array();
+		$sanitized = $this->sanitize_access( $input );
+		Settings::set_group( Settings::ACCESS, $sanitized );
+		foreach ( $sanitized as $key => $value ) {
+			Settings::set( $key, $value );
+		}
+		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=access' ) );
+		exit;
+	}
 
-            if ( ! $saved ) {
-                throw new \RuntimeException( __( 'ModPress settings could not be written to storage.', 'modpress' ) );
-            }
+	/**
+	 * Save the layout settings.
+	 *
+	 * @return void
+	 */
+	public function layout_save(): void {
+		if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_layout_edit' ) ) {
+			wp_die( esc_html__( 'You are not allowed to save ModPress layout settings.', 'modpress' ), 403 );
+		}
 
-            if ( function_exists( 'add_settings_error' ) ) {
-                add_settings_error( 'modpress_settings', 'save_success', __( 'Settings saved successfully.', 'modpress' ), 'updated' );
-            }
-        } catch ( \Throwable $exception ) {
-            if ( function_exists( 'add_settings_error' ) ) {
-                add_settings_error( 'modpress_settings', 'save_failed', __( 'Failed to save ModPress settings. Please try again.', 'modpress' ), 'error' );
-            }
-
-            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-                error_log( 'ModPress settings save failed: ' . $exception->getMessage() );
-            }
-        }
-
-        $redirect = admin_url( 'admin.php?page=modpress&group=settings&tab=' . $tab . '&' . ( isset( $saved ) && $saved ? 'settings_saved=1' : 'settings_failed=1' ) );
-        wp_safe_redirect( $redirect );
-        exit;
-    }
-
+		$this->validate_save_nonce( 'modpress_save_layout_settings' );
+		$input = isset( $_POST['modpress_layout'] ) && is_array( $_POST['modpress_layout'] ) ? wp_unslash( $_POST['modpress_layout'] ) : array();
+		$section = sanitize_key( $input['layout_section'] ?? 'general' );
+		$sanitized = $this->sanitize_layout( $input );
+		Settings::set_group( Settings::LAYOUT, $sanitized );
+		foreach ( $sanitized as $key => $value ) {
+			Settings::set( $key, $value );
+		}
+		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=layout&layout_section=' . rawurlencode( $section ) ) );
+		exit;
+	}
+    /**
+	 * Sanitize the general settings input.
+	 *
+	 * @param array $input The input data to sanitize.
+	 * @return array The sanitized general settings.
+     * @since 1.0.0
+	 */
     public function sanitize_general( $input ): array {
-        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_general_edit' ) ) {
+        if ( ! current_user_can( 'modpress_settings_general_edit' ) ) {
             return (array) Settings::get_group( Settings::GENERAL, [] );
         }
-        $input = is_array( $input ) ? $input : [];
+        $input = is_array( $input ) ? $input : array();
+        $root_name = $input['root_name'] ?? '';
+        $root_description = $input['root_description'] ?? '';
+        $archive_title = $input['archive_title'] ?? '';
+        $archive_description = $input['archive_description'] ?? '';
+        $root_slug = $input['root_slug'] ?? '';
+        $category_slug = $input['category_slug'] ?? '';
+        $tag_slug = $input['tag_slug'] ?? '';
+        $permalink = $input['permalink'] ?? '';
+        $enable_schema = ! empty( $input['enable_schema'] );
         $rewrite_changed = false;
-        foreach ( [ 'root_name', 'root_description', 'archive_title', 'archive_description', 'root_slug', 'category_slug', 'tag_slug', 'permalink', 'enable_schema' ] as $key ) {
-            $value = in_array( $key, [ 'root_slug', 'category_slug', 'tag_slug' ], true ) ? sanitize_title( $input[ $key ] ?? '' ) : ( 'permalink' === $key ? PermalinkHelper::sanitize_pattern( $input[ $key ] ?? '' ) : ( 'enable_schema' === $key ? ! empty( $input[ $key ] ) : sanitize_textarea_field( $input[ $key ] ?? '' ) ) );
-            $rewrite_changed = $rewrite_changed || $value !== (string) Settings::get( $key, '' );
-            $input[ $key ] = $value;
-        }
+
         if ( $rewrite_changed ) {
             flush_rewrite_rules();
         }
-        return $input;
+
+        $general = array(
+            'root_name' => sanitize_text_field( $root_name ),
+            'root_description' => sanitize_textarea_field( $root_description ),
+            'archive_title' => sanitize_text_field( $archive_title ),
+            'archive_description' => sanitize_textarea_field( $archive_description ),
+            'root_slug' => sanitize_title( $root_slug ),
+            'category_slug' => sanitize_title( $category_slug ),
+            'tag_slug' => sanitize_title( $tag_slug ),
+            'permalink' => PermalinkHelper::sanitize_pattern( $permalink ),
+            'enable_schema' => $enable_schema,
+        );
+        foreach ( $general as $key => $value ) {
+			$input[ $key ] = $value;
+			Settings::set( $key, $value );
+		}
+
+		Settings::set_group( Settings::GENERAL, $general );
+		update_option( 'licencepress_general', $general );
+
+		return $general;
     }
 
     public function sanitize_layout( $input ): array {
@@ -185,7 +279,6 @@ final class FunctionsSettings {
         }
         return $input;
     }
-
     public function sanitize_tools( $input ): array {
         $input = is_array( $input ) ? $input : [];
         foreach ( [ 'debug_logging', 'console_logging' ] as $key ) {
