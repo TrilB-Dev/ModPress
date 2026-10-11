@@ -230,4 +230,42 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
     public static function get_instance(): self {
         return self::$instance ??= new self();
     }
+
+    /**
+     * Check whether the official WordPress Font Awesome plugin is active.
+     *
+     * @return bool
+     * @since 1.0.0
+     */
+    public static function is_wordpress_fontawesome_active(): bool {
+        if ( function_exists( 'fa' ) ) {
+            return true;
+        }
+
+        if ( class_exists( '\\FortAwesome\\FontAwesome' ) ) {
+            return true;
+        }
+
+        if ( defined( 'FONTAWESOME_PLUGIN_FILE' ) ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Ensure the runtime is initialized with the official plugin when available.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public static function ensure_vendor_initialized(): void {
+        if ( ! self::is_wordpress_fontawesome_active() ) {
+            return;
+        }
+
+        if ( function_exists( 'fa' ) ) {
+            fa();
+        }
+    }
 }

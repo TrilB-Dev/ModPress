@@ -9,9 +9,11 @@
 namespace ModPress\Includes\Functions\Admin;
 
 use ModPress\Includes\Functions\Admin\FunctionsPlugins;
+use ModPress\Includes\Functions\Helpers\LoaderHelper;
+use ModPress\Includes\Functions\Helpers\LoggerHelper;
 use ModPress\Includes\Functions\Helpers\PermalinkHelper;
 use ModPress\Includes\Settings\Settings;
-use ModPress\Includes\Functions\Helpers\LoaderHelper;
+use ModPress\Includes\Settings\SettingsManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -119,13 +121,27 @@ final class FunctionsSettings {
      * @since 1.0.0
 	 */
 	public function general_save(): void {
+		LoggerHelper::write_log( 'ModPress general settings save started.' );
+		LoggerHelper::write_log( array(
+			'request' => $_POST,
+			'action' => 'modpress_save_general_settings',
+		) );
 		if ( ! user_can( get_current_user_id(), 'modpress_settings_general_edit' ) ) {
+			LoggerHelper::write_log( 'ModPress general settings save denied: missing general_edit capability.' );
 			wp_die( esc_html__( 'You are not allowed to save ModPress general settings.', 'modpress' ), 403 );
 		}
 
 		$this->validate_save_nonce( 'modpress_save_general_settings' );
 		$input = isset( $_POST['modpress_general'] ) && is_array( $_POST['modpress_general'] ) ? wp_unslash( $_POST['modpress_general'] ) : array();
-		$this->sanitize_general( $input );
+		LoggerHelper::write_log( array(
+			'general_input' => $input,
+			'general_input_keys' => array_keys( $input ),
+		) );
+		$sanitized = $this->sanitize_general( $input );
+		LoggerHelper::write_log( array(
+			'general_sanitized' => $sanitized,
+			'general_db_group' => Settings::get_group( Settings::GENERAL, array() ),
+		) );
 		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=general' ) );
 		exit;
 	}
@@ -136,17 +152,31 @@ final class FunctionsSettings {
 	 * @return void
 	 */
 	public function access_save(): void {
+		LoggerHelper::write_log( 'ModPress access settings save started.' );
+		LoggerHelper::write_log( array(
+			'request' => $_POST,
+			'action' => 'modpress_save_access_settings',
+		) );
 		if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_access_edit' ) ) {
+			LoggerHelper::write_log( 'ModPress access settings save denied: missing access_edit capability.' );
 			wp_die( esc_html__( 'You are not allowed to save ModPress access settings.', 'modpress' ), 403 );
 		}
 
 		$this->validate_save_nonce( 'modpress_save_access_settings' );
 		$input = isset( $_POST['modpress_access'] ) && is_array( $_POST['modpress_access'] ) ? wp_unslash( $_POST['modpress_access'] ) : array();
+		LoggerHelper::write_log( array(
+			'access_input' => $input,
+			'access_input_keys' => array_keys( $input ),
+		) );
 		$sanitized = $this->sanitize_access( $input );
 		Settings::set_group( Settings::ACCESS, $sanitized );
 		foreach ( $sanitized as $key => $value ) {
 			Settings::set( $key, $value );
 		}
+		LoggerHelper::write_log( array(
+			'access_sanitized' => $sanitized,
+			'access_db_group' => Settings::get_group( Settings::ACCESS, array() ),
+		) );
 		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=access' ) );
 		exit;
 	}
@@ -157,18 +187,33 @@ final class FunctionsSettings {
 	 * @return void
 	 */
 	public function layout_save(): void {
+		LoggerHelper::write_log( 'ModPress layout settings save started.' );
+		LoggerHelper::write_log( array(
+			'request' => $_POST,
+			'action' => 'modpress_save_layout_settings',
+		) );
 		if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_layout_edit' ) ) {
+			LoggerHelper::write_log( 'ModPress layout settings save denied: missing layout_edit capability.' );
 			wp_die( esc_html__( 'You are not allowed to save ModPress layout settings.', 'modpress' ), 403 );
 		}
 
 		$this->validate_save_nonce( 'modpress_save_layout_settings' );
 		$input = isset( $_POST['modpress_layout'] ) && is_array( $_POST['modpress_layout'] ) ? wp_unslash( $_POST['modpress_layout'] ) : array();
+		LoggerHelper::write_log( array(
+			'layout_input' => $input,
+			'layout_input_keys' => array_keys( $input ),
+		) );
 		$section = sanitize_key( $input['layout_section'] ?? 'general' );
 		$sanitized = $this->sanitize_layout( $input );
 		Settings::set_group( Settings::LAYOUT, $sanitized );
 		foreach ( $sanitized as $key => $value ) {
 			Settings::set( $key, $value );
 		}
+		LoggerHelper::write_log( array(
+			'layout_section' => $section,
+			'layout_sanitized' => $sanitized,
+			'layout_db_group' => Settings::get_group( Settings::LAYOUT, array() ),
+		) );
 		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=layout&layout_section=' . rawurlencode( $section ) ) );
 		exit;
 	}
@@ -180,10 +225,15 @@ final class FunctionsSettings {
      * @since 1.0.0
 	 */
     public function sanitize_general( $input ): array {
+        LoggerHelper::write_log( 'ModPress general settings sanitization started.' );
         if ( ! current_user_can( 'modpress_settings_general_edit' ) ) {
+            LoggerHelper::write_log( 'ModPress general settings sanitization skipped: missing general_edit capability.' );
             return (array) Settings::get_group( Settings::GENERAL, [] );
         }
+
         $input = is_array( $input ) ? $input : array();
+        LoggerHelper::write_log( array( 'general_input_to_sanitize' => $input ) );
+
         $root_name = $input['root_name'] ?? '';
         $root_description = $input['root_description'] ?? '';
         $archive_title = $input['archive_title'] ?? '';
@@ -210,22 +260,32 @@ final class FunctionsSettings {
             'permalink' => PermalinkHelper::sanitize_pattern( $permalink ),
             'enable_schema' => $enable_schema,
         );
+
         foreach ( $general as $key => $value ) {
-			$input[ $key ] = $value;
-			Settings::set( $key, $value );
-		}
+            $input[ $key ] = $value;
+            Settings::set( $key, $value );
+        }
 
-		Settings::set_group( Settings::GENERAL, $general );
-		update_option( 'licencepress_general', $general );
+        Settings::set_group( Settings::GENERAL, $general );
+        LoggerHelper::write_log( array(
+            'general_persisted' => $general,
+            'general_storage_group' => Settings::GENERAL,
+            'general_table_name' => SettingsManager::table_name(),
+        ) );
 
-		return $general;
+        return $general;
     }
 
     public function sanitize_layout( $input ): array {
+        LoggerHelper::write_log( 'ModPress layout settings sanitization started.' );
         if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_layout_edit' ) ) {
+            LoggerHelper::write_log( 'ModPress layout settings sanitization skipped: missing layout_edit capability.' );
             return (array) Settings::get_group( Settings::LAYOUT, [] );
         }
+
         $input = is_array( $input ) ? $input : [];
+        LoggerHelper::write_log( array( 'layout_input_to_sanitize' => $input ) );
+
         $section = sanitize_key( $input['layout_section'] ?? 'general' );
         unset( $input['layout_section'] );
         $section_keys = [
@@ -235,6 +295,7 @@ final class FunctionsSettings {
             'page' => [ 'page_show_title', 'show_breadcrumbs', 'page_show_toc', 'page_toc_position', 'toc_min_level', 'toc_max_level', 'show_last_updated', 'show_author', 'show_reading_time', 'reading_time_wpm', 'show_feedback', 'page_show_navigation', 'show_related_pages', 'related_pages_count' ],
         ];
         $active_keys = $section_keys[ $section ] ?? array_merge( ...array_values( $section_keys ) );
+
         foreach ( [ 'show_search', 'show_toc', 'show_breadcrumbs', 'show_last_updated', 'show_author', 'show_reading_time', 'show_feedback', 'show_related_pages', 'search_live_results', 'show_sidebar', 'sidebar_sticky', 'sidebar_show_categories', 'sidebar_show_category_count', 'sidebar_expand_categories', 'sidebar_show_page_count', 'page_show_title', 'page_show_toc', 'page_show_navigation' ] as $key ) {
             if ( ! in_array( $key, $active_keys, true ) ) {
                 continue;
@@ -263,27 +324,48 @@ final class FunctionsSettings {
             }
             $input[ $key ] = max( $minimum, min( $maximum, absint( $input[ $key ] ?? $minimum ) ) );
         }
+
+        LoggerHelper::write_log( array(
+            'layout_section' => $section,
+            'layout_sanitized' => $input,
+        ) );
+
         return $input;
     }
 
     public function sanitize_access( $input ): array {
+        LoggerHelper::write_log( 'ModPress access settings sanitization started.' );
         if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_access_edit' ) ) {
+            LoggerHelper::write_log( 'ModPress access settings sanitization skipped: missing access_edit capability.' );
             return (array) Settings::get_group( Settings::ACCESS, [] );
         }
+
         $input = is_array( $input ) ? $input : [];
+        LoggerHelper::write_log( array( 'access_input_to_sanitize' => $input ) );
+
         $allowed = [ 'manage_options', 'edit_posts', 'publish_posts' ];
         foreach ( [ 'create_mods', 'write_pages', 'view_analytics', 'manage_plugins' ] as $key ) {
             $values = is_array( $input[ $key ] ?? null ) ? $input[ $key ] : [ $input[ $key ] ?? 'manage_options' ];
             $values = array_values( array_unique( array_intersect( $allowed, array_map( 'sanitize_key', $values ) ) ) );
             $input[ $key ] = empty( $values ) ? [ 'manage_options' ] : $values;
         }
+
+        LoggerHelper::write_log( array(
+            'access_sanitized' => $input,
+        ) );
+
         return $input;
     }
+
     public function sanitize_tools( $input ): array {
+        LoggerHelper::write_log( 'ModPress tools settings sanitization started.' );
         $input = is_array( $input ) ? $input : [];
         foreach ( [ 'debug_logging', 'console_logging' ] as $key ) {
             $input[ $key ] = ! empty( $input[ $key ] );
         }
+        LoggerHelper::write_log( array(
+            'tools_sanitized' => $input,
+        ) );
         return $input;
     }
 }
