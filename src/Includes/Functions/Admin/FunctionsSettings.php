@@ -128,7 +128,7 @@ final class FunctionsSettings {
 		) );
 		if ( ! user_can( get_current_user_id(), 'modpress_settings_general_edit' ) ) {
 			LoggerHelper::write_log( 'ModPress general settings save denied: missing general_edit capability.' );
-			wp_die( esc_html__( 'You are not allowed to save ModPress general settings.', 'modpress' ), 403 );
+			$this->redirect_after_save( 'general', false, __( 'You are not allowed to save ModPress general settings.', 'modpress' ) );
 		}
 
 		$this->validate_save_nonce( 'modpress_save_general_settings' );
@@ -137,13 +137,25 @@ final class FunctionsSettings {
 			'general_input' => $input,
 			'general_input_keys' => array_keys( $input ),
 		) );
-		$sanitized = $this->sanitize_general( $input );
-		LoggerHelper::write_log( array(
-			'general_sanitized' => $sanitized,
-			'general_db_group' => Settings::get_group( Settings::GENERAL, array() ),
-		) );
-		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=general' ) );
-		exit;
+
+		try {
+			$sanitized = $this->sanitize_general( $input );
+			Settings::set_group( Settings::GENERAL, $sanitized );
+			foreach ( $sanitized as $key => $value ) {
+				Settings::set( $key, $value );
+			}
+			LoggerHelper::write_log( array(
+				'general_sanitized' => $sanitized,
+				'general_db_group' => Settings::get_group( Settings::GENERAL, array() ),
+			) );
+			$this->redirect_after_save( 'general', true, __( 'ModPress general settings saved successfully.', 'modpress' ) );
+		} catch ( \Throwable $exception ) {
+			LoggerHelper::write_log( array(
+				'general_save_error' => $exception->getMessage(),
+				'general_save_trace' => $exception->getTraceAsString(),
+			) );
+			$this->redirect_after_save( 'general', false, __( 'Failed to save ModPress general settings.', 'modpress' ) );
+		}
 	}
 
 	/**
@@ -159,7 +171,7 @@ final class FunctionsSettings {
 		) );
 		if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_access_edit' ) ) {
 			LoggerHelper::write_log( 'ModPress access settings save denied: missing access_edit capability.' );
-			wp_die( esc_html__( 'You are not allowed to save ModPress access settings.', 'modpress' ), 403 );
+			$this->redirect_after_save( 'access', false, __( 'You are not allowed to save ModPress access settings.', 'modpress' ) );
 		}
 
 		$this->validate_save_nonce( 'modpress_save_access_settings' );
@@ -168,17 +180,25 @@ final class FunctionsSettings {
 			'access_input' => $input,
 			'access_input_keys' => array_keys( $input ),
 		) );
-		$sanitized = $this->sanitize_access( $input );
-		Settings::set_group( Settings::ACCESS, $sanitized );
-		foreach ( $sanitized as $key => $value ) {
-			Settings::set( $key, $value );
+
+		try {
+			$sanitized = $this->sanitize_access( $input );
+			Settings::set_group( Settings::ACCESS, $sanitized );
+			foreach ( $sanitized as $key => $value ) {
+				Settings::set( $key, $value );
+			}
+			LoggerHelper::write_log( array(
+				'access_sanitized' => $sanitized,
+				'access_db_group' => Settings::get_group( Settings::ACCESS, array() ),
+			) );
+			$this->redirect_after_save( 'access', true, __( 'ModPress access settings saved successfully.', 'modpress' ) );
+		} catch ( \Throwable $exception ) {
+			LoggerHelper::write_log( array(
+				'access_save_error' => $exception->getMessage(),
+				'access_save_trace' => $exception->getTraceAsString(),
+			) );
+			$this->redirect_after_save( 'access', false, __( 'Failed to save ModPress access settings.', 'modpress' ) );
 		}
-		LoggerHelper::write_log( array(
-			'access_sanitized' => $sanitized,
-			'access_db_group' => Settings::get_group( Settings::ACCESS, array() ),
-		) );
-		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=access' ) );
-		exit;
 	}
 
 	/**
@@ -194,7 +214,7 @@ final class FunctionsSettings {
 		) );
 		if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'modpress_settings_layout_edit' ) ) {
 			LoggerHelper::write_log( 'ModPress layout settings save denied: missing layout_edit capability.' );
-			wp_die( esc_html__( 'You are not allowed to save ModPress layout settings.', 'modpress' ), 403 );
+			$this->redirect_after_save( 'layout', false, __( 'You are not allowed to save ModPress layout settings.', 'modpress' ) );
 		}
 
 		$this->validate_save_nonce( 'modpress_save_layout_settings' );
@@ -203,20 +223,58 @@ final class FunctionsSettings {
 			'layout_input' => $input,
 			'layout_input_keys' => array_keys( $input ),
 		) );
-		$section = sanitize_key( $input['layout_section'] ?? 'general' );
-		$sanitized = $this->sanitize_layout( $input );
-		Settings::set_group( Settings::LAYOUT, $sanitized );
-		foreach ( $sanitized as $key => $value ) {
-			Settings::set( $key, $value );
+
+		try {
+			$section = sanitize_key( $input['layout_section'] ?? 'general' );
+			$sanitized = $this->sanitize_layout( $input );
+			Settings::set_group( Settings::LAYOUT, $sanitized );
+			foreach ( $sanitized as $key => $value ) {
+				Settings::set( $key, $value );
+			}
+			LoggerHelper::write_log( array(
+				'layout_section' => $section,
+				'layout_sanitized' => $sanitized,
+				'layout_db_group' => Settings::get_group( Settings::LAYOUT, array() ),
+			) );
+			$this->redirect_after_save( 'layout', true, __( 'ModPress layout settings saved successfully.', 'modpress' ), array( 'layout_section' => $section ) );
+		} catch ( \Throwable $exception ) {
+			LoggerHelper::write_log( array(
+				'layout_save_error' => $exception->getMessage(),
+				'layout_save_trace' => $exception->getTraceAsString(),
+			) );
+			$this->redirect_after_save( 'layout', false, __( 'Failed to save ModPress layout settings.', 'modpress' ) );
 		}
-		LoggerHelper::write_log( array(
-			'layout_section' => $section,
-			'layout_sanitized' => $sanitized,
-			'layout_db_group' => Settings::get_group( Settings::LAYOUT, array() ),
-		) );
-		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=settings&tab=layout&layout_section=' . rawurlencode( $section ) ) );
-		exit;
 	}
+    /**
+     * Redirect back to the settings page with a success or error notification flag.
+     *
+     * @param string $tab The settings tab to return to.
+     * @param bool $success Whether the save succeeded.
+     * @param string $message Optional notice message.
+     * @param array<string, string> $extra_query Extra query arguments.
+     * @return void
+     * @since 1.0.0
+     */
+    private function redirect_after_save( string $tab, bool $success, string $message = '', array $extra_query = array() ): void {
+        $query = array(
+            'page' => 'modpress',
+            'group' => 'settings',
+            'tab' => $tab,
+            $success ? 'settings_saved' : 'settings_failed' => '1',
+        );
+
+        foreach ( $extra_query as $key => $value ) {
+            $query[ $key ] = $value;
+        }
+
+        if ( '' !== $message ) {
+            $query['settings_message'] = rawurlencode( $message );
+        }
+
+        wp_safe_redirect( admin_url( 'admin.php?' . build_query( $query ) ) );
+        exit;
+    }
+
     /**
 	 * Sanitize the general settings input.
 	 *

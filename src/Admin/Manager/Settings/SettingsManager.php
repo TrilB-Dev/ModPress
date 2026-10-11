@@ -195,9 +195,11 @@ final class SettingsManager extends Manager {
         $this->header( __( 'Settings', 'modpress' ) );
 
         if ( ! empty( $_GET['settings_saved'] ) ) {
-            echo AlertHelper::get_admin_notice( __( 'ModPress settings saved successfully.', 'modpress' ), 'success' );
+            $message = isset( $_GET['settings_message'] ) ? rawurldecode( wp_unslash( $_GET['settings_message'] ) ) : __( 'ModPress settings saved successfully.', 'modpress' );
+            echo AlertHelper::get_admin_notice( $message, 'success' );
         } elseif ( ! empty( $_GET['settings_failed'] ) ) {
-            echo AlertHelper::get_admin_notice( __( 'Failed to save ModPress settings. Please try again.', 'modpress' ), 'error' );
+            $message = isset( $_GET['settings_message'] ) ? rawurldecode( wp_unslash( $_GET['settings_message'] ) ) : __( 'Failed to save ModPress settings. Please try again.', 'modpress' );
+            echo AlertHelper::get_admin_notice( $message, 'error' );
         }
 
         if ( function_exists( 'settings_errors' ) ) {

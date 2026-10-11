@@ -195,6 +195,12 @@ final class FunctionsSidebar {
 						'link'       => 'modpress&group=settings&tab=layout',
 						'capability' => 'modpress_settings_layout_view',
 					],
+					'access' => [
+						'label'      => __( 'Access', 'modpress' ),
+						'icon'       => 'fa-solid fa-user-shield',
+						'link'       => 'modpress&group=settings&tab=access',
+						'capability' => 'modpress_settings_access_view',
+					],
 					'plugins' => [
 						'label'      => __( 'Plugins', 'modpress' ),
 						'icon'       => 'fa-solid fa-puzzle-piece',
@@ -206,12 +212,6 @@ final class FunctionsSidebar {
 						'icon'       => 'fa-solid fa-plug',
 						'link'       => 'modpress&group=settings&tab=third-party',
 						'capability' => 'modpress_settings_plugins_ext_view',
-					],
-					'access' => [
-						'label'      => __( 'Access', 'modpress' ),
-						'icon'       => 'fa-solid fa-user-shield',
-						'link'       => 'modpress&group=settings&tab=access',
-						'capability' => 'modpress_settings_access_view',
 					],
 				],
 			],

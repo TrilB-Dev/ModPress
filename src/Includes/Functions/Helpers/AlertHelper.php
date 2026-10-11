@@ -17,6 +17,7 @@ class AlertHelper {
 	 *
 	 * @param string $message The message to display.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public static function admin_error( string $message ): void {
 		self::render_admin_notice( $message, 'error' );
@@ -27,6 +28,7 @@ class AlertHelper {
 	 *
 	 * @param string $message The message to display.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public static function admin_success( string $message ): void {
 		self::render_admin_notice( $message, 'success' );
@@ -37,6 +39,7 @@ class AlertHelper {
 	 *
 	 * @param string $message The message to display.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public static function admin_warning( string $message ): void {
 		self::render_admin_notice( $message, 'warning' );
@@ -47,6 +50,7 @@ class AlertHelper {
 	 *
 	 * @param string $message The message to display.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public static function admin_info( string $message ): void {
 		self::render_admin_notice( $message, 'info' );
@@ -58,6 +62,7 @@ class AlertHelper {
 	 * @param string $message The message to display.
 	 * @param string $type    The type of notice ('info', 'success', 'warning', 'error').
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public static function render_admin_notice( string $message, string $type = 'info' ): void {
 		echo self::get_admin_notice( $message, $type );
@@ -69,6 +74,7 @@ class AlertHelper {
 	 * @param string $message The message to display.
 	 * @param string $type    The type of notice ('info', 'success', 'warning', 'error').
 	 * @return string The rendered admin notice.
+	 * @since 1.0.0
 	 */
 	public static function get_admin_notice( string $message, string $type = 'info' ): string {
 		$allowed_types = array( 'info', 'success', 'warning', 'error' );
