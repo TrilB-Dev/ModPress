@@ -58,7 +58,14 @@ final class SettingsAccess {
 								[
 									'id' => 'modpress-access-create-mods',
 									'data' => $options,
-									'selected' => array_values( array_filter( array_map( 'sanitize_key', (array) $create_mods ) ) ),
+									'selected' => array_values( 
+										array_filter( 
+											array_map( 
+												'sanitize_key', 
+												(array) $create_mods 
+											) 
+										) 
+									),
 								]
 							); ?>
 						</td>
@@ -80,7 +87,14 @@ final class SettingsAccess {
 								[
 									'id' => 'modpress-access-write-pages',
 									'data' => $options,
-									'selected' => array_values( array_filter( array_map( 'sanitize_key', (array) $write_pages ) ) ),
+									'selected' => array_values( 
+										array_filter( 
+											array_map( 
+												'sanitize_key', 
+												(array) $write_pages 
+											) 
+										) 
+									),
 								]
 							); ?>
 						</td>
@@ -103,7 +117,14 @@ final class SettingsAccess {
 								[
 									'id' => 'modpress-access-view-analytics',
 									'data' => $options,
-									'selected' => array_values( array_filter( array_map( 'sanitize_key', (array) $view_analytics ) ) ),
+									'selected' => array_values( 
+										array_filter( 
+											array_map( 
+												'sanitize_key', 
+												(array) $view_analytics 
+											) 
+										) 
+									),
 								]
 							); ?>
 						</td>
@@ -126,7 +147,14 @@ final class SettingsAccess {
 								[
 									'id' => 'modpress-access-manage-plugins',
 									'data' => $options,
-									'selected' => array_values( array_filter( array_map( 'sanitize_key', (array) $manage_plugins ) ) ),
+									'selected' => array_values( 
+										array_filter( 
+											array_map( 
+												'sanitize_key', 
+												(array) $manage_plugins 
+											) 
+										) 
+									),
 								]
 							); ?>
 						</td>
