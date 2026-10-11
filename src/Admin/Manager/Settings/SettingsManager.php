@@ -168,7 +168,7 @@ final class SettingsManager extends Manager {
      */
     public function render(): void {
         $tab = SanitizationHelper::key( wp_unslash( $_GET['tab'] ?? 'general' ), 'general' );
-        $layout_section = SanitizationHelper::key( wp_unslash( $_GET['layout_section'] ?? 'general' ), 'general' );
+        $layout_section = SanitizationHelper::key( wp_unslash( $_GET['s'] ?? $_GET['layout_section'] ?? 'general' ), 'general' );
         $tab = $this->normalize_tab( $tab );
         $tab_context = [
             'general' => [ 
@@ -218,6 +218,7 @@ final class SettingsManager extends Manager {
      */
     public function render_tab_content( string $tab, string $layout_section = 'general' ): void {
         $tab = $this->normalize_tab( $tab );
+        $layout_section = in_array( $layout_section, [ 'general', 'search', 'sidebar', 'page' ], true ) ? $layout_section : 'general';
         $view_capabilities = [
             'general' => [ 
                 'modpress_settings_general_view' 
