@@ -36,7 +36,7 @@ final class SettingsLayout {
 			<nav aria-label="<?php echo esc_attr__( 'Layout settings sections', 'modpress' ); ?>" class="mb-3">
 				<div class="nav nav-tabs" id="modpress-layout-tab" role="tablist">
 					<a 
-						href="<?php echo esc_url( admin_url( 'admin.php?page=modpress-settings&tab=layout&s=general' ) ); ?>" 
+						href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=settings&tab=layout&s=general' ) ); ?>" 
 						class="nav-link <?php echo 'general' === $section ? 'active' : ''; ?>" 
 						id="modpress-layout-general-tab" 
 						role="tab" 
@@ -45,7 +45,7 @@ final class SettingsLayout {
 						<?php esc_html_e( 'General', 'modpress' ); ?>
 					</a>
 					<a 
-						href="<?php echo esc_url( admin_url( 'admin.php?page=modpress-settings&tab=layout&s=search' ) ); ?>" 
+						href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=settings&tab=layout&s=search' ) ); ?>" 
 						class="nav-link <?php echo 'search' === $section ? 'active' : ''; ?>" 
 						id="modpress-layout-search-tab" 
 						role="tab" 
@@ -54,7 +54,7 @@ final class SettingsLayout {
 						<?php esc_html_e( 'Mod Search', 'modpress' ); ?>
 					</a>
 					<a 
-						href="<?php echo esc_url( admin_url( 'admin.php?page=modpress-settings&tab=layout&s=sidebar' ) ); ?>" 
+						href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=settings&tab=layout&s=sidebar' ) ); ?>" 
 						class="nav-link <?php echo 'sidebar' === $section ? 'active' : ''; ?>" 
 						id="modpress-layout-sidebar-tab" 
 						role="tab" 
@@ -63,7 +63,7 @@ final class SettingsLayout {
 						<?php esc_html_e( 'Mod Sidebar', 'modpress' ); ?>
 					</a>
 					<a 
-						href="<?php echo esc_url( admin_url( 'admin.php?page=modpress-settings&tab=layout&s=page' ) ); ?>" 
+						href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=settings&tab=layout&s=page' ) ); ?>" 
 						class="nav-link <?php echo 'page' === $section ? 'active' : ''; ?>" 
 						id="modpress-layout-page-tab" 
 						role="tab" 
