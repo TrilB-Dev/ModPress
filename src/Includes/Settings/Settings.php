@@ -41,7 +41,7 @@ final class Settings {
      */
     public const TOOLS = 'tools';
     /**
-     * Settings manager class.
+     * Get a setting value by its key. Returns the default value if the setting does not exist.
      * 
      * @since 1.0.0
      */
@@ -50,6 +50,7 @@ final class Settings {
     }
     /**
      * Get a sanitized string setting.
+     * Returns the setting value as a sanitized string.
      * 
      * @since 1.0.0
      */
@@ -59,6 +60,7 @@ final class Settings {
 
     /**
      * Get a sanitized key setting.
+     * Get a setting key that is expected to be a valid key format.
      * 
      * @since 1.0.0
      */
@@ -68,6 +70,7 @@ final class Settings {
 
     /**
      * Get a sanitized slug setting.
+     * Returns the setting value as a sanitized slug.
      * 
      * @since 1.0.0
      */
@@ -77,6 +80,7 @@ final class Settings {
 
     /**
      * Get a sanitized integer setting.
+     * Returns the setting value as a sanitized integer.
      * 
      * @since 1.0.0
      */
@@ -86,6 +90,7 @@ final class Settings {
 
     /**
      * Get a sanitized boolean setting.
+     * Returns the setting value as a sanitized boolean.
      * 
      * @since 1.0.0
      */
@@ -105,6 +110,7 @@ final class Settings {
 
     /**
      * Set a setting value.
+     * Sets the value of a setting identified by its key.
      * 
      * @since 1.0.0
      */
@@ -113,7 +119,8 @@ final class Settings {
     }
 
     /**
-     * Delete a setting.
+     * Delete a setting by its key.
+     * Deletes the setting identified by its key.
      * 
      * @since 1.0.0
      */
@@ -122,7 +129,8 @@ final class Settings {
     }
 
     /**
-     * Check if a setting exists.
+     * Check if a setting exists by its key.
+     * Returns true if the setting exists, false otherwise.
      * 
      * @since 1.0.0
      */
@@ -131,7 +139,8 @@ final class Settings {
     }
 
     /**
-     * Get all settings within a group.
+     * Get all settings within a group by its name.
+     * Returns an array of all settings within the specified group, or the default value if the group does not exist.
      * 
      * @since 1.0.0
      */
@@ -140,7 +149,8 @@ final class Settings {
     }
 
     /**
-     * Set all settings within a group.
+     * Set all settings within a group by its name.
+     * Returns true if the settings were successfully updated, false otherwise.
      * 
      * @since 1.0.0
      */
@@ -150,6 +160,7 @@ final class Settings {
 
     /**
      * Register a new settings group with default values.
+     * Returns true if the group was successfully registered, false otherwise.
      * 
      * @since 1.0.0
      */
@@ -159,6 +170,7 @@ final class Settings {
 
     /**
      * Register a new setting key within a group with a default value.
+     * Returns true if the key was successfully registered, false otherwise.
      * 
      * @since 1.0.0
      */
@@ -168,6 +180,7 @@ final class Settings {
 
     /**
      * Get all settings.
+     * Returns an array of all settings.
      * 
      * @since 1.0.0
      */

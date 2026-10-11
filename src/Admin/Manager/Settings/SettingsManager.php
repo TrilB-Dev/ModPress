@@ -252,8 +252,6 @@ final class SettingsManager extends Manager {
             'access' => 'modpress_settings_access_edit',
         ];
         $can_edit = isset( $edit_capabilities[ $tab ] ) && ( current_user_can( 'manage_options' ) || current_user_can( $edit_capabilities[ $tab ] ) );
-        $groups = Settings::get_all();
-        $values = $groups[ $tab ] ?? [];
         $tab_context = [
             'general' => [
                 'description' => __( 'Configure ModPress names, URL slugs, and permalink settings.', 'modpress' ),
@@ -304,16 +302,16 @@ final class SettingsManager extends Manager {
             <div class="modpress-settings-card card shadow-sm">
                 <div class="card-body">
                     <?php if ( 'layout' === $tab ) : ?>
-                        <?php $this->layout_page->render( $values, SanitizationHelper::key( $layout_section, 'general' ) ); ?>
+                        <?php $this->layout_page->render( $values = Settings::get_group( 'layout' ), SanitizationHelper::key( $layout_section, 'general' ) ); ?>
                     <?php else : ?>
                         <table class="form-table table align-middle" role="presentation">
                             <tbody>
                                 <?php if ( 'general' === $tab ) : ?>
-                                    <?php $this->general_page->render( $values ); ?>
+                                    <?php $this->general_page->render( $values = Settings::get_group( 'general' )); ?>
                                 <?php elseif ( 'access' === $tab ) : ?>
-                                    <?php $this->access_page->render( $values ); ?>
+                                    <?php $this->access_page->render( $values = Settings::get_group( 'access' )); ?>
                                 <?php elseif ( $this->plugins_page->has_settings_page( $tab ) ) : ?>
-                                    <?php $this->plugins_page->render_settings_page( $tab, $values ); ?>
+                                    <?php $this->plugins_page->render_settings_page( $tab, $values = Settings::get_all() ); ?>
                                 <?php endif; ?>
                             </tbody>
                         </table>
