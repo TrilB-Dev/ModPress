@@ -37,6 +37,12 @@ if ( ! function_exists( 'sanitize_textarea_field' ) ) {
 	}
 }
 
+if ( ! function_exists( 'dbDelta' ) ) {
+	function dbDelta( $queries ) {
+		return true;
+	}
+}
+
 if ( ! function_exists( 'post_type_exists' ) ) {
 	function post_type_exists( $post_type ): bool {
 		return isset( $GLOBALS['modpress_test_post_types'][ (string) $post_type ] );

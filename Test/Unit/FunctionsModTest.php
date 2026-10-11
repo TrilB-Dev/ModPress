@@ -206,6 +206,49 @@ namespace ModPress\Tests\Unit {
             $this->assertArrayHasKey( 'modpress_settings_layout_edit', $definitions );
         }
 
+        public function testSettingsInstallOnlySeedsOncePerRuntime(): void {
+            $wpdb = new class {
+                public string $prefix = 'wp_';
+                public array $storage = [];
+
+                public function prepare( string $query, ...$args ): string {
+                    foreach ( $args as $arg ) {
+                        $query = preg_replace( '/%s/', (string) $arg, $query, 1 );
+                    }
+                    return $query;
+                }
+
+                public function get_var( string $query ) {
+                    if ( preg_match( '/SHOW TABLES LIKE \'([^\']+)\'/', $query, $matches ) ) {
+                        return $matches[1] === 'wp_modpress_settings' ? 'wp_modpress_settings' : null;
+                    }
+
+                    if ( preg_match( "/SELECT setting_value FROM wp_modpress_settings WHERE setting_group = '([^']+)'/", $query, $matches ) ) {
+                        return $this->storage['modpress_settings'][ $matches[1] ] ?? null;
+                    }
+
+                    return null;
+                }
+
+                public function replace( string $table, array $data, array $formats = [] ) {
+                    $this->storage[ $table ][ $data['setting_group'] ?? $data['setting_key'] ] = serialize( $data['setting_value'] );
+                    return true;
+                }
+            };
+
+            $GLOBALS['wpdb'] = $wpdb;
+
+            $class = new \ReflectionClass( SettingsManager::class );
+            $property = $class->getProperty( 'seeded' );
+            $property->setAccessible( true );
+            $property->setValue( null, false );
+
+            SettingsManager::install();
+            SettingsManager::install();
+
+            $this->assertTrue( $property->getValue() );
+        }
+
         public function testFontAwesomeRuntimePrefersWordPressOfficialPluginByDefault(): void {
             $this->assertFalse( \ModPress\Includes\Plugins\FontAwesome\FontAwesome::is_wordpress_fontawesome_active() );
             \ModPress\Includes\Plugins\FontAwesome\FontAwesome::ensure_vendor_initialized();

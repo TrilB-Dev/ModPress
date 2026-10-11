@@ -41,6 +41,14 @@ final class SettingsManager {
     private static array $registered_keys = [];
 
     /**
+     * Whether default settings have already been seeded for this runtime.
+     *
+     * @var bool
+     * @since 1.0.0
+     */
+    private static bool $seeded = false;
+
+    /**
      * Get the table name for the custom ModPress settings storage.
      *
      * @return string
@@ -57,6 +65,11 @@ final class SettingsManager {
      * @since 1.0.0
      */
     public static function install(): void {
+        if ( self::$seeded ) {
+            return;
+        }
+
+        self::$seeded = true;
         Database::install();
 
         foreach ( self::registered_defaults() as $group => $settings ) {
