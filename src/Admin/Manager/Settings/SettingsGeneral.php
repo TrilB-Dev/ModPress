@@ -28,14 +28,14 @@ final class SettingsGeneral {
 			'general' => 'modpress_settings_general_edit',
 		);
 		$can_edit = isset( $edit_capabilities[ 'general' ] ) && current_user_can( $edit_capabilities[ 'general' ] );
-		$root_name = isset( $values['root_name'] ) ? SanitizationHelper::text( (string) $values['root_name'] ) : __( 'ModPress', 'modpress' );
-		$root_description = isset( $values['root_description'] ) ? SanitizationHelper::text( (string) $values['root_description'] ) : __( 'A searchable catalogue powered by ModPress.', 'modpress' );
-		$archive_title = isset( $values['archive_title'] ) ? SanitizationHelper::text( (string) $values['archive_title'] ) : __( 'ModPress Catalogue', 'modpress' );
-		$archive_description = isset( $values['archive_description'] ) ? SanitizationHelper::text( (string) $values['archive_description'] ) : __( 'Browse the ModPress catalogue.', 'modpress' );
-		$root_slug = isset( $values['root_slug'] ) ? SanitizationHelper::key( (string) $values['root_slug'] ) : 'catalogue';
-		$category_slug = isset( $values['category_slug'] ) ? SanitizationHelper::key( (string) $values['category_slug'] ) : 'catalogue-group';
-		$tag_slug = isset( $values['tag_slug'] ) ? SanitizationHelper::key( (string) $values['tag_slug'] ) : 'catalogue-tag';
-		$permalink = isset( $values['permalink'] ) ? PermalinkHelper::sanitize_pattern( (string) $values['permalink'] ) : '%mod_root%/%mod_groups%/%mod_tags%/%mod_post%';
+		$root_name = isset( $values['root_name'] ) ? SanitizationHelper::text( (string) $values['root_name'] ) : '';
+		$root_description = isset( $values['root_description'] ) ? SanitizationHelper::text( (string) $values['root_description'] ) : '';
+		$archive_title = isset( $values['archive_title'] ) ? SanitizationHelper::text( (string) $values['archive_title'] ) : '';
+		$archive_description = isset( $values['archive_description'] ) ? SanitizationHelper::text( (string) $values['archive_description'] ) : '';
+		$root_slug = isset( $values['root_slug'] ) ? SanitizationHelper::key( (string) $values['root_slug'] ) : '';
+		$category_slug = isset( $values['category_slug'] ) ? SanitizationHelper::key( (string) $values['category_slug'] ) : '';
+		$tag_slug = isset( $values['tag_slug'] ) ? SanitizationHelper::key( (string) $values['tag_slug'] ) : '';
+		$permalink = isset( $values['permalink'] ) ? PermalinkHelper::sanitize_pattern( (string) $values['permalink'] ) : '';
 		$token_definitions = array(
 			'%mod_root%'   => __( 'The root of ModPress.', 'modpress' ),
 			'%mod_type%'   => __( 'The Mod type taxonomy.', 'modpress' ),
