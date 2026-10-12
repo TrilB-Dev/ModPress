@@ -153,22 +153,28 @@ final class ModGroups extends ModManager {
 														<td><?php echo esc_html( wp_trim_words( $term->description, 12 ) ); ?></td>
 														<td class="text-end">
 															<div class="btn-group btn-group-sm">
-																<?php echo FormFieldHelper::button( __( 'Edit', 'modpress' ), array(
-																	'type' => 'button',
-																	'class' => 'btn btn-outline-secondary',
-																	'attributes' => array(
-																		'data-bs-toggle' => 'modal',
-																		'data-bs-target' => '#modpress-entry-modal',
-																		'data-taxonomy-key' => $taxonomy_key,
-																		'data-entry-name' => $term->name,
-																		'data-entry-slug' => $term->slug,
-																		'data-entry-description' => $term->description,
-																	),
-																) ); ?>
-																<?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
-																	'type' => 'button',
-																	'class' => 'btn btn-outline-danger',
-																) ); ?>
+																<?php echo FormFieldHelper::button( 
+																	__( 'Edit', 'modpress' ), 
+																	array(
+																		'type' => 'button',
+																		'class' => 'btn btn-outline-secondary',
+																		'attributes' => array(
+																			'data-bs-toggle' => 'modal',
+																			'data-bs-target' => '#modpress-entry-modal',
+																			'data-taxonomy-key' => $taxonomy_key,
+																			'data-entry-name' => $term->name,
+																			'data-entry-slug' => $term->slug,
+																			'data-entry-description' => $term->description,
+																		),
+																	) 
+																); ?>
+																<?php echo FormFieldHelper::button( 
+																	__( 'Delete', 'modpress' ), 
+																	array(
+																		'type' => 'button',
+																		'class' => 'btn btn-outline-danger',
+																	) 
+																); ?>
 															</div>
 														</td>
 													</tr>
@@ -210,7 +216,13 @@ final class ModGroups extends ModManager {
 		?>
 		<tr>
 			<th scope="row" class="align-top text-nowrap pe-4">
-				<?php echo wp_kses_post( FormFieldHelper::label( $field_id, $label, $meta ) ); ?>
+				<?php echo wp_kses_post( 
+						FormFieldHelper::label( 
+						$field_id, 
+						$label, 
+						$meta 
+					) 
+				); ?>
 			</th>
 			<td>
 				<?php echo $field; ?>
@@ -262,7 +274,14 @@ final class ModGroups extends ModManager {
 														'group_name',
 														__( 'Name', 'modpress' ),
 														function () {
-															return FormFieldHelper::text_input( 'group_name', '', array( 'id' => 'group_name' ) );
+															return FormFieldHelper::text_input( 
+																'group_name', 
+																'', 
+																array( 
+																	'id' => 'group_name',
+																	'class' => 'w-100',
+																) 
+															);
 														},
 														__( 'The display name for this group.', 'modpress' ),
 														__( 'Use a clear name that editors will recognise immediately.', 'modpress' )
@@ -271,7 +290,14 @@ final class ModGroups extends ModManager {
 														'group_singular_name',
 														__( 'Singular Name', 'modpress' ),
 														function () {
-															return FormFieldHelper::text_input( 'group_singular_name', '', array( 'id' => 'group_singular_name' ) );
+															return FormFieldHelper::text_input( 
+																'group_singular_name', 
+																'', 
+																array( 
+																	'id' => 'group_singular_name',
+																	'class' => 'w-100',
+																) 
+															);
 														},
 														__( 'Single-item label for this group.', 'modpress' ),
 														__( 'This label is used when the group is shown as a single item.', 'modpress' )
@@ -280,7 +306,15 @@ final class ModGroups extends ModManager {
 														'group_description',
 														__( 'Description', 'modpress' ),
 														function () {
-															return FormFieldHelper::textarea( 'group_description', '', array( 'id' => 'group_description', 'rows' => 4 ) );
+															return FormFieldHelper::textarea( 
+																'group_description', 
+																'', 
+																array( 
+																	'id' => 'group_description',
+																	'rows' => 4,
+																	'class' => 'w-100',
+																) 
+															);
 														},
 														__( 'Explain what this group is used for.', 'modpress' ),
 														__( 'This text helps editors understand how the taxonomy should be used.', 'modpress' )
@@ -289,7 +323,14 @@ final class ModGroups extends ModManager {
 														'group_hierarchical',
 														__( 'Hierarchical', 'modpress' ),
 														function () {
-															return FormFieldHelper::switch( 'group_hierarchical', '1', __( 'Enabled', 'modpress' ), array( 'id' => 'group_hierarchical' ) );
+															return FormFieldHelper::switch( 
+																'group_hierarchical', 
+																'1', 
+																__( 'Enabled', 'modpress' ), 
+																array( 
+																	'id' => 'group_hierarchical' 
+																) 
+															);
 														},
 														__( 'Allow nested entries within this group.', 'modpress' ),
 														__( 'Enable this when the group should behave like a parent/child structure.', 'modpress' )
@@ -298,7 +339,14 @@ final class ModGroups extends ModManager {
 														'group_parent',
 														__( 'Parent Group', 'modpress' ),
 														function () use ( $group_options ) {
-															return FormFieldHelper::select( 'group_parent', $group_options, 'none', array( 'id' => 'group_parent', 'class' => 'selectpicker' ) );
+																return FormFieldHelper::bootstrap_select( 
+																	'group_parent',
+																	array(
+																		'data' => $group_options,
+																		'selected' => 'none',
+																		'id' => 'group_parent',
+																	)
+															);
 														},
 														__( 'Choose a parent taxonomy group if needed.', 'modpress' ),
 														__( 'This creates a hierarchy between related taxonomy groups.', 'modpress' )
@@ -330,28 +378,67 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'field_name',
 														__( 'Name', 'modpress' ),
-														function () { return FormFieldHelper::text_input( 'field_name', '', array( 'id' => 'field_name' ) ); },
+														function () { 
+															return FormFieldHelper::text_input( 
+																'field_name', 
+																'', 
+																array( 
+																	'id' => 'field_name',
+																	'class' => 'w-100'
+																) 
+															); 
+														},
 														__( 'The field name shown in the taxonomy form.', 'modpress' ),
 														__( 'This value should be short, clear, and easy to search for.', 'modpress' )
 													); ?>
 													<?php $this->render_form_row(
 														'field_slug',
 														__( 'Slug', 'modpress' ),
-														function () { return FormFieldHelper::text_input( 'field_slug', '', array( 'id' => 'field_slug' ) ); },
+														function () { 
+															return FormFieldHelper::text_input( 
+																'field_slug', 
+																'', 
+																array( 
+																	'id' => 'field_slug',
+																	'class' => 'w-100'
+																) 
+															); 
+														},
 														__( 'Unique machine-friendly identifier.', 'modpress' ),
 														__( 'This slug is used internally and should remain consistent.', 'modpress' )
 													); ?>
 													<?php $this->render_form_row(
 														'field_parent',
 														__( 'Parent', 'modpress' ),
-														function () { return FormFieldHelper::select( 'field_parent', array( 'none' => __( 'None', 'modpress' ) ), 'none', array( 'id' => 'field_parent', 'class' => 'selectpicker' ) ); },
+														function () { 
+																return FormFieldHelper::bootstrap_select( 
+																	'field_parent',
+																	array(
+																		'data' => array( 
+																			'' => __( 'None', 'modpress' ) 
+																		),
+																		'selected' => '',
+																		'id' => 'field_parent',
+																	)
+															); 
+														},
 														__( 'Choose a parent field if this field is nested.', 'modpress' ),
 														__( 'Parent fields help organise sectional metadata.', 'modpress' )
 													); ?>
 													<?php $this->render_form_row(
 														'field_description',
 														__( 'Description', 'modpress' ),
-														function () { return FormFieldHelper::textarea( 'field_description', '', array( 'id' => 'field_description', 'rows' => 3 ) ); },
+														function () { 
+															return FormFieldHelper::textarea( 
+																'field_description', 
+																'', 
+																array( 
+																	'id' => 'field_description', 
+																	'rows' => 3,
+																	'class' => 'w-100'
+																) 
+															); 
+														},
 														__( 'Description of the field purpose.', 'modpress' ),
 														__( 'A concise description helps editors understand what should go here.', 'modpress' )
 													); ?>
@@ -390,42 +477,108 @@ final class ModGroups extends ModManager {
 															<?php $this->render_form_row(
 																'custom_field_name[]',
 																__( 'Field Name', 'modpress' ),
-																function () { return FormFieldHelper::text_input( 'custom_field_name[]', '', array( 'placeholder' => __( 'Example: release_date', 'modpress' ) ) ); },
+																function () { 
+																	return FormFieldHelper::text_input( 
+																		'custom_field_name[]', 
+																		'', 
+																		array( 
+																			'placeholder' => __( 'Example: release_date', 'modpress' ),
+																			'class' => 'w-100'
+																		) 
+																	); 
+																},
 																__( 'Field name used for storage and lookup.', 'modpress' ),
 																__( 'Keep this safe and consistent with your mod metadata.', 'modpress' )
 															); ?>
 															<?php $this->render_form_row(
 																'custom_field_description[]',
 																__( 'Field Description', 'modpress' ),
-																function () { return FormFieldHelper::textarea( 'custom_field_description[]', '', array( 'rows' => 2, 'placeholder' => __( 'Describe the field purpose.', 'modpress' ) ) ); },
+																function () { 
+																	return FormFieldHelper::textarea( 
+																		'custom_field_description[]', 
+																		'', 
+																		array( 
+																			'rows' => 2, 
+																			'placeholder' => __( 'Describe the field purpose.', 'modpress' ),
+																			'class' => 'w-100' 
+																		) 
+																	); 
+																},
 																__( 'Optional description for editors.', 'modpress' ),
 																__( 'This explanation helps maintainers decide what belongs in this field.', 'modpress' )
 															); ?>
 															<?php $this->render_form_row(
 																'custom_field_tooltip[]',
 																__( 'Field Tooltip', 'modpress' ),
-																function () { return FormFieldHelper::textarea( 'custom_field_tooltip[]', '', array( 'rows' => 2, 'placeholder' => __( 'Tooltip shown to editors.', 'modpress' ) ) ); },
+																function () { 
+																	return FormFieldHelper::textarea( 
+																		'custom_field_tooltip[]', 
+																		'', 
+																		array( 
+																			'rows' => 2, 
+																			'placeholder' => __( 'Tooltip shown to editors.', 'modpress' ),
+																			'class' => 'w-100' 
+																		) 
+																	); 
+																},
 																__( 'The tooltip shown when hovering over the field.', 'modpress' ),
 																__( 'Keep it short and practical so editors can act quickly.', 'modpress' )
 															); ?>
 															<?php $this->render_form_row(
 																'custom_field_type[]',
 																__( 'Field Type', 'modpress' ),
-																function () { return FormFieldHelper::select( 'custom_field_type[]', array( 'text' => __( 'Text', 'modpress' ), 'textarea' => __( 'Text Area', 'modpress' ), 'number' => __( 'Number', 'modpress' ), 'image' => __( 'Image/icon button', 'modpress' ), 'switch' => __( 'Switch', 'modpress' ), 'radio' => __( 'Radio button group', 'modpress' ), 'select' => __( 'Select', 'modpress' ), 'color' => __( 'Colour', 'modpress' ) ), '', array( 'class' => 'selectpicker', 'data-field-type' => 'true' ) ); },
+																function () {
+																	return FormFieldHelper::bootstrap_select(
+																		'custom_field_type[]',
+																		array(
+																			'data' => array(
+																				'text' => __( 'Text', 'modpress' ),
+																				'textarea' => __( 'Text Area', 'modpress' ),
+																				'number' => __( 'Number', 'modpress' ),
+																				'image' => __( 'Image/icon button', 'modpress' ),
+																				'switch' => __( 'Switch', 'modpress' ),
+																				'radio' => __( 'Radio button group', 'modpress' ),
+																				'select' => __( 'Select', 'modpress' ),
+																				'color' => __( 'Colour', 'modpress' ),
+																			),
+																			'selected' => '',
+																			'data-field-type' => 'true',
+																		),
+																	); 
+																},
 																__( 'Choose how the field should be entered.', 'modpress' ),
 																__( 'Different field types will change the editor experience.', 'modpress' )
 															); ?>
 															<?php $this->render_form_row(
 																'custom_field_show_in_table[]',
 																__( 'Show In Table', 'modpress' ),
-																function () { return FormFieldHelper::switch( 'custom_field_show_in_table[]', '1', __( 'Enabled', 'modpress' ), array( 'checked' => false ) ); },
+																function () { 
+																	return FormFieldHelper::switch( 
+																		'custom_field_show_in_table[]', 
+																		'1', 
+																		__( 'Enabled', 'modpress' ), 
+																		array( 
+																			'checked' => false 
+																		) 
+																	); 
+																},
 																__( 'Display this field in the group table view.', 'modpress' ),
 																__( 'Enable this when the field should remain visible in the listing.', 'modpress' )
 															); ?>
 															<?php $this->render_form_row(
 																'custom_field_options[]',
 																__( 'Field Options', 'modpress' ),
-																function () { return FormFieldHelper::textarea( 'custom_field_options[]', '', array( 'rows' => 3, 'placeholder' => __( 'Option 1\nOption 2', 'modpress' ) ) ); },
+																function () { 
+																	return FormFieldHelper::textarea( 
+																		'custom_field_options[]', 
+																		'', 
+																		array( 
+																			'rows' => 3, 
+																			'placeholder' => __( 'Option 1\nOption 2', 'modpress' ),
+																			'class' => 'w-100' 
+																		) 
+																	); 
+																},
 																__( 'Option values for radio, select, or checkbox fields.', 'modpress' ),
 																__( 'Place one option per line so the field can be rendered correctly.', 'modpress' )
 															); ?>
@@ -457,7 +610,8 @@ final class ModGroups extends ModManager {
                                                                     'custom_field_name[]', 
                                                                     '', 
                                                                     array( 
-                                                                        'placeholder' => __( 'Example: release_date', 'modpress' ) 
+                                                                        'placeholder' => __( 'Example: release_date', 'modpress' ),
+																		'class' => 'w-100'
                                                                     ) 
                                                                 );
                                                             }, 
@@ -473,7 +627,8 @@ final class ModGroups extends ModManager {
                                                                     '', 
                                                                     array( 
                                                                         'rows' => 2, 
-                                                                        'placeholder' => __( 'Describe the field purpose.', 'modpress' ) 
+                                                                        'placeholder' => __( 'Describe the field purpose.', 'modpress' ),
+                                                                        'class' => 'w-100'
                                                                     ) 
                                                                 ); 
                                                             }, 
@@ -489,7 +644,8 @@ final class ModGroups extends ModManager {
                                                                     '', 
                                                                     array( 
                                                                         'rows' => 2, 
-                                                                        'placeholder' => __( 'Tooltip shown to editors.', 'modpress' ) 
+                                                                        'placeholder' => __( 'Tooltip shown to editors.', 'modpress' ),
+                                                                        'class' => 'w-100' 
                                                                     ) 
                                                                 ); 
                                                             }, 
@@ -500,20 +656,22 @@ final class ModGroups extends ModManager {
                                                             'custom_field_type[]', 
                                                             __( 'Field Type', 'modpress' ), 
                                                             function () { 
-                                                                return FormFieldHelper::select( 
-                                                                    'custom_field_type[]', 
-                                                                    array( 
-                                                                        'text' => __( 'Text', 'modpress' ), 
-                                                                        'textarea' => __( 'Text Area', 'modpress' ), 
-                                                                        'number' => __( 'Number', 'modpress' ), 
-                                                                        'image' => __( 'Image/icon button', 'modpress' ), 
-                                                                        'switch' => __( 'Switch', 'modpress' ), 
-                                                                        'radio' => __( 'Radio button group', 'modpress' ), 
-                                                                        'select' => __( 'Select', 'modpress' ), 
-                                                                        'color' => __( 'Colour', 'modpress' ) 
-                                                                    ), 
-                                                                    '', 
-                                                                    array( 'class' => 'selectpicker', 'data-field-type' => 'true' ) 
+                                                                return FormFieldHelper::bootstrap_select(
+                                                                    'custom_field_type[]',
+                                                                    array(
+                                                                        'data' => array(
+                                                                            'text' => __( 'Text', 'modpress' ),
+                                                                            'textarea' => __( 'Text Area', 'modpress' ),
+                                                                            'number' => __( 'Number', 'modpress' ),
+                                                                            'image' => __( 'Image/icon button', 'modpress' ),
+                                                                            'switch' => __( 'Switch', 'modpress' ),
+                                                                            'radio' => __( 'Radio button group', 'modpress' ),
+                                                                            'select' => __( 'Select', 'modpress' ),
+                                                                            'color' => __( 'Colour', 'modpress' ),
+                                                                        ),
+                                                                        'selected' => '',
+                                                                        'data-field-type' => 'true',
+                                                                    )
                                                                 ); 
                                                             }, 
                                                             __( 'Choose how the field should be entered.', 'modpress' ), 
@@ -542,7 +700,8 @@ final class ModGroups extends ModManager {
                                                                     '', 
                                                                     array( 
                                                                         'rows' => 3, 
-                                                                        'placeholder' => __( 'Option 1\nOption 2', 'modpress' ) 
+                                                                        'placeholder' => __( 'Option 1\nOption 2', 'modpress' ),
+                                                                        'class' => 'w-100'
                                                                     ) 
                                                                 ); 
                                                             }, 
@@ -560,8 +719,23 @@ final class ModGroups extends ModManager {
 						</div>
 					</div>
 					<div class="modal-footer">
-						<?php echo FormFieldHelper::button( __( 'Cancel', 'modpress' ), array( 'type' => 'button', 'class' => 'btn btn-outline-secondary', 'attributes' => array( 'data-bs-dismiss' => 'modal' ) ) ); ?>
-						<?php echo FormFieldHelper::button( __( 'Save', 'modpress' ), array( 'type' => 'submit', 'class' => 'btn btn-primary' ) ); ?>
+						<?php echo FormFieldHelper::button( 
+							__( 'Cancel', 'modpress' ), 
+							array( 
+								'type' => 'button', 
+								'class' => 'btn btn-outline-secondary', 
+								'attributes' => array( 
+									'data-bs-dismiss' => 'modal' 
+								) 
+							) 
+						); ?>
+						<?php echo FormFieldHelper::button( 
+							__( 'Save', 'modpress' ), 
+							array( 
+								'type' => 'submit', 
+								'class' => 'btn btn-primary' 
+							) 
+						); ?>
 					</div>
 				</form>
 			</div>
@@ -595,7 +769,14 @@ final class ModGroups extends ModManager {
 										'entry_name',
 										__( 'Name', 'modpress' ),
 										function () {
-											return FormFieldHelper::text_input( 'entry_name', '', array( 'id' => 'entry_name' ) );
+											return FormFieldHelper::text_input( 
+												'entry_name', 
+												'', 
+												array( 
+													'id' => 'entry_name',
+													'class' => 'w-100'
+												) 
+											);
 										},
 										__( 'Display name for the entry.', 'modpress' ),
 										__( 'Use a human-friendly name that is easy to recognise.', 'modpress' )
@@ -604,7 +785,14 @@ final class ModGroups extends ModManager {
 										'entry_slug',
 										__( 'Slug', 'modpress' ),
 										function () {
-											return FormFieldHelper::text_input( 'entry_slug', '', array( 'id' => 'entry_slug' ) );
+											return FormFieldHelper::text_input( 
+												'entry_slug', 
+												'', 
+												array( 
+													'id' => 'entry_slug', 
+													'class' => 'w-100' 
+												) 
+											);
 										},
 										__( 'Unique identifier used internally.', 'modpress' ),
 										__( 'This should be stable and match the taxonomy slug pattern.', 'modpress' )
@@ -622,7 +810,16 @@ final class ModGroups extends ModManager {
 										'entry_parent',
 										__( 'Parent', 'modpress' ),
 										function () {
-											return FormFieldHelper::select( 'entry_parent', array( 'none' => __( 'None', 'modpress' ) ), 'none', array( 'id' => 'entry_parent', 'class' => 'selectpicker' ) );
+											return FormFieldHelper::bootstrap_select(
+                                                                    'entry_parent',
+                                                                    array(
+                                                                        'data' => array(
+                                                                            'none' => __( 'None', 'modpress' ),
+                                                                        ),
+                                                                        'selected' => 'none',
+                                                                        'id' => 'entry_parent',
+                                                                    )
+                                                                );
 										},
 										__( 'Choose a parent entry if required.', 'modpress' ),
 										__( 'This is useful for nested categories or grouped options.', 'modpress' )
@@ -631,7 +828,15 @@ final class ModGroups extends ModManager {
 										'entry_icon',
 										__( 'Image/Icon', 'modpress' ),
 										function () {
-											return FormFieldHelper::text_input( 'entry_icon', '', array( 'id' => 'entry_icon', 'placeholder' => __( 'e.g. dashicons-admin-generic', 'modpress' ) ) );
+											return FormFieldHelper::text_input( 
+												'entry_icon', 
+												'', 
+												array( 
+													'id' => 'entry_icon', 
+													'class' => 'w-100',
+													'placeholder' => __( 'e.g. dashicons-admin-generic', 'modpress' ) 
+												) 
+											);
 										},
 										__( 'Optional icon or image identifier.', 'modpress' ),
 										__( 'Use a Dashicon class or similar icon reference for display.', 'modpress' )
@@ -640,8 +845,23 @@ final class ModGroups extends ModManager {
 							</table>
 						</div>
 						<div class="modal-footer">
-							<?php echo FormFieldHelper::button( __( 'Cancel', 'modpress' ), array( 'type' => 'button', 'class' => 'btn btn-outline-secondary', 'attributes' => array( 'data-bs-dismiss' => 'modal' ) ) ); ?>
-							<?php echo FormFieldHelper::button( __( 'Save', 'modpress' ), array( 'type' => 'submit', 'class' => 'btn btn-primary' ) ); ?>
+							<?php echo FormFieldHelper::button( 
+								__( 'Cancel', 'modpress' ), 
+								array( 
+									'type' => 'button', 
+									'class' => 'btn btn-outline-secondary', 
+									'attributes' => array( 
+										'data-bs-dismiss' => 'modal' 
+									) 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::button( 
+								__( 'Save', 'modpress' ), 
+								array( 
+									'type' => 'submit', 
+									'class' => 'btn btn-primary' 
+								) 
+							); ?>
 						</div>
 					</form>
 				</div>

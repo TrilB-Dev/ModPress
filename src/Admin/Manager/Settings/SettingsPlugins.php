@@ -65,11 +65,11 @@ final class SettingsPlugins {
                             ]
                         ); ?>
                         <?php if ( 'select' === $type ) : ?>
-                            <?php echo FormFieldHelper::select(
+                            <?php echo FormFieldHelper::bootstrap_select(
                                 $name,
-                                (array) ( $field['options'] ?? [] ),
-                                $value,
                                 [
+                                    'data' => (array) ( $field['options'] ?? [] ),
+                                    'selected' => $value,
                                     'id' => 'modpress-' . $key,
                                 ]
                             ); ?>
@@ -505,14 +505,14 @@ final class SettingsPlugins {
             endif;
 
             if ( 'table' === $layout && 'select' === $type ) {
-                echo FormFieldHelper::select( 
-                    $name, 
-                    (array) ( $field['options'] ?? [] ), 
-                    $value, 
-                    [ 
-                        'id' => $id, 
-                        'attributes' => $field['attributes'] ?? [] 
-                    ] 
+                echo FormFieldHelper::bootstrap_select( 
+                    $name,
+                    [
+                        'data' => (array) ( $field['options'] ?? [] ),
+                        'selected' => $value,
+                        'id' => $id,
+                        'attributes' => $field['attributes'] ?? []
+                    ]
                 );
             } elseif ( 'table' === $layout && 'multiselect' === $type ) {
                 echo FormFieldHelper::bootstrap_multiselect( 
@@ -547,14 +547,14 @@ final class SettingsPlugins {
                     ] 
                 );
             } elseif ( 'select' === $type ) {
-                echo FormFieldHelper::select( 
-                    $name, 
-                    (array) ( $field['options'] ?? [] ), 
-                    $value, 
-                    [ 
-                        'id' => $id, 
-                        'attributes' => $field['attributes'] ?? [] 
-                    ] 
+                echo FormFieldHelper::bootstrap_select( 
+                    $name,
+                    [
+                        'data' => (array) ( $field['options'] ?? [] ),
+                        'selected' => $value,
+                        'id' => $id,
+                        'attributes' => $field['attributes'] ?? []
+                    ]
                 );
             } elseif ( 'multiselect' === $type ) {
                 echo FormFieldHelper::bootstrap_multiselect( 

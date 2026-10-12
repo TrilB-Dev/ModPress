@@ -563,8 +563,8 @@ class IconPicker {
 
                     <div class="modpress-fa-picker-search">
                         <?php echo wp_kses_post( FormFieldHelper::input( 'modpress_fa_search', '', [ 'type' => 'search', 'class' => 'modpress-fa-picker-search-input', 'placeholder' => __( 'Search icons...', 'modpress' ) ] ) ); ?>
-                        <?php echo wp_kses_post( FormFieldHelper::select( 'modpress_fa_pack', [ 'classic' => __( 'Classic', 'modpress' ), 'duotone' => __( 'Duotone', 'modpress' ), 'sharp' => __( 'Sharp', 'modpress' ), 'sharp-duotone' => __( 'Sharp Duotone', 'modpress' ), 'brands' => __( 'Brands', 'modpress' ) ], 'classic', [ 'class' => 'modpress-fa-picker-pack-filter' ] ) ); ?>
-                        <?php echo wp_kses_post( FormFieldHelper::select( 'modpress_fa_style', [ 'solid' => __( 'Solid', 'modpress' ), 'regular' => __( 'Regular', 'modpress' ), 'light' => __( 'Light', 'modpress' ), 'thin' => __( 'Thin', 'modpress' ) ], 'solid', [ 'class' => 'modpress-fa-picker-style-filter' ] ) ); ?>
+                        <?php echo wp_kses_post( FormFieldHelper::bootstrap_select( 'modpress_fa_pack', [ 'data' => [ 'classic' => __( 'Classic', 'modpress' ), 'duotone' => __( 'Duotone', 'modpress' ), 'sharp' => __( 'Sharp', 'modpress' ), 'sharp-duotone' => __( 'Sharp Duotone', 'modpress' ), 'brands' => __( 'Brands', 'modpress' ) ], 'selected' => 'classic', 'class' => 'modpress-fa-picker-pack-filter' ] ) ); ?>
+                        <?php echo wp_kses_post( FormFieldHelper::bootstrap_select( 'modpress_fa_style', [ 'data' => [ 'solid' => __( 'Solid', 'modpress' ), 'regular' => __( 'Regular', 'modpress' ), 'light' => __( 'Light', 'modpress' ), 'thin' => __( 'Thin', 'modpress' ) ], 'selected' => 'solid', 'class' => 'modpress-fa-picker-style-filter' ] ) ); ?>
                     </div>
 
                     <div class="modpress-fa-picker-results">
