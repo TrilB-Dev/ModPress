@@ -33,15 +33,15 @@ final class Taxonomies {
 	 * @since 1.0.0
 	 */
 	public static function group_taxonomy(): bool {
-		if ( taxonomy_exists( 'modpress_mod_group' ) ) {
+		if ( taxonomy_exists( 'modpress_mod_type' ) ) {
 			return false;
 		}
 
 		return Taxonomy::create(
-			'modpress_mod_group',
+			'modpress_mod_type',
 			array(
-				'label'             => __( 'Mod Groups', 'modpress' ),
-				'description'       => __( 'Groups used to organize mods.', 'modpress' ),
+				'label'             => __( 'Mod Type', 'modpress' ),
+				'description'       => __( 'Types used to categorise mods.', 'modpress' ),
 				'post_type'       	=> array( 'modpress_mod' ),
 				'hierarchical'      => true,
 				'public'            => true,

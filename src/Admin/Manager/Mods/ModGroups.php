@@ -29,6 +29,10 @@ final class ModGroups extends ModManager {
 		foreach ( $group_tree as $group ) {
 			if ( ! empty( $group['items'] ) ) {
 				foreach ( $group['items'] as $item ) {
+					$taxonomy_key = (string) ( $item['taxonomy'] ?? $item['key'] ?? '' );
+					if ( '' === $taxonomy_key || in_array( $taxonomy_key, array( 'modpress_mod_tag' ), true ) ) {
+						continue;
+					}
 					$taxonomy_tabs[] = $item;
 				}
 			}
@@ -36,9 +40,9 @@ final class ModGroups extends ModManager {
 
 		if ( empty( $taxonomy_tabs ) ) {
 			$taxonomy_tabs[] = array(
-				'key'      => 'modpress_mod_group',
-				'taxonomy' => 'modpress_mod_group',
-				'label'    => __( 'Mod Groups', 'modpress' ),
+				'key'      => 'modpress_mod_type',
+				'taxonomy' => 'modpress_mod_type',
+				'label'    => __( 'Mod Types', 'modpress' ),
 				'count'    => 0,
 			);
 		}
@@ -77,18 +81,20 @@ final class ModGroups extends ModManager {
 								>
 									<?php echo esc_html( $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ); ?>
 								</button>
-								<?php echo FormFieldHelper::button( '<span class="dashicons dashicons-edit"></span>', array(
-									'type' => 'button',
-									'class' => 'btn btn-link btn-sm text-secondary modpress-tab-edit-btn',
-									'raw' => true,
-									'attributes' => array(
-										'data-bs-toggle' => 'modal',
-										'data-bs-target' => '#modpress-group-modal',
-										'data-group-key' => $taxonomy_key,
-										'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-										'aria-label' => __( 'Edit group', 'modpress' ),
-									),
-								) ); ?>
+								<?php if ( empty( $taxonomy['reserved'] ) && ! empty( $taxonomy['deletable'] ) ) : ?>
+									<?php echo FormFieldHelper::button( '<span class="dashicons dashicons-edit"></span>', array(
+										'type' => 'button',
+										'class' => 'btn btn-link btn-sm text-secondary modpress-tab-edit-btn',
+										'raw' => true,
+										'attributes' => array(
+											'data-bs-toggle' => 'modal',
+											'data-bs-target' => '#modpress-group-modal',
+											'data-group-key' => $taxonomy_key,
+											'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+											'aria-label' => __( 'Edit group', 'modpress' ),
+										),
+									) ); ?>
+								<?php endif; ?>
 							</li>
 						<?php endforeach; ?>
 					</ul>
@@ -119,7 +125,7 @@ final class ModGroups extends ModManager {
 											<?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
 												'type' => 'button',
 												'class' => 'btn btn-outline-secondary btn-sm btn-delete-selected',
-												'disabled' => true,
+												'disabled' => empty( $taxonomy['reserved'] ) ? true : true,
 											) ); ?>
 									</div>
 								</div>

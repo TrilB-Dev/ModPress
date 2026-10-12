@@ -24,30 +24,31 @@ final class GroupsManager {
 		$taxonomies = Taxonomy::definitions();
 		if ( empty( $taxonomies ) ) {
 			$taxonomies = array(
-				'modpress_mod_group' => array(
-					'label'         => __( 'Mod Groups', 'modpress' ),
+				'modpress_mod_type' => array(
+					'label'         => __( 'Mod Types', 'modpress' ),
 					'post_type'     => array( 'modpress_mod' ),
 					'hierarchical'  => true,
 					'show_in_rest'  => true,
 					'public'        => true,
 					'show_ui'       => true,
-					'show_in_menu'  => true,
-					'description'   => __( 'Taxonomy groups for mod organization.', 'modpress' ),
-				),
-				'modpress_mod_tag' => array(
-					'label'         => __( 'Mod Tags', 'modpress' ),
-					'post_type'     => array( 'modpress_mod' ),
-					'hierarchical'  => false,
-					'show_in_rest'  => true,
-					'public'        => true,
-					'show_ui'       => true,
-					'show_in_menu'  => true,
-					'description'   => __( 'Tags used to classify mods.', 'modpress' ),
+					'show_in_menu'  => false,
+					'description'   => __( 'System taxonomy for mod classification.', 'modpress' ),
+					'reserved'      => true,
+					'deletable'     => false,
 				),
 			);
 		}
 
-		return $taxonomies;
+		$filtered = array();
+		foreach ( $taxonomies as $taxonomy_key => $taxonomy_config ) {
+			if ( $this->is_hidden_taxonomy( $taxonomy_key ) ) {
+				continue;
+			}
+
+			$filtered[ $taxonomy_key ] = $taxonomy_config;
+		}
+
+		return $filtered;
 	}
 
 	/**
@@ -64,6 +65,7 @@ final class GroupsManager {
 			$label           = $taxonomy_config['label'] ?? $taxonomy_object->labels->name ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
 			$parent_group    = $taxonomy_config['parent_group'] ?? $taxonomy_config['group'] ?? 'modpress_group_root';
 			$group_key       = is_string( $parent_group ) && '' !== $parent_group ? $parent_group : 'modpress_group_root';
+			$reserved        = $this->is_reserved_taxonomy( $taxonomy_key, $taxonomy_config );
 
 			if ( ! isset( $groups[ $group_key ] ) ) {
 				$groups[ $group_key ] = array(
@@ -74,12 +76,14 @@ final class GroupsManager {
 			}
 
 			$groups[ $group_key ]['items'][] = array(
-				'key'       => $taxonomy_key,
-				'taxonomy'  => $taxonomy_key,
-				'label'     => $label,
-				'group'     => $group_key,
-				'hierarchical' => ! empty( $taxonomy_config['hierarchical'] ),
-				'count'     => $this->get_taxonomy_term_count( $taxonomy_key ),
+				'key'         => $taxonomy_key,
+				'taxonomy'    => $taxonomy_key,
+				'label'       => $label,
+				'group'       => $group_key,
+				'hierarchical'=> ! empty( $taxonomy_config['hierarchical'] ),
+				'count'       => $this->get_taxonomy_term_count( $taxonomy_key ),
+				'reserved'    => $reserved,
+				'deletable'   => ! $reserved,
 			);
 		}
 
@@ -156,5 +160,30 @@ final class GroupsManager {
 		}
 
 		return is_numeric( $count ) ? (int) $count : 0;
+	}
+
+	/**
+	 * Determine whether a taxonomy should be hidden from the Mod Groups manager.
+	 *
+	 * @param string $taxonomy_key Taxonomy slug.
+	 * @return bool
+	 */
+	private function is_hidden_taxonomy( string $taxonomy_key ): bool {
+		return in_array( $taxonomy_key, array( 'modpress_mod_tag' ), true );
+	}
+
+	/**
+	 * Determine whether a taxonomy is a plugin-reserved taxonomy that cannot be deleted.
+	 *
+	 * @param string $taxonomy_key Taxonomy slug.
+	 * @param array<string, mixed> $taxonomy_config Taxonomy config.
+	 * @return bool
+	 */
+	private function is_reserved_taxonomy( string $taxonomy_key, array $taxonomy_config = array() ): bool {
+		if ( ! empty( $taxonomy_config['reserved'] ) ) {
+			return true;
+		}
+
+		return in_array( $taxonomy_key, array( 'modpress_mod_type' ), true );
 	}
 }
