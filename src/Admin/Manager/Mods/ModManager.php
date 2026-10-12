@@ -40,14 +40,15 @@ class ModManager extends Manager {
     public function render(): void {
         $tab = $this->normalize_tab( RequestHelper::get_key( 'tab', 'dashboard' ) );
         $capabilities = array(
-            'dashboard' => 'modpress_mods_dashboard',
-            'groups'    => 'modpress_mods_groups',
-            'changelog' => 'modpress_mods_changelog',
-            'files'     => 'modpress_mods_files',
-            'mods'      => 'modpress_mods_manage',
+            'dashboard' => 'modpress_manager_dashboard',
+            'groups'    => 'modpress_manager_groups_view',
+            'tags'      => 'modpress_manager_tags_view',
+            'changelog' => 'modpress_manager_mods_view',
+            'files'     => 'modpress_manager_mods_view',
+            'mods'      => 'modpress_manager_mods_view',
         );
 
-        if ( ! PermissionHelper::can( $capabilities[ $tab ] ?? 'modpress_mods_dashboard' ) ) {
+        if ( ! PermissionHelper::can( $capabilities[ $tab ] ?? 'modpress_manager_dashboard' ) ) {
             wp_die( esc_html__( 'You are not authorized to access this ModPress mod screen.', 'modpress' ) );
         }
 
