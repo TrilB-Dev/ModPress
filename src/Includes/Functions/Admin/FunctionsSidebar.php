@@ -154,8 +154,8 @@ final class FunctionsSidebar {
 				'icon'  => 'fa-solid fa-file-lines',
 				'items' => [
 					'dashboard' => [
-						'label'      => __( 'Manage Mods', 'modpress' ),
-						'icon'       => 'fa-solid fa-display-chart-up',
+						'label'      => __( 'Mods Dashboard', 'modpress' ),
+						'icon'       => 'fa-solid fa-gauge',
 						'link'       => 'modpress&group=mod-manager&tab=dashboard',
 						'capability' => 'modpress_manager_dashboard',
 					],
