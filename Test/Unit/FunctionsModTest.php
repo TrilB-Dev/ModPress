@@ -246,6 +246,19 @@ namespace ModPress\Tests\Unit {
             $this->assertTrue( has_action( 'admin_post_modpress_save_mod_group_entry', [ $functions_mod, 'handle_group_entry_save' ] ) );
         }
 
+        public function testAdminPostCallbacksExistForAllRegisteredModActions(): void {
+            $functions_mod = new \ModPress\Includes\Functions\Admin\FunctionsMod();
+
+            $this->assertTrue( method_exists( $functions_mod, 'handle_group_save' ) );
+            $this->assertTrue( method_exists( $functions_mod, 'handle_group_entry_save' ) );
+            $this->assertTrue( method_exists( $functions_mod, 'handle_tags_save' ) );
+            $this->assertTrue( method_exists( $functions_mod, 'handle_files_save' ) );
+            $this->assertTrue( method_exists( $functions_mod, 'handle_file_type_save' ) );
+            $this->assertTrue( method_exists( $functions_mod, 'handle_changelog_save' ) );
+            $this->assertTrue( method_exists( $functions_mod, 'handle_changelog_category_save' ) );
+            $this->assertTrue( method_exists( $functions_mod, 'handle_mod_save' ) );
+        }
+
         public function testGroupsTableIsRegisteredForCustomModGroupStorage(): void {
             Schema::register_tables();
 

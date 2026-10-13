@@ -454,17 +454,122 @@ class FunctionsMod {
     }
 
     /**
-     * Redirect back to the Mod Groups screen with a notice.
+     * Fallback for any unimplemented Mod admin action callback.
      *
-     * @param bool   $success Whether the save succeeded.
-     * @param string $message Notice text.
+     * @param string $name Method name.
+     * @param array  $arguments Arguments passed to the callback.
      * @return void
      */
-    private function redirect_mod_group_result( bool $success, string $message = '' ): void {
+    public function __call( string $name, array $arguments ): void {
+        LoggerHelper::write_log( 'ModPress admin action callback not implemented: ' . $name );
+
+        $tab = RequestHelper::key( $_POST, 'return_tab', 'groups' );
+        $this->redirect_mod_action_result( $tab, __( 'This ModPress action is not available yet.', 'modpress' ), false );
+    }
+
+    /**
+     * Handle a Mod save request.
+     *
+     * @return void
+     */
+    public function handle_mod_save(): void {
+        if ( ! current_user_can( 'modpress_manager_mods_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress Mods.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_mod', 'modpress_mod_nonce' );
+
+        $message = $this->save_mod();
+        if ( '' === $message ) {
+            $this->redirect_mod_action_result( 'mods', __( 'No Mod data was submitted.', 'modpress' ), false );
+        }
+
+        $this->redirect_mod_action_result( 'mods', __( 'Mod saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a tag save request.
+     *
+     * @return void
+     */
+    public function handle_tags_save(): void {
+        if ( ! current_user_can( 'modpress_manager_tags_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress tags.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_tags' );
+        $this->redirect_mod_action_result( 'groups', __( 'Tags saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a file save request.
+     *
+     * @return void
+     */
+    public function handle_files_save(): void {
+        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress files.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_files' );
+        $this->redirect_mod_action_result( 'files', __( 'Files saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a file type save request.
+     *
+     * @return void
+     */
+    public function handle_file_type_save(): void {
+        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress file types.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_file_type' );
+        $this->redirect_mod_action_result( 'files', __( 'File type saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a changelog save request.
+     *
+     * @return void
+     */
+    public function handle_changelog_save(): void {
+        if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress changelogs.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_changelog' );
+        $this->redirect_mod_action_result( 'changelog', __( 'Changelog saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a changelog category save request.
+     *
+     * @return void
+     */
+    public function handle_changelog_category_save(): void {
+        if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress changelog categories.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_changelog_category' );
+        $this->redirect_mod_action_result( 'changelog', __( 'Changelog category saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Redirect back to the Mod manager screen with a notice.
+     *
+     * @param string $tab Page tab to return to.
+     * @param string $message Notice text.
+     * @param bool   $success Whether the save succeeded.
+     * @return void
+     */
+    private function redirect_mod_action_result( string $tab, string $message = '', bool $success = true ): void {
         $query = array(
             'page' => 'modpress',
             'group' => 'mods',
-            'tab' => 'groups',
+            'tab' => $tab,
             $success ? 'mod_group_saved' : 'mod_group_failed' => '1',
         );
 
@@ -474,5 +579,16 @@ class FunctionsMod {
 
         wp_safe_redirect( admin_url( 'admin.php?' . build_query( $query ) ) );
         exit;
+    }
+
+    /**
+     * Redirect back to the Mod Groups screen with a notice.
+     *
+     * @param bool   $success Whether the save succeeded.
+     * @param string $message Notice text.
+     * @return void
+     */
+    private function redirect_mod_group_result( bool $success, string $message = '' ): void {
+        $this->redirect_mod_action_result( 'groups', $message, $success );
     }
 }
