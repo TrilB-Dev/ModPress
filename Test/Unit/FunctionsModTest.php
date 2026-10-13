@@ -53,8 +53,39 @@ namespace {
         }
     }
 
+    if ( ! function_exists( 'add_action' ) ) {
+        function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ): bool {
+            $GLOBALS['modpress_test_actions'][ $hook ][] = [
+                'callback' => $callback,
+                'priority' => $priority,
+                'accepted_args' => $accepted_args,
+            ];
+            return true;
+        }
+    }
+
+    if ( ! function_exists( 'has_action' ) ) {
+        function has_action( $hook, $callback = false ): bool {
+            if ( ! isset( $GLOBALS['modpress_test_actions'][ $hook ] ) ) {
+                return false;
+            }
+
+            if ( false === $callback ) {
+                return ! empty( $GLOBALS['modpress_test_actions'][ $hook ] );
+            }
+
+            foreach ( $GLOBALS['modpress_test_actions'][ $hook ] as $entry ) {
+                if ( $entry['callback'] === $callback ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     if ( ! function_exists( 'check_admin_referer' ) ) {
-        function check_admin_referer( $action, $query_arg ): bool {
+        function check_admin_referer( $action, $query_arg = null ): bool {
             $GLOBALS['modpress_test_nonce'] = [
                 'action' => $action,
                 'query_arg' => $query_arg,
@@ -97,7 +128,10 @@ namespace {
 
 namespace ModPress\Tests\Unit {
     use ModPress\Includes\Core\Capabilities;
+    use ModPress\Includes\Core\Schema;
+    use ModPress\Includes\Core\WP\Database;
     use ModPress\Includes\Functions\Admin\FunctionsMod;
+    use ModPress\Includes\Functions\Helpers\DBHelper;
     use ModPress\Includes\Settings\SettingsManager;
     use PHPUnit\Framework\TestCase;
 
@@ -197,6 +231,26 @@ namespace ModPress\Tests\Unit {
             $notice = ( new FunctionsMod() )->save_mod();
 
             $this->assertStringContainsString( 'The Mod could not be saved.', $notice );
+        }
+
+        public function testModManagerRoutesGroupSavesToFunctionsMod(): void {
+            $ref = new \ReflectionClass( '\ModPress\Admin\Manager\Mods\ModManager' );
+            $manager = $ref->newInstanceWithoutConstructor();
+            $property = $ref->getProperty( 'functions_mod' );
+            $property->setAccessible( true );
+            $functions_mod = new \ModPress\Includes\Functions\Admin\FunctionsMod();
+            $property->setValue( $manager, $functions_mod );
+            $manager->register_actions();
+
+            $this->assertTrue( has_action( 'admin_post_modpress_save_mod_group', [ $functions_mod, 'handle_group_save' ] ) );
+            $this->assertTrue( has_action( 'admin_post_modpress_save_mod_group_entry', [ $functions_mod, 'handle_group_entry_save' ] ) );
+        }
+
+        public function testGroupsTableIsRegisteredForCustomModGroupStorage(): void {
+            Schema::register_tables();
+
+            $this->assertArrayHasKey( 'groups', Database::get_core_tables() );
+            $this->assertSame( 'wp_modpress_groups', DBHelper::table_name( 'groups' ) );
         }
 
         public function testLayoutConfigurationCapabilitiesExistForSettingsAccess(): void {

@@ -79,10 +79,10 @@ final class Admin {
 	 */
 	public function __construct( Assets $assets ) {
 		$this->managers = array(
-			'dashboard' => new DashboardManager(),
-			'settings'  => new SettingsManager(),
-			'mods'      => new ModManager(),
-			'tools'     => new ToolsManager(),
+			'dashboard' 		=> new DashboardManager(),
+			'settings'  		=> new SettingsManager(),
+			'mod-manager'      	=> new ModManager(),
+			'tools'     		=> new ToolsManager(),
 		);
 		/**
 		 * Initialize the individual manager instances from the registry.
@@ -95,7 +95,7 @@ final class Admin {
 		/**
 		 * Initialize the mod manager instance from the registry.
 		 */
-		$this->mod_manager      = $this->managers['mods'];
+		$this->mod_manager      = $this->managers['mod-manager'];
 		/**
 		 * Initialize the tools manager instance from the registry.
 		 */

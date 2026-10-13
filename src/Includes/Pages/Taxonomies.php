@@ -33,12 +33,12 @@ final class Taxonomies {
 	 * @since 1.0.0
 	 */
 	public static function group_taxonomy(): bool {
-		if ( taxonomy_exists( 'modpress_mod_type' ) ) {
+		if ( taxonomy_exists( 'modpress_type' ) ) {
 			return false;
 		}
 
 		return Taxonomy::create(
-			'modpress_mod_type',
+			'modpress_type',
 			array(
 				'label'             => __( 'Mod Type', 'modpress' ),
 				'description'       => __( 'Types used to categorise mods.', 'modpress' ),
@@ -49,7 +49,7 @@ final class Taxonomies {
 				'show_in_menu'      => false,
 				'show_admin_column' => true,
 				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => 'mod-group' ),
+				'rewrite'           => array( 'slug' => 'type' ),
 			)
 		);
 	}
@@ -61,12 +61,12 @@ final class Taxonomies {
 	 * @since 1.0.0
 	 */
 	public static function tag_taxonomy(): bool {
-		if ( taxonomy_exists( 'modpress_mod_tag' ) ) {
+		if ( taxonomy_exists( 'modpress_tag' ) ) {
 			return false;
 		}
 
 		return Taxonomy::create(
-			'modpress_mod_tag',
+			'modpress_tag',
 			array(
 				'label'             => __( 'Mod Tags', 'modpress' ),
 				'description'       => __( 'Tags used to describe mods.', 'modpress' ),
@@ -77,7 +77,73 @@ final class Taxonomies {
 				'show_in_menu'      => false,
 				'show_admin_column' => true,
 				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => 'mod-tag' ),
+				'rewrite'           => array( 'slug' => 'tags' ),
+			)
+		);
+	}
+
+	public static function changelog_category_taxonomy(): bool {
+		if ( taxonomy_exists( 'modpress_changelog_category' ) ) {
+			return false;
+		}
+
+		return Taxonomy::create(
+			'modpress_changelog_category',
+			array(
+				'label'             => __( 'Changelog Categories', 'modpress' ),
+				'description'       => __( 'Categories used to categorise changelogs.', 'modpress' ),
+				'post_type'       	=> array( 'modpress_changelog' ),
+				'hierarchical'      => true,
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => false,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'rewrite'           => array( 'slug' => 'changelog-categories' ),
+			)
+		);
+	}
+
+	public static function file_type_taxonomy(): bool {
+		if ( taxonomy_exists( 'modpress_file_type' ) ) {
+			return false;
+		}
+
+		return Taxonomy::create(
+			'modpress_file_type',
+			array(
+				'label'             => __( 'File Types', 'modpress' ),
+				'description'       => __( 'Types used to categorise files.', 'modpress' ),
+				'post_type'       	=> array( 'modpress_file' ),
+				'hierarchical'      => true,
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => false,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'rewrite'           => array( 'slug' => 'file-types' ),
+			)
+		);
+	}
+
+	public static function file_links_taxonomy(): bool {
+		if ( taxonomy_exists( 'modpress_file_links' ) ) {
+			return false;
+		}
+
+		return Taxonomy::create(
+			'modpress_file_links',
+			array(
+				'label'             => __( 'File Links', 'modpress' ),
+				'description'       => __( 'Links where files may be found.', 'modpress' ),
+				'post_type'       	=> array( 'modpress_file' ),
+				'hierarchical'      => false,
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => false,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'rewrite'           => array( 'slug' => 'file-links' ),
 			)
 		);
 	}
