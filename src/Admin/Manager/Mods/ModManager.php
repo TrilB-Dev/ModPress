@@ -87,14 +87,13 @@ class ModManager extends Manager {
      */
     public function __construct() {
         /**
-         * Initialize the mod manager.
-         * Sets up the page, tabs, and initializes the tab instances.
+         * Initialize the base mod manager state.
          *
          * @since 1.0.0
          */
         $this->page = 'mod-manager';
         /**
-         * Initialize the supported tabs for the mod manager.
+         * Initialize the supported mod tabs.
          *
          * @since 1.0.0
          */
@@ -103,7 +102,7 @@ class ModManager extends Manager {
             'groups',
             'changelog',
             'files',
-            'mods'
+            'mods',
         );
         /**
          * Initialize the instances for each mod manager tab.
