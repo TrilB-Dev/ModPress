@@ -621,24 +621,36 @@ final class ModGroups extends ModManager {
 							</div>
 						</div>
 					</div>
-					<div class="modal-footer">
+					<div class="modal-footer justify-content-between">
 						<?php echo FormFieldHelper::button(
-							__( 'Cancel', 'modpress' ),
+							__( 'Delete', 'modpress' ),
 							array(
 								'type' => 'button',
-								'class' => 'btn btn-outline-secondary',
+								'class' => 'btn btn-outline-danger',
 								'attributes' => array(
-									'data-bs-dismiss' => 'modal'
+									'data-role' => 'delete-group'
 								)
 							)
 						); ?>
-						<?php echo FormFieldHelper::button(
-							__( 'Save', 'modpress' ),
-							array(
-								'type' => 'submit',
-								'class' => 'btn btn-primary'
-							)
-						); ?>
+						<div class="d-flex gap-2">
+							<?php echo FormFieldHelper::button(
+								__( 'Cancel', 'modpress' ),
+								array(
+									'type' => 'button',
+									'class' => 'btn btn-outline-secondary',
+									'attributes' => array(
+										'data-bs-dismiss' => 'modal'
+									)
+								)
+							); ?>
+							<?php echo FormFieldHelper::button(
+								__( 'Save', 'modpress' ),
+								array(
+									'type' => 'submit',
+									'class' => 'btn btn-primary'
+								)
+							); ?>
+						</div>
 					</div>
 				</form>
 			</div>
