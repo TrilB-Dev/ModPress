@@ -388,5 +388,16 @@ namespace ModPress\Tests\Unit {
 
             $this->assertFalse( \ModPress\Includes\Settings\SettingsManager::set_group( 'general', [ 'root_name' => 'Updated root' ] ) );
         }
+
+        public function testAdminManagerConstructorsDoNotRecurseIntoChildScreens(): void {
+            $manager = new \ModPress\Admin\Manager\Mods\ModManager();
+            $screen  = new \ModPress\Admin\Manager\Mods\ModDashboard();
+
+            $this->assertSame( 'mod-manager', $manager->get_page() );
+            $this->assertSame( 'mod-manager', $screen->get_page() );
+
+            $tools = new \ModPress\Admin\Manager\Tools\ToolsManager( false );
+            $this->assertSame( 'tools', $tools->get_page() );
+        }
     }
 }

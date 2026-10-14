@@ -27,41 +27,6 @@ class ToolsManager extends Manager {
 	 * @var string $page The page variable.
 	 */
 	protected string $page;
-	/**
-	 * DebugManager instance for managing the debug tool.
-	 *
-	 * @since 1.0.0
-	 * @var Debug $debug_manager The debug manager instance.
-	 */
-	private Debug $debug_manager;
-	/**
-	 * ResetManager instance for managing the plugin reset tool.
-	 *
-	 * @since 1.0.0
-	 * @var Reset $reset_manager The reset manager instance.
-	 */
-	private Reset $reset_manager;
-	/**
-	 * Import instance for managing the import tool.
-	 *
-	 * @since 1.0.0
-	 * @var Import $import_manager The import manager instance.
-	 */
-	private Import $import_manager;
-	/**
-	 * Export instance for managing the export tool.
-	 *
-	 * @since 1.0.0
-	 * @var Export $export_manager The export manager instance.
-	 */
-	private Export $export_manager;
-	/**
-	 * General instance for managing the general tools.
-	 *
-	 * @since 1.0.0
-	 * @var General $general_tools_manager The general tools manager instance.
-	 */
-	private General $general_tools_manager;
 
 	/**
 	 * `Constructor` method for the `ToolsManager` class.
@@ -70,47 +35,7 @@ class ToolsManager extends Manager {
 	 * @return void
 	 */
 	public function __construct( bool $initialize_tools = true ) {
-		/**
-		 * Set the page variable to 'tools'.
-		 *
-		 * @since 1.0.0
-		 */
 		$this->page = 'tools';
-
-		if ( ! $initialize_tools ) {
-			return;
-		}
-
-		/**
-		 * Initialize the Debug Manager page.
-		 *
-		 * @since 1.0.0
-		 */
-		$this->debug_manager = new Debug();
-		/**
-		 * Initialize the Plugin Reset page.
-		 *
-		 * @since 1.0.0
-		 */
-		$this->reset_manager = new Reset();
-		/**
-		 * Initialize the Import Manager page.
-		 *
-		 * @since 1.0.0
-		 */
-		$this->import_manager = new Import();
-		/**
-		 * Initialize the Export Manager page.
-		 *
-		 * @since 1.0.0
-		 */
-		$this->export_manager = new Export();
-		/**
-		 * Initialize the General Tools Manager page.
-		 *
-		 * @since 1.0.0
-		 */
-		$this->general_tools_manager = new General();
 	}
 	/**
 	 * Renders the tools page.
@@ -134,18 +59,34 @@ class ToolsManager extends Manager {
 			wp_die( esc_html__( 'You are not authorized to access this ModPress tool.', 'modpress' ) );
 		}
 		$this->header( $this->title( $tool ) );
-		if ( 'reset' === $tool ) {
-			$this->reset_manager->render_page_content();
-		} elseif ( 'debug' === $tool ) {
-			$this->debug_manager->render_page_content();
-		} elseif ( 'import' === $tool ) {
-			$this->import_manager->render();
-		} elseif ( 'general' === $tool ) {
-			$this->general_tools_manager->render_page_content();
-		} else {
-			$this->export_manager->render_page_content();
+		$screen = $this->resolve_tool_screen( $tool );
+		if ( null !== $screen ) {
+			$screen->render_page_content();
 		}
 		$this->footer();
+	}
+
+	/**
+	 * Resolve a tool screen lazily to avoid recursive child manager construction.
+	 *
+	 * @param string $tool Tool slug.
+	 * @return object|null
+	 * @since 1.0.0
+	 */
+	private function resolve_tool_screen( string $tool ): ?object {
+		switch ( $tool ) {
+			case 'reset':
+				return new Reset();
+			case 'debug':
+				return new Debug();
+			case 'import':
+				return new Import();
+			case 'general':
+				return new General();
+			case 'export':
+			default:
+				return new Export();
+		}
 	}
 	/**
 	 * Registers the assets for the tools page.
@@ -156,9 +97,6 @@ class ToolsManager extends Manager {
 	 */
 	public function register_assets( Assets $assets ): void {
 		$this->register_page_assets( $assets, array( 'modpress-tools' ), 'tools' );
-		if ( isset( $this->reset_manager ) ) {
-			$this->reset_manager->register_assets( $assets );
-		}
 	}
 	/**
 	 * Returns the title for the given tool.
