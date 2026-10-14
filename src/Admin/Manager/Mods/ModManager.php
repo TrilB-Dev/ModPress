@@ -175,14 +175,14 @@ class ModManager extends Manager {
      * @since 1.0.0
      */
     public function register_actions(): void {
-        add_action( 'admin_post_modpress_save_group', array( $this->functions_mod, 'handle_group_save' ) );
-        /*add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'handle_group_entry_save' ) );
-        add_action( 'admin_post_modpress_save_tags', array( $this->functions_mod, 'handle_tags_save' ) );
-        add_action( 'admin_post_modpress_save_files', array( $this->functions_mod, 'handle_files_save' ) );
-        add_action( 'admin_post_modpress_save_file_type', array( $this->functions_mod, 'handle_file_type_save' ) );
-        add_action( 'admin_post_modpress_save_changelog', array( $this->functions_mod, 'handle_changelog_save' ) );
-        add_action( 'admin_post_modpress_save_changelog_category', array( $this->functions_mod, 'handle_changelog_category_save' ) );
-        add_action( 'admin_post_modpress_save_mod', array( $this->functions_mod, 'handle_mod_save' ) );*/
+        add_action( 'admin_post_modpress_save_group', array( $this->functions_mod, 'save_group' ) );
+        add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'save_group_entry' ) );
+        add_action( 'admin_post_modpress_save_tags', array( $this->functions_mod, 'save_tags' ) );
+        add_action( 'admin_post_modpress_save_files', array( $this->functions_mod, 'save_files' ) );
+        add_action( 'admin_post_modpress_save_file_type', array( $this->functions_mod, 'save_file_type' ) );
+        add_action( 'admin_post_modpress_save_changelog', array( $this->functions_mod, 'save_changelog' ) );
+        add_action( 'admin_post_modpress_save_changelog_category', array( $this->functions_mod, 'save_changelog_category' ) );
+        add_action( 'admin_post_modpress_save_mod', array( $this->functions_mod, 'save_mod' ) );
     }
     /**
      * Register the assets for the mod manager.
@@ -264,44 +264,12 @@ class ModManager extends Manager {
         if ( ! $can_view ) {
             wp_die( esc_html__( 'You are not authorized to view these Mod Manager pages.', 'modpress' ) );
         }
-        $edit_capabilities = [
-            'groups'    => 'modpress_manager_groups_edit',
-            'mods'      => 'modpress_manager_mods_edit',
-            'files'     => 'modpress_manager_mods_edit',
-            'tags'      => 'modpress_manager_tags_edit',
-            'changelog' => 'modpress_manager_mods_edit',
-        ];
 
-        $tab_context = [
-            'dashboard' => [
-                'description' => __( 'Overview of the ModPress dashboard.', 'modpress' ),
-            ],
-            'mods' => [
-                'description' => __( 'Manage the mods you have added to ModPress.', 'modpress' ),
-            ],
-            'groups' => [
-                'description' => __( 'Manage the groups within ModPress.', 'modpress' ),
-            ],
-            'changelog' => [
-                'description' => __( 'View the changelog for ModPress mods.', 'modpress' ),
-            ],
-            'files' => [
-                'description' => __( 'Manage the files associated with ModPress mods.', 'modpress' ),
-            ],
-            'tags' => [
-                'description' => __( 'Manage the tags associated with ModPress mods.', 'modpress' ),            ],
-        ];
         ?>
         <?php if ( 'dashboard' === $tab) : ?>
             <?php $this->mod_dashboard->render(); ?>
         <?php else : ?>
             <div class="modpress-settings-tab-content" role="tabpanel">
-                <?php if ( isset( $tab_context[ $tab ] ) ) : ?>
-                    <p class="text-secondary mb-4">
-                        <?php echo esc_html( $tab_context[ $tab ]['description'] ); ?>
-                    </p>
-                <?php endif; ?>
-
                 <?php if ( 'mods' === $tab ) : ?>
                     <?php $this->mods->render(); ?>
                 <?php elseif ( 'groups' === $tab ) : ?>
@@ -346,7 +314,7 @@ class ModManager extends Manager {
             'tags' 
         ];
 
-        if ( in_array( $tab, $allowed, true ) || $this->plugins_page->has_settings_page( $tab ) ) {
+        if ( in_array( $tab, $allowed, true ) ) {
             return $tab;
         }
         return 'dashboard';
