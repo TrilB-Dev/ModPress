@@ -485,11 +485,11 @@ final class ModGroups extends ModManager {
 																__( 'Option values for radio, select, or checkbox fields.', 'modpress' ),
 																__( 'Place one option per line so the field can be rendered correctly.', 'modpress' )
 															); ?>
-														</tbody>
-													</table>
-												</div>
+													</tbody>
+												</table>
 											</div>
-											<div id="modpress-custom-field-template" class="modpress-custom-field-row d-none">
+										</div>
+										<div id="modpress-custom-field-template" class="modpress-custom-field-row d-none">
 												<div class="d-flex justify-content-between align-items-center mb-3">
 													<h6 class="mb-0"><?php esc_html_e( 'Field', 'modpress' ); ?></h6>
 													<?php echo FormFieldHelper::button(
@@ -613,13 +613,11 @@ final class ModGroups extends ModManager {
                                                         ); ?>
 													</tbody>
 												</table>
-											</div>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-
 						<div class="modal-footer justify-content-between">
 							<?php echo FormFieldHelper::button(
 								__( 'Delete', 'modpress' ),
