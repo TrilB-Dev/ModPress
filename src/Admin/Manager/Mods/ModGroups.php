@@ -270,8 +270,8 @@ final class ModGroups extends ModManager {
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<input type="hidden" name="action" value="modpress_save_mod_group" />
-						<?php wp_nonce_field( 'modpress_save_mod_group', 'modpress_group_nonce' ); ?>
+						<input type="hidden" name="action" value="modpress_save_group" />
+						<?php wp_nonce_field( 'modpress_save_group', 'modpress_group_nonce' ); ?>
 						<div class="modal-header">
 							<h5 class="modal-title" id="modpress-group-modal-title"><?php esc_html_e( 'Add Group', 'modpress' ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -669,8 +669,8 @@ final class ModGroups extends ModManager {
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<input type="hidden" name="action" value="modpress_save_mod_group_entry" />
-						<?php wp_nonce_field( 'modpress_save_mod_group_entry', 'modpress_group_entry_nonce' ); ?>
+						<input type="hidden" name="action" value="modpress_save_group_entry" />
+						<?php wp_nonce_field( 'modpress_save_group_entry', 'modpress_group_entry_nonce' ); ?>
 						<div class="modal-header">
 							<h5 class="modal-title" id="modpress-entry-modal-title"><?php esc_html_e( 'Add Entry', 'modpress' ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

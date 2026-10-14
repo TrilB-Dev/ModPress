@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class FunctionsMod {
+final class FunctionsMod {
 
 	/**
 	 * Register the WordPress admin-post actions used by the settings forms.

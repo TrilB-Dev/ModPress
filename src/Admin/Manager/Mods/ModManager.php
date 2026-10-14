@@ -167,11 +167,13 @@ class ModManager extends Manager {
         $screen = $this->get_tab_screen( $tab );
         if ( null === $screen ) {
             return;
-        }
+        }?>
 
-        echo '<div class="modpress-settings-tab-content" role="tabpanel">';
-        $screen->render_page_content();
-        echo '</div>';
+        ?>
+        <div class="modpress-settings-tab-content" role="tabpanel">
+            <?php $screen->render_page_content(); ?>
+        </div>
+        <?php
     }
 
     /**
@@ -247,7 +249,7 @@ class ModManager extends Manager {
             'changelog'     => __( 'Mod Manager - Change Logs', 'modpress' ),
             'files'         => __( 'Mod Manager - Files', 'modpress' ),
             'mods'          => __( 'Mod Manager - Mods', 'modpress' ),
-            'tags'          => __( 'Mod Manager - Tags', 'modpress' ),
+            'tags'          => __( 'Mod Manager - Tags', 'modpress' )
         );
 
         return $labels[ $tab ] ?? $labels['dashboard'];
