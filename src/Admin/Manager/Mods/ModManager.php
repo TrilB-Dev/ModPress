@@ -175,16 +175,14 @@ class ModManager extends Manager {
      * @since 1.0.0
      */
     public function register_actions(): void {
-        add_action( 'admin_post_modpress_save_mod_group', array( $this->functions_mod, 'handle_group_save' ) );
         add_action( 'admin_post_modpress_save_group', array( $this->functions_mod, 'handle_group_save' ) );
-        add_action( 'admin_post_modpress_save_mod_group_entry', array( $this->functions_mod, 'handle_group_entry_save' ) );
-        add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'handle_group_entry_save' ) );
+        /*add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'handle_group_entry_save' ) );
         add_action( 'admin_post_modpress_save_tags', array( $this->functions_mod, 'handle_tags_save' ) );
         add_action( 'admin_post_modpress_save_files', array( $this->functions_mod, 'handle_files_save' ) );
         add_action( 'admin_post_modpress_save_file_type', array( $this->functions_mod, 'handle_file_type_save' ) );
         add_action( 'admin_post_modpress_save_changelog', array( $this->functions_mod, 'handle_changelog_save' ) );
         add_action( 'admin_post_modpress_save_changelog_category', array( $this->functions_mod, 'handle_changelog_category_save' ) );
-        add_action( 'admin_post_modpress_save_mod', array( $this->functions_mod, 'handle_mod_save' ) );
+        add_action( 'admin_post_modpress_save_mod', array( $this->functions_mod, 'handle_mod_save' ) );*/
     }
     /**
      * Register the assets for the mod manager.
