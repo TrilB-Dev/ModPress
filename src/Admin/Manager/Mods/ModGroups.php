@@ -619,7 +619,7 @@ final class ModGroups extends ModManager {
 									</div>
 								</div>
 							</div>
-						</div>
+
 						<div class="modal-footer justify-content-between">
 						<?php echo FormFieldHelper::button(
 							__( 'Delete', 'modpress' ),
