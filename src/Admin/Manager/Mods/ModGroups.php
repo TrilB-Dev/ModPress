@@ -620,8 +620,7 @@ final class ModGroups extends ModManager {
 								</div>
 							</div>
 						</div>
-					</div>
-					<div class="modal-footer justify-content-between">
+						<div class="modal-footer justify-content-between">
 						<?php echo FormFieldHelper::button(
 							__( 'Delete', 'modpress' ),
 							array(
@@ -652,11 +651,11 @@ final class ModGroups extends ModManager {
 							); ?>
 						</div>
 					</div>
-				</form>
+					</form>
+				</div>
 			</div>
 		</div>
-	</div>
-	<?php
+		<?php
 	}
 
 
