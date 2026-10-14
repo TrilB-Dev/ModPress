@@ -38,53 +38,43 @@ class FunctionsMod {
 			array(
 				array(
 					'type'     => 'action',
-					'hook'     => 'admin_post_modpress_save_mod_group',
-					'callback' => 'handle_group_save',
-				),
-				array(
-					'type'     => 'action',
 					'hook'     => 'admin_post_modpress_save_group',
-					'callback' => 'handle_group_save',
-				),
-				array(
-					'type'     => 'action',
-					'hook'     => 'admin_post_modpress_save_mod_group_entry',
-					'callback' => 'handle_group_entry_save',
+					'callback' => 'save_group',
 				),
 				array(
 					'type'     => 'action',
 					'hook'     => 'admin_post_modpress_save_group_entry',
-					'callback' => 'handle_group_entry_save',
+					'callback' => 'save_group_entry',
 				),
 				array(
 					'type'     => 'action',
 					'hook'     => 'admin_post_modpress_save_tags',
-					'callback' => 'handle_tags_save',
+					'callback' => 'save_tags',
 				),
 				array(
 					'type'     => 'action',
 					'hook'     => 'admin_post_modpress_save_files',
-					'callback' => 'handle_files_save',
+					'callback' => 'save_files',
 				),
 				array(
 					'type'     => 'action',
 					'hook'     => 'admin_post_modpress_save_file_type',
-					'callback' => 'handle_file_type_save',
+					'callback' => 'save_file_type',
 				),
 				array(
 					'type'     => 'action',
 					'hook'     => 'admin_post_modpress_save_changelog',
-					'callback' => 'handle_changelog_save',
+					'callback' => 'save_changelog',
 				),
 				array(
 					'type'     => 'action',
 					'hook'     => 'admin_post_modpress_save_changelog_category',
-					'callback' => 'handle_changelog_category_save',
+					'callback' => 'save_changelog_category',
 				),
 				array(
 					'type'     => 'action',
 					'hook'     => 'admin_post_modpress_save_mod',
-					'callback' => 'handle_mod_save',
+					'callback' => 'save_mod',
 				),
 			)
 		)->run();
@@ -96,29 +86,29 @@ class FunctionsMod {
 			return;
 		}
 
-		if ( in_array( $action, array( 'modpress_save_mod_group', 'modpress_save_group' ), true ) ) {
-			$this->handle_group_save();
+		if ( in_array( $action, array( 'modpress_save_group' ), true ) ) {
+			$this->save_group();
 		}
-		if ( in_array( $action, array( 'modpress_save_mod_group_entry', 'modpress_save_group_entry' ), true ) ) {
-			$this->handle_group_entry_save();
+		if ( in_array( $action, array( 'modpress_save_group_entry' ), true ) ) {
+			$this->save_group_entry();
 		}
 		if ( 'modpress_save_tags' === $action ) {
-			$this->tags_save();
+			$this->save_tags();
 		}
 		if ( 'modpress_save_files' === $action ) {
-			$this->files_save();
+			$this->save_files();
 		}
 		if ( 'modpress_save_file_type' === $action ) {
-			$this->file_type_save();
+			$this->save_file_type();
 		}
 		if ( 'modpress_save_changelog' === $action ) {
-			$this->changelog_save();
+			$this->save_changelog();
 		}
 		if ( 'modpress_save_changelog_category' === $action ) {
-			$this->changelog_category_save();
+			$this->save_changelog_category();
 		}
 		if ( 'modpress_save_mod' === $action ) {
-			$this->mod_save();
+			$this->save_mod();
 		}
 	}
 	/**
@@ -150,7 +140,7 @@ class FunctionsMod {
 			? sanitize_key( wp_unslash( $_POST['modpress_action'] ) )
 			: '';
 
-		if ( 'save_mod' !== $action ) {
+		if ( 'modpress_save_mod' !== $action ) {
 			return '';
 		}
 
@@ -164,12 +154,8 @@ class FunctionsMod {
 		$this->validate_save_nonce( 'modpress_save_mod' );
 		check_admin_referer( 'modpress_save_mod', 'modpress_mod_nonce' );
 
-		$title = isset( $_POST['post_title'] )
-			? SanitizationHelper::text( wp_unslash( $_POST['post_title'] ) )
-			: '';
-		$content = isset( $_POST['post_content'] )
-			? wp_kses_post( wp_unslash( $_POST['post_content'] ) )
-			: '';
+		$title = isset( $_POST['post_title'] ) ? SanitizationHelper::text( wp_unslash( $_POST['post_title'] ) ): '';
+		$content = isset( $_POST['post_content'] ) ? wp_kses_post( wp_unslash( $_POST['post_content'] ) ): '';
 
 		if ( '' === $title ) {
 			return AlertHelper::get_admin_notice(
@@ -206,7 +192,7 @@ class FunctionsMod {
      *
      * @return void
      */
-    public function handle_group_save(): void {
+    public function save_group(): void {
         if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress groups.', 'modpress' ) );
         }
@@ -275,7 +261,11 @@ class FunctionsMod {
      */
     private function build_group_payload( string $group_name, string $taxonomy ): array {
         $group_fields = array();
-        $field_names  = RequestHelper::value( $_POST, 'custom_field_name', array() );
+        $field_names  = RequestHelper::value( 
+			$_POST, 
+			'custom_field_name', 
+			array() 
+		);
         $field_slugs  = RequestHelper::value( $_POST, 'custom_field_slug', array() );
         $field_types  = RequestHelper::value( $_POST, 'custom_field_type', array() );
         $field_descs  = RequestHelper::value( $_POST, 'custom_field_description', array() );
@@ -412,7 +402,7 @@ class FunctionsMod {
      *
      * @return void
      */
-    public function handle_group_entry_save(): void {
+    public function save_group_entry(): void {
         if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress taxonomy entries.', 'modpress' ) );
         }
@@ -468,31 +458,11 @@ class FunctionsMod {
     }
 
     /**
-     * Handle a Mod save request.
-     *
-     * @return void
-     */
-    public function handle_mod_save(): void {
-        if ( ! current_user_can( 'modpress_manager_mods_edit' ) && ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You are not allowed to manage ModPress Mods.', 'modpress' ) );
-        }
-
-        check_admin_referer( 'modpress_save_mod', 'modpress_mod_nonce' );
-
-        $message = $this->save_mod();
-        if ( '' === $message ) {
-            $this->redirect_mod_action_result( 'mods', __( 'No Mod data was submitted.', 'modpress' ), false );
-        }
-
-        $this->redirect_mod_action_result( 'mods', __( 'Mod saved successfully.', 'modpress' ), true );
-    }
-
-    /**
      * Handle a tag save request.
      *
      * @return void
      */
-    public function handle_tags_save(): void {
+    public function save_tags(): void {
         if ( ! current_user_can( 'modpress_manager_tags_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress tags.', 'modpress' ) );
         }
@@ -506,7 +476,7 @@ class FunctionsMod {
      *
      * @return void
      */
-    public function handle_files_save(): void {
+    public function save_files(): void {
         if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress files.', 'modpress' ) );
         }
@@ -520,7 +490,7 @@ class FunctionsMod {
      *
      * @return void
      */
-    public function handle_file_type_save(): void {
+    public function save_file_type(): void {
         if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress file types.', 'modpress' ) );
         }
@@ -534,7 +504,7 @@ class FunctionsMod {
      *
      * @return void
      */
-    public function handle_changelog_save(): void {
+    public function save_changelog(): void {
         if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress changelogs.', 'modpress' ) );
         }
@@ -548,7 +518,7 @@ class FunctionsMod {
      *
      * @return void
      */
-    public function handle_changelog_category_save(): void {
+    public function save_changelog_category(): void {
         if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress changelog categories.', 'modpress' ) );
         }
