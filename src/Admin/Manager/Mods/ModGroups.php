@@ -267,7 +267,7 @@ final class ModGroups extends ModManager {
 		}
 		?>
 		<div class="modal fade" id="modpress-group-modal" tabindex="-1" aria-labelledby="modpress-group-modal-title" aria-hidden="true">
-			<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_mod_group" />
@@ -789,7 +789,7 @@ final class ModGroups extends ModManager {
 	private function render_entry_modal( array $taxonomy_tabs ): void {
 		?>
 		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true">
-			<div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_mod_group_entry" />
