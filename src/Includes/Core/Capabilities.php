@@ -117,26 +117,6 @@ class Capabilities {
 					'label'       => __( 'Edit External Plugin Settings', 'modpress' ),
 					'description' => __( 'Allows editing settings for external ModPress plugins.', 'modpress' ),
 				),
-				'modpress_roles_view' => [ 
-					'group' => 'ModPress User Roles', 
-					'label' => __( 'View User Roles Manager', 'modpress' ), 
-					'description' => __( 'Allows viewing the ModPress User Roles Manager.', 'modpress' ) 
-				],
-				'modpress_roles_create' => [ 
-					'group' => 'ModPress User Roles', 
-					'label' => __( 'Create User Roles', 'modpress' ), 
-					'description' => __( 'Allows creating user roles.', 'modpress' ) 
-				],
-				'modpress_roles_edit' => [ 
-					'group' => 'ModPress User Roles', 
-					'label' => __( 'Edit User Roles', 'modpress' ), 
-					'description' => __( 'Allows editing user roles.', 'modpress' ) 
-				],
-				'modpress_roles_delete' => [ 
-					'group' => 'ModPress User Roles', 
-					'label' => __( 'Delete User Roles', 'modpress' ), 
-					'description' => __( 'Allows deleting user roles.', 'modpress' ) 
-				],
 				'modpress_manager_dashboard' => array(
 					'group'       => 'ModPress User Management',
 					'label'       => __( 'View User Management Dashboard', 'modpress' ),

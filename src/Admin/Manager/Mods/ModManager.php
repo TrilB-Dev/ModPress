@@ -27,46 +27,60 @@ class ModManager extends Manager {
      *
      * @since 1.0.0
      * @access protected
-     * @var string $page The page variable.
+     * @var string $page
      */
     protected string $page;
     /**
      * Instances of the mod manager tabs.
+     * 
      * @since 1.0.0
      * @access private
      * @var ModDashboard $mod_dashboard
      */
     private ModDashboard $mod_dashboard;
     /**
-     * @var ModGroups $mod_groups
+     * The mod groups tab instance.
+     * 
      * @since 1.0.0
      * @access private
-     * @var ModGroups $mod_groups
+     * @var ModGroups $mod_groups.
      */
     private ModGroups $mod_groups;
     /**
-     * @var ModChangeLogs $mod_changelogs
+     * The mod tags tab instance.
+     * 
+     * @since 1.0.0
+     * @access private
+     * @var ModTags $mod_tags
+     */
+    private ModTags $mod_tags;
+    /**
+     * The mod changelogs tab instance.
+     * 
      * @since 1.0.0
      * @access private
      * @var ModChangeLogs $mod_changelogs
      */
     private ModChangeLogs $mod_changelogs;
     /**
-     * @var ModFiles $mod_files
+     * The mod files tab instance.
+     * 
      * @since 1.0.0
      * @access private
      * @var ModFiles $mod_files
      */
     private ModFiles $mod_files;
     /**
-     * @var Mods $mods
+     * The mods tab instance.
+     * 
      * @since 1.0.0
      * @access private
      * @var Mods $mods
      */
     private Mods $mods;
     /**
-     * @var FunctionsMod $functions_mod
+     * The functions mod tab instance.
+     * 
      * @since 1.0.0
      * @access private
      * @var FunctionsMod $functions_mod
@@ -103,6 +117,7 @@ class ModManager extends Manager {
             'changelog',
             'files',
             'mods',
+            'tags',
         );
         /**
          * Initialize the instances for each mod manager tab.
@@ -134,6 +149,12 @@ class ModManager extends Manager {
          * @since 1.0.0
          */
         $this->mods = new Mods();
+        /**
+         * Initialize the mod tags tab instance.
+         *
+         * @since 1.0.0
+         */
+        $this->mod_tags = new ModTags();
         /**
          * Initialize the functions mod tab instance.
          *
@@ -183,7 +204,8 @@ class ModManager extends Manager {
      * @since 1.0.0
      */
     public function render(): void {
-        $tab = $this->normalize_tab( RequestHelper::get_key( 'tab', 'dashboard' ) );
+        $tab = SanitizationHelper::key( wp_unslash( $_GET['tab'] ?? 'dashboard' ), 'general' );
+        $tab = $this->normalize_tab( $tab );
         $capabilities = array(
             'dashboard' => 'modpress_manager_dashboard',
             'groups'    => 'modpress_manager_groups_view',
@@ -194,7 +216,7 @@ class ModManager extends Manager {
         );
 
         if ( ! PermissionHelper::can( $capabilities[ $tab ] ?? 'modpress_manager_dashboard' ) ) {
-            wp_die( esc_html__( 'You are not authorized to access this ModPress mod screen.', 'modpress' ) );
+            wp_die( esc_html__( 'You are not authorized to access this ModPress screen.', 'modpress' ) );
         }
 
         $this->header( $this->title( $tab ) );
@@ -212,27 +234,91 @@ class ModManager extends Manager {
     public function render_tab_content( string $tab ): void {
         $tab = $this->normalize_tab( $tab );
 
-        $instances = array(
-            'dashboard' => new ModDashboard(),
-            'groups'    => new ModGroups(),
-            'changelog' => new ModChangeLogs(),
-            'files'     => new ModFiles(),
-            'mods'      => new Mods(),
-        );
+        $view_capabilities = [
+            'dashboard' => [ 
+                'modpress_manager_mods_view' 
+            ],
+            'changelog' => [ 
+                'modpress_manager_mods_view' 
+            ],
+            'mods' => [ 
+                'modpress_manager_mods_view' 
+            ],
+            'groups' => [ 
+                'modpress_manager_groups_view' 
+            ],
+            'files' => [ 
+                'modpress_manager_mods_view' 
+            ],
+            'tags' => [ 
+                'modpress_manager_tags_view' 
+            ],
+        ];
+        $can_view = true;
+        foreach ( $view_capabilities[ $tab ] ?? [] as $capability ) {
+            if ( current_user_can( 'manage_options' ) || current_user_can( $capability ) ) {
+                continue;
+            }
 
-        if ( ! isset( $instances[ $tab ] ) ) {
-            return;
+            $can_view = false;
+            break;
         }
+        if ( ! $can_view ) {
+            wp_die( esc_html__( 'You are not authorized to view these Mod Manager pages.', 'modpress' ) );
+        }
+        $edit_capabilities = [
+            'groups'    => 'modpress_manager_groups_edit',
+            'mods'      => 'modpress_manager_mods_edit',
+            'files'     => 'modpress_manager_mods_edit',
+            'tags'      => 'modpress_manager_tags_edit',
+            'changelog' => 'modpress_manager_mods_edit',
+        ];
 
-        $instance = $instances[ $tab ];
-        if ( method_exists( $instance, 'render_page_content' ) ) {
-            $instance->render_page_content();
-            return;
-        }
+        $tab_context = [
+            'dashboard' => [
+                'description' => __( 'Overview of the ModPress dashboard.', 'modpress' ),
+            ],
+            'mods' => [
+                'description' => __( 'Manage the mods you have added to ModPress.', 'modpress' ),
+            ],
+            'groups' => [
+                'description' => __( 'Manage the groups within ModPress.', 'modpress' ),
+            ],
+            'changelog' => [
+                'description' => __( 'View the changelog for ModPress mods.', 'modpress' ),
+            ],
+            'files' => [
+                'description' => __( 'Manage the files associated with ModPress mods.', 'modpress' ),
+            ],
+            'tags' => [
+                'description' => __( 'Manage the tags associated with ModPress mods.', 'modpress' ),            ],
+        ];
+        ?>
+        <?php if ( 'dashboard' === $tab) : ?>
+            <?php $this->mod_dashboard->render(); ?>
+        <?php else : ?>
+            <div class="modpress-settings-tab-content" role="tabpanel">
+                <?php if ( isset( $tab_context[ $tab ] ) ) : ?>
+                    <p class="text-secondary mb-4">
+                        <?php echo esc_html( $tab_context[ $tab ]['description'] ); ?>
+                    </p>
+                <?php endif; ?>
 
-        if ( method_exists( $instance, 'render' ) ) {
-            $instance->render();
-        }
+                <?php if ( 'mods' === $tab ) : ?>
+                    <?php $this->mods->render(); ?>
+                <?php elseif ( 'groups' === $tab ) : ?>
+                    <?php $this->mod_groups->render(); ?>
+                <?php elseif ( 'changelog' === $tab ) : ?>
+                    <?php $this->mod_changelogs->render(); ?>
+                <?php elseif ( 'files' === $tab ) : ?>
+                    <?php $this->mod_files->render(); ?>
+                <?php elseif ( 'tags' === $tab ) : ?>
+                    <?php $this->mod_tags->render(); ?>
+                <?php endif; ?>
+
+            </div>
+        <?php endif; ?>
+        <?php
     }
 
     /**
@@ -253,20 +339,19 @@ class ModManager extends Manager {
      * @since 1.0.0
      */
     protected function normalize_tab( string $tab ): string {
-        $aliases = array(
-            'overview'   => 'dashboard',
-            'dashboard'  => 'dashboard',
-            'manage'     => 'mods',
-            'mod'        => 'mods',
-            'groups'     => 'groups',
-            'changelog'  => 'changelog',
-            'change-log' => 'changelog',
-            'files'      => 'files',
-            'file'       => 'files',
-            'list'       => 'mods',
-            );
+        $allowed = [ 
+            'dashboard', 
+            'mods', 
+            'groups', 
+            'changelog', 
+            'files', 
+            'tags' 
+        ];
 
-        return $this->normalize_route( $tab, $aliases, 'dashboard' );
+        if ( in_array( $tab, $allowed, true ) || $this->plugins_page->has_settings_page( $tab ) ) {
+            return $tab;
+        }
+        return 'dashboard';
     }
 
     /**
@@ -278,11 +363,12 @@ class ModManager extends Manager {
      */
     protected function title( string $tab ): string {
         $labels = array(
-            'dashboard' => __( 'Mod Dashboard', 'modpress' ),
-            'groups'    => __( 'Mod Groups', 'modpress' ),
-            'changelog' => __( 'Change Logs', 'modpress' ),
-            'files'     => __( 'Mod Files', 'modpress' ),
-            'mods'      => __( 'Mods', 'modpress' ),
+            'dashboard'     => __( 'Mod Manager - Dashboard', 'modpress' ),
+            'groups'        => __( 'Mod Manager - Groups', 'modpress' ),
+            'changelog'     => __( 'Mod Manager - Change Logs', 'modpress' ),
+            'files'         => __( 'Mod Manager - Files', 'modpress' ),
+            'mods'          => __( 'Mod Manager - Mods', 'modpress' ),
+            'tags'          => __( 'Mod Manager - Tags', 'modpress' ),
         );
 
         return $labels[ $tab ] ?? $labels['dashboard'];
