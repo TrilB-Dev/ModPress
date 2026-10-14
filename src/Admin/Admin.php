@@ -45,7 +45,7 @@ final class Admin {
 	 *
 	 * @var ModManager
 	 */
-	private ModManager $mod_manager;
+	//private ModManager $mod_manager;
 	/**
 	 * ToolsManager instance for managing tools-related admin pages.
 	 *
@@ -81,7 +81,7 @@ final class Admin {
 		$this->managers = array(
 			'dashboard' 		=> new DashboardManager(),
 			'settings'  		=> new SettingsManager(),
-			'mod-manager'      	=> new ModManager(),
+		//	'mod-manager'      	=> new ModManager(),
 			'tools'     		=> new ToolsManager(),
 		);
 		/**
@@ -95,7 +95,7 @@ final class Admin {
 		/**
 		 * Initialize the mod manager instance from the registry.
 		 */
-		$this->mod_manager      = $this->managers['mod-manager'];
+		// $this->mod_manager      = $this->managers['mod-manager'];
 		/**
 		 * Initialize the tools manager instance from the registry.
 		 */
@@ -186,7 +186,7 @@ final class Admin {
 			switch ( $normalized_group ) {
 				case 'mods':
 					LoggerHelper::write_log( 'ModPress dashboard routed to mods page.' );
-					$this->render_mods();
+					//$this->render_mods();
 					return;
 				case 'settings':
 					LoggerHelper::write_log( 'ModPress dashboard routed to settings page.' );
@@ -231,7 +231,7 @@ final class Admin {
 	 */
 	public function render_mods(): void {
 		LoggerHelper::write_log( 'ModPress mods render started.' );
-		$this->mod_manager->render();
+		//$this->mod_manager->render();
 		LoggerHelper::write_log( 'ModPress mods render complete.' );
 	}
 	/**
