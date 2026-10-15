@@ -125,6 +125,12 @@ namespace {
         }
     }
 
+    if ( ! function_exists( 'esc_html_e' ) ) {
+        function esc_html_e( $text, $domain = null ): void {
+            echo esc_html( $text );
+        }
+    }
+
     if ( ! function_exists( 'taxonomy_exists' ) ) {
         function taxonomy_exists( $taxonomy ): bool {
             return isset( $GLOBALS['modpress_test_taxonomies'][ (string) $taxonomy ] );
@@ -184,6 +190,34 @@ namespace {
     if ( ! function_exists( 'sanitize_title' ) ) {
         function sanitize_title( $title ): string {
             return strtolower( preg_replace( '/[^a-z0-9]+/', '-', trim( (string) $title ) ) );
+        }
+    }
+
+    if ( ! function_exists( 'sanitize_html_class' ) ) {
+        function sanitize_html_class( $class ): string {
+            return preg_replace( '/[^A-Za-z0-9_-]/', '', (string) $class );
+        }
+    }
+
+    if ( ! function_exists( 'admin_url' ) ) {
+        function admin_url( $path = '' ): string {
+            return 'http://example.com/wp-admin/' . ltrim( (string) $path, '/' );
+        }
+    }
+
+    if ( ! function_exists( 'esc_url' ) ) {
+        function esc_url( $url ) {
+            return (string) $url;
+        }
+    }
+
+    if ( ! function_exists( 'wp_nonce_field' ) ) {
+        function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $echo = true ) {
+            $output = '<input type="hidden" name="' . esc_attr( $name ) . '" value="' . esc_attr( $action ) . '" />';
+            if ( $echo ) {
+                echo $output;
+            }
+            return $output;
         }
     }
 }
@@ -416,6 +450,16 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'maps', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'slug' ) );
             $this->assertSame( 'Example description.', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'description' ) );
             $this->assertSame( 'dashicons-admin-site-alt3', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'entry_icon' ) );
+        }
+
+        public function testEntryModalSubmitsToAdminPostEndpoint(): void {
+            $file = __DIR__ . '/../../src/Admin/Manager/Mods/ModGroups.php';
+            $this->assertFileExists( $file );
+
+            $source = file_get_contents( $file );
+            $this->assertNotFalse( $source );
+            $this->assertStringContainsString( "action=\"<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>\"", $source );
+            $this->assertStringContainsString( 'name="action" value="modpress_save_group_entry"', $source );
         }
 
         public function testPluginSlugLookupMatchesHyphenatedAndSanitizedSlugs(): void {
