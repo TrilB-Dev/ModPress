@@ -170,8 +170,7 @@ class ModManager extends Manager {
             return;
         }?>
 
-        ?>
-        <div class="modpress-settings-tab-content" role="tabpanel">
+        <div class="modpress-mod-manager-tab-content" role="tabpanel">
             <?php $screen->render_page_content(); ?>
         </div>
         <?php

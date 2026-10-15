@@ -16,6 +16,46 @@
         button.disabled = !hasSelection;
     };
 
+    const syncModManagerTabs = () => {
+        const managerRoot = document.querySelector('.modpress-mod-manager-tab-content');
+        if (!managerRoot) {
+            return;
+        }
+
+        const tabs = managerRoot.querySelectorAll('[data-bs-toggle="tab"]');
+        tabs.forEach((tab) => {
+            const targetSelector = tab.getAttribute('data-bs-target');
+            if (!targetSelector || tab.dataset.modpressTabBound === 'true') {
+                return;
+            }
+
+            tab.dataset.modpressTabBound = 'true';
+            tab.addEventListener('click', () => {
+                const pane = managerRoot.querySelector(targetSelector);
+                if (!pane) {
+                    return;
+                }
+
+                managerRoot.querySelectorAll('[data-bs-toggle="tab"]').forEach((link) => {
+                    const isActive = link === tab;
+                    link.classList.toggle('active', isActive);
+                    link.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                    if (isActive) {
+                        link.setAttribute('aria-current', 'page');
+                    } else {
+                        link.removeAttribute('aria-current');
+                    }
+                });
+
+                managerRoot.querySelectorAll('.tab-pane').forEach((panel) => {
+                    const isActivePane = panel === pane;
+                    panel.classList.toggle('show', isActivePane);
+                    panel.classList.toggle('active', isActivePane);
+                });
+            });
+        });
+    };
+
     document.addEventListener('change', (event) => {
         const target = event.target;
         if (target.matches('.modpress-row-checkbox')) {
@@ -146,4 +186,5 @@
     }
 
     syncDeleteButtons();
+    syncModManagerTabs();
 })();
