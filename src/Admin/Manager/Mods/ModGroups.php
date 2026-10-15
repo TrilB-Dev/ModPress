@@ -672,7 +672,7 @@ final class ModGroups extends ModManager {
 		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
 				<div class="modal-content">
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<form method="post" >
 						<input type="hidden" name="action" value="modpress_save_group_entry" />
 						<input type="hidden" name="group_slug" value="" />
 						<input type="hidden" name="group_entry_id" value="" />
