@@ -342,6 +342,19 @@ namespace ModPress\Tests\Unit {
             $this->assertTrue( has_action( 'admin_post_modpress_save_mod_group_entry', [ $functions_mod, 'handle_group_entry_save' ] ) );
         }
 
+        public function testModManagerConstructorRegistersAdminPostHandlers(): void {
+            $manager = new \ModPress\Admin\Manager\Mods\ModManager();
+            $ref = new \ReflectionClass( $manager );
+            $property = $ref->getProperty( 'functions_mod' );
+            $property->setAccessible( true );
+            $functions_mod = $property->getValue( $manager );
+
+            $this->assertNotNull( $functions_mod );
+            $this->assertTrue( has_action( 'admin_post_modpress_save_group', [ $functions_mod, 'save_group' ] ) );
+            $this->assertTrue( has_action( 'admin_post_modpress_save_group_entry', [ $functions_mod, 'save_group_entry' ] ) );
+            $this->assertTrue( has_action( 'admin_post_modpress_delete_group_entry', [ $functions_mod, 'delete_group_entry' ] ) );
+        }
+
         public function testAdminPostCallbacksExistForAllRegisteredModActions(): void {
             $functions_mod = new \ModPress\Includes\Functions\Admin\FunctionsMod();
 

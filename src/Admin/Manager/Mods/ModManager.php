@@ -62,6 +62,8 @@ class ModManager extends Manager {
             'mods',
             'tags',
         );
+
+        $this->register_actions();
     }
     /**
      * Register the mod manager admin-post handlers used by taxonomy forms.
