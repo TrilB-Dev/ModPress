@@ -44,6 +44,7 @@ class Assets {
 	 * Registers the default assets for the plugin.
 	 *
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public function register(): void {
 		( new LoaderHelper() )->register_component(
@@ -75,6 +76,7 @@ class Assets {
 	 * @param string $page The page identifier.
 	 * @param array  $assets The assets to register for the page.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public function register_page( string $page, array $assets ): void {
 		$page                 = SanitizationHelper::key( $page );
@@ -89,6 +91,7 @@ class Assets {
 	 * @param string $group The group identifier.
 	 * @param array  $assets The assets to register for the group.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public function register_group( string $group, array $assets ): void {
 		$group = SanitizationHelper::key( $group );
@@ -103,6 +106,7 @@ class Assets {
 	 * @param string $tab The tab identifier.
 	 * @param array  $assets The assets to register for the tab.
 	 * @return void
+	 * @since 1.0.0
 	 */
 	public function register_tab( string $tab, array $assets ): void {
 		$tab = SanitizationHelper::key( $tab );
@@ -117,6 +121,7 @@ class Assets {
 	 * @param array  $assets The current assets.
 	 * @param string $context The context (e.g., 'frontend', 'admin').
 	 * @return array The default assets.
+	 * @since 1.0.0
 	 */
 	public function default_assets( array $assets, string $context ): array {
 		$defaults = array(
@@ -349,6 +354,7 @@ class Assets {
 	 * Get the current admin route values.
 	 *
 	 * @return array{page:string,group:string,tab:string}
+	 * @since 1.0.0
 	 */
 	private function current_admin_route(): array {
 		return array(

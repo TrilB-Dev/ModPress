@@ -101,6 +101,15 @@
                 const isEdit = Boolean(trigger.dataset.entryId);
                 title.textContent = isEdit ? 'Edit Entry - ' + taxonomyLabel : 'Add New Entry - ' + taxonomyLabel;
             }
+
+            const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
+            fieldsToReset.forEach((fieldName) => {
+                const input = modalElement.querySelector('[name="' + fieldName + '"]');
+                if (input) {
+                    input.value = '';
+                }
+            });
+
             const taxonomyField = modalElement.querySelector('[name="group_slug"]');
             if (taxonomyField) {
                 taxonomyField.value = taxonomyKey;
@@ -114,24 +123,24 @@
                 entryIdField.value = trigger.dataset.entryId || '';
             }
             const nameField = modalElement.querySelector('[name="entry_name"]');
-            if (nameField && trigger.dataset.entryName) {
-                nameField.value = trigger.dataset.entryName;
+            if (nameField) {
+                nameField.value = trigger.dataset.entryName || '';
             }
             const slugField = modalElement.querySelector('[name="entry_slug"]');
-            if (slugField && trigger.dataset.entrySlug) {
-                slugField.value = trigger.dataset.entrySlug;
+            if (slugField) {
+                slugField.value = trigger.dataset.entrySlug || '';
             }
             const descriptionField = modalElement.querySelector('[name="entry_description"]');
-            if (descriptionField && trigger.dataset.entryDescription) {
-                descriptionField.value = trigger.dataset.entryDescription;
+            if (descriptionField) {
+                descriptionField.value = trigger.dataset.entryDescription || '';
             }
             const parentField = modalElement.querySelector('[name="entry_parent"]');
-            if (parentField && trigger.dataset.entryParent) {
-                parentField.value = trigger.dataset.entryParent;
+            if (parentField) {
+                parentField.value = trigger.dataset.entryParent || '0';
             }
             const iconField = modalElement.querySelector('[name="entry_icon"]');
-            if (iconField && trigger.dataset.entryIcon) {
-                iconField.value = trigger.dataset.entryIcon;
+            if (iconField) {
+                iconField.value = trigger.dataset.entryIcon || '';
             }
         });
     }
