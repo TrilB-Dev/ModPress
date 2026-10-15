@@ -124,6 +124,68 @@ namespace {
             return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' );
         }
     }
+
+    if ( ! function_exists( 'taxonomy_exists' ) ) {
+        function taxonomy_exists( $taxonomy ): bool {
+            return isset( $GLOBALS['modpress_test_taxonomies'][ (string) $taxonomy ] );
+        }
+    }
+
+    if ( ! function_exists( 'get_term' ) ) {
+        function get_term( $term, $taxonomy = '', $output = OBJECT ) {
+            $key = is_object( $term ) ? $term->term_id : (int) $term;
+            return $GLOBALS['modpress_test_terms'][ $taxonomy ][ $key ] ?? null;
+        }
+    }
+
+    if ( ! function_exists( 'term_exists' ) ) {
+        function term_exists( $term, $taxonomy = '', $parent = 0 ) {
+            foreach ( $GLOBALS['modpress_test_terms'][ $taxonomy ] ?? [] as $term_id => $term_data ) {
+                if ( (string) $term_data->name === (string) $term || (string) $term_data->slug === (string) $term ) {
+                    return array( 'term_id' => (int) $term_id );
+                }
+            }
+            return 0;
+        }
+    }
+
+    if ( ! function_exists( 'get_term_meta' ) ) {
+        function get_term_meta( $term_id, $key = '', $single = false ) {
+            $values = $GLOBALS['modpress_test_term_meta'][ (int) $term_id ][ $key ] ?? [];
+            if ( $single ) {
+                return $values[0] ?? '';
+            }
+
+            return $values;
+        }
+    }
+
+    if ( ! function_exists( 'add_term_meta' ) ) {
+        function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
+            $GLOBALS['modpress_test_term_meta'][ (int) $term_id ][ $meta_key ][] = $meta_value;
+            return true;
+        }
+    }
+
+    if ( ! function_exists( 'update_term_meta' ) ) {
+        function update_term_meta( $term_id, $meta_key, $meta_value, $prev_value = '' ) {
+            $GLOBALS['modpress_test_term_meta'][ (int) $term_id ][ $meta_key ] = array( $meta_value );
+            return true;
+        }
+    }
+
+    if ( ! function_exists( 'delete_term_meta' ) ) {
+        function delete_term_meta( $term_id, $meta_key, $meta_value = '' ) {
+            unset( $GLOBALS['modpress_test_term_meta'][ (int) $term_id ][ $meta_key ] );
+            return true;
+        }
+    }
+
+    if ( ! function_exists( 'sanitize_title' ) ) {
+        function sanitize_title( $title ): string {
+            return strtolower( preg_replace( '/[^a-z0-9]+/', '-', trim( (string) $title ) ) );
+        }
+    }
 }
 
 namespace ModPress\Tests\Unit {
@@ -329,6 +391,31 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'fontawesome', $method->invoke( null, 'modpress-fontawesome' ) );
             $this->assertSame( 'fontawesome', $method->invoke( null, 'fontawesome' ) );
             $this->assertSame( 'fontawesome', $method->invoke( null, 'modpress_fontawesome' ) );
+        }
+
+        public function testGroupsManagerCanReadTermFieldsAndMetaByTaxonomy(): void {
+            $GLOBALS['modpress_test_taxonomies'] = [ 'modpress_type' => true ];
+            $GLOBALS['modpress_test_terms'] = [
+                'modpress_type' => [
+                    21 => (object) [
+                        'term_id' => 21,
+                        'name' => 'Maps',
+                        'slug' => 'maps',
+                        'description' => 'Example description.',
+                        'parent' => 0,
+                    ],
+                ],
+            ];
+            $GLOBALS['modpress_test_term_meta'] = [
+                21 => [
+                    'entry_icon' => [ 'dashicons-admin-site-alt3' ],
+                ],
+            ];
+
+            $this->assertSame( 'Maps', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'name' ) );
+            $this->assertSame( 'maps', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'slug' ) );
+            $this->assertSame( 'Example description.', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'description' ) );
+            $this->assertSame( 'dashicons-admin-site-alt3', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'entry_icon' ) );
         }
 
         public function testPluginSlugLookupMatchesHyphenatedAndSanitizedSlugs(): void {

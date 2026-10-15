@@ -197,7 +197,7 @@ final class FunctionsMod {
             wp_die( esc_html__( 'You are not allowed to manage ModPress groups.', 'modpress' ) );
         }
 
-        check_admin_referer( 'modpress_save_mod_group', 'modpress_group_nonce' );
+        check_admin_referer( 'modpress_save_group', 'modpress_group_nonce' );
 
         $group_name = RequestHelper::text( $_POST, 'group_name', '' );
         $taxonomy   = RequestHelper::key( $_POST, 'group_slug', SanitizationHelper::slug( $group_name, '' ) );
@@ -407,9 +407,9 @@ final class FunctionsMod {
             wp_die( esc_html__( 'You are not allowed to manage ModPress taxonomy entries.', 'modpress' ) );
         }
 
-        check_admin_referer( 'modpress_save_mod_group_entry', 'modpress_group_entry_nonce' );
+        check_admin_referer( 'modpress_save_group_entry', 'modpress_group_entry_nonce' );
 
-        $taxonomy = RequestHelper::key( $_POST, 'entry_group_taxonomy', '' );
+        $taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
         $name     = RequestHelper::text( $_POST, 'entry_name', '' );
 
         if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
@@ -422,25 +422,75 @@ final class FunctionsMod {
             $this->redirect_mod_group_result( false, __( 'An entry name is required.', 'modpress' ) );
         }
 
-        $slug        = RequestHelper::slug( $_POST, 'entry_slug', $name );
+        $term_id    = RequestHelper::integer( $_POST, 'group_entry_id', 0 );
+        $slug       = RequestHelper::slug( $_POST, 'entry_slug', $name );
         $description = SanitizationHelper::textarea( RequestHelper::value( $_POST, 'entry_description', '' ), '' );
-        $parent      = RequestHelper::integer( $_POST, 'entry_parent', 0 );
-        $args        = array(
+        $parent     = RequestHelper::integer( $_POST, 'entry_parent', 0 );
+        $icon       = RequestHelper::text( $_POST, 'entry_icon', '' );
+        $args       = array(
+            'name'        => $name,
             'description' => $description,
             'slug'        => $slug,
             'parent'      => $parent > 0 ? $parent : 0,
         );
 
-        $existing = term_exists( $name, $taxonomy );
-        $result   = $existing ? wp_update_term( (int) ( is_array( $existing ) ? $existing['term_id'] : $existing ), $taxonomy, array_merge( array( 'name' => $name ), $args ) ) : wp_insert_term( $name, $taxonomy, $args );
+        if ( $term_id > 0 ) {
+            $result = wp_update_term( $term_id, $taxonomy, $args );
+        } else {
+            $result = wp_insert_term( $name, $taxonomy, $args );
+        }
 
         if ( is_wp_error( $result ) ) {
             LoggerHelper::write_log( 'ModPress group entry save failed for taxonomy ' . $taxonomy . ': ' . $result->get_error_message() );
             $this->redirect_mod_group_result( false, $result->get_error_message() );
         }
 
+        $saved_term_id = 0;
+        if ( is_array( $result ) ) {
+            $saved_term_id = (int) ( $result['term_id'] ?? 0 );
+        }
+
+        if ( $saved_term_id > 0 ) {
+            if ( '' !== $icon ) {
+                update_term_meta( $saved_term_id, 'entry_icon', $icon );
+            } else {
+                delete_term_meta( $saved_term_id, 'entry_icon' );
+            }
+        }
+
         LoggerHelper::write_log( 'ModPress group entry saved successfully for taxonomy ' . $taxonomy );
         $this->redirect_mod_group_result( true, __( 'Entry saved successfully.', 'modpress' ) );
+    }
+
+    /**
+     * Delete a taxonomy term from the entry modal.
+     *
+     * @return void
+     */
+    public function delete_group_entry(): void {
+        if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress taxonomy entries.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' );
+
+        $term_id  = RequestHelper::integer( $_POST, 'group_entry_id', 0 );
+        $taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
+
+        if ( $term_id <= 0 || '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+            LoggerHelper::write_log( 'ModPress group entry delete rejected: invalid taxonomy or term id.' );
+            $this->redirect_mod_group_result( false, __( 'The selected entry could not be deleted.', 'modpress' ) );
+        }
+
+        $deleted = wp_delete_term( $term_id, $taxonomy );
+
+        if ( is_wp_error( $deleted ) ) {
+            LoggerHelper::write_log( 'ModPress group entry delete failed for taxonomy ' . $taxonomy . ': ' . $deleted->get_error_message() );
+            $this->redirect_mod_group_result( false, $deleted->get_error_message() );
+        }
+
+        LoggerHelper::write_log( 'ModPress group entry deleted successfully for taxonomy ' . $taxonomy );
+        $this->redirect_mod_group_result( true, __( 'Entry deleted successfully.', 'modpress' ) );
     }
 
     /**

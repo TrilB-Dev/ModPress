@@ -179,9 +179,13 @@ final class ModGroups extends ModManager {
 																			'data-bs-toggle' => 'modal',
 																			'data-bs-target' => '#modpress-entry-modal',
 																			'data-taxonomy-key' => $taxonomy_key,
+																			'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+																			'data-entry-id' => (int) $term->term_id,
 																			'data-entry-name' => $term->name,
 																			'data-entry-slug' => $term->slug,
 																			'data-entry-description' => $term->description,
+																			'data-entry-parent' => (int) $term->parent,
+																			'data-entry-icon' => GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy_key, 'entry_icon' ) ?: '',
 																		),
 																	)
 																); ?>
@@ -670,13 +674,15 @@ final class ModGroups extends ModManager {
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_group_entry" />
+						<input type="hidden" name="group_slug" value="" />
+						<input type="hidden" name="group_entry_id" value="" />
+						<input type="hidden" name="entry_group_taxonomy" value="" />
 						<?php wp_nonce_field( 'modpress_save_group_entry', 'modpress_group_entry_nonce' ); ?>
 						<div class="modal-header">
 							<h5 class="modal-title" id="modpress-entry-modal-title"><?php esc_html_e( 'Add Entry', 'modpress' ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
-							<input type="hidden" name="entry_group_taxonomy" value="" />
 							<table class="table table-borderless mb-0">
 								<tbody>
 									<?php $this->render_form_row(

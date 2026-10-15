@@ -98,11 +98,20 @@
             const taxonomyLabel = trigger.dataset.taxonomyLabel || 'Group';
             const title = modalElement.querySelector('.modal-title');
             if (title) {
-                title.textContent = 'Add New Entry - ' + taxonomyLabel;
+                const isEdit = Boolean(trigger.dataset.entryId);
+                title.textContent = isEdit ? 'Edit Entry - ' + taxonomyLabel : 'Add New Entry - ' + taxonomyLabel;
             }
-            const taxonomyField = modalElement.querySelector('[name="entry_group_taxonomy"]');
+            const taxonomyField = modalElement.querySelector('[name="group_slug"]');
             if (taxonomyField) {
                 taxonomyField.value = taxonomyKey;
+            }
+            const formTaxonomyField = modalElement.querySelector('[name="entry_group_taxonomy"]');
+            if (formTaxonomyField) {
+                formTaxonomyField.value = taxonomyKey;
+            }
+            const entryIdField = modalElement.querySelector('[name="group_entry_id"]');
+            if (entryIdField) {
+                entryIdField.value = trigger.dataset.entryId || '';
             }
             const nameField = modalElement.querySelector('[name="entry_name"]');
             if (nameField && trigger.dataset.entryName) {
@@ -115,6 +124,14 @@
             const descriptionField = modalElement.querySelector('[name="entry_description"]');
             if (descriptionField && trigger.dataset.entryDescription) {
                 descriptionField.value = trigger.dataset.entryDescription;
+            }
+            const parentField = modalElement.querySelector('[name="entry_parent"]');
+            if (parentField && trigger.dataset.entryParent) {
+                parentField.value = trigger.dataset.entryParent;
+            }
+            const iconField = modalElement.querySelector('[name="entry_icon"]');
+            if (iconField && trigger.dataset.entryIcon) {
+                iconField.value = trigger.dataset.entryIcon;
             }
         });
     }

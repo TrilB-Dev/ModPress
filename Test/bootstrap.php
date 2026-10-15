@@ -6,6 +6,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . DIRECTORY_SEPARATOR );
 }
 
+if ( ! defined( 'OBJECT' ) ) {
+	define( 'OBJECT', 1 );
+}
+
+if ( ! defined( 'ARRAY_A' ) ) {
+	define( 'ARRAY_A', 2 );
+}
+
+if ( ! defined( 'ARRAY_N' ) ) {
+	define( 'ARRAY_N', 3 );
+}
+
 if ( ! function_exists( 'sanitize_key' ) ) {
 	function sanitize_key( $key ): string {
 		return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', (string) $key ) );

@@ -9,6 +9,7 @@
 namespace ModPress\Includes\ModManagement;
 
 use ModPress\Includes\Core\Taxonomy;
+use ModPress\Includes\Functions\Helpers\DBHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -185,5 +186,39 @@ final class GroupsManager {
 		}
 
 		return in_array( $taxonomy_key, array( 'modpress_mod_type' ), true );
+	}
+	/**
+	 * Retrieve a term field or metadata value for a group entry.
+	 *
+	 * @param int    $term_id Term ID.
+	 * @param string $taxonomy Taxonomy slug.
+	 * @param string $field Field key to read.
+	 * @return mixed
+	 * @since 1.0.0
+	 */
+	public static function get_group_entry( int $term_id, string $taxonomy, string $field ) {
+		$term = get_term( $term_id, $taxonomy );
+		if ( ! $term || is_wp_error( $term ) ) {
+			return null;
+		}
+
+		$property_map = array(
+			'name'        => $term->name ?? '',
+			'slug'        => $term->slug ?? '',
+			'description' => $term->description ?? '',
+			'parent'      => $term->parent ?? 0,
+			'term_id'     => $term->term_id ?? 0,
+		);
+
+		if ( array_key_exists( $field, $property_map ) ) {
+			return $property_map[ $field ];
+		}
+
+		$value = get_term_meta( $term_id, $field, true );
+		if ( '' === $value || null === $value || false === $value ) {
+			return '';
+		}
+
+		return $value;
 	}
 }
