@@ -25,6 +25,13 @@ final class Taxonomy {
 	private static array $registered = array();
 
 	/**
+	 * Prefix applied to dynamically created taxonomies.
+	 *
+	 * @var string
+	 */
+	private static string $taxonomy_prefix = 'modpress_';
+
+	/**
 	 * Register the configured taxonomies.
 	 *
 	 * @since 1.0.0
@@ -62,10 +69,14 @@ final class Taxonomy {
 	 * @return bool
 	 */
 	public static function dynamically_create( array $data = array() ): bool {
-		$taxonomy = self::normalize_taxonomy( $data['taxonomy'] ?? $data['slug'] ?? '' );
-		if ( '' === $taxonomy ) {
+		$taxonomy_slug = self::normalize_taxonomy( $data['taxonomy'] ?? $data['slug'] ?? '' );
+		if ( '' === $taxonomy_slug ) {
 			return false;
 		}
+
+		$taxonomy = 0 === strpos( $taxonomy_slug, self::$taxonomy_prefix )
+			? $taxonomy_slug
+			: self::normalize_taxonomy( self::$taxonomy_prefix . $taxonomy_slug );
 
 		$labels = array(
 			'name'          => $data['name'] ?? self::humanize_slug( $taxonomy ),

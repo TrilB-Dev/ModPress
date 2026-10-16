@@ -20,6 +20,8 @@ final class GroupsManager {
 	 * Get the taxonomy definitions registered for mods.
 	 *
 	 * @return array<string, array<string, mixed>>
+	 * @see Taxonomy::definitions() for the source of registered taxonomies.
+	 * @since 1.0.0
 	 */
 	public function get_registered_taxonomies(): array {
 		$taxonomies = Taxonomy::definitions();
@@ -139,7 +141,8 @@ final class GroupsManager {
 			return false;
 		}
 
-		register_taxonomy_for_object_type( $taxonomy, 'modpress_mod' );
+		$taxonomy_key = 0 === strpos( $taxonomy, 'modpress_' ) ? $taxonomy : 'modpress_' . $taxonomy;
+		register_taxonomy_for_object_type( $taxonomy_key, 'modpress_mod' );
 
 		return true;
 	}
@@ -220,5 +223,83 @@ final class GroupsManager {
 		}
 
 		return $value;
+	}
+
+	public static function get_group( string $group_id ) {
+		$group_id = absint( $group_id );
+		if ( $group_id > 0 ) {
+			$group = DBHelper::get_by_id( 'groups', $group_id );
+			if ( ! empty( $group ) ) {
+				return $group;
+			}
+		}
+
+		$default_group = self::get_default_group();
+		if ( ! empty( $default_group ) ) {
+			return $default_group;
+		}
+
+		return array();
+	}
+
+	/**
+	 * Create the default Mod Type group row if it does not already exist.
+	 *
+	 * @return bool
+	 */
+	public static function create_default_group(): bool {
+		if ( ! DBHelper::table_exists( 'groups' ) ) {
+			if ( ! method_exists( '\ModPress\Includes\Core\Schema', 'groups_table' ) ) {
+				return false;
+			}
+			\ModPress\Includes\Core\Schema::groups_table();
+			DBHelper::create_table( 'groups' );
+		}
+
+		if ( ! empty( DBHelper::get_row( 'groups', array( 'group_slug' => 'type' ) ) ) ) {
+			return true;
+		}
+
+		$inserted = DBHelper::insert(
+			'groups',
+			array(
+				'group_name'          => 'Mod Type',
+				'group_slug'          => 'type',
+				'group_singular_name' => 'Mod Type',
+				'group_description'   => 'The Mod Type group is used to categorise your mods by their type.',
+				'group_hierarchical'  => 0,
+				'group_parent_id'     => null,
+				'group_fields'        => null,
+				'created_by'          => 1,
+				'created_at'          => current_time( 'mysql' ),
+				'updated_at'          => current_time( 'mysql' ),
+			)
+		);
+
+		return false !== $inserted;
+	}
+
+	/**
+	 * Return the default core group payload used before the database record is available.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function get_default_group(): array {
+		$group = DBHelper::get_row( 'groups', array( 'group_slug' => 'type' ) );
+		if ( ! empty( $group ) ) {
+			return $group;
+		}
+
+		return array(
+			'id'                  => 1,
+			'group_name'          => 'Mod Type',
+			'group_slug'          => 'type',
+			'group_singular_name' => 'Mod Type',
+			'group_description'   => 'The Mod Type group is used to categorise your mods by their type.',
+			'group_hierarchical'  => 0,
+			'group_parent_id'     => null,
+			'group_fields'        => null,
+			'created_by'          => 1,
+		);
 	}
 }

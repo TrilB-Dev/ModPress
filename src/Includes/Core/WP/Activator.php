@@ -13,6 +13,7 @@ namespace ModPress\Includes\Core\WP;
 
 use ModPress\Includes\Core\Capabilities;
 use ModPress\Includes\Core\Roles;
+use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\Plugins\Plugins;
 use ModPress\Includes\Settings\SettingsManager;
 use ModPress\Includes\Settings\Settings;
@@ -56,6 +57,7 @@ final class Activator {
 
 		Plugins::get_instance()->init();
 		Database::install();
+		GroupsManager::create_default_group();
 		Roles::install();
 		Capabilities::install();
 		SettingsManager::install();

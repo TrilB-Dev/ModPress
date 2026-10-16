@@ -390,15 +390,6 @@ final class ModGroups extends ModManager {
 														__( 'Choose a parent taxonomy group if needed.', 'modpress' ),
 														__( 'This creates a hierarchy between related taxonomy groups.', 'modpress' )
 													); ?>
-													<?php $this->render_form_row(
-														'modpress-parent-option-block',
-														__( 'Parent Option', 'modpress' ),
-														function () {
-															return '<div id="modpress-parent-option-block" class="border rounded p-3 bg-light text-muted">' . esc_html__( 'Parent group values will appear here when a parent is selected.', 'modpress' ) . '</div>';
-														},
-														__( 'Show values from the selected parent group.', 'modpress' ),
-														__( 'Values appear here when a parent source is selected.', 'modpress' )
-													); ?>
 												</tbody>
 											</table>
 										</div>
