@@ -25,22 +25,6 @@ final class GroupsManager {
 	 */
 	public function get_registered_taxonomies(): array {
 		$taxonomies = Taxonomy::definitions();
-		if ( empty( $taxonomies ) ) {
-			$taxonomies = array(
-				'modpress_type' => array(
-					'label'         => __( 'Mod Types', 'modpress' ),
-					'post_type'     => array( 'modpress_mod' ),
-					'hierarchical'  => true,
-					'show_in_rest'  => true,
-					'public'        => true,
-					'show_ui'       => true,
-					'show_in_menu'  => false,
-					'description'   => __( 'System taxonomy for mod classification.', 'modpress' ),
-					'reserved'      => true,
-					'deletable'     => false,
-				),
-			);
-		}
 
 		$filtered = array();
 		foreach ( $taxonomies as $taxonomy_key => $taxonomy_config ) {
@@ -233,11 +217,6 @@ final class GroupsManager {
 			}
 		}
 
-		$default_group = self::get_default_group();
-		if ( ! empty( $default_group ) ) {
-			return $default_group;
-		}
-
 		return array();
 	}
 
@@ -276,29 +255,5 @@ final class GroupsManager {
 		);
 
 		return false !== $inserted;
-	}
-
-	/**
-	 * Return the default core group payload used before the database record is available.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private static function get_default_group(): array {
-		$group = DBHelper::get_row( 'groups', array( 'group_slug' => 'type' ) );
-		if ( ! empty( $group ) ) {
-			return $group;
-		}
-
-		return array(
-			'id'                  => 1,
-			'group_name'          => 'Mod Type',
-			'group_slug'          => 'type',
-			'group_singular_name' => 'Mod Type',
-			'group_description'   => 'The Mod Type group is used to categorise your mods by their type.',
-			'group_hierarchical'  => 0,
-			'group_parent_id'     => null,
-			'group_fields'        => null,
-			'created_by'          => 1,
-		);
 	}
 }
