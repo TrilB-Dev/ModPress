@@ -668,6 +668,31 @@ final class ModGroups extends ModManager {
 	 * @return void
 	 */
 	private function render_entry_modal( array $taxonomy_tabs ): void {
+		$entry_parent_options = array(
+			'0' => __( 'None', 'modpress' ),
+		);
+
+		foreach ( $taxonomy_tabs as $taxonomy ) {
+			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
+			if ( '' === $taxonomy_key || ! taxonomy_exists( $taxonomy_key ) ) {
+				continue;
+			}
+
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomy_key,
+					'hide_empty' => false,
+				)
+			);
+
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
+				continue;
+			}
+
+			foreach ( $terms as $term ) {
+				$entry_parent_options[ (string) $term->term_id ] = $term->name;
+			}
+		}
 		?>
 		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
@@ -737,17 +762,15 @@ final class ModGroups extends ModManager {
 									<?php $this->render_form_row(
 										'entry_parent',
 										__( 'Parent', 'modpress' ),
-										function () {
-											return FormFieldHelper::bootstrap_select(
-                                                                    'entry_parent',
-                                                                    array(
-                                                                        'data' => array(
-                                                                            'none' => __( 'None', 'modpress' ),
-                                                                        ),
-                                                                        'selected' => 'none',
-                                                                        'id' => 'entry_parent',
-                                                                    )
-                                                                );
+											function () use ( $entry_parent_options ) {
+												return FormFieldHelper::bootstrap_select(
+													'entry_parent',
+													array(
+														'data'     => $entry_parent_options,
+														'selected' => '0',
+														'id'       => 'entry_parent',
+													)
+												);
 										},
 										__( 'Choose a parent entry if required.', 'modpress' ),
 										__( 'This is useful for nested categories or grouped options.', 'modpress' )
