@@ -49,15 +49,6 @@ final class ModGroups extends ModManager {
 			}
 		}
 
-		if ( empty( $taxonomy_tabs ) ) {
-			$taxonomy_tabs[] = array(
-				'key'      => 'modpress_type',
-				'taxonomy' => 'modpress_type',
-				'label'    => __( 'Mod Types', 'modpress' ),
-				'count'    => 0,
-			);
-		}
-
 		$active_tab = $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'modpress_type';
 		?>
 
@@ -135,7 +126,7 @@ final class ModGroups extends ModManager {
 											) ); ?>
 											<?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
 												'type' => 'button',
-												'class' => 'btn btn-outline-secondary btn-sm btn-delete-selected',
+												'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
 												'disabled' => empty( $taxonomy['reserved'] ) ? true : true,
 											) ); ?>
 									</div>

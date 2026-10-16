@@ -27,7 +27,7 @@ final class GroupsManager {
 		$taxonomies = Taxonomy::definitions();
 		if ( empty( $taxonomies ) ) {
 			$taxonomies = array(
-				'modpress_mod_type' => array(
+				'modpress_type' => array(
 					'label'         => __( 'Mod Types', 'modpress' ),
 					'post_type'     => array( 'modpress_mod' ),
 					'hierarchical'  => true,
@@ -66,17 +66,9 @@ final class GroupsManager {
 		foreach ( $this->get_registered_taxonomies() as $taxonomy_key => $taxonomy_config ) {
 			$taxonomy_object = get_taxonomy( $taxonomy_key );
 			$label           = $taxonomy_config['label'] ?? $taxonomy_object->labels->name ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
-			$parent_group    = $taxonomy_config['parent_group'] ?? $taxonomy_config['group'] ?? 'modpress_group_root';
-			$group_key       = is_string( $parent_group ) && '' !== $parent_group ? $parent_group : 'modpress_group_root';
+			$parent_group    = $taxonomy_config['parent_group'] ?? $taxonomy_config['group'] ?? 'type';
+			$group_key       = is_string( $parent_group ) && '' !== $parent_group ? $parent_group : 'type';
 			$reserved        = $this->is_reserved_taxonomy( $taxonomy_key, $taxonomy_config );
-
-			if ( ! isset( $groups[ $group_key ] ) ) {
-				$groups[ $group_key ] = array(
-					'key'   => $group_key,
-					'label' => 'modpress_group_root' === $group_key ? __( 'Mod Groups', 'modpress' ) : ucfirst( str_replace( array( '-', '_' ), ' ', $group_key ) ),
-					'items' => array(),
-				);
-			}
 
 			$groups[ $group_key ]['items'][] = array(
 				'key'         => $taxonomy_key,
@@ -106,7 +98,7 @@ final class GroupsManager {
 	public function dynamically_create( array $data = array() ): bool {
 		$taxonomy      = $data['taxonomy'] ?? $data['slug'] ?? '';
 		$post_type     = $data['post_type'] ?? $data['post_types'] ?? array( 'modpress_mod' );
-		$group_key     = $data['group'] ?? $data['parent_group'] ?? 'modpress_group_root';
+		$group_key     = $data['group'] ?? $data['parent_group'] ?? 'type';
 		$taxonomy_data = array(
 			'post_type'    => $post_type,
 			'public'       => true,
@@ -170,7 +162,7 @@ final class GroupsManager {
 	 * @return bool
 	 */
 	private function is_hidden_taxonomy( string $taxonomy_key ): bool {
-		if ( in_array( $taxonomy_key, array( 'modpress_tag', 'modpress_mod_tag' ), true ) ) {
+		if ( in_array( $taxonomy_key, array( 'modpress_tag' ), true ) ) {
 			return false;
 		}
 
@@ -195,7 +187,7 @@ final class GroupsManager {
 			return true;
 		}
 
-		return in_array( $taxonomy_key, array( 'modpress_mod_type' ), true );
+		return in_array( $taxonomy_key, array( 'modpress_type' ), true );
 	}
 	/**
 	 * Retrieve a term field or metadata value for a group entry.
