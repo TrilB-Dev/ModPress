@@ -170,7 +170,17 @@ final class GroupsManager {
 	 * @return bool
 	 */
 	private function is_hidden_taxonomy( string $taxonomy_key ): bool {
-		return in_array( $taxonomy_key, array( 'modpress_mod_tag' ), true );
+		if ( in_array( $taxonomy_key, array( 'modpress_tag', 'modpress_mod_tag' ), true ) ) {
+			return false;
+		}
+
+		$taxonomy = get_taxonomy( $taxonomy_key );
+		if ( ! $taxonomy ) {
+			return false;
+		}
+
+		$object_types = $taxonomy->object_type ?? array();
+		return in_array( 'modpress_mod', (array) $object_types, true );
 	}
 
 	/**
