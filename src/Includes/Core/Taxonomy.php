@@ -185,7 +185,12 @@ final class Taxonomy {
 			unset( $args['custom_meta'] );
 		}
 
-		register_taxonomy( $taxonomy, self::normalize_post_types( $post_types ), $args );
+		$normalized_post_types = self::normalize_post_types( $post_types );
+		register_taxonomy( $taxonomy, $normalized_post_types, $args );
+
+		foreach ( $normalized_post_types as $post_type ) {
+			register_taxonomy_for_object_type( $taxonomy, $post_type );
+		}
 
 		if ( ! empty( $meta ) ) {
 			foreach ( $meta as $meta_key => $meta_config ) {

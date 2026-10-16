@@ -141,9 +141,6 @@ final class GroupsManager {
 			return false;
 		}
 
-		$taxonomy_key = 0 === strpos( $taxonomy, 'modpress_' ) ? $taxonomy : 'modpress_' . $taxonomy;
-		register_taxonomy_for_object_type( $taxonomy_key, 'modpress_mod' );
-
 		return true;
 	}
 
