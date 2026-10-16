@@ -49,6 +49,11 @@ final class ModManagement {
 			if ( ! empty( $dynamic_taxonomies ) ) {
 				Taxonomy::register_taxonomies( $dynamic_taxonomies );
 			}
+
+			$group_taxonomies = ( new GroupsManager() )->get_database_group_definitions();
+			if ( ! empty( $group_taxonomies ) ) {
+				Taxonomy::register_taxonomies( $group_taxonomies );
+			}
 		}
 
 		self::$registered = true;
@@ -63,7 +68,7 @@ final class ModManagement {
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function get_post_type_definitions(): array {
-		$definitions = apply_filters( 'modpress_dynamic_post_type_definitions', array() );
+		$definitions = \apply_filters( 'modpress_dynamic_post_type_definitions', array() );
 
 		return is_array( $definitions ) ? $definitions : array();
 	}
@@ -77,7 +82,7 @@ final class ModManagement {
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function get_taxonomy_definitions(): array {
-		$definitions = apply_filters( 'modpress_dynamic_taxonomy_definitions', array() );
+		$definitions = \apply_filters( 'modpress_dynamic_taxonomy_definitions', array() );
 
 		return is_array( $definitions ) ? $definitions : array();
 	}

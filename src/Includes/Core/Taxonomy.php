@@ -147,7 +147,7 @@ final class Taxonomy {
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function definitions(): array {
-		return apply_filters( 'modpress_taxonomy_definitions', self::$registered );
+		return \apply_filters( 'modpress_taxonomy_definitions', self::$registered );
 	}
 
 	/**

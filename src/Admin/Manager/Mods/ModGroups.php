@@ -9,6 +9,7 @@
 namespace ModPress\Admin\Manager\Mods;
 
 use ModPress\Includes\Functions\Helpers\AlertHelper;
+use ModPress\Includes\Functions\Helpers\DBHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\ModManagement\GroupsManager;
 
@@ -33,20 +34,32 @@ final class ModGroups extends ModManager {
 			AlertHelper::render_admin_notice( $message, 'error' );
 		}
 
-		$groups_service = new GroupsManager();
-		$taxonomy_tabs  = array();
-		$group_tree     = $groups_service->get_group_tree();
+		$taxonomy_tabs = array();
+		$group_rows    = DBHelper::table_exists( 'groups' ) ? DBHelper::get_all( 'groups', array(), '*', 'group_name ASC' ) : array();
 
-		foreach ( $group_tree as $group ) {
-			if ( ! empty( $group['items'] ) ) {
-				foreach ( $group['items'] as $item ) {
-					$taxonomy_key = (string) ( $item['taxonomy'] ?? $item['key'] ?? '' );
-					if ( '' === $taxonomy_key || in_array( $taxonomy_key, array( 'modpress_tag' ), true ) ) {
-						continue;
-					}
-					$taxonomy_tabs[] = $item;
-				}
+		foreach ( $group_rows as $group ) {
+			$group_slug = trim( (string) ( $group['group_slug'] ?? '' ) );
+			if ( '' === $group_slug ) {
+				continue;
 			}
+
+			$taxonomy_key = GroupsManager::get_group_taxonomy_key( $group_slug );
+			if ( '' === $taxonomy_key ) {
+				continue;
+			}
+
+			if ( 'modpress_tag' === $taxonomy_key ) {
+				continue;
+			}
+
+			$taxonomy_tabs[] = array(
+				'taxonomy'   => $taxonomy_key,
+				'key'        => $taxonomy_key,
+				'label'      => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
+				'reserved'   => 'modpress_type' === $taxonomy_key,
+				'deletable'  => 'modpress_type' !== $taxonomy_key,
+				'hierarchical' => ! empty( $group['group_hierarchical'] ),
+			);
 		}
 
 		$active_tab = $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'modpress_type';

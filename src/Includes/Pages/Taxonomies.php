@@ -23,41 +23,10 @@ final class Taxonomies {
 	 * @since 1.0.0
 	 */
 	public static function register(): void {
-		self::type_taxonomy(GroupsManager::get_group('1'));
 		self::tag_taxonomy();
 		self::changelog_category_taxonomy();
 		self::file_type_taxonomy();
 		self::file_links_taxonomy();
-	}
-
-	/**
-	 * Register the mod type taxonomy.
-	 *
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public static function type_taxonomy( array $group ): bool {
-		$group_slug = $group['group_slug'] ?? $group['slug'] ?? 'type';
-		$taxonomy   = 'modpress_' . $group_slug;
-		if ( taxonomy_exists( $taxonomy ) ) {
-			return false;
-		}
-
-		return Taxonomy::create(
-			$taxonomy,
-			array(
-				'label'             => $group['group_name'] ?? $group['label'] ?? __( 'Mod Type', 'modpress' ),
-				'description'       => $group['group_description'] ?? $group['description'] ?? __( 'The Mod Type group is used to categorise your mods by their type.', 'modpress' ),
-				'post_type'        	=> array( 'modpress_mod' ),
-				'hierarchical'      => ! empty( $group['group_hierarchical'] ) || ! empty( $group['hierarchical'] ) ? true : false,
-				'public'            => true,
-				'show_ui'           => true,
-				'show_in_menu'      => false,
-				'show_admin_column' => true,
-				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => $group_slug ),
-			)
-		);
 	}
 
 	/**

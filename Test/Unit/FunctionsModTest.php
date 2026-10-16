@@ -100,6 +100,12 @@ namespace {
         }
     }
 
+    if ( ! function_exists( 'apply_filters' ) ) {
+        function apply_filters( $hook, $value ) {
+            return $value;
+        }
+    }
+
     if ( ! function_exists( 'wp_insert_post' ) ) {
         function wp_insert_post( $postarr, $wp_error = false ) {
             $GLOBALS['modpress_test_inserted_post'] = $postarr;
@@ -134,6 +140,32 @@ namespace {
     if ( ! function_exists( 'taxonomy_exists' ) ) {
         function taxonomy_exists( $taxonomy ): bool {
             return isset( $GLOBALS['modpress_test_taxonomies'][ (string) $taxonomy ] );
+        }
+    }
+
+    if ( ! function_exists( 'get_taxonomy' ) ) {
+        function get_taxonomy( $taxonomy ) {
+            $definition = $GLOBALS['modpress_test_taxonomies'][ (string) $taxonomy ] ?? null;
+            if ( ! $definition ) {
+                return false;
+            }
+
+            $label = $definition['args']['label'] ?? (string) $taxonomy;
+            $object_types = $definition['args']['object_type'] ?? ( $definition['post_type'] ?? array() );
+
+            return (object) array(
+                'name' => (string) $taxonomy,
+                'labels' => (object) array( 'name' => $label ),
+                'object_type' => (array) $object_types,
+                'hierarchical' => ! empty( $definition['args']['hierarchical'] ),
+            );
+        }
+    }
+
+    if ( ! function_exists( 'wp_count_terms' ) ) {
+        function wp_count_terms( $taxonomy, $args = array() ) {
+            $terms = $GLOBALS['modpress_test_terms'][ (string) $taxonomy ] ?? array();
+            return count( $terms );
         }
     }
 
@@ -463,6 +495,26 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'maps', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'slug' ) );
             $this->assertSame( 'Example description.', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'description' ) );
             $this->assertSame( 'dashicons-admin-site-alt3', \ModPress\Includes\ModManagement\GroupsManager::get_group_entry( 21, 'modpress_type', 'entry_icon' ) );
+        }
+
+        public function testGroupsManagerBuildsTaxonomyDefinitionsFromDatabaseRows(): void {
+            $GLOBALS['modpress_test_db_groups'] = [
+                [
+                    'id' => 1,
+                    'group_name' => 'Mod Type',
+                    'group_slug' => 'type',
+                    'group_description' => 'Root type group.',
+                    'group_hierarchical' => 0,
+                    'group_parent_id' => null,
+                ],
+            ];
+
+            $service = new \ModPress\Includes\ModManagement\GroupsManager();
+            $definitions = $service->get_registered_taxonomies();
+
+            $this->assertArrayHasKey( 'modpress_type', $definitions );
+            $this->assertSame( 'Mod Type', $definitions['modpress_type']['label'] );
+            $this->assertSame( array( 'modpress_mod' ), $definitions['modpress_type']['post_type'] );
         }
 
         public function testEntryModalSubmitsToAdminPostEndpoint(): void {

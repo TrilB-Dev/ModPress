@@ -24,7 +24,15 @@ final class GroupsManager {
 	 * @since 1.0.0
 	 */
 	public function get_registered_taxonomies(): array {
-		$taxonomies = Taxonomy::definitions();
+		$taxonomies = array();
+
+		foreach ( $this->get_database_group_definitions() as $taxonomy_key => $taxonomy_config ) {
+			$taxonomies[ $taxonomy_key ] = $taxonomy_config;
+		}
+
+		foreach ( Taxonomy::definitions() as $taxonomy_key => $taxonomy_config ) {
+			$taxonomies[ $taxonomy_key ] = $taxonomy_config;
+		}
 
 		$filtered = array();
 		foreach ( $taxonomies as $taxonomy_key => $taxonomy_config ) {
@@ -36,6 +44,81 @@ final class GroupsManager {
 		}
 
 		return $filtered;
+	}
+
+	/**
+	 * Build taxonomy definitions from the custom groups table.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function get_database_group_definitions(): array {
+		if ( isset( $GLOBALS['modpress_test_db_groups'] ) && is_array( $GLOBALS['modpress_test_db_groups'] ) ) {
+			$groups = $GLOBALS['modpress_test_db_groups'];
+		} else {
+			if ( ! DBHelper::table_exists( 'groups' ) ) {
+				return array();
+			}
+
+			$groups = DBHelper::get_all( 'groups' );
+		}
+
+		$definitions = array();
+
+		foreach ( $groups as $group ) {
+			$group_slug = trim( (string) ( $group['group_slug'] ?? '' ) );
+			if ( '' === $group_slug ) {
+				continue;
+			}
+
+			$taxonomy_key = self::normalize_group_taxonomy_key( $group_slug );
+			if ( '' === $taxonomy_key ) {
+				continue;
+			}
+
+			$definitions[ $taxonomy_key ] = array(
+				'label'             => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
+				'description'       => (string) ( $group['group_description'] ?? '' ),
+				'post_type'         => array( 'modpress_mod' ),
+				'hierarchical'      => ! empty( $group['group_hierarchical'] ),
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => false,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'group'             => $taxonomy_key,
+				'parent_group'      => $taxonomy_key,
+				'reserved'          => false,
+			);
+		}
+
+		return $definitions;
+	}
+
+	/**
+	 * Normalize a database group slug into a taxonomy key.
+	 *
+	 * @param string $group_slug Raw group slug.
+	 * @return string
+	 */
+	public static function get_group_taxonomy_key( string $group_slug ): string {
+		$slug = trim( (string) $group_slug );
+		if ( '' === $slug ) {
+			return '';
+		}
+
+		$slug = strtolower( preg_replace( '/[^a-z0-9_]+/', '_', str_replace( '-', '_', $slug ) ) );
+		$slug = preg_replace( '/_+/', '_', $slug );
+		$slug = trim( $slug, '_' );
+
+		if ( '' === $slug ) {
+			return '';
+		}
+
+		return 0 === strpos( $slug, 'modpress_' ) ? $slug : 'modpress_' . $slug;
+	}
+
+	private static function normalize_group_taxonomy_key( string $group_slug ): string {
+		return self::get_group_taxonomy_key( $group_slug );
 	}
 
 	/**
