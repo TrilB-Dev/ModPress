@@ -96,7 +96,6 @@ final class ModGroups extends ModManager {
 								>
 									<?php echo esc_html( $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ); ?>
 								</button>
-								<?php if ( empty( $taxonomy['reserved'] ) && ! empty( $taxonomy['deletable'] ) ) : ?>
 									<?php echo FormFieldHelper::button( '<span class="dashicons dashicons-edit"></span>', array(
 										'type' => 'button',
 										'class' => 'btn btn-link btn-sm text-secondary modpress-tab-edit-btn',
@@ -109,7 +108,6 @@ final class ModGroups extends ModManager {
 											'aria-label' => __( 'Edit group', 'modpress' ),
 										),
 									) ); ?>
-								<?php endif; ?>
 							</li>
 						<?php endforeach; ?>
 					</ul>
