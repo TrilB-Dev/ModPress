@@ -75,6 +75,7 @@ class ModManager extends Manager {
         $this->functions_mod = $this->functions_mod ?? new FunctionsMod();
 
         add_action( 'admin_post_modpress_save_group', array( $this->functions_mod, 'save_group' ) );
+        add_action( 'admin_post_modpress_delete_group', array( $this->functions_mod, 'delete_group' ) );
         add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'save_group_entry' ) );
         add_action( 'admin_post_modpress_delete_group_entry', array( $this->functions_mod, 'delete_group_entry' ) );
         add_action( 'admin_post_modpress_save_tags', array( $this->functions_mod, 'save_tags' ) );

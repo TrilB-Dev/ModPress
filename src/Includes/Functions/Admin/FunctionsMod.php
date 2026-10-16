@@ -253,6 +253,51 @@ final class FunctionsMod {
     }
 
     /**
+     * Delete a custom ModPress group record.
+     *
+     * The default Mod Type group is reserved and remains editable, but cannot be removed.
+     *
+     * @return void
+     */
+    public function delete_group(): void {
+        if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress groups.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_delete_group', 'modpress_group_nonce' );
+
+        $group_id = RequestHelper::integer( $_POST, 'group_id', 0 );
+        $edit_key = RequestHelper::value( $_POST, 'group_edit_key', '' );
+
+        $group_row = array();
+        if ( $group_id > 0 ) {
+            $group_row = DBHelper::get_by_id( 'groups', $group_id );
+        } elseif ( '' !== trim( (string) $edit_key ) ) {
+            $lookup_value = sanitize_key( (string) $edit_key );
+            if ( '' !== $lookup_value ) {
+                $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_value ) );
+            }
+        }
+
+        if ( empty( $group_row ) ) {
+            $this->redirect_mod_group_result( false, __( 'The selected group could not be found.', 'modpress' ) );
+        }
+
+        $group_slug = trim( (string) ( $group_row['group_slug'] ?? '' ) );
+        if ( 'type' === $group_slug || 'modpress_type' === GroupsManager::get_group_taxonomy_key( $group_slug ) ) {
+            $this->redirect_mod_group_result( false, __( 'The Mod Type group cannot be deleted.', 'modpress' ) );
+        }
+
+        $deleted = DBHelper::delete( 'groups', array( 'id' => (int) ( $group_row['id'] ?? 0 ) ) );
+
+        if ( ! $deleted ) {
+            $this->redirect_mod_group_result( false, __( 'The group could not be deleted.', 'modpress' ) );
+        }
+
+        $this->redirect_mod_group_result( true, __( 'Group deleted successfully.', 'modpress' ) );
+    }
+
+    /**
      * Build the canonical custom-table payload for a mod group.
      *
      * @param string $group_name Display label.

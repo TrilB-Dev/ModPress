@@ -400,6 +400,12 @@ namespace ModPress\Tests\Unit {
             $this->assertTrue( method_exists( $functions_mod, 'handle_mod_save' ) );
         }
 
+        public function testRootModTypeGroupCannotBeDeleted(): void {
+            $functions_mod = new \ModPress\Includes\Functions\Admin\FunctionsMod();
+
+            $this->assertTrue( method_exists( $functions_mod, 'delete_group' ) );
+        }
+
         public function testGroupsTableIsRegisteredForCustomModGroupStorage(): void {
             Schema::register_tables();
 
