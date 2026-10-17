@@ -72,7 +72,7 @@
             syncDeleteButtons();
         }
 
-        if (target.matches('[data-field-type]')) {
+        if (target.matches('[data-field-type]') || target.matches('[name="custom_field_type[]"]')) {
             const row = target.closest('.modpress-custom-field-row');
             if (!row) {
                 return;
@@ -81,7 +81,8 @@
             if (!fieldOptions) {
                 return;
             }
-            const showOptions = ['select', 'radio', 'checkbox'].includes(target.value.toLowerCase());
+            const value = target.value || target.options?.[target.selectedIndex]?.value || '';
+            const showOptions = ['select', 'radio', 'checkbox'].includes(String(value).toLowerCase());
             fieldOptions.closest('tr')?.classList.toggle('d-none', !showOptions);
         }
     });

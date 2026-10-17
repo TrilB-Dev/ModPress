@@ -265,16 +265,6 @@ final class ModGroups extends ModManager {
 	 */
 	private function render_group_modal( array $taxonomy_tabs ): void {
 		$group_options = array();
-		$field_types = array( 
-			'text' => __( 'Text', 'modpress' ),
-			'textarea' => __( 'Text Area', 'modpress' ),
-			'number' => __( 'Number', 'modpress' ),
-			'color' => __( 'Colour', 'modpress' ),
-			'switch' => __( 'Switch', 'modpress' ),
-			'radio' => __( 'Radio button group', 'modpress' ),
-			'select' => __( 'Select', 'modpress' ),
-			'image' => __( 'Image/icon button', 'modpress' ),
-		);
 
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
@@ -446,13 +436,20 @@ final class ModGroups extends ModManager {
 															<?php $this->render_form_row(
 																'custom_field_type[]',
 																__( 'Field Type', 'modpress' ),
-																function () use( $field_types )  {
+																function ()  {
 																	return FormFieldHelper::bootstrap_select(
 																		'custom_field_type[]',
 																		array(
-																			'data' => $field_types,
-																			'selected' => '',
-																			'id' => 'custom_field_type[]',
+																			'data' => array( 
+																				'text' => __( 'Text', 'modpress' ),
+																				'textarea' => __( 'Text Area', 'modpress' ),
+																				'number' => __( 'Number', 'modpress' ),
+																				'color' => __( 'Colour', 'modpress' ),
+																				'switch' => __( 'Switch', 'modpress' ),
+																				'radio' => __( 'Radio button group', 'modpress' ),
+																				'select' => __( 'Select', 'modpress' ),
+																				'image' => __( 'Image/icon button', 'modpress' ),
+																			),																																																																									'data-field-type' => 'custom_field_type',
 																		),
 																	);
 																},
