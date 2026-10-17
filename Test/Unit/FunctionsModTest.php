@@ -260,6 +260,7 @@ namespace ModPress\Tests\Unit {
     use ModPress\Includes\Core\WP\Database;
     use ModPress\Includes\Functions\Admin\FunctionsMod;
     use ModPress\Includes\Functions\Helpers\DBHelper;
+    use ModPress\Includes\Functions\Helpers\FAHelper;
     use ModPress\Includes\Settings\SettingsManager;
     use PHPUnit\Framework\TestCase;
 
@@ -600,6 +601,38 @@ namespace ModPress\Tests\Unit {
 
             $tools = new \ModPress\Admin\Manager\Tools\ToolsManager( false );
             $this->assertSame( 'tools', $tools->get_page() );
+        }
+
+        public function testFontAwesomeHelperBuildsStyledAndAnimatedIconMarkup(): void {
+            $output = FAHelper::render_icon(
+                'house',
+                [
+                    'family' => 'classic',
+                    'style' => 'solid',
+                    'size' => 'lg',
+                    'fixed_width' => true,
+                    'flip' => 'horizontal',
+                    'rotate' => 90,
+                    'animation' => 'spin',
+                    'transform' => 'grow-2 right-4',
+                    'class' => 'demo-icon',
+                    'aria_label' => 'Home icon',
+                    'title' => 'Home',
+                    'data_test' => 'example',
+                ]
+            );
+
+            $this->assertStringContainsString( 'fa-solid', $output );
+            $this->assertStringContainsString( 'fa-house', $output );
+            $this->assertStringContainsString( 'fa-size-lg', $output );
+            $this->assertStringContainsString( 'fa-fw', $output );
+            $this->assertStringContainsString( 'fa-flip-horizontal', $output );
+            $this->assertStringContainsString( 'fa-rotate-90', $output );
+            $this->assertStringContainsString( 'fa-spin', $output );
+            $this->assertStringContainsString( 'demo-icon', $output );
+            $this->assertStringContainsString( 'aria-label="Home icon"', $output );
+            $this->assertStringContainsString( 'title="Home"', $output );
+            $this->assertStringContainsString( 'data-test="example"', $output );
         }
     }
 }

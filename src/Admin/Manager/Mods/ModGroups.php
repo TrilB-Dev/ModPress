@@ -96,8 +96,9 @@ final class ModGroups extends ModManager {
 								>
 									<?php echo esc_html( $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ); ?>
 								</button>
-								<?php if ( empty( $taxonomy['reserved'] ) && ! empty( $taxonomy['deletable'] ) ) : ?>
-									<?php echo FormFieldHelper::button( '<span class="dashicons dashicons-edit"></span>', array(
+								<?php FormFieldHelper::button( 
+									'<span class="dashicons dashicons-edit"></span>', 
+									array(
 										'type' => 'button',
 										'class' => 'btn btn-link btn-sm text-secondary modpress-tab-edit-btn',
 										'raw' => true,
@@ -108,8 +109,8 @@ final class ModGroups extends ModManager {
 											'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
 											'aria-label' => __( 'Edit group', 'modpress' ),
 										),
-									) ); ?>
-								<?php endif; ?>
+									) 
+								); ?>
 							</li>
 						<?php endforeach; ?>
 					</ul>
@@ -264,6 +265,16 @@ final class ModGroups extends ModManager {
 	 */
 	private function render_group_modal( array $taxonomy_tabs ): void {
 		$group_options = array();
+		$field_types = array( 
+			'text' => __( 'Text', 'modpress' ),
+			'textarea' => __( 'Text Area', 'modpress' ),
+			'number' => __( 'Number', 'modpress' ),
+			'color' => __( 'Colour', 'modpress' ),
+			'switch' => __( 'Switch', 'modpress' ),
+			'radio' => __( 'Radio button group', 'modpress' ),
+			'select' => __( 'Select', 'modpress' ),
+			'image' => __( 'Image/icon button', 'modpress' ),
+		);
 
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
@@ -415,82 +426,73 @@ final class ModGroups extends ModManager {
 														<button type="button" class="btn btn-link btn-sm text-danger p-0" data-role="remove-custom-field"><?php esc_html_e( 'Delete', 'modpress' ); ?></button>
 													</div>
 													<table class="table table-borderless mb-0">
-																	<tbody>
-																		<?php $this->render_form_row(
-																			'custom_field_name[]',
-																			__( 'Field Name', 'modpress' ),
-																			function () {
-																				return FormFieldHelper::text_input(
-																					'custom_field_name[]',
-																					'',
-																					array(
-																						'placeholder' => __( 'Example: release_date', 'modpress' ),
-																						'class' => 'w-100'
-																					)
-																				);
-																			},
-																			__( 'Field name used for storage and lookup.', 'modpress' ),
-																			__( 'Keep this safe and consistent with your mod metadata.', 'modpress' )
-																		); ?>
-																		<?php $this->render_form_row(
-																			'custom_field_type[]',
-																			__( 'Field Type', 'modpress' ),
-																			function () {
-																				return FormFieldHelper::bootstrap_select(
-																					'custom_field_type[]',
-																					array(
-																						'data' => array(
-																							'text' => __( 'Text', 'modpress' ),
-																							'textarea' => __( 'Text Area', 'modpress' ),
-																							'number' => __( 'Number', 'modpress' ),
-																							'color' => __( 'Colour', 'modpress' ),
-																							'switch' => __( 'Switch', 'modpress' ),
-																							'radio' => __( 'Radio button group', 'modpress' ),
-																							'select' => __( 'Select', 'modpress' ),
-																							'image' => __( 'Image/icon button', 'modpress' ),
-																						),
-																						'selected' => '',
-																						'data-field-type' => 'true',
-																					),
-																				);
-																			},
-																			__( 'Choose how the field should be entered.', 'modpress' ),
-																			__( 'Different field types will change the editor experience.', 'modpress' )
-																		); ?>
-																		<?php $this->render_form_row(
-																			'custom_field_show_in_table[]',
-																			__( 'Show In Table', 'modpress' ),
-																			function () {
-																				return FormFieldHelper::switch(
-																					'custom_field_show_in_table[]',
-																					'1',
-																					__( 'Enabled', 'modpress' ),
-																					array(
-																						'checked' => false,
-																					)
-																				);
-																			},
-																			__( 'Display this field in the group table view.', 'modpress' ),
-																			__( 'Enable this when the field should remain visible in the listing.', 'modpress' )
-																		); ?>
-																		<?php $this->render_form_row(
-																			'custom_field_options[]',
-																			__( 'Field Options', 'modpress' ),
-																			function () {
-																				return FormFieldHelper::textarea(
-																					'custom_field_options[]',
-																					'',
-																					array(
-																						'rows' => 3,
-																						'placeholder' => __( 'Option 1\nOption 2', 'modpress' ),
-																						'class' => 'w-100'
-																					)
-																				);
-																			},
-																			__( 'Option values for radio, select, or checkbox fields.', 'modpress' ),
-																			__( 'Place one option per line so the field can be rendered correctly.', 'modpress' )
-																		); ?>
-																</tbody>
+														<tbody>
+															<?php $this->render_form_row(
+																'custom_field_name[]',
+																__( 'Field Name', 'modpress' ),
+																function () {
+																	return FormFieldHelper::text_input(
+																		'custom_field_name[]',
+																		'',
+																		array(
+																			'placeholder' => __( 'Example: release_date', 'modpress' ),
+																			'class' => 'w-100'
+																		)
+																	);
+																},
+																__( 'Field name used for storage and lookup.', 'modpress' ),
+																__( 'Keep this safe and consistent with your mod metadata.', 'modpress' )
+															); ?>
+															<?php $this->render_form_row(
+																'custom_field_type[]',
+																__( 'Field Type', 'modpress' ),
+																function () use( $field_types )  {
+																	return FormFieldHelper::bootstrap_select(
+																		'custom_field_type[]',
+																		array(
+																			'data' => $field_types,
+																			'selected' => '',
+																			'id' => 'custom_field_type[]',
+																		),
+																	);
+																},
+																__( 'Choose how the field should be entered.', 'modpress' ),
+																__( 'Different field types will change the editor experience.', 'modpress' )
+																); ?>
+															<?php $this->render_form_row(
+																'custom_field_show_in_table[]',
+																__( 'Show In Table', 'modpress' ),
+																function () {
+																	return FormFieldHelper::switch(
+																		'custom_field_show_in_table[]',
+																		'1',
+																		__( 'Enabled', 'modpress' ),
+																		array(
+																			'checked' => false,
+																		)
+																	);
+																},
+																__( 'Display this field in the group table view.', 'modpress' ),
+																__( 'Enable this when the field should remain visible in the listing.', 'modpress' )
+															); ?>
+															<?php $this->render_form_row(
+																'custom_field_options[]',
+																__( 'Field Options', 'modpress' ),
+																function () {
+																	return FormFieldHelper::textarea(
+																		'custom_field_options[]',
+																		'',
+																		array(
+																			'rows' => 3,
+																			'placeholder' => __( 'Option 1\nOption 2', 'modpress' ),
+																			'class' => 'w-100'
+																		)
+																	);
+																},
+																__( 'Option values for radio, select, or checkbox fields.', 'modpress' ),
+																__( 'Place one option per line so the field can be rendered correctly.', 'modpress' )
+															); ?>
+														</tbody>
 													</table>
 												</div>
 											</div>
@@ -499,23 +501,23 @@ final class ModGroups extends ModManager {
 								</div>
 							</div>
 						</div>
-						<div class="modal-footer justify-content-between">
+						<div class="modal-footer">
 							<div class="d-flex gap-2 align-self-end">
 								<?php echo FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),
 									array(
-												'type' => 'button',
-												'class' => 'btn btn-outline-secondary',
-												'attributes' => array(
-													'data-bs-dismiss' => 'modal'
-												)
+										'type' => 'button',
+										'class' => 'btn btn-outline-secondary',
+										'attributes' => array(
+											'data-bs-dismiss' => 'modal'
+										)
 									)
 								); ?>
 								<?php echo FormFieldHelper::button(
 									__( 'Save', 'modpress' ),
 									array(
-												'type' => 'submit',
-												'class' => 'btn btn-primary'
+										'type' => 'submit',
+										'class' => 'btn btn-primary'
 									)
 								); ?>
 							</div>
