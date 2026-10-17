@@ -67,11 +67,24 @@
             const rows = document.querySelectorAll('.modpress-row-checkbox[data-taxonomy="' + taxonomy + '"]');
             rows.forEach((checkbox) => {
                 checkbox.checked = target.checked;
-            }
-            );
+            });
             syncDeleteButtons();
         }
 
+        if (target.matches('[data-field-type]')) {
+            const row = target.closest('.modpress-custom-field-row');
+            if (!row) {
+                return;
+            }
+
+            const optionsField = row.querySelector('[name="custom_field_options[]"]');
+            if (!optionsField) {
+                return;
+            }
+
+            const shouldShowOptions = ['select', 'radio', 'checkbox'].includes(target.value.toLowerCase());
+            optionsField.closest('tr')?.classList.toggle('d-none', !shouldShowOptions);
+        }
     });
 
     document.addEventListener('click', (event) => {

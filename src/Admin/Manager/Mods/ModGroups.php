@@ -438,22 +438,24 @@ final class ModGroups extends ModManager {
 																__( 'Field Type', 'modpress' ),
 																function ()  {
 																	return FormFieldHelper::bootstrap_select(
-																		'custom_field_type[]',
-																		array(
-																			'data' => array( 
-																				'text' => __( 'Text', 'modpress' ),
-																				'textarea' => __( 'Text Area', 'modpress' ),
-																				'number' => __( 'Number', 'modpress' ),
-																				'color' => __( 'Colour', 'modpress' ),
-																				'switch' => __( 'Switch', 'modpress' ),
-																				'radio' => __( 'Radio button group', 'modpress' ),
-																				'select' => __( 'Select', 'modpress' ),
-																				'image' => __( 'Image/icon button', 'modpress' ),
-																			),
-																			'data-field-type' => 'custom_field_type',
-																		),
-																	);
-																},
+    'custom_field_type[]',
+    array(
+        'data' => array(
+            'text' => __( 'Text', 'modpress' ),
+            'textarea' => __( 'Text Area', 'modpress' ),
+            'number' => __( 'Number', 'modpress' ),
+            'color' => __( 'Colour', 'modpress' ),
+            'switch' => __( 'Switch', 'modpress' ),
+            'radio' => __( 'Radio button group', 'modpress' ),
+            'select' => __( 'Select', 'modpress' ),
+            'image' => __( 'Image/icon button', 'modpress' ),
+        ),
+        'selected' => 'text',
+        'attributes' => array(
+            'data-field-type' => 'custom_field_type',
+        ),
+    )
+);},
 																__( 'Choose how the field should be entered.', 'modpress' ),
 																__( 'Different field types will change the editor experience.', 'modpress' )
 																); ?>
