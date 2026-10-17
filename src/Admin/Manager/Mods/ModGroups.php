@@ -496,7 +496,7 @@ final class ModGroups extends ModManager {
 													</div>
 												</div>
 																																	<div class="modal-footer justify-content-between">
-							<div class="d-flex gap-2">
+							<div class="d-flex gap-2 align-self-end">
 								<?php echo FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),
 									array(
