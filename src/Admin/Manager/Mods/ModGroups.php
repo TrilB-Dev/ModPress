@@ -404,17 +404,17 @@ final class ModGroups extends ModManager {
 										</button>
 									</h2>
 									<div id="modpress-group-fields" class="accordion-collapse collapse" aria-labelledby="modpress-group-fields-heading" data-bs-parent="#modpress-group-accordion">
-														<div class="accordion-body">
-															<div class="d-flex justify-content-end mb-3">
-																<button type="button" class="btn btn-outline-primary btn-sm" data-role="add-custom-field"><?php esc_html_e( 'Add Custom Field', 'modpress' ); ?></button>
-															</div>
-															<div id="modpress-custom-fields-container" class="modpress-custom-fields-container"></div>
-															<div id="modpress-custom-field-template" class="modpress-custom-field-row d-none">
-																<div class="d-flex justify-content-between align-items-center mb-3">
-																	<h6 class="mb-0"><?php esc_html_e( 'Field', 'modpress' ); ?></h6>
-																	<button type="button" class="btn btn-link btn-sm text-danger p-0" data-role="remove-custom-field"><?php esc_html_e( 'Delete', 'modpress' ); ?></button>
-																</div>
-																<table class="table table-borderless mb-0">
+										<div class="accordion-body">
+											<div class="d-flex justify-content-end mb-3">
+												<button type="button" class="btn btn-outline-primary btn-sm" data-role="add-custom-field"><?php esc_html_e( 'Add Custom Field', 'modpress' ); ?></button>
+											</div>
+											<div id="modpress-custom-fields-container" class="modpress-custom-fields-container">
+												<div id="modpress-custom-field-template" class="modpress-custom-field-row d-none">
+													<div class="d-flex justify-content-between align-items-center mb-3">
+														<h6 class="mb-0"><?php esc_html_e( 'Field', 'modpress' ); ?></h6>
+														<button type="button" class="btn btn-link btn-sm text-danger p-0" data-role="remove-custom-field"><?php esc_html_e( 'Delete', 'modpress' ); ?></button>
+													</div>
+													<table class="table table-borderless mb-0">
 																	<tbody>
 																		<?php $this->render_form_row(
 																			'custom_field_name[]',
@@ -491,27 +491,31 @@ final class ModGroups extends ModManager {
 																			__( 'Place one option per line so the field can be rendered correctly.', 'modpress' )
 																		); ?>
 																</tbody>
-															</table>
-														</div>
-													</div>
+													</table>
 												</div>
-																																	<div class="modal-footer justify-content-between">
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer justify-content-between">
 							<div class="d-flex gap-2 align-self-end">
 								<?php echo FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),
 									array(
-										'type' => 'button',
-										'class' => 'btn btn-outline-secondary',
-										'attributes' => array(
-											'data-bs-dismiss' => 'modal'
-										)
+												'type' => 'button',
+												'class' => 'btn btn-outline-secondary',
+												'attributes' => array(
+													'data-bs-dismiss' => 'modal'
+												)
 									)
 								); ?>
 								<?php echo FormFieldHelper::button(
 									__( 'Save', 'modpress' ),
 									array(
-										'type' => 'submit',
-										'class' => 'btn btn-primary'
+												'type' => 'submit',
+												'class' => 'btn btn-primary'
 									)
 								); ?>
 							</div>
