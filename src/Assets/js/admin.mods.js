@@ -74,12 +74,15 @@
 
         if (target.matches('[data-field-type]')) {
             const row = target.closest('.modpress-custom-field-row');
-            const fieldOptions = row ? row.querySelector('.modpress-field-options') : null;
+            if (!row) {
+                return;
+            }
+            const fieldOptions = row.querySelector('[name="custom_field_options[]"]');
             if (!fieldOptions) {
                 return;
             }
             const showOptions = ['select', 'radio', 'checkbox'].includes(target.value.toLowerCase());
-            fieldOptions.classList.toggle('is-visible', showOptions);
+            fieldOptions.closest('tr')?.classList.toggle('d-none', !showOptions);
         }
     });
 
