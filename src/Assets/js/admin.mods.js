@@ -72,7 +72,7 @@
             syncDeleteButtons();
         }
 
-
+    });
 
     document.addEventListener('click', (event) => {
         const button = event.target.closest('[data-role="add-custom-field"]');
