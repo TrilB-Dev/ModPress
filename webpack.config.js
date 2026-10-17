@@ -144,7 +144,7 @@ module.exports = [
     output: {
       path: path.resolve(__dirname, 'src/Assets/dist'),
       filename: 'js/[name].js',
-      clean: true,
+      clean: false,
     },
     plugins: [
       new MiniCssExtractPlugin({ filename: 'css/[name].css' }),
