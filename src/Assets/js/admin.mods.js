@@ -72,20 +72,7 @@
             syncDeleteButtons();
         }
 
-        if (target.matches('[data-field-type]') || target.matches('[name="custom_field_type[]"]')) {
-            const row = target.closest('.modpress-custom-field-row');
-            if (!row) {
-                return;
-            }
-            const fieldOptions = row.querySelector('[name="custom_field_options[]"]');
-            if (!fieldOptions) {
-                return;
-            }
-            const value = target.value || target.options?.[target.selectedIndex]?.value || '';
-            const showOptions = ['select', 'radio', 'checkbox'].includes(String(value).toLowerCase());
-            fieldOptions.closest('tr')?.classList.toggle('d-none', !showOptions);
-        }
-    });
+
 
     document.addEventListener('click', (event) => {
         const button = event.target.closest('[data-role="add-custom-field"]');
