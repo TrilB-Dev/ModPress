@@ -263,9 +263,7 @@ final class ModGroups extends ModManager {
 	 * @return void
 	 */
 	private function render_group_modal( array $taxonomy_tabs ): void {
-		$group_options = array(
-			'none' => __( 'None', 'modpress' ),
-		);
+		$group_options = array();
 
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
@@ -386,7 +384,7 @@ final class ModGroups extends ModManager {
 																	'group_parent',
 																	array(
 																		'data' => $group_options,
-																		'selected' => 'none',
+																		'selected' => 'modpress_type',
 																		'id' => 'group_parent',
 																	)
 															);
