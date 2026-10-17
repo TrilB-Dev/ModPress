@@ -449,7 +449,8 @@ final class ModGroups extends ModManager {
 																				'radio' => __( 'Radio button group', 'modpress' ),
 																				'select' => __( 'Select', 'modpress' ),
 																				'image' => __( 'Image/icon button', 'modpress' ),
-																			),																																																																									'data-field-type' => 'custom_field_type',
+																			),
+																			'data-field-type' => 'custom_field_type',
 																		),
 																	);
 																},
