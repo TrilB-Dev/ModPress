@@ -1,17 +1,4 @@
 (() => {
-    const initBootstrapSelects = (container = document) => {
-        if (!window.Selectpicker || typeof window.Selectpicker.getOrCreateInstance !== 'function') {
-            return;
-        }
-
-        container.querySelectorAll('select.selectpicker').forEach((select) => {
-            const picker = window.Selectpicker.getOrCreateInstance(select);
-            if (picker && typeof picker.refresh === 'function') {
-                picker.refresh();
-            }
-        });
-    };
-
     const removeFieldRow = (button) => {
         const row = button.closest('.modpress-custom-field-row');
         if (row && document.querySelectorAll('.modpress-custom-field-row').length > 1) {
@@ -80,24 +67,11 @@
             const rows = document.querySelectorAll('.modpress-row-checkbox[data-taxonomy="' + taxonomy + '"]');
             rows.forEach((checkbox) => {
                 checkbox.checked = target.checked;
-            });
+            }
+            );
             syncDeleteButtons();
         }
 
-        if (target.matches('[data-field-type]')) {
-            const row = target.closest('.modpress-custom-field-row');
-            if (!row) {
-                return;
-            }
-
-            const optionsField = row.querySelector('[name="custom_field_options[]"]');
-            if (!optionsField) {
-                return;
-            }
-
-            const shouldShowOptions = ['select', 'radio', 'checkbox'].includes(target.value.toLowerCase());
-            optionsField.closest('tr')?.classList.toggle('d-none', !shouldShowOptions);
-        }
     });
 
     document.addEventListener('click', (event) => {
@@ -115,7 +89,6 @@
             clone.removeAttribute('id');
             clone.classList.remove('d-none');
             container.appendChild(clone);
-            initBootstrapSelects(clone);
         }
 
         const removeButton = event.target.closest('[data-role="remove-custom-field"]');
@@ -205,5 +178,4 @@
 
     syncDeleteButtons();
     syncModManagerTabs();
-    initBootstrapSelects(document);
 })();

@@ -70,7 +70,7 @@ final class ModGroups extends ModManager {
 				<div class="card-body p-4">
 					<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
 						<h2 class="h5 mb-0"><?php esc_html_e( 'Mod Groups', 'modpress' ); ?></h2>
-						<?php echo FormFieldHelper::button( __( 'Add New Group', 'modpress' ), array(
+						<?php FormFieldHelper::button( __( 'Add New Group', 'modpress' ), array(
 							'type'    => 'button',
 							'class'   => 'btn btn-primary btn-sm',
 							'attributes' => array(
@@ -86,15 +86,15 @@ final class ModGroups extends ModManager {
 							<li class="nav-item group-nav-item" role="presentation">
 								<button
 									type="button"
-									class="nav-link <?php echo 0 === $index ? 'active' : ''; ?>"
-									id="modpress-taxonomy-tab-<?php echo esc_attr( $taxonomy_key ); ?>"
+									class="nav-link <?php 0 === $index ? 'active' : ''; ?>"
+									id="modpress-taxonomy-tab-<?php esc_attr( $taxonomy_key ); ?>"
 									data-bs-toggle="tab"
-									data-bs-target="#modpress-taxonomy-pane-<?php echo esc_attr( $taxonomy_key ); ?>"
+									data-bs-target="#modpress-taxonomy-pane-<?php esc_attr( $taxonomy_key ); ?>"
 									role="tab"
-									aria-controls="modpress-taxonomy-pane-<?php echo esc_attr( $taxonomy_key ); ?>"
-									aria-selected="<?php echo 0 === $index ? 'true' : 'false'; ?>"
+									aria-controls="modpress-taxonomy-pane-<?php esc_attr( $taxonomy_key ); ?>"
+									aria-selected="<?php 0 === $index ? 'true' : 'false'; ?>"
 								>
-									<?php echo esc_html( $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ); ?>
+									<?php esc_html( $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ); ?>
 								</button>
 								<?php FormFieldHelper::button( 
 									'<span class="dashicons dashicons-edit"></span>', 
@@ -120,15 +120,15 @@ final class ModGroups extends ModManager {
 							<?php $taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' ); ?>
 							<?php $terms = taxonomy_exists( $taxonomy_key ) ? get_terms( array( 'taxonomy' => $taxonomy_key, 'hide_empty' => false ) ) : array(); ?>
 							<div
-								class="tab-pane fade <?php echo 0 === $index ? 'show active' : ''; ?>"
-								id="modpress-taxonomy-pane-<?php echo esc_attr( $taxonomy_key ); ?>"
+								class="tab-pane fade <?php 0 === $index ? 'show active' : ''; ?>"
+								id="modpress-taxonomy-pane-<?php esc_attr( $taxonomy_key ); ?>"
 								role="tabpanel"
-								aria-labelledby="modpress-taxonomy-tab-<?php echo esc_attr( $taxonomy_key ); ?>"
+								aria-labelledby="modpress-taxonomy-tab-<?php esc_attr( $taxonomy_key ); ?>"
 							>
 								<div class="d-flex justify-content-between align-items-center gap-3 mb-3">
 									<div></div>
 									<div class="btn-group">
-											<?php echo FormFieldHelper::button( __( 'Add New Entry', 'modpress' ), array(
+											<?php FormFieldHelper::button( __( 'Add New Entry', 'modpress' ), array(
 												'type' => 'button',
 												'class' => 'btn btn-outline-primary btn-sm',
 												'attributes' => array(
@@ -138,7 +138,7 @@ final class ModGroups extends ModManager {
 													'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
 												),
 											) ); ?>
-											<?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
+											<?php FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
 												'type' => 'button',
 												'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
 												'disabled' => empty( $taxonomy['reserved'] ) ? true : true,
@@ -151,7 +151,7 @@ final class ModGroups extends ModManager {
 										<thead>
 											<tr>
 												<th style="width: 42px;">
-													<input type="checkbox" class="form-check-input modpress-select-all" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" aria-label="Select all entries" />
+													<input type="checkbox" class="form-check-input modpress-select-all" data-taxonomy="<?php esc_attr( $taxonomy_key ); ?>" aria-label="Select all entries" />
 												</th>
 												<th><?php esc_html_e( 'Name', 'modpress' ); ?></th>
 												<th><?php esc_html_e( 'Slug', 'modpress' ); ?></th>
@@ -168,14 +168,14 @@ final class ModGroups extends ModManager {
 												<?php foreach ( $terms as $term ) : ?>
 													<tr>
 														<td>
-															<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php echo esc_attr( $term->name ); ?>" />
+															<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php esc_attr( $taxonomy_key ); ?>" value="<?php esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php esc_attr( $term->name ); ?>" />
 														</td>
-														<td><?php echo esc_html( $term->name ); ?></td>
-														<td><?php echo esc_html( $term->slug ); ?></td>
-														<td><?php echo esc_html( wp_trim_words( $term->description, 12 ) ); ?></td>
+														<td><?php esc_html( $term->name ); ?></td>
+														<td><?php esc_html( $term->slug ); ?></td>
+														<td><?php esc_html( wp_trim_words( $term->description, 12 ) ); ?></td>
 														<td class="text-end">
 															<div class="btn-group btn-group-sm">
-																<?php echo FormFieldHelper::button(
+																<?php FormFieldHelper::button(
 																	__( 'Edit', 'modpress' ),
 																	array(
 																		'type' => 'button',
@@ -194,7 +194,7 @@ final class ModGroups extends ModManager {
 																		),
 																	)
 																); ?>
-																<?php echo FormFieldHelper::button(
+																<?php FormFieldHelper::button(
 																	__( 'Delete', 'modpress' ),
 																	array(
 																		'type' => 'button',
@@ -242,7 +242,7 @@ final class ModGroups extends ModManager {
 		?>
 		<tr>
 			<th scope="row" class="align-top text-nowrap pe-4">
-				<?php echo wp_kses_post(
+				<?php wp_kses_post(
 						FormFieldHelper::label(
 						$field_id,
 						$label,
@@ -251,7 +251,7 @@ final class ModGroups extends ModManager {
 				); ?>
 			</th>
 			<td>
-				<?php echo $field; ?>
+				<?php $field; ?>
 			</td>
 		</tr>
 		<?php
@@ -276,7 +276,7 @@ final class ModGroups extends ModManager {
 		<div class="modal fade" id="modpress-group-modal" tabindex="-1" aria-labelledby="modpress-group-modal-title" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content">
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<form method="post" action="<?php esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_group" />
 						<?php wp_nonce_field( 'modpress_save_group', 'modpress_group_nonce' ); ?>
 						<div class="modal-header">
@@ -504,7 +504,7 @@ final class ModGroups extends ModManager {
 						</div>
 						<div class="modal-footer">
 							<div class="d-flex gap-2 align-self-end">
-								<?php echo FormFieldHelper::button(
+								<?php FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),
 									array(
 										'type' => 'button',
@@ -514,7 +514,7 @@ final class ModGroups extends ModManager {
 										)
 									)
 								); ?>
-								<?php echo FormFieldHelper::button(
+								<?php FormFieldHelper::button(
 									__( 'Save', 'modpress' ),
 									array(
 										'type' => 'submit',
@@ -567,7 +567,7 @@ final class ModGroups extends ModManager {
 		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
 				<div class="modal-content">
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<form method="post" action="<?php esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_group_entry" />
 						<input type="hidden" name="group_slug" value="" />
 						<input type="hidden" name="group_entry_id" value="" />
@@ -666,7 +666,7 @@ final class ModGroups extends ModManager {
 							</table>
 						</div>
 						<div class="modal-footer">
-							<?php echo FormFieldHelper::button(
+							<?php FormFieldHelper::button(
 								__( 'Cancel', 'modpress' ),
 								array(
 									'type' => 'button',
@@ -676,7 +676,7 @@ final class ModGroups extends ModManager {
 									)
 								)
 							); ?>
-							<?php echo FormFieldHelper::button(
+							<?php FormFieldHelper::button(
 								__( 'Save', 'modpress' ),
 								array(
 									'type' => 'submit',
