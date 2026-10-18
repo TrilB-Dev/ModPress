@@ -496,6 +496,42 @@ final class FunctionsMod {
         }
 
         if ( $saved_term_id > 0 ) {
+            $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => sanitize_key( str_replace( 'modpress_', '', $taxonomy ) ) ) );
+            $group_fields = array();
+            if ( ! empty( $group_row['group_fields'] ) ) {
+                $decoded_fields = json_decode( (string) $group_row['group_fields'], true );
+                if ( is_array( $decoded_fields ) ) {
+                    $group_fields = $decoded_fields;
+                }
+            }
+
+            foreach ( $group_fields as $field ) {
+                $field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+                if ( '' === $field_slug ) {
+                    continue;
+                }
+
+                $field_key = 'entry_custom_field_' . $field_slug;
+                $field_value = RequestHelper::value( $_POST, $field_key, null );
+
+                if ( null === $field_value ) {
+                    continue;
+                }
+
+                if ( is_array( $field_value ) ) {
+                    $field_value = array_map( 'sanitize_text_field', wp_unslash( $field_value ) );
+                } else {
+                    $field_value = sanitize_text_field( wp_unslash( (string) $field_value ) );
+                }
+
+                if ( '' === trim( (string) $field_value ) ) {
+                    delete_term_meta( $saved_term_id, $field_slug );
+                    continue;
+                }
+
+                update_term_meta( $saved_term_id, $field_slug, $field_value );
+            }
+
             if ( '' !== $icon ) {
                 update_term_meta( $saved_term_id, 'entry_icon', $icon );
             } else {

@@ -176,6 +176,73 @@
         }
     });
 
+    const renderEntryCustomFields = (modal) => {
+        const config = modal.dataset.groupFieldConfig ? JSON.parse(modal.dataset.groupFieldConfig) : {};
+        const taxonomyKey = modal.querySelector('[name="group_slug"]')?.value || '';
+        const container = modal.querySelector('.modpress-entry-custom-fields-container');
+        if (!container) {
+            return;
+        }
+
+        const fields = Array.isArray(config[taxonomyKey]) ? config[taxonomyKey] : [];
+        container.innerHTML = '';
+
+        if (!fields.length) {
+            container.innerHTML = '<div class="text-muted small">No custom fields configured for this group.</div>';
+            return;
+        }
+
+        fields.forEach((field) => {
+            const slug = String(field.slug || field.name || '').trim();
+            if (!slug) {
+                return;
+            }
+
+            const type = String(field.type || 'text').toLowerCase();
+            const label = field.label || field.name || slug;
+            const description = field.description || '';
+            const inputName = 'entry_custom_field_' + slug;
+            let inputMarkup = '<input type="text" name="' + inputName + '" class="form-control w-100" value="" />';
+
+            if (type === 'textarea') {
+                const rows = Number(field.rows) > 0 ? Number(field.rows) : 4;
+                inputMarkup = '<textarea name="' + inputName + '" class="form-control w-100" rows="' + rows + '"></textarea>';
+            }
+
+            if (type === 'number') {
+                inputMarkup = '<input type="number" name="' + inputName + '" class="form-control w-100" value="" />';
+            }
+
+            if (type === 'switch') {
+                inputMarkup = '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="' + inputName + '" value="1" /><label class="form-check-label">' + label + '</label></div>';
+            }
+
+            if (type === 'radio' || type === 'select') {
+                const options = Array.isArray(field.options) ? field.options : [];
+                if (!options.length) {
+                    inputMarkup = '<input type="text" name="' + inputName + '" class="form-control w-100" value="" />';
+                } else if (type === 'radio') {
+                    inputMarkup = options.map((option) => {
+                        const optionValue = String(option.value || option.label || option);
+                        const optionLabel = String(option.label || option.value || option);
+                        return '<div class="form-check"><input class="form-check-input" type="radio" name="' + inputName + '" value="' + optionValue + '" /><label class="form-check-label">' + optionLabel + '</label></div>';
+                    }).join('');
+                } else {
+                    inputMarkup = '<select name="' + inputName + '" class="form-select w-100"><option value="">Select...</option>' + options.map((option) => {
+                        const optionValue = String(option.value || option.label || option);
+                        const optionLabel = String(option.label || option.value || option);
+                        return '<option value="' + optionValue + '">' + optionLabel + '</option>';
+                    }).join('') + '</select>';
+                }
+            }
+
+            const fieldRow = document.createElement('div');
+            fieldRow.className = 'mb-3';
+            fieldRow.innerHTML = '<label class="form-label fw-semibold d-block mb-2">' + label + '</label>' + inputMarkup + (description ? '<div class="form-text mt-2">' + description + '</div>' : '');
+            container.appendChild(fieldRow);
+        });
+    };
+
     const modalElement = document.getElementById('modpress-entry-modal');
     if (modalElement) {
         modalElement.addEventListener('show.bs.modal', (event) => {
@@ -231,6 +298,8 @@
             if (iconField) {
                 iconField.value = trigger.dataset.entryIcon || '';
             }
+
+            renderEntryCustomFields(modalElement);
         });
     }
 

@@ -54,12 +54,14 @@ final class ModGroups extends ModManager {
 			}
 
 			$taxonomy_tabs[] = array(
-				'taxonomy'   => $taxonomy_key,
-				'key'        => $taxonomy_key,
-				'label'      => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
-				'reserved'   => 'modpress_type' === $taxonomy_key,
-				'deletable'  => 'modpress_type' !== $taxonomy_key,
-				'hierarchical' => ! empty( $group['group_hierarchical'] ),
+				'taxonomy'    => $taxonomy_key,
+				'key'         => $taxonomy_key,
+				'label'       => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
+				'group_slug'  => (string) ( $group['group_slug'] ?? '' ),
+				'group_fields'=> isset( $group['group_fields'] ) ? $group['group_fields'] : null,
+				'reserved'    => 'modpress_type' === $taxonomy_key,
+				'deletable'   => 'modpress_type' !== $taxonomy_key,
+				'hierarchical'=> ! empty( $group['group_hierarchical'] ),
 			);
 		}
 
@@ -639,6 +641,7 @@ final class ModGroups extends ModManager {
 		$entry_parent_options = array(
 			'0' => __( 'None', 'modpress' ),
 		);
+		$group_field_config   = array();
 
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
@@ -660,9 +663,17 @@ final class ModGroups extends ModManager {
 			foreach ( $terms as $term ) {
 				$entry_parent_options[ (string) $term->term_id ] = $term->name;
 			}
+
+			$group_fields = $taxonomy['group_fields'] ?? null;
+			if ( is_string( $group_fields ) && '' !== trim( $group_fields ) ) {
+				$decoded = json_decode( $group_fields, true );
+				if ( is_array( $decoded ) ) {
+					$group_field_config[ $taxonomy_key ] = $decoded;
+				}
+			}
 		}
 		?>
-		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true">
+		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -743,23 +754,14 @@ final class ModGroups extends ModManager {
 										__( 'Choose a parent entry if required.', 'modpress' ),
 										__( 'This is useful for nested categories or grouped options.', 'modpress' )
 									); ?>
-									<?php $this->render_form_row(
-										'entry_icon',
-										__( 'Image/Icon', 'modpress' ),
-										function () {
-											return FormFieldHelper::text_input(
-												'entry_icon',
-												'',
-												array(
-													'id' => 'entry_icon',
-													'class' => 'w-100',
-													'placeholder' => __( 'e.g. dashicons-admin-generic', 'modpress' )
-												)
-											);
-										},
-										__( 'Optional icon or image identifier.', 'modpress' ),
-										__( 'Use a Dashicon class or similar icon reference for display.', 'modpress' )
-									); ?>
+								<tr class="modpress-entry-custom-fields-row">
+									<th scope="row" class="align-top text-nowrap pe-4">
+										<label for="modpress-entry-custom-fields"><?php esc_html_e( 'Custom Fields', 'modpress' ); ?></label>
+									</th>
+									<td>
+										<div class="modpress-entry-custom-fields-container"></div>
+									</td>
+								</tr>
 								</tbody>
 							</table>
 						</div>
