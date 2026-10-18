@@ -435,7 +435,7 @@ final class ModGroups extends ModManager {
 																		'custom_field_name[]',
 																		'',
 																		array(
-																			'placeholder' => __( 'Example: release_date', 'modpress' ),
+																			'placeholder' => __( 'Example: group_subtitle', 'modpress' ),
 																			'class' => 'w-100'
 																		)
 																	);
@@ -451,7 +451,7 @@ final class ModGroups extends ModManager {
 																		'custom_field_label[]',
 																		'',
 																		array(
-																			'placeholder' => __( 'Example: Release Date', 'modpress' ),
+																			'placeholder' => __( 'Example: Groupe Subtitle', 'modpress' ),
 																			'class' => 'w-100'
 																		)
 																	);
@@ -467,7 +467,7 @@ final class ModGroups extends ModManager {
 																		'custom_field_description[]',
 																		'',
 																		array(
-																			'placeholder' => __( 'Example: The date when the mod was released.', 'modpress' ),
+																			'placeholder' => __( 'Example: The subtitle for the group.', 'modpress' ),
 																			'class' => 'w-100'
 																		)
 																	);
@@ -543,33 +543,33 @@ final class ModGroups extends ModManager {
 																__( 'Image Options', 'modpress' ),
 																function () use ( $fa_icon_picker ) {
 																	$choices = array();
-																	$choices[] = FormFieldHelper::checkbox(
+																	$choices[] = FormFieldHelper::switch(
 																		'custom_field_type_image_type_image[]',
 																		'image',
-																	__( 'Image', 'modpress' ),
-																	array(
-																		'checked' => false,
-																	)
-																);
-																if ( $fa_icon_picker ) {
-																	$choices[] = FormFieldHelper::checkbox(
-																		'custom_field_type_image_type_icon[]',
-																		'icon',
-																	__( 'Icon', 'modpress' ),
-																	array(
-																		'checked' => false,
-																	)
-																);
-																}
-																$choices[] = FormFieldHelper::checkbox(
-																	'custom_field_type_image_type_url[]',
-																	'url',
-																	__( 'URL', 'modpress' ),
-																	array(
-																		'checked' => false,
-																	)
-																);
-																return implode( '', $choices );
+																		__( 'Image', 'modpress' ),
+																		array(
+																			'checked' => false,
+																		)
+																	);
+																	if ( $fa_icon_picker ) {
+																		$choices[] = FormFieldHelper::switch(
+																			'custom_field_type_image_type_icon[]',
+																			'icon',
+																			__( 'Icon', 'modpress' ),
+																			array(
+																				'checked' => false,
+																			)
+																		);
+																	}
+																	$choices[] = FormFieldHelper::switch(
+																		'custom_field_type_image_type_url[]',
+																		'url',
+																		__( 'URL', 'modpress' ),
+																		array(
+																			'checked' => false,
+																		)
+																	);
+																	return implode( '', $choices );
 																},
 																__( 'Options for the image field.', 'modpress' ),
 																__( 'Image fields in ModPress have the option to choose between Images, Icons and URLs.', 'modpress' ),
@@ -581,7 +581,7 @@ final class ModGroups extends ModManager {
 																function () {
 																	return FormFieldHelper::switch(
 																		'custom_field_show_in_table[]',
-																		'1',
+																		false,
 																		__( 'Enabled', 'modpress' ),
 																		array(
 																			'checked' => false,
