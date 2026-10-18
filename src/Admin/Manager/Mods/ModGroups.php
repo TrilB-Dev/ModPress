@@ -242,7 +242,7 @@ final class ModGroups extends ModManager {
 		?>
 		<tr>
 			<th scope="row" class="align-top text-nowrap pe-4">
-				<?php wp_kses_post(
+				<?php echo wp_kses_post(
 						FormFieldHelper::label(
 						$field_id,
 						$label,
@@ -251,7 +251,7 @@ final class ModGroups extends ModManager {
 				); ?>
 			</th>
 			<td>
-				<?php $field; ?>
+				<?php echo $field; ?>
 			</td>
 		</tr>
 		<?php
