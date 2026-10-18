@@ -6,30 +6,6 @@
         }
     };
 
-    const syncFieldTypeVisibility = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const typeField = row.querySelector('[data-field-type]');
-        const optionWrapper = row.querySelector('[data-role="field-options-wrapper"]');
-        const rowsField = row.querySelector('[data-field-rows]');
-        const imageTypeField = row.querySelector('[data-field-image-type]');
-
-        if (typeField) {
-            const value = String(typeField.value || 'text').toLowerCase();
-            if (optionWrapper) {
-                optionWrapper.classList.toggle('d-none', !['select', 'radio', 'checkbox'].includes(value));
-            }
-            if (rowsField) {
-                rowsField.closest('tr')?.classList.toggle('d-none', value !== 'textarea');
-            }
-            if (imageTypeField) {
-                imageTypeField.closest('tr')?.classList.toggle('d-none', value !== 'image');
-            }
-        }
-    };
-
     const syncDeleteButtons = () => {
         const rows = document.querySelectorAll('.modpress-row-checkbox');
         const button = document.querySelector('.btn-delete-selected');
@@ -80,10 +56,42 @@
         });
     };
 
-    const refreshFieldRowState = () => {
-        document.querySelectorAll('.modpress-custom-field-row').forEach((row) => {
-            syncFieldTypeVisibility(row);
+    const syncCustomFieldVisibility = (row) => {
+        if (!row) {
+            return;
+        }
+
+        const typeField = row.querySelector('[name="custom_field_type[]"]');
+        if (!typeField) {
+            return;
+        }
+
+        const value = String(typeField.value || '').toLowerCase();
+        row.querySelectorAll('[data-custom-field-condition]').forEach((group) => {
+            const shouldShow = group.dataset.customFieldCondition === value;
+            group.classList.toggle('d-none', !shouldShow);
         });
+    };
+
+    const addOptionRow = (button) => {
+        const repeater = button.closest('.modpress-option-repeater');
+        if (!repeater) {
+            return;
+        }
+
+        const template = repeater.querySelector('.modpress-option-row-template');
+        if (!template) {
+            return;
+        }
+
+        const clone = template.cloneNode(true);
+        clone.classList.remove('d-none');
+        clone.classList.remove('modpress-option-row-template');
+        clone.classList.add('modpress-option-row');
+        const items = repeater.querySelector('.modpress-option-repeater-items');
+        if (items) {
+            items.appendChild(clone);
+        }
     };
 
     document.addEventListener('change', (event) => {
@@ -97,13 +105,15 @@
             const rows = document.querySelectorAll('.modpress-row-checkbox[data-taxonomy="' + taxonomy + '"]');
             rows.forEach((checkbox) => {
                 checkbox.checked = target.checked;
-            });
+            }
+            );
             syncDeleteButtons();
         }
 
-        if (target.matches('[data-field-type]')) {
-            syncFieldTypeVisibility(target.closest('.modpress-custom-field-row'));
+        if (target.matches('[name="custom_field_type[]"]')) {
+            syncCustomFieldVisibility(target.closest('.modpress-custom-field-row'));
         }
+
     });
 
     document.addEventListener('click', (event) => {
@@ -121,34 +131,27 @@
             clone.removeAttribute('id');
             clone.classList.remove('d-none');
             container.appendChild(clone);
-            refreshFieldRowState();
+            syncCustomFieldVisibility(clone);
+        }
+
+        const optionButton = event.target.closest('[data-role="add-option-row"]');
+        if (optionButton) {
+            addOptionRow(optionButton);
+            return;
+        }
+
+        const removeOptionButton = event.target.closest('[data-role="remove-option-row"]');
+        if (removeOptionButton) {
+            const optionRow = removeOptionButton.closest('.modpress-option-row');
+            if (optionRow) {
+                optionRow.remove();
+            }
+            return;
         }
 
         const removeButton = event.target.closest('[data-role="remove-custom-field"]');
         if (removeButton) {
             removeFieldRow(removeButton);
-        }
-
-        const addOptionButton = event.target.closest('[data-role="add-field-option"]');
-        if (addOptionButton) {
-            const row = addOptionButton.closest('.modpress-custom-field-row');
-            const list = row?.querySelector('[data-role="field-options-list"]');
-            const template = row?.querySelector('[data-role="field-option-template"]');
-            if (!list || !template) {
-                return;
-            }
-            const clone = template.cloneNode(true);
-            clone.removeAttribute('data-role');
-            clone.classList.remove('d-none');
-            list.appendChild(clone);
-        }
-
-        const removeOptionButton = event.target.closest('[data-role="remove-field-option"]');
-        if (removeOptionButton) {
-            const optionRow = removeOptionButton.closest('.modpress-field-option-row');
-            if (optionRow && optionRow.parentElement?.querySelectorAll('.modpress-field-option-row').length > 1) {
-                optionRow.remove();
-            }
         }
 
         const groupEditButton = event.target.closest('.modpress-tab-edit-btn');

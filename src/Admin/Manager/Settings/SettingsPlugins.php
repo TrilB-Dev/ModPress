@@ -85,7 +85,7 @@ final class SettingsPlugins {
                         <?php else : ?>
                             <?php echo FormFieldHelper::checkbox(
                                 $name,
-                                '1',
+                                false,
                                 '',
                                 [
                                     'id' => 'modpress-' . $key,

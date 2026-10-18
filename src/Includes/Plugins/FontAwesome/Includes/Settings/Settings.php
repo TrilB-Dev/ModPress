@@ -126,13 +126,13 @@ final class Settings {
                     ],
                 ],
                 [
-                    'key' => 'fontawesome_enable_icon_picker',
+                    'key' => 'fontawesome_icon_picker',
                     'label' => __( 'Enable icon picker', 'modpress' ),
                     'description' => __( 'Enable the Font Awesome icon picker inside ModPress admin interfaces.', 'modpress' ),
                     'tooltip' => __( 'This only controls the ModPress icon picker UI. The official Font Awesome admin bundle is still enqueued for the ModPress screens.', 'modpress' ),
                     'tooltip_type' => 'info',
                     'type' => 'checkbox',
-                    'default' => true,
+                    'default' => false,
                 ],
             ],
         ];
@@ -156,7 +156,7 @@ final class Settings {
             $input['fontawesome_kit_id'] = '';
         }
 
-        $input['fontawesome_enable_icon_picker'] = (bool) ( $input['fontawesome_enable_icon_picker'] ?? true );
+        $input['fontawesome_icon_picker'] = (bool) ( $input['fontawesome_icon_picker'] ?? false );
         BaseSettings::set_group( 'fontawesome', $input );
         return $input;
     }

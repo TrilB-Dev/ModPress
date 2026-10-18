@@ -12,6 +12,7 @@ use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Functions\Helpers\DBHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\ModManagement\GroupsManager;
+use ModPress\Includes\Settings\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -232,15 +233,19 @@ final class ModGroups extends ModManager {
 	 * @param string        $tooltip       Optional tooltip copy.
 	 * @return void
 	 */
-	private function render_form_row( string $field_name, string $label, callable $field_callback, string $description = '', string $tooltip = '' ): void {
+	private function render_form_row( string $field_name, string $label, callable $field_callback, string $description = '', string $tooltip = '', ?string $condition = null ): void {
 		$field_id = 'modpress-' . sanitize_key( str_replace( array( '[]', '[', ']' ), '', $field_name ) );
 		$field    = call_user_func( $field_callback );
 		$meta     = array(
 			'description' => $description,
 			'tooltip'     => $tooltip,
 		);
+		$tr_attrs = '';
+		if ( null !== $condition && '' !== $condition ) {
+			$tr_attrs = ' data-custom-field-condition="' . esc_attr( $condition ) . '" class="d-none"';
+		}
 		?>
-		<tr>
+		<tr<?php echo $tr_attrs; ?>>
 			<th scope="row" class="align-top text-nowrap pe-4">
 				<?php echo wp_kses_post(
 						FormFieldHelper::label(
@@ -263,8 +268,13 @@ final class ModGroups extends ModManager {
 	 * @param array<int, array<string, mixed>> $taxonomy_tabs Taxonomy tabs for the page.
 	 * @return void
 	 */
-	private function render_group_modal( array $taxonomy_tabs ): void {
+		private function render_group_modal( array $taxonomy_tabs ): void {
 		$group_options = array();
+		$fa_settings = Settings::get_group( 'fontawesome' );
+		$fa_icon_picker = false;
+		if ( isset($fa_settings['fontawesome_icon_picker']) && $fa_settings['fontawesome_icon_picker'] ) {
+			$fa_icon_picker = true;
+		}
 
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
@@ -489,7 +499,82 @@ final class ModGroups extends ModManager {
 																},
 																__( 'Choose how the field should be entered.', 'modpress' ),
 																__( 'Different field types will change the editor experience.', 'modpress' )
-																); ?>
+															); ?>
+															<?php $this->render_form_row(
+																'custom_field_type_textarea_rows[]',
+																__( 'Text Area Rows', 'modpress' ),
+																function () {
+																	return FormFieldHelper::input(
+																		'custom_field_type_textarea_rows[]',
+																		'',
+																		array(
+																			'type' => 'number',
+																			'min' => 1,
+																			'class' => 'w-100',
+																		)
+																	);
+																},
+																__( 'Text area for the field.', 'modpress' ),
+																__( 'Use this for longer text input.', 'modpress' ),
+																'textarea'
+															); ?>
+															<?php $this->render_form_row(
+																'custom_field_type_radio[]',
+																__( 'Radio Button Options', 'modpress' ),
+																function () {
+																	return '<div class="modpress-option-repeater"><div class="modpress-option-repeater-items"><div class="modpress-option-row-template d-none"><div class="row g-2 align-items-center modpress-option-row"><div class="col-md-5"><input type="text" name="custom_field_type_radio[][label]" class="form-control" placeholder="' . esc_attr__( 'Label', 'modpress' ) . '" /></div><div class="col-md-5"><input type="text" name="custom_field_type_radio[][option]" class="form-control" placeholder="' . esc_attr__( 'Option', 'modpress' ) . '" /></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm" data-role="remove-option-row">' . esc_html__( 'Delete', 'modpress' ) . '</button></div></div></div></div><button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-role="add-option-row">' . esc_html__( 'Add Option', 'modpress' ) . '</button></div>';
+																},
+																__( 'Options for the radio button group.', 'modpress' ),
+																__( 'Enter each option using the options repeater.', 'modpress' ),
+																'radio'
+															); ?>
+															<?php $this->render_form_row(
+																'custom_field_type_select[]',
+																__( 'Select Options', 'modpress' ),
+																function () {
+																	return '<div class="modpress-option-repeater"><div class="modpress-option-repeater-items"><div class="modpress-option-row-template d-none"><div class="row g-2 align-items-center modpress-option-row"><div class="col-md-5"><input type="text" name="custom_field_type_select[][label]" class="form-control" placeholder="' . esc_attr__( 'Label', 'modpress' ) . '" /></div><div class="col-md-5"><input type="text" name="custom_field_type_select[][option]" class="form-control" placeholder="' . esc_attr__( 'Option', 'modpress' ) . '" /></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm" data-role="remove-option-row">' . esc_html__( 'Delete', 'modpress' ) . '</button></div></div></div></div><button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-role="add-option-row">' . esc_html__( 'Add Option', 'modpress' ) . '</button></div>';
+																},
+																__( 'Options for the select dropdown.', 'modpress' ),
+																__( 'Enter each option using the options repeater.', 'modpress' ),
+																'select'
+															); ?>
+															<?php $this->render_form_row(
+																'custom_field_type_image_type[]',
+																__( 'Image Options', 'modpress' ),
+																function () use ( $fa_icon_picker ) {
+																	$choices = array();
+																	$choices[] = FormFieldHelper::checkbox(
+																		'custom_field_type_image_type_image[]',
+																		'image',
+																	__( 'Image', 'modpress' ),
+																	array(
+																		'checked' => false,
+																	)
+																);
+																if ( $fa_icon_picker ) {
+																	$choices[] = FormFieldHelper::checkbox(
+																		'custom_field_type_image_type_icon[]',
+																		'icon',
+																	__( 'Icon', 'modpress' ),
+																	array(
+																		'checked' => false,
+																	)
+																);
+																}
+																$choices[] = FormFieldHelper::checkbox(
+																	'custom_field_type_image_type_url[]',
+																	'url',
+																	__( 'URL', 'modpress' ),
+																	array(
+																		'checked' => false,
+																	)
+																);
+																return implode( '', $choices );
+																},
+																__( 'Options for the image field.', 'modpress' ),
+																__( 'Image fields in ModPress have the option to choose between Images, Icons and URLs.', 'modpress' ),
+																'image'
+															); ?>
 															<?php $this->render_form_row(
 																'custom_field_show_in_table[]',
 																__( 'Show In Table', 'modpress' ),
@@ -505,23 +590,6 @@ final class ModGroups extends ModManager {
 																},
 																__( 'Display this field in the group table view.', 'modpress' ),
 																__( 'Enable this when the field should remain visible in the listing.', 'modpress' )
-															); ?>
-															<?php $this->render_form_row(
-																'custom_field_options[]',
-																__( 'Field Options', 'modpress' ),
-																function () {
-																	return FormFieldHelper::textarea(
-																		'custom_field_options[]',
-																		'',
-																		array(
-																			'rows' => 3,
-																			'placeholder' => __( 'Option 1\nOption 2', 'modpress' ),
-																			'class' => 'w-100'
-																		)
-																	);
-																},
-																__( 'Option values for radio, select, or checkbox fields.', 'modpress' ),
-																__( 'Place one option per line so the field can be rendered correctly.', 'modpress' )
 															); ?>
 														</tbody>
 													</table>

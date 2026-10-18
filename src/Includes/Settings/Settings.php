@@ -41,7 +41,8 @@ final class Settings {
      */
     public const TOOLS = 'tools';
     /**
-     * Get a setting value by its key. Returns the default value if the setting does not exist.
+     * Get a setting value by its key. 
+     * Returns the default value if the setting does not exist.
      * 
      * @since 1.0.0
      */

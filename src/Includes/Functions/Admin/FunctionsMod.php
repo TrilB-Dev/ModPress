@@ -306,24 +306,14 @@ final class FunctionsMod {
      */
     private function build_group_payload( string $group_name, string $taxonomy ): array {
         $group_fields = array();
-        $field_names  = RequestHelper::value( $_POST, 'custom_field_name', array() );
+        $field_names  = RequestHelper::value( 
+			$_POST, 
+			'custom_field_name', 
+			array() 
+		);
         $field_slugs  = RequestHelper::value( $_POST, 'custom_field_slug', array() );
         $field_types  = RequestHelper::value( $_POST, 'custom_field_type', array() );
         $field_descs  = RequestHelper::value( $_POST, 'custom_field_description', array() );
-        $field_rows   = RequestHelper::value( $_POST, 'custom_field_rows', array() );
-        $field_image_types = RequestHelper::value( $_POST, 'custom_field_image_type', array() );
-        $option_labels = RequestHelper::value( $_POST, 'custom_field_option_label', array() );
-        $option_values = RequestHelper::value( $_POST, 'custom_field_option_value', array() );
-        $option_indexes = RequestHelper::value( $_POST, 'custom_field_option_index', array() );
-
-        $field_options = array();
-        foreach ( (array) $option_labels as $index => $label ) {
-            $field_key = absint( $option_indexes[ $index ] ?? 0 );
-            $field_options[ $field_key ][] = array(
-                'label' => trim( (string) $label ),
-                'value' => trim( (string) ( $option_values[ $index ] ?? '' ) ),
-            );
-        }
 
         if ( is_array( $field_names ) ) {
             foreach ( $field_names as $index => $field_name ) {
@@ -332,39 +322,12 @@ final class FunctionsMod {
                     continue;
                 }
 
-                $type = trim( (string) ( $field_types[ $index ] ?? 'text' ) );
-                $field_definition = array(
+                $group_fields[] = array(
                     'name'        => $name,
                     'slug'        => trim( (string) ( $field_slugs[ $index ] ?? SanitizationHelper::slug( $name, '' ) ) ),
-                    'type'        => $type,
+                    'type'        => trim( (string) ( $field_types[ $index ] ?? 'text' ) ),
                     'description' => trim( (string) ( $field_descs[ $index ] ?? '' ) ),
                 );
-
-                if ( 'textarea' === $type ) {
-                    $field_definition['rows'] = max( 1, absint( $field_rows[ $index ] ?? 4 ) );
-                }
-
-                if ( in_array( $type, array( 'radio', 'select', 'checkbox' ), true ) ) {
-                    $field_definition['options'] = array_values(
-                        array_filter(
-                            $field_options[ $index ] ?? array(),
-                            static function ( $option ) {
-                                return is_array( $option ) && ( '' !== trim( (string) ( $option['label'] ?? '' ) ) || '' !== trim( (string) ( $option['value'] ?? '' ) ) );
-                            }
-                        )
-                    );
-                }
-
-                if ( 'image' === $type ) {
-                    $image_type = trim( (string) ( $field_image_types[ $index ] ?? 'image' ) );
-                    if ( 'icon' === $image_type && ! 
-                        \ModPress\Includes\Plugins\FontAwesome\Includes\Settings\Settings::enable_icon_picker() ) {
-                        $image_type = 'image';
-                    }
-                    $field_definition['image_type'] = in_array( $image_type, array( 'image', 'icon' ), true ) ? $image_type : 'image';
-                }
-
-                $group_fields[] = $field_definition;
             }
         }
 
