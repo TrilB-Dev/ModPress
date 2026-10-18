@@ -437,24 +437,21 @@ final class ModGroups extends ModManager {
 																'custom_field_type[]',
 																__( 'Field Type', 'modpress' ),
 																function ()  {
-																	return FormFieldHelper::bootstrap_select(
+																	return FormFieldHelper::select(
 																		'custom_field_type[]',
 																		array(
-																			'data' => [
-																				'text' => __( 'Text', 'modpress' ),
-																				'textarea' => __( 'Text Area', 'modpress' ),
-																				'number' => __( 'Number', 'modpress' ),
-																				'color' => __( 'Colour', 'modpress' ),
-																				'switch' => __( 'Switch', 'modpress' ),
-																				'radio' => __( 'Radio button group', 'modpress' ),
-																				'select' => __( 'Select', 'modpress' ),
-																				'image' => __( 'Image/icon button', 'modpress' ),
-																			]
-																			),
-																			'selected' => 'text',
-																			'attributes' => array(
-																				'data-field-type' => 'custom_field_type',
-																			),
+																			'text' => __( 'Text', 'modpress' ),
+																			'textarea' => __( 'Text Area', 'modpress' ),
+																			'number' => __( 'Number', 'modpress' ),
+																			'color' => __( 'Colour', 'modpress' ),
+																			'switch' => __( 'Switch', 'modpress' ),
+																			'radio' => __( 'Radio button group', 'modpress' ),
+																			'select' => __( 'Select', 'modpress' ),
+																			'image' => __( 'Image/icon button', 'modpress' ),
+																		),
+																		'text',
+																		array(
+																			'class' => 'form-select'
 																		)
 																	);
 																},
