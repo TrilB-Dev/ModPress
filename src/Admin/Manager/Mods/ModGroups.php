@@ -440,7 +440,7 @@ final class ModGroups extends ModManager {
 																	return FormFieldHelper::bootstrap_select(
 																		'custom_field_type[]',
 																		array(
-																			'data' => array(
+																			'data' => [
 																				'text' => __( 'Text', 'modpress' ),
 																				'textarea' => __( 'Text Area', 'modpress' ),
 																				'number' => __( 'Number', 'modpress' ),
@@ -449,6 +449,7 @@ final class ModGroups extends ModManager {
 																				'radio' => __( 'Radio button group', 'modpress' ),
 																				'select' => __( 'Select', 'modpress' ),
 																				'image' => __( 'Image/icon button', 'modpress' ),
+																			]
 																			),
 																			'selected' => 'text',
 																			'attributes' => array(
