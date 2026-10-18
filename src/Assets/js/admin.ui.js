@@ -1,6 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
   const root = document;
 
+  const initBootstrapSelects = (container = root) => {
+    if (!window.Selectpicker || typeof window.Selectpicker.getOrCreateInstance !== 'function') {
+      return;
+    }
+
+    container.querySelectorAll('select.selectpicker').forEach((select) => {
+      const picker = window.Selectpicker.getOrCreateInstance(select);
+      if (picker && typeof picker.refresh === 'function') {
+        picker.refresh();
+      }
+    });
+  };
+
   const toggleCollapse = (button) => {
     const target = root.querySelector(button.dataset.bsTarget);
     if (!target || target.classList.contains('collapsing')) return;
@@ -33,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
   root.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
     window.bootstrap?.Tooltip.getOrCreateInstance(element);
   });
+
+  initBootstrapSelects(root);
 
   root.querySelectorAll('[data-permalink-field="permalink"]').forEach((field) => {
     const tokenButtons = field.parentElement.querySelectorAll('[data-permalink-token]');

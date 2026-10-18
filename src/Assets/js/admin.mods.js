@@ -1,4 +1,17 @@
 (() => {
+    const initBootstrapSelects = (container = document) => {
+        if (!window.Selectpicker || typeof window.Selectpicker.getOrCreateInstance !== 'function') {
+            return;
+        }
+
+        container.querySelectorAll('select.selectpicker').forEach((select) => {
+            const picker = window.Selectpicker.getOrCreateInstance(select);
+            if (picker && typeof picker.refresh === 'function') {
+                picker.refresh();
+            }
+        });
+    };
+
     const removeFieldRow = (button) => {
         const row = button.closest('.modpress-custom-field-row');
         if (row && document.querySelectorAll('.modpress-custom-field-row').length > 1) {
@@ -102,6 +115,7 @@
             clone.removeAttribute('id');
             clone.classList.remove('d-none');
             container.appendChild(clone);
+            initBootstrapSelects(clone);
         }
 
         const removeButton = event.target.closest('[data-role="remove-custom-field"]');
@@ -191,4 +205,5 @@
 
     syncDeleteButtons();
     syncModManagerTabs();
+    initBootstrapSelects(document);
 })();
