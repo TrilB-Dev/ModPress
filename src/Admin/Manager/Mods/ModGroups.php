@@ -434,6 +434,38 @@ final class ModGroups extends ModManager {
 																__( 'Keep this safe and consistent with your mod metadata.', 'modpress' )
 															); ?>
 															<?php $this->render_form_row(
+																'custom_field_label[]',
+																__( 'Field Label', 'modpress' ),
+																function () {
+																	return FormFieldHelper::text_input(
+																		'custom_field_label[]',
+																		'',
+																		array(
+																			'placeholder' => __( 'Example: Release Date', 'modpress' ),
+																			'class' => 'w-100'
+																		)
+																	);
+																},
+																__( 'Human-readable label for the field.', 'modpress' ),
+																__( 'This will be displayed in the form and table headers.', 'modpress' )
+															); ?>
+															<?php $this->render_form_row(
+																'custom_field_description[]',
+																__( 'Field Description', 'modpress' ),
+																function () {
+																	return FormFieldHelper::text_input(
+																		'custom_field_description[]',
+																		'',
+																		array(
+																			'placeholder' => __( 'Example: The date when the mod was released.', 'modpress' ),
+																			'class' => 'w-100'
+																		)
+																	);
+																},
+																__( 'Description for the field.', 'modpress' ),
+																__( 'This will be displayed as a hint or tooltip in the form.', 'modpress' )
+															); ?>
+															<?php $this->render_form_row(
 																'custom_field_type[]',
 																__( 'Field Type', 'modpress' ),
 																function ()  {
@@ -451,7 +483,7 @@ final class ModGroups extends ModManager {
 																		),
 																		'text',
 																		array(
-																			'class' => 'form-select'
+																			'class' => 'form-select w-100'
 																		)
 																	);
 																},
