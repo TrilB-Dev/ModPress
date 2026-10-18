@@ -428,22 +428,6 @@ final class ModGroups extends ModManager {
 													<table class="table table-borderless mb-0">
 														<tbody>
 															<?php $this->render_form_row(
-																'custom_field_name[]',
-																__( 'Field Name', 'modpress' ),
-																function () {
-																	return FormFieldHelper::text_input(
-																		'custom_field_name[]',
-																		'',
-																		array(
-																			'placeholder' => __( 'Example: group_subtitle', 'modpress' ),
-																			'class' => 'w-100'
-																		)
-																	);
-																},
-																__( 'Field name used for storage and lookup.', 'modpress' ),
-																__( 'Keep this safe and consistent with your mod metadata.', 'modpress' )
-															); ?>
-															<?php $this->render_form_row(
 																'custom_field_label[]',
 																__( 'Field Label', 'modpress' ),
 																function () {
@@ -458,6 +442,22 @@ final class ModGroups extends ModManager {
 																},
 																__( 'Human-readable label for the field.', 'modpress' ),
 																__( 'This will be displayed in the form and table headers.', 'modpress' )
+															); ?>
+															<?php $this->render_form_row(
+																'custom_field_slug[]',
+																__( 'Field Slug', 'modpress' ),
+																function () {
+																	return FormFieldHelper::text_input(
+																		'custom_field_slug[]',
+																		'',
+																		array(
+																			'placeholder' => __( 'Example: group_subtitle', 'modpress' ),
+																			'class' => 'w-100'
+																		)
+																	);
+																},
+																__( 'Field slug used for storage and lookup.', 'modpress' ),
+																__( 'Keep this safe and consistent with your mod metadata.', 'modpress' )
 															); ?>
 															<?php $this->render_form_row(
 																'custom_field_description[]',
