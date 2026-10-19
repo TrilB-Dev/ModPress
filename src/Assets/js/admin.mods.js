@@ -73,6 +73,68 @@
         });
     };
 
+    const syncGroupParentField = (groupKey = '') => {
+        const row = document.getElementById('modpress-group-parent-row');
+        const select = document.getElementById('group_parent');
+        if (!row || !select) {
+            return;
+        }
+
+        const isReserved = String(groupKey || '').trim() === 'modpress_type';
+        row.classList.toggle('d-none', isReserved);
+        if (isReserved) {
+            select.value = '';
+        }
+    };
+
+    const populateGroupModal = (groupData = {}) => {
+        const modal = document.getElementById('modpress-group-modal');
+        if (!modal) {
+            return;
+        }
+
+        const groupKey = String(groupData.group_key || groupData.group_slug || groupData.taxonomy || '').trim();
+        const hiddenField = modal.querySelector('[name="group_edit_key"]');
+        if (hiddenField) {
+            hiddenField.value = groupKey;
+        }
+
+        const modalTitle = modal.querySelector('.modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = groupKey ? 'Edit Group' : 'Add Group';
+        }
+
+        const fieldMap = {
+            group_name: groupData.group_name || '',
+            group_singular_name: groupData.group_singular_name || '',
+            group_slug: groupData.group_slug || '',
+            group_description: groupData.group_description || '',
+        };
+
+        Object.entries(fieldMap).forEach(([name, value]) => {
+            const input = modal.querySelector('[name="' + name + '"]');
+            if (input) {
+                input.value = value || '';
+            }
+        });
+
+        const hierarchicalInput = modal.querySelector('[name="group_hierarchical"]');
+        if (hierarchicalInput) {
+            hierarchicalInput.checked = Boolean(groupData.group_hierarchical || groupData.hierarchical);
+        }
+
+        const parentSelect = modal.querySelector('[name="group_parent"]');
+        if (parentSelect) {
+            const parentValue = String(groupData.group_parent || groupData.group_parent_id || '').trim();
+            parentSelect.value = '';
+            if (parentValue && String(groupKey).trim() !== 'modpress_type') {
+                parentSelect.value = parentValue;
+            }
+        }
+
+        syncGroupParentField(groupKey);
+    };
+
     const addOptionRow = (button) => {
         const repeater = button.closest('.modpress-option-repeater');
         if (!repeater) {
@@ -156,21 +218,28 @@
 
         const groupEditButton = event.target.closest('.modpress-tab-edit-btn');
         if (groupEditButton) {
-            const modal = document.getElementById('modpress-group-modal');
-            if (modal) {
-                const title = modal.querySelector('.modal-title');
-                const groupKey = groupEditButton.dataset.groupKey;
-                const groupLabel = groupEditButton.dataset.groupLabel || '';
-                if (title) {
-                    title.textContent = 'Edit Group';
-                }
-                const hiddenField = modal.querySelector('[name="group_edit_key"]');
-                if (hiddenField) {
-                    hiddenField.value = groupKey || '';
-                }
-                const labelField = modal.querySelector('[name="group_name"]');
-                if (labelField) {
-                    labelField.value = groupLabel;
+            const rawGroupData = groupEditButton.dataset.groupData || '{}';
+            try {
+                const parsedData = JSON.parse(rawGroupData);
+                populateGroupModal(parsedData);
+            } catch (error) {
+                const modal = document.getElementById('modpress-group-modal');
+                if (modal) {
+                    const title = modal.querySelector('.modal-title');
+                    const groupKey = groupEditButton.dataset.groupKey;
+                    const groupLabel = groupEditButton.dataset.groupLabel || '';
+                    if (title) {
+                        title.textContent = 'Edit Group';
+                    }
+                    const hiddenField = modal.querySelector('[name="group_edit_key"]');
+                    if (hiddenField) {
+                        hiddenField.value = groupKey || '';
+                    }
+                    const labelField = modal.querySelector('[name="group_name"]');
+                    if (labelField) {
+                        labelField.value = groupLabel;
+                    }
+                    syncGroupParentField(groupKey || '');
                 }
             }
         }

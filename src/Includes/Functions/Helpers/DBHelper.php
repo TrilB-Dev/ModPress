@@ -289,7 +289,7 @@ final class DBHelper {
 
 	/**
 	 * Fetch a single value from a custom table.
-		 *
+	 *
 	 * @param string $table Table suffix.
 	 * @param string $column Column to fetch.
 	 * @param array  $where Where conditions.

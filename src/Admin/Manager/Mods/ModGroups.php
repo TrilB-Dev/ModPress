@@ -55,15 +55,20 @@ final class ModGroups extends ModManager {
 
 			$group_key = trim( (string) ( $group['group_key'] ?? $taxonomy_key ) );
 			$taxonomy_tabs[] = array(
-				'taxonomy'    => $taxonomy_key,
-				'key'         => $taxonomy_key,
-				'label'       => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
-				'group_key'   => $group_key,
-				'group_slug'  => (string) ( $group['group_slug'] ?? '' ),
-				'group_fields'=> isset( $group['group_fields'] ) ? $group['group_fields'] : null,
-				'reserved'    => 'modpress_type' === $group_key,
-				'deletable'   => 'modpress_type' !== $group_key,
-				'hierarchical'=> ! empty( $group['group_hierarchical'] ),
+				'taxonomy'           => $taxonomy_key,
+				'key'                => $taxonomy_key,
+				'label'              => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
+				'group_key'          => $group_key,
+				'group_name'         => (string) ( $group['group_name'] ?? '' ),
+				'group_slug'         => (string) ( $group['group_slug'] ?? '' ),
+				'group_singular_name' => (string) ( $group['group_singular_name'] ?? '' ),
+				'group_description'  => (string) ( $group['group_description'] ?? '' ),
+				'group_hierarchical' => ! empty( $group['group_hierarchical'] ),
+				'group_parent_id'    => isset( $group['group_parent_id'] ) ? (int) $group['group_parent_id'] : 0,
+				'group_fields'       => isset( $group['group_fields'] ) ? $group['group_fields'] : null,
+				'reserved'           => 'modpress_type' === $group_key,
+				'deletable'          => 'modpress_type' !== $group_key,
+				'hierarchical'       => ! empty( $group['group_hierarchical'] ),
 			);
 		}
 
@@ -112,6 +117,7 @@ final class ModGroups extends ModManager {
 											'data-bs-target' => '#modpress-group-modal',
 											'data-group-key' => $taxonomy_key,
 											'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+											'data-group-data' => wp_json_encode( $taxonomy ),
 											'aria-label' => __( 'Edit group', 'modpress' ),
 										),
 									)
@@ -237,7 +243,7 @@ final class ModGroups extends ModManager {
 	 * @param string        $tooltip       Optional tooltip copy.
 	 * @return void
 	 */
-	private function render_form_row( string $field_name, string $label, callable $field_callback, string $description = '', string $tooltip = '', ?string $condition = null ): void {
+	private function render_form_row( string $field_name, string $label, callable $field_callback, string $description = '', string $tooltip = '', ?string $condition = null, ?string $row_id = null ): void {
 		$field_id = 'modpress-' . sanitize_key( str_replace( array( '[]', '[', ']' ), '', $field_name ) );
 		$field    = call_user_func( $field_callback );
 		$meta     = array(
@@ -247,6 +253,9 @@ final class ModGroups extends ModManager {
 		$tr_attrs = '';
 		if ( null !== $condition && '' !== $condition ) {
 			$tr_attrs = ' data-custom-field-condition="' . esc_attr( $condition ) . '" class="d-none"';
+		}
+		if ( null !== $row_id && '' !== trim( $row_id ) ) {
+			$tr_attrs .= ' id="' . esc_attr( $row_id ) . '"';
 		}
 		?>
 		<tr<?php echo $tr_attrs; ?>>
@@ -381,7 +390,7 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::switch(
 																'group_hierarchical',
-																'1',
+																true,
 																__( 'Enabled', 'modpress' ),
 																array(
 																	'id' => 'group_hierarchical'
@@ -399,13 +408,15 @@ final class ModGroups extends ModManager {
 																	'group_parent',
 																	array(
 																		'data' => $group_options,
-																		'selected' => 'modpress_type',
+																		'selected' => '',
 																		'id' => 'group_parent',
 																	)
 															);
 														},
 														__( 'Choose a parent taxonomy group if needed.', 'modpress' ),
-														__( 'This creates a hierarchy between related taxonomy groups.', 'modpress' )
+														__( 'This creates a hierarchy between related taxonomy groups.', 'modpress' ),
+																																																																																		null,
+																																																																																		'modpress-group-parent-row'
 													); ?>
 												</tbody>
 											</table>
