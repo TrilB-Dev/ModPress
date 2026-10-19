@@ -255,6 +255,12 @@ final class FunctionsSidebar {
 						'link'       => 'modpress&group=tools&tab=export',
 						'capability' => 'modpress_tools_export',
 					],
+					'reset' => [
+						'label'      => __( 'Reset', 'modpress' ),
+						'icon'       => 'fa-solid fa-rotate-left',
+						'link'       => 'modpress&group=tools&tab=reset',
+						'capability' => 'modpress_tools_reset',
+					],
 					'analytics' => [
 						'label'      => __( 'Analytics', 'modpress' ),
 						'icon'       => 'fa-solid fa-chart-line',
