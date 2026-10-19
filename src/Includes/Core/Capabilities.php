@@ -72,6 +72,11 @@ class Capabilities {
 					'label'       => __( 'Edit Security Settings', 'modpress' ),
 					'description' => __( 'Allows editing export passwords, encryption controls, and security flags.', 'modpress' ),
 				),
+				'modpress_tools_general'              => array(
+					'group'       => 'ModPress Tools',
+					'label'       => __( 'View General Tools', 'modpress' ),
+					'description' => __( 'Allows viewing general tools and settings in ModPress.', 'modpress' ),
+				),
 				'modpress_tools_import'              => array(
 					'group'       => 'ModPress Tools',
 					'label'       => __( 'Import Licence Data', 'modpress' ),

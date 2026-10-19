@@ -237,6 +237,12 @@ final class FunctionsSidebar {
 				'label' => __( 'Tools', 'modpress' ),
 				'icon'  => 'fa-solid fa-toolbox',
 				'items' => [
+					'general' => [
+						'label'      => __( 'General', 'modpress' ),
+						'icon'       => 'fa-solid fa-sliders',
+						'link'       => 'modpress&group=tools&tab=general',
+						'capability' => 'modpress_tools_general',
+					],
 					'debug' => [
 						'label'      => __( 'Debug', 'modpress' ),
 						'icon'       => 'fa-solid fa-bug-slash',
