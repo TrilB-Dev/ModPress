@@ -254,6 +254,39 @@ namespace {
     }
 }
 
+namespace ModPress\Includes\Functions\Admin {
+    if ( ! function_exists( __NAMESPACE__ . '\\current_time' ) ) {
+        function current_time( $type = 'mysql' ) {
+            return '2024-01-01 00:00:00';
+        }
+    }
+
+    if ( ! function_exists( __NAMESPACE__ . '\\wp_json_encode' ) ) {
+        function wp_json_encode( $data ) {
+            return json_encode( $data );
+        }
+    }
+
+    if ( ! function_exists( __NAMESPACE__ . '\\get_current_user_id' ) ) {
+        function get_current_user_id(): int {
+            return 42;
+        }
+    }
+
+    if ( ! function_exists( __NAMESPACE__ . '\\sanitize_key' ) ) {
+        function sanitize_key( $key ) {
+            return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', (string) $key ) );
+        }
+    }
+
+    if ( ! function_exists( __NAMESPACE__ . '\\absint' ) ) {
+        function absint( $value ): int {
+            $value = (int) $value;
+            return $value < 0 ? abs( $value ) : $value;
+        }
+    }
+}
+
 namespace ModPress\Tests\Unit {
     use ModPress\Includes\Core\Capabilities;
     use ModPress\Includes\Core\Schema;
@@ -601,6 +634,98 @@ namespace ModPress\Tests\Unit {
 
             $tools = new \ModPress\Admin\Manager\Tools\ToolsManager( false );
             $this->assertSame( 'tools', $tools->get_page() );
+        }
+
+        public function testPersistGroupRecordUsesCanonicalGroupKeyWhenEditingExistingGroups(): void {
+            $GLOBALS['wpdb'] = new class {
+                public string $prefix = 'wp_';
+                public int $insert_id = 0;
+                public string $last_error = '';
+                public array $storage = [
+                    'wp_modpress_groups' => [
+                        55 => [
+                            'id' => 55,
+                            'group_key' => 'modpress_type',
+                            'group_slug' => 'type',
+                            'group_name' => 'Mod Type',
+                            'group_singular_name' => 'Mod Type',
+                            'group_description' => 'Root type group.',
+                            'group_hierarchical' => 0,
+                            'group_parent_id' => null,
+                            'group_fields' => null,
+                            'created_by' => 1,
+                            'created_at' => '2024-01-01 00:00:00',
+                            'updated_at' => '2024-01-01 00:00:00',
+                        ],
+                    ],
+                ];
+
+                public function prepare( string $query, ...$args ): string {
+                    $flat_args = [];
+                    foreach ( $args as $arg ) {
+                        if ( is_array( $arg ) ) {
+                            $flat_args = array_merge( $flat_args, $arg );
+                            continue;
+                        }
+                        $flat_args[] = $arg;
+                    }
+
+                    foreach ( $flat_args as $arg ) {
+                        $query = preg_replace( '/%s/', (string) $arg, $query, 1 );
+                    }
+
+                    return $query;
+                }
+
+                public function get_row( string $query, $output = null ) {
+                    if ( preg_match( '/FROM wp_modpress_groups WHERE .*group_key.*=\s*([A-Za-z0-9_\-]+)/', $query, $matches ) ) {
+                        foreach ( $this->storage['wp_modpress_groups'] as $row ) {
+                            if ( ( $row['group_key'] ?? '' ) === $matches[1] ) {
+                                return $row;
+                            }
+                        }
+                        return null;
+                    }
+
+                    if ( preg_match( '/FROM wp_modpress_groups WHERE .*group_slug.*=\s*([A-Za-z0-9_\-]+)/', $query, $matches ) ) {
+                        foreach ( $this->storage['wp_modpress_groups'] as $row ) {
+                            if ( ( $row['group_slug'] ?? '' ) === $matches[1] ) {
+                                return $row;
+                            }
+                        }
+                        return null;
+                    }
+
+                    return null;
+                }
+
+                public function query( string $query ) {
+                    if ( preg_match( '/UPDATE wp_modpress_groups SET .* WHERE id = (\\d+)/', $query, $matches ) ) {
+                        return true;
+                    }
+
+                    return true;
+                }
+            };
+
+            $_POST['group_edit_key'] = 'modpress_type';
+
+            $method = new \ReflectionMethod( \ModPress\Includes\Functions\Admin\FunctionsMod::class, 'persist_group_record' );
+            $method->setAccessible( true );
+
+            $payload = [
+                'group_key' => 'modpress_type',
+                'group_name' => 'Mod Type',
+                'group_slug' => 'type',
+                'group_singular_name' => 'Mod Type',
+                'group_description' => 'Updated group description.',
+                'group_hierarchical' => 0,
+                'group_parent_id' => null,
+                'group_fields' => null,
+                'created_by' => 1,
+            ];
+
+            $this->assertSame( 55, $method->invoke( new \ModPress\Includes\Functions\Admin\FunctionsMod(), $payload ) );
         }
 
         public function testFontAwesomeHelperBuildsStyledAndAnimatedIconMarkup(): void {

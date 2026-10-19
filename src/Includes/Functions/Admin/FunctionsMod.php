@@ -223,8 +223,9 @@ final class FunctionsMod {
         $group_id      = $this->persist_group_record( $group_payload );
 
         if ( false === $group_id ) {
-            LoggerHelper::write_log( 'ModPress group save failed while persisting row for taxonomy: ' . $taxonomy );
-            $this->redirect_mod_group_result( false, __( 'The group could not be saved to ModPress.', 'modpress' ) );
+            $failure_reason = $this->get_group_save_failure_reason();
+            LoggerHelper::write_log( 'ModPress group save failed while persisting row for taxonomy: ' . $taxonomy . '. Reason: ' . $failure_reason );
+            $this->redirect_mod_group_result( false, sprintf( __( 'The group could not be saved to ModPress. %s', 'modpress' ), $failure_reason ) );
         }
 
         $group_payload['id'] = $group_id;
@@ -379,19 +380,10 @@ final class FunctionsMod {
      * @return int|false
      */
     private function persist_group_record( array $group_payload ) {
-        $group_id = 0;
-        $edit_key = RequestHelper::value( $_POST, 'group_edit_key', '' );
-
-        if ( '' !== trim( (string) $edit_key ) ) {
-            if ( is_numeric( $edit_key ) ) {
-                $group_id = absint( $edit_key );
-            } else {
-                $existing_group = DBHelper::get_row( 'groups', array( 'group_slug' => sanitize_key( (string) $edit_key ) ) );
-                if ( ! empty( $existing_group ) && isset( $existing_group['id'] ) ) {
-                    $group_id = absint( $existing_group['id'] );
-                }
-            }
-        }
+        $group_id = $this->resolve_group_record_id(
+            RequestHelper::value( $_POST, 'group_edit_key', '' ),
+            $group_payload['group_slug'] ?? ''
+        );
 
         if ( $group_id > 0 ) {
             $updated = DBHelper::update(
@@ -413,7 +405,11 @@ final class FunctionsMod {
             return $updated ? $group_id : false;
         }
 
-        $existing_group = DBHelper::get_row( 'groups', array( 'group_slug' => $group_payload['group_slug'] ) );
+        $existing_group = DBHelper::get_row( 'groups', array( 'group_key' => $group_payload['group_key'] ) );
+        if ( empty( $existing_group ) ) {
+            $existing_group = DBHelper::get_row( 'groups', array( 'group_slug' => $group_payload['group_slug'] ) );
+        }
+
         if ( ! empty( $existing_group ) && isset( $existing_group['id'] ) ) {
             $updated = DBHelper::update(
                 'groups',
@@ -451,6 +447,65 @@ final class FunctionsMod {
         );
 
         return false !== $inserted ? (int) $inserted : false;
+    }
+
+    /**
+     * Resolve an existing ModPress group row by the canonical key or slug.
+     *
+     * @param string $edit_key Raw value from the edit form.
+     * @param string $fallback_slug Group slug fallback.
+     * @return int
+     */
+    private function resolve_group_record_id( string $edit_key, string $fallback_slug = '' ): int {
+        $edit_key = trim( (string) $edit_key );
+        if ( '' !== $edit_key ) {
+            if ( is_numeric( $edit_key ) ) {
+                return absint( $edit_key );
+            }
+
+            $lookup_key = sanitize_key( $edit_key );
+            if ( '' !== $lookup_key ) {
+                $group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_key ) );
+                if ( ! empty( $group_row ) && isset( $group_row['id'] ) ) {
+                    return absint( $group_row['id'] );
+                }
+
+                $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_key ) );
+                if ( ! empty( $group_row ) && isset( $group_row['id'] ) ) {
+                    return absint( $group_row['id'] );
+                }
+            }
+        }
+
+        $fallback_slug = sanitize_key( (string) $fallback_slug );
+        if ( '' !== $fallback_slug ) {
+            $group_row = DBHelper::get_row( 'groups', array( 'group_key' => $fallback_slug ) );
+            if ( ! empty( $group_row ) && isset( $group_row['id'] ) ) {
+                return absint( $group_row['id'] );
+            }
+
+            $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $fallback_slug ) );
+            if ( ! empty( $group_row ) && isset( $group_row['id'] ) ) {
+                return absint( $group_row['id'] );
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Return a readable database error message when a group save fails.
+     *
+     * @return string
+     */
+    private function get_group_save_failure_reason(): string {
+        global $wpdb;
+
+        if ( isset( $wpdb->last_error ) && '' !== trim( (string) $wpdb->last_error ) ) {
+            return trim( (string) $wpdb->last_error );
+        }
+
+        return __( 'The database update failed while saving the group record.', 'modpress' );
     }
 
     /**
