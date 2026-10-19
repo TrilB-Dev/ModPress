@@ -101,8 +101,8 @@ final class ModGroups extends ModManager {
 								>
 									<?php echo esc_html( $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ); ?>
 								</button>
-								<?php FormFieldHelper::button( 
-									'<span class="dashicons dashicons-edit"></span>', 
+								<?php echo FormFieldHelper::button(
+									'<span class="dashicons dashicons-edit"></span>',
 									array(
 										'type' => 'button',
 										'class' => 'btn btn-link btn-sm text-secondary modpress-tab-edit-btn',
@@ -114,7 +114,7 @@ final class ModGroups extends ModManager {
 											'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
 											'aria-label' => __( 'Edit group', 'modpress' ),
 										),
-									) 
+									)
 								); ?>
 							</li>
 						<?php endforeach; ?>
