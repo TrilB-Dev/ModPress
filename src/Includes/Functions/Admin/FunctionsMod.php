@@ -201,6 +201,7 @@ final class FunctionsMod {
 
         $group_name = RequestHelper::text( $_POST, 'group_name', '' );
         $taxonomy   = RequestHelper::key( $_POST, 'group_slug', SanitizationHelper::slug( $group_name, '' ) );
+        $group_key  = GroupsManager::get_group_taxonomy_key( $taxonomy );
 
         if ( '' === $group_name ) {
             LoggerHelper::write_log( 'ModPress group save rejected: missing group name.' );
@@ -218,6 +219,7 @@ final class FunctionsMod {
         }
 
         $group_payload = $this->build_group_payload( $group_name, $taxonomy );
+        $group_payload['group_key'] = $group_key;
         $group_id      = $this->persist_group_record( $group_payload );
 
         if ( false === $group_id ) {
@@ -230,7 +232,8 @@ final class FunctionsMod {
         $service = new GroupsManager();
         $created = $service->dynamically_create(
             array(
-                'taxonomy'      => $taxonomy,
+                'taxonomy'      => $group_key,
+                'group_key'     => $group_key,
                 'label'         => $group_name,
                 'name'          => $group_name,
                 'singular_name' => $group_payload['group_singular_name'],
@@ -275,7 +278,10 @@ final class FunctionsMod {
         } elseif ( '' !== trim( (string) $edit_key ) ) {
             $lookup_value = sanitize_key( (string) $edit_key );
             if ( '' !== $lookup_value ) {
-                $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_value ) );
+                $group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_value ) );
+                if ( empty( $group_row ) ) {
+                    $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_value ) );
+                }
             }
         }
 
@@ -284,7 +290,8 @@ final class FunctionsMod {
         }
 
         $group_slug = trim( (string) ( $group_row['group_slug'] ?? '' ) );
-        if ( 'type' === $group_slug || 'modpress_type' === GroupsManager::get_group_taxonomy_key( $group_slug ) ) {
+        $group_key  = trim( (string) ( $group_row['group_key'] ?? GroupsManager::get_group_taxonomy_key( $group_slug ) ) );
+        if ( 'modpress_type' === $group_key || 'type' === $group_slug || 'modpress_type' === GroupsManager::get_group_taxonomy_key( $group_slug ) ) {
             $this->redirect_mod_group_result( false, __( 'The Mod Type group cannot be deleted.', 'modpress' ) );
         }
 
@@ -346,6 +353,7 @@ final class FunctionsMod {
         $description = SanitizationHelper::textarea( RequestHelper::value( $_POST, 'group_description', '' ), '' );
 
         $group_payload = array(
+            'group_key'           => GroupsManager::get_group_taxonomy_key( $taxonomy ),
             'group_name'          => $group_name,
             'group_slug'          => $taxonomy,
             'group_singular_name' => RequestHelper::text( $_POST, 'group_singular_name', $group_name ),
@@ -389,6 +397,7 @@ final class FunctionsMod {
             $updated = DBHelper::update(
                 'groups',
                 array(
+                    'group_key'           => $group_payload['group_key'],
                     'group_name'          => $group_payload['group_name'],
                     'group_slug'          => $group_payload['group_slug'],
                     'group_singular_name' => $group_payload['group_singular_name'],
@@ -409,6 +418,7 @@ final class FunctionsMod {
             $updated = DBHelper::update(
                 'groups',
                 array(
+                    'group_key'           => $group_payload['group_key'],
                     'group_name'          => $group_payload['group_name'],
                     'group_singular_name' => $group_payload['group_singular_name'],
                     'group_description'   => $group_payload['group_description'],
@@ -426,6 +436,7 @@ final class FunctionsMod {
         $inserted = DBHelper::insert(
             'groups',
             array(
+                'group_key'           => $group_payload['group_key'],
                 'group_name'          => $group_payload['group_name'],
                 'group_slug'          => $group_payload['group_slug'],
                 'group_singular_name' => $group_payload['group_singular_name'],
@@ -496,7 +507,10 @@ final class FunctionsMod {
         }
 
         if ( $saved_term_id > 0 ) {
-            $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => sanitize_key( str_replace( 'modpress_', '', $taxonomy ) ) ) );
+            $group_row = DBHelper::get_row( 'groups', array( 'group_key' => sanitize_key( (string) $taxonomy ) ) );
+            if ( empty( $group_row ) ) {
+                $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => sanitize_key( str_replace( 'modpress_', '', $taxonomy ) ) ) );
+            }
             $group_fields = array();
             if ( ! empty( $group_row['group_fields'] ) ) {
                 $decoded_fields = json_decode( (string) $group_row['group_fields'], true );

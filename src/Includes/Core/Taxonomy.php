@@ -70,13 +70,12 @@ final class Taxonomy {
 	 */
 	public static function dynamically_create( array $data = array() ): bool {
 		$taxonomy_slug = self::normalize_taxonomy( $data['taxonomy'] ?? $data['slug'] ?? '' );
+		$group_key     = trim( (string) ( $data['group_key'] ?? $data['taxonomy_key'] ?? '' ) );
 		if ( '' === $taxonomy_slug ) {
 			return false;
 		}
 
-		$taxonomy = 0 === strpos( $taxonomy_slug, self::$taxonomy_prefix )
-			? $taxonomy_slug
-			: self::normalize_taxonomy( self::$taxonomy_prefix . $taxonomy_slug );
+		$taxonomy = '' !== $group_key ? self::normalize_taxonomy( $group_key ) : ( 0 === strpos( $taxonomy_slug, self::$taxonomy_prefix ) ? $taxonomy_slug : self::normalize_taxonomy( self::$taxonomy_prefix . $taxonomy_slug ) );
 
 		$labels = array(
 			'name'          => $data['name'] ?? self::humanize_slug( $taxonomy ),

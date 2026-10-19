@@ -53,14 +53,16 @@ final class ModGroups extends ModManager {
 				continue;
 			}
 
+			$group_key = trim( (string) ( $group['group_key'] ?? $taxonomy_key ) );
 			$taxonomy_tabs[] = array(
 				'taxonomy'    => $taxonomy_key,
 				'key'         => $taxonomy_key,
 				'label'       => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
+				'group_key'   => $group_key,
 				'group_slug'  => (string) ( $group['group_slug'] ?? '' ),
 				'group_fields'=> isset( $group['group_fields'] ) ? $group['group_fields'] : null,
-				'reserved'    => 'modpress_type' === $taxonomy_key,
-				'deletable'   => 'modpress_type' !== $taxonomy_key,
+				'reserved'    => 'modpress_type' === $group_key,
+				'deletable'   => 'modpress_type' !== $group_key,
 				'hierarchical'=> ! empty( $group['group_hierarchical'] ),
 			);
 		}

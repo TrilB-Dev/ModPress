@@ -65,12 +65,13 @@ final class GroupsManager {
 		$definitions = array();
 
 		foreach ( $groups as $group ) {
+			$group_key = trim( (string) ( $group['group_key'] ?? '' ) );
 			$group_slug = trim( (string) ( $group['group_slug'] ?? '' ) );
-			if ( '' === $group_slug ) {
+			if ( '' === $group_key && '' === $group_slug ) {
 				continue;
 			}
 
-			$taxonomy_key = self::normalize_group_taxonomy_key( $group_slug );
+			$taxonomy_key = '' !== $group_key ? $group_key : self::normalize_group_taxonomy_key( $group_slug );
 			if ( '' === $taxonomy_key ) {
 				continue;
 			}
@@ -164,8 +165,9 @@ final class GroupsManager {
 	 */
 	public function dynamically_create( array $data = array() ): bool {
 		$taxonomy      = $data['taxonomy'] ?? $data['slug'] ?? '';
+		$group_key     = $data['group_key'] ?? $data['taxonomy_key'] ?? $data['group'] ?? $data['parent_group'] ?? 'type';
+		$taxonomy      = '' !== trim( (string) $group_key ) ? trim( (string) $group_key ) : $taxonomy;
 		$post_type     = $data['post_type'] ?? $data['post_types'] ?? array( 'modpress_mod' );
-		$group_key     = $data['group'] ?? $data['parent_group'] ?? 'type';
 		$taxonomy_data = array(
 			'post_type'    => $post_type,
 			'public'       => true,
@@ -321,9 +323,24 @@ final class GroupsManager {
 			return true;
 		}
 
+		$existing = DBHelper::get_row( 'groups', array( 'group_key' => 'modpress_type' ) );
+		if ( empty( $existing ) ) {
+			$existing = DBHelper::get_row( 'groups', array( 'group_slug' => 'type' ) );
+		}
+
+		if ( ! empty( $existing ) ) {
+			DBHelper::update(
+				'groups',
+				array( 'group_key' => 'modpress_type', 'updated_at' => current_time( 'mysql' ) ),
+				array( 'id' => (int) $existing['id'] )
+			);
+			return true;
+		}
+
 		$inserted = DBHelper::insert(
 			'groups',
 			array(
+				'group_key'           => 'modpress_type',
 				'group_name'          => 'Mod Type',
 				'group_slug'          => 'type',
 				'group_singular_name' => 'Mod Type',

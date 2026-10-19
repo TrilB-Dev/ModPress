@@ -109,6 +109,7 @@ final class Schema {
             static function ( string $table_name, string $charset ) {
                 return "CREATE TABLE {$table_name} (
                 id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                group_key varchar(120) NOT NULL,
                 group_name varchar(120) NOT NULL,
                 group_slug varchar(120) NOT NULL,
                 group_singular_name varchar(120) NOT NULL,
@@ -120,6 +121,7 @@ final class Schema {
                 created_at datetime DEFAULT CURRENT_TIMESTAMP,
                 updated_at datetime DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY  (id),
+                UNIQUE KEY group_key (group_key),
                 UNIQUE KEY group_slug (group_slug),
                 KEY created_by (created_by)
             ) {$charset};";
