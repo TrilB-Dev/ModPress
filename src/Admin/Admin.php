@@ -22,6 +22,10 @@ use ModPress\Admin\Manager\Tools\ToolsManager;
 use ModPress\Admin\Manager\Dashboard\DashboardManager;
 use ModPress\Admin\Manager\Mods\ModManager;
 use ModPress\Admin\Manager\Settings\SettingsManager;
+use ModPress\Admin\Manager\Tools\Export;
+use ModPress\Admin\Manager\Tools\General;
+use ModPress\Admin\Manager\Tools\Import;
+use ModPress\Admin\Manager\Tools\Reset;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -100,6 +104,10 @@ final class Admin {
 		 * Initialize the tools manager instance from the registry.
 		 */
 		$this->tools_manager     = $this->managers['tools'];
+		new General();
+		new Reset();
+		new Import();
+		new Export();
 		/**
 		 * Initialize the loader helper.
 		 */

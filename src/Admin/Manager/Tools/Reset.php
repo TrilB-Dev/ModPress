@@ -35,16 +35,7 @@ final class Reset extends ToolsManager {
 	 */
 	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
-		( $loader ?? new LoaderHelper() )->register_component(
-			$this,
-			array(
-				array(
-					'type'     => 'action',
-					'hook'     => 'admin_post_modpress_reset',
-					'callback' => 'handle_reset',
-				),
-			)
-		)->run();
+		add_action( 'admin_post_modpress_reset', array( $this, 'handle_reset' ) );
 	}
 
 	/**
