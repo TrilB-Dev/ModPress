@@ -7,7 +7,9 @@
 namespace ModPress\Admin\Manager\Tools;
 
 use ModPress\Assets\Assets;
+use ModPress\Includes\Core\Schema;
 use ModPress\Includes\Functions\Helpers\AlertHelper;
+use ModPress\Includes\Functions\Helpers\DBHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Functions\Helpers\PermissionHelper;
@@ -34,6 +36,11 @@ final class General extends ToolsManager {
 					'hook'     => 'admin_post_modpress_save_tools_general',
 					'callback' => 'handle_save',
 				),
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_reinstall_tables',
+					'callback' => 'handle_reinstall_tables',
+				),
 			)
 		)->run();
 	}
@@ -47,13 +54,19 @@ final class General extends ToolsManager {
 		if ( '1' === RequestHelper::get_text( 'settings_saved' ) ) {
 			AlertHelper::render_admin_notice( __( 'The general tools settings were saved.', 'modpress' ), 'success' );
 		}
+		if ( '1' === RequestHelper::get_text( 'tables_reinstalled' ) ) {
+			AlertHelper::render_admin_notice( __( 'The ModPress tables were reinstalled successfully.', 'modpress' ), 'success' );
+		}
+		if ( '1' === RequestHelper::get_text( 'tables_reinstall_failed' ) ) {
+			AlertHelper::render_admin_notice( __( 'The ModPress tables could not be reinstalled.', 'modpress' ), 'error' );
+		}
 
 		$values = array(
 			'remove_all_data_on_uninstall' => Settings::get_bool( 'remove_all_data_on_uninstall', false ),
 			'uninstall_3rd_party_plugins'  => Settings::get_bool( 'uninstall_3rd_party_plugins', false ),
 		);
 		?>
-		<div class="card shadow-sm">
+		<div class="card shadow-sm mb-4">
 			<div class="card-body">
 				<h2 class="h5"><?php esc_html_e( 'General tools settings', 'modpress' ); ?></h2>
 				<p class="text-secondary"><?php esc_html_e( 'Configure the default cleanup behaviour used when ModPress is uninstalled or deactivated.', 'modpress' ); ?></p>
@@ -94,6 +107,39 @@ final class General extends ToolsManager {
 				</form>
 			</div>
 		</div>
+
+		<div class="card shadow-sm">
+			<div class="card-body">
+				<h2 class="h5"><?php esc_html_e( 'Database repair', 'modpress' ); ?></h2>
+				<p class="text-secondary"><?php esc_html_e( 'Recreate the ModPress database tables from the registered schema when you need to repair a broken install.', 'modpress' ); ?></p>
+				<div class="d-flex flex-wrap gap-2">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<?php echo FormFieldHelper::input( 'action', 'modpress_reinstall_tables', array( 'type' => 'hidden' ) ); ?>
+						<?php echo FormFieldHelper::input( 'mode', 'missing', array( 'type' => 'hidden' ) ); ?>
+						<?php wp_nonce_field( 'modpress_reinstall_tables', 'modpress_reinstall_tables_nonce' ); ?>
+						<?php echo FormFieldHelper::button(
+							__( 'Create missing tables', 'modpress' ),
+							array(
+								'type'  => 'submit',
+								'class' => 'btn-secondary',
+							)
+						); ?>
+					</form>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<?php echo FormFieldHelper::input( 'action', 'modpress_reinstall_tables', array( 'type' => 'hidden' ) ); ?>
+						<?php echo FormFieldHelper::input( 'mode', 'full', array( 'type' => 'hidden' ) ); ?>
+						<?php wp_nonce_field( 'modpress_reinstall_tables', 'modpress_reinstall_tables_nonce' ); ?>
+						<?php echo FormFieldHelper::button(
+							__( 'Reinstall tables', 'modpress' ),
+							array(
+								'type'  => 'submit',
+								'class' => 'btn-danger',
+							)
+						); ?>
+					</form>
+				</div>
+			</div>
+		</div>
 		<?php
 	}
 
@@ -121,6 +167,56 @@ final class General extends ToolsManager {
 
 		wp_safe_redirect( admin_url( 'admin.php?page=modpress-tools&tool=general&settings_saved=1' ) );
 		exit;
+	}
+
+	/**
+	 * Recreate the registered ModPress database tables.
+	 *
+	 * @return void
+	 */
+	public function handle_reinstall_tables(): void {
+		if ( ! PermissionHelper::can( 'modpress_tools_general' ) ) {
+			wp_die( esc_html__( 'You are not authorized to reinstall the ModPress tables.', 'modpress' ) );
+		}
+
+		check_admin_referer( 'modpress_reinstall_tables', 'modpress_reinstall_tables_nonce' );
+
+		$mode = RequestHelper::get_text( 'mode' );
+		$mode = in_array( $mode, array( 'missing', 'full' ), true ) ? $mode : 'missing';
+
+		$success = $this->reinstall_tables( 'full' === $mode );
+		wp_safe_redirect( admin_url( 'admin.php?page=modpress-tools&tool=general&' . ( $success ? 'tables_reinstalled=1' : 'tables_reinstall_failed=1' ) ) );
+		exit;
+	}
+
+	/**
+	 * Recreate the ModPress schema tables.
+	 *
+	 * @param bool $full_reinstall Whether to drop all ModPress tables before recreating them.
+	 * @return bool
+	 */
+	private function reinstall_tables( bool $full_reinstall = false ): bool {
+		Schema::register_tables();
+		$tables = array();
+
+		foreach ( array_merge( DBHelper::get_core_tables(), DBHelper::get_plugin_tables() ) as $table => $schema ) {
+			if ( is_string( $table ) && '' !== trim( $table ) ) {
+				$tables[] = $table;
+			}
+		}
+		$tables = array_values( array_unique( $tables ) );
+
+		if ( $full_reinstall ) {
+			foreach ( $tables as $table ) {
+				DBHelper::drop_table( $table );
+			}
+		}
+
+		foreach ( $tables as $table ) {
+			DBHelper::create_table( $table );
+		}
+
+		return ! empty( $tables );
 	}
 
 	/**
