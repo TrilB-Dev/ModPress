@@ -115,7 +115,7 @@ final class Debug extends ToolsManager {
 			<div class="card-body">
 				<h2 class="h5"><?php esc_html_e( 'Microsoft Graph diagnostics', 'modpress' ); ?></h2>
 				<p class="text-secondary"><?php esc_html_e( 'Test the configured application credentials against Microsoft Entra over TLS 1.2. The test does not display credentials or tokens.', 'modpress' ); ?></p>
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=modpress-tools&tool=debug' ) ); ?>">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=tools&tab=debug' ) ); ?>">
 					<?php wp_nonce_field( 'modpress_run_graph_diagnostics', 'modpress_graph_diagnostics_nonce' ); ?>
 					<?php echo FormFieldHelper::input( 'modpress_run_graph_diagnostics', '1', array( 'type' => 'hidden' ) ); ?>
 					<?php
@@ -135,7 +135,7 @@ final class Debug extends ToolsManager {
 			<div class="card-body">
 				<h2 class="h5"><?php esc_html_e( 'Debug logging', 'modpress' ); ?></h2>
 				<p class="text-secondary"><?php esc_html_e( 'Configure diagnostic logging from the Tools settings tab.', 'modpress' ); ?></p>
-				<a class="btn btn-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=modpress-settings&tab=tools' ) ); ?>"><?php esc_html_e( 'Open Tools Settings', 'modpress' ); ?></a>
+				<a class="btn btn-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=tools&tab=general' ) ); ?>"><?php esc_html_e( 'Open Tools Settings', 'modpress' ); ?></a>
 			</div>
 		</div>
 		</div>

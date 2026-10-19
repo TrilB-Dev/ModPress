@@ -165,7 +165,7 @@ final class General extends ToolsManager {
 			Settings::set( $key, $value );
 		}
 
-		wp_safe_redirect( admin_url( 'admin.php?page=modpress-tools&tool=general&settings_saved=1' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=tools&tab=general&settings_saved=1' ) );
 		exit;
 	}
 
@@ -185,7 +185,7 @@ final class General extends ToolsManager {
 		$mode = in_array( $mode, array( 'missing', 'full' ), true ) ? $mode : 'missing';
 
 		$success = $this->reinstall_tables( 'full' === $mode );
-		wp_safe_redirect( admin_url( 'admin.php?page=modpress-tools&tool=general&' . ( $success ? 'tables_reinstalled=1' : 'tables_reinstall_failed=1' ) ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=tools&tab=general&' . ( $success ? 'tables_reinstalled=1' : 'tables_reinstall_failed=1' ) ) );
 		exit;
 	}
 
@@ -269,7 +269,7 @@ final class General extends ToolsManager {
 	 * @return void
 	 */
 	public function register_assets( Assets $assets ): void {
-		$this->register_page_assets( $assets, array( 'modpress-tools' ), 'tools' );
+		$this->register_page_assets( $assets, array( 'modpress' ), 'tools' );
 	}
 }
 

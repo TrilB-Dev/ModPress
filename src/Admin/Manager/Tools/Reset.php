@@ -54,7 +54,7 @@ final class Reset extends ToolsManager {
 	 * @return void
 	 */
 	public function register_assets( Assets $assets ): void {
-		$this->register_page_assets( $assets, array( 'modpress-tools' ), 'tools' );
+		$this->register_page_assets( $assets, array( 'modpress' ), 'tools' );
 	}
 
 	public function render_page_content(): void {
@@ -146,7 +146,7 @@ final class Reset extends ToolsManager {
 	 * @return void
 	 */
 	private function redirect( bool $success ): void {
-		wp_safe_redirect( admin_url( 'admin.php?page=modpress-tools&tool=reset&' . ( $success ? 'reset_complete=1' : 'reset_failed=1' ) ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=tools&tab=reset&' . ( $success ? 'reset_complete=1' : 'reset_failed=1' ) ) );
 		exit;
 	}
 	/**

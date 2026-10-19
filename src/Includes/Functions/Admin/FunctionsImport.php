@@ -38,7 +38,7 @@ final class FunctionsImport {
         if ( is_wp_error( $result ) ) {
             wp_die( esc_html( $result->get_error_message() ), 400 );
         }
-        wp_safe_redirect( admin_url( 'admin.php?page=modpress-settings&tab=tools&imported=1' ) );
+        wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=tools&tab=import&imported=1' ) );
         exit;
     }
 }
