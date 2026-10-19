@@ -44,10 +44,7 @@ class ToolsManager extends Manager {
 	 * @return void
 	 */
 	public function render(): void {
-		$tool = RequestHelper::get_key( 'tool', 'debug' );
-		if ( ! in_array( $tool, array( 'debug', 'reset', 'import', 'export', 'general' ), true ) ) {
-			$tool = 'debug';
-		}
+		$tool = $this->resolve_requested_tool();
 		$capabilities = array(
 			'debug'  => 'modpress_tools_debug',
 			'reset'  => 'modpress_tools_reset',
@@ -64,6 +61,23 @@ class ToolsManager extends Manager {
 			$screen->render_page_content();
 		}
 		$this->footer();
+	}
+
+	/**
+	 * Resolve the active requested tool from either the legacy `tool` query or the
+	 * menu-provided `tab` value.
+	 *
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public function resolve_requested_tool(): string {
+		$tool = RequestHelper::get_key( 'tool', '' );
+		if ( '' === $tool ) {
+			$tool = RequestHelper::get_key( 'tab', 'debug' );
+		}
+
+		$valid_tools = array( 'debug', 'reset', 'import', 'export', 'general' );
+		return in_array( $tool, $valid_tools, true ) ? $tool : 'debug';
 	}
 
 	/**

@@ -18,6 +18,7 @@ namespace {
 }
 
 namespace ModPress\Tests\Unit {
+    use ModPress\Admin\Manager\Tools\ToolsManager;
     use ModPress\Includes\Core\Menus;
     use PHPUnit\Framework\TestCase;
 
@@ -25,6 +26,7 @@ namespace ModPress\Tests\Unit {
         protected function setUp(): void {
             parent::setUp();
             $GLOBALS['modpress_test_nav_menus'] = array();
+            $_GET = array();
         }
 
         public function testDuplicateMenuLocationsAreNotRegisteredTwice(): void {
@@ -47,6 +49,13 @@ namespace ModPress\Tests\Unit {
             ) );
 
             $this->assertArrayHasKey( 'footer-menu', $GLOBALS['modpress_test_nav_menus'] );
+        }
+
+        public function testToolsManagerFallsBackToTabRoutingValue(): void {
+            $_GET['tab'] = 'general';
+            $manager = new ToolsManager();
+
+            $this->assertSame( 'general', $manager->resolve_requested_tool() );
         }
     }
 }
