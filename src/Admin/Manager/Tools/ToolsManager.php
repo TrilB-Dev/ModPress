@@ -75,16 +75,15 @@ class ToolsManager extends Manager {
 	 */
 	private function resolve_tool_screen( string $tool ): ?object {
 		switch ( $tool ) {
-			case 'reset':
-				return new Reset();
 			case 'debug':
 				return new Debug();
 			case 'import':
 				return new Import();
 			case 'general':
 				return new General();
+			case 'reset':
+				return new Reset();
 			case 'export':
-			default:
 				return new Export();
 		}
 	}
