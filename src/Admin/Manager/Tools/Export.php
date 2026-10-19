@@ -10,6 +10,7 @@ namespace ModPress\Admin\Manager\Tools;
 
 use ModPress\Includes\Functions\Admin\FunctionsExport;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
+use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Functions\Helpers\UrlHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,10 +30,19 @@ final class Export extends ToolsManager {
 	 *
 	 * @return void
 	 */
-	public function __construct() {
+	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
 		$this->export_functions = new FunctionsExport();
-		add_action( 'admin_post_modpress_export', array( $this->export_functions, 'export_data' ) );
+		( $loader ?? new LoaderHelper() )->register_component(
+			$this->export_functions,
+			array(
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_export',
+					'callback' => 'export_data',
+				),
+			)
+		)->run();
 	}
 	/**
 	 * Render the export form.

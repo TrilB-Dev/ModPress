@@ -10,6 +10,7 @@ namespace ModPress\Admin\Manager\Tools;
 
 use ModPress\Includes\Functions\Admin\FunctionsImport;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
+use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Functions\Helpers\UrlHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,10 +30,19 @@ final class Import extends ToolsManager {
 	 *
 	 * @return void
 	 */
-	public function __construct() {
+	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
 		$this->import_functions = new FunctionsImport();
-		add_action( 'admin_post_modpress_import', array( $this->import_functions, 'import_data' ) );
+		( $loader ?? new LoaderHelper() )->register_component(
+			$this->import_functions,
+			array(
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_import',
+					'callback' => 'import_data',
+				),
+			)
+		)->run();
 	}
 	/**
 	 * Render the import form.

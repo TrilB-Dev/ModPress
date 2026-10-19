@@ -104,14 +104,14 @@ final class Admin {
 		 * Initialize the tools manager instance from the registry.
 		 */
 		$this->tools_manager     = $this->managers['tools'];
-		new General();
-		new Reset();
-		new Import();
-		new Export();
 		/**
 		 * Initialize the loader helper.
 		 */
 		$this->loader = new LoaderHelper();
+		new General( $this->loader );
+		new Reset( $this->loader );
+		new Import( $this->loader );
+		new Export( $this->loader );
 		/**
 		 * Initialize the assets manager.
 		 */

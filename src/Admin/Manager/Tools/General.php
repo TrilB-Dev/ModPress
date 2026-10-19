@@ -28,8 +28,21 @@ final class General extends ToolsManager {
 	 */
 	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
-		add_action( 'admin_post_modpress_save_tools_general', array( $this, 'handle_save' ) );
-		add_action( 'admin_post_modpress_reinstall_tables', array( $this, 'handle_reinstall_tables' ) );
+		( $loader ?? new LoaderHelper() )->register_component(
+			$this,
+			array(
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_save_tools_general',
+					'callback' => 'handle_save',
+				),
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_reinstall_tables',
+					'callback' => 'handle_reinstall_tables',
+				),
+			)
+		)->run();
 	}
 
 	/**
