@@ -46,7 +46,7 @@ final class SettingsGeneral {
 		$enable_schema = ! empty( $values['enable_schema'] ?? true );
 		?>
 		<?php if ( $can_edit ) : ?>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="licencepress-settings-form">
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="modpress-settings-form">
 			<input type="hidden" name="action" value="modpress_save_general_settings" />
 			<input type="hidden" name="modpress_tab" value="general" />
 			<?php wp_nonce_field( 'modpress_save_general_settings' ); ?>

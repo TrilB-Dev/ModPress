@@ -44,7 +44,7 @@ final class FunctionsSidebar {
 	}
 
 	/**
-	 * Return the built-in and filtered AccessPress sidebar groups.
+	 * Return the built-in and filtered ModPress sidebar groups.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
@@ -83,7 +83,7 @@ final class FunctionsSidebar {
 	}
 
 	/**
-	 * Get a AccessPress sidebar page URL.
+	 * Get a ModPress sidebar page URL.
 	 *
 	 * @param string $slug Page slug, optionally followed by a query string.
 	 * @return string
@@ -293,11 +293,11 @@ final class FunctionsSidebar {
 		$capability = self::resolve_menu_capability( sanitize_key( (string) ( $menu['capability'] ?? 'manage_options' ) ) );
 
 		if ( '' === $slug || '' === $name || ! is_callable( $callback ) ) {
-			LoggerHelper::write_log( sprintf( 'AccessPress skipped menu registration for empty or invalid page: %s', $raw_slug ) );
+			LoggerHelper::write_log( sprintf( 'ModPress skipped menu registration for empty or invalid page: %s', $raw_slug ) );
 			return;
 		}
 
-		LoggerHelper::write_log( sprintf( 'AccessPress registering admin menu: %s (slug=%s, parent=%s, capability=%s)', $name, $slug, $parent, $capability ) );
+		LoggerHelper::write_log( sprintf( 'ModPress registering admin menu: %s (slug=%s, parent=%s, capability=%s)', $name, $slug, $parent, $capability ) );
 
 		try {
 			if ( '' === $parent ) {
@@ -306,21 +306,21 @@ final class FunctionsSidebar {
 			}
 
 			if ( $slug === $parent ) {
-				LoggerHelper::write_log( sprintf( 'AccessPress skipped submenu registration because slug matches parent: %s', $slug ) );
+				LoggerHelper::write_log( sprintf( 'ModPress skipped submenu registration because slug matches parent: %s', $slug ) );
 				return;
 			}
 
 			add_submenu_page( $parent, $name, $name, $capability, $slug, $callback, $menu['position'] ?? null );
 		} catch ( \Throwable $e ) {
-			LoggerHelper::write_log( sprintf( 'AccessPress menu registration failed for %s (%s): %s', $name, $slug, $e->getMessage() ) );
+			LoggerHelper::write_log( sprintf( 'ModPress menu registration failed for %s (%s): %s', $name, $slug, $e->getMessage() ) );
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				wp_die( esc_html( $e->getMessage() ), __( 'AccessPress menu registration error', 'licencepress' ), array( 'back_link' => true ) );
+				wp_die( esc_html( $e->getMessage() ), __( 'ModPress menu registration error', 'modpress' ), array( 'back_link' => true ) );
 			}
 		}
 	}
 
 	/**
-	 * Get the WordPress menus provided by active AccessPress plugins.
+	 * Get the WordPress menus provided by active ModPress plugins.
 	 *
 	 * @return array<int, array<string, mixed>> The WordPress menus.
 	 * @since 1.0.0
@@ -348,7 +348,7 @@ final class FunctionsSidebar {
 					}
 				}
 			} catch ( \Throwable $e ) {
-				LoggerHelper::write_log( sprintf( 'AccessPress plugin %s failed to provide WordPress menus: %s', $plugin->get_slug(), $e->getMessage() ) );
+				LoggerHelper::write_log( sprintf( 'ModPress plugin %s failed to provide WordPress menus: %s', $plugin->get_slug(), $e->getMessage() ) );
 			}
 		}
 
@@ -410,7 +410,7 @@ final class FunctionsSidebar {
 	}
 
 	/**
-	 * Get the sidebar menus provided by active AccessPress plugins.
+	 * Get the sidebar menus provided by active ModPress plugins.
 	 *
 	 * @return array<int, array<string, mixed>> The sidebar menus.
 	 * @since 1.0.0
@@ -442,7 +442,7 @@ final class FunctionsSidebar {
 					$menus[] = ASMHelper::define( $definition['label'] ?? '', self::sidebar_slug( $definition ), $definition['icon'] ?? '', $definition['parent'] ?? '', $definition['capability'] ?? '' );
 				}
 			} catch ( \Throwable $e ) {
-				LoggerHelper::write_log( sprintf( 'AccessPress plugin %s failed to provide sidebar menus: %s', $plugin->get_slug(), $e->getMessage() ) );
+				LoggerHelper::write_log( sprintf( 'ModPress plugin %s failed to provide sidebar menus: %s', $plugin->get_slug(), $e->getMessage() ) );
 			}
 		}
 
@@ -560,7 +560,7 @@ final class FunctionsSidebar {
 	/**
 	 * Resolve the effective capability to use when registering a WordPress menu.
 	 *
-	 * Admins should remain able to see the AccessPress menu while the custom
+	 * Admins should remain able to see the ModPress menu while the custom
 	 * role capability map catches up after activation or a role refresh.
 	 *
 	 * @param string $capability The capability to normalize.

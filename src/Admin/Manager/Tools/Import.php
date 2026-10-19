@@ -54,7 +54,7 @@ final class Import extends ToolsManager {
 				echo wp_kses_post(
 					FormFieldHelper::label(
 						'modpress-import-file',
-						__( 'Import licence JSON', 'modpress' ),
+						__( 'Import ModPress JSON', 'modpress' ),
 						array(
 							'description'  => __( 'Select a JSON export containing ModPress records, customer data, and validation metadata.', 'modpress' ),
 							'tooltip'      => __( 'Import should use a valid archive and, where required, a password-protected file to preserve security.', 'modpress' ),
@@ -77,7 +77,7 @@ final class Import extends ToolsManager {
 				);
 				echo wp_kses_post(
 					FormFieldHelper::button(
-						__( 'Import JSON', 'modpress' ),
+						__( 'Import ModPress JSON', 'modpress' ),
 						array(
 							'type'  => 'submit',
 							'class' => 'btn-primary',
