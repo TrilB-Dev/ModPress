@@ -34,6 +34,7 @@ final class Assets extends RootAssets {
                 ),
             )
         )->run();
+        add_filter('script_loader_tag', array( $this, 'add_crossorigin_attribute' ), 10, 3);
     }
 
     /**
@@ -56,7 +57,8 @@ final class Assets extends RootAssets {
             $assets['scripts'][] = array(
                 'handle' => 'modpress-fontawesome-kit',
                 'src' => 'https://kit.fontawesome.com/' . rawurlencode( $kit_id ) . '.js',
-                'deps' => array( 'modpress-bootstrap' ),
+                'deps' => array(),
+                'version' => null,
                 'in_footer' => false
             );
         } elseif ( 'cdn' === $type && 'webfont' === $cdn_technology ) {
@@ -186,4 +188,16 @@ final class Assets extends RootAssets {
 
         return $assets;
     }
+    /**
+     * Add crossorigin attribute to the script tag
+     */
+    public function add_crossorigin_attribute($tag, $handle, $src) {
+
+        if ('modpress-fontawesome-kit' === $handle) {
+            // Add crossorigin="anonymous" safely
+            $tag = '<script src="' . esc_url($src) . '" crossorigin="anonymous"></script>' . "\n";
+        }
+        return $tag;
+    }
+
 }
