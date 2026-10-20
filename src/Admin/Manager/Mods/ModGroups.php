@@ -72,8 +72,23 @@ final class ModGroups extends ModManager {
 			);
 		}
 
-		$active_tab = $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'modpress_type';
-		?>
+        usort(
+            $taxonomy_tabs,
+            static function ( array $a, array $b ): int {
+                $a_is_type = 'modpress_type' === (string) ( $a['taxonomy'] ?? $a['key'] ?? '' ) || 'modpress_type' === (string) ( $a['group_key'] ?? '' );
+                $b_is_type = 'modpress_type' === (string) ( $b['taxonomy'] ?? $b['key'] ?? '' ) || 'modpress_type' === (string) ( $b['group_key'] ?? '' );
+
+                if ( $a_is_type !== $b_is_type ) {
+                    return $a_is_type ? -1 : 1;
+                }
+
+                $a_name = strtolower( (string) ( $a['label'] ?? $a['group_name'] ?? '' ) );
+                $b_name = strtolower( (string) ( $b['label'] ?? $b['group_name'] ?? '' ) );
+
+                return strcmp( $a_name, $b_name );
+            }
+        );
+
 
 		<div class="modpress-groups-page">
 			<div class="card border-0 shadow-sm mb-4">
@@ -391,7 +406,7 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::switch(
 																'group_hierarchical',
-																true,
+																false,
 																__( 'Enabled', 'modpress' ),
 																array(
 																	'id' => 'group_hierarchical'

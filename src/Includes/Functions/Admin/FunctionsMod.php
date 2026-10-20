@@ -314,14 +314,15 @@ final class FunctionsMod {
      */
     private function build_group_payload( string $group_name, string $taxonomy ): array {
         $group_fields = array();
-        $field_names  = RequestHelper::value( 
-			$_POST, 
-			'custom_field_name', 
-			array() 
-		);
+        $field_names  = RequestHelper::value( $_POST, 'custom_field_label', RequestHelper::value( $_POST, 'custom_field_name', array() ) );
         $field_slugs  = RequestHelper::value( $_POST, 'custom_field_slug', array() );
         $field_types  = RequestHelper::value( $_POST, 'custom_field_type', array() );
         $field_descs  = RequestHelper::value( $_POST, 'custom_field_description', array() );
+        $textarea_rows = RequestHelper::value( $_POST, 'custom_field_type_textarea_rows', array() );
+        $radio_options = RequestHelper::value( $_POST, 'custom_field_type_radio', array() );
+        $select_options = RequestHelper::value( $_POST, 'custom_field_type_select', array() );
+        $image_types = RequestHelper::value( $_POST, 'custom_field_type_image_type', array() );
+        $show_in_table = RequestHelper::value( $_POST, 'custom_field_show_in_table', array() );
 
         if ( is_array( $field_names ) ) {
             foreach ( $field_names as $index => $field_name ) {
@@ -330,12 +331,55 @@ final class FunctionsMod {
                     continue;
                 }
 
-                $group_fields[] = array(
+                $field_index = is_numeric( $index ) ? (int) $index : 0;
+                $slug        = trim( (string) ( $field_slugs[ $field_index ] ?? SanitizationHelper::slug( $name, '' ) ) );
+                $field_type  = trim( (string) ( $field_types[ $field_index ] ?? 'text' ) );
+                $field       = array(
                     'name'        => $name,
-                    'slug'        => trim( (string) ( $field_slugs[ $index ] ?? SanitizationHelper::slug( $name, '' ) ) ),
-                    'type'        => trim( (string) ( $field_types[ $index ] ?? 'text' ) ),
-                    'description' => trim( (string) ( $field_descs[ $index ] ?? '' ) ),
+                    'slug'        => $slug,
+                    'type'        => $field_type,
+                    'description' => trim( (string) ( $field_descs[ $field_index ] ?? '' ) ),
+                    'show_in_table' => ! empty( $show_in_table[ $field_index ] ) || 'on' === (string) ( $show_in_table[ $field_index ] ?? '' ),
                 );
+
+                if ( 'textarea' === $field_type ) {
+                    $rows = absint( $textarea_rows[ $field_index ] ?? 4 );
+                    if ( $rows > 0 ) {
+                        $field['rows'] = $rows;
+                    }
+                }
+
+                if ( in_array( $field_type, array( 'radio', 'select' ), true ) ) {
+                    $option_map = 'radio' === $field_type ? $radio_options : $select_options;
+                    $options = array();
+                    $option_values = is_array( $option_map ) ? ( $option_map[ $field_index ] ?? array() ) : array();
+                    foreach ( $option_values as $option ) {
+                        if ( is_array( $option ) ) {
+                            $option_label = trim( (string) ( $option['label'] ?? $option['name'] ?? '' ) );
+                            $option_value = trim( (string) ( $option['option'] ?? $option['value'] ?? $option_label ) );
+                            if ( '' === $option_label && '' === $option_value ) {
+                                continue;
+                            }
+                            $options[] = array(
+                                'label' => '' !== $option_label ? $option_label : $option_value,
+                                'value' => '' !== $option_value ? $option_value : ( '' !== $option_label ? $option_label : '' ),
+                            );
+                        }
+                    }
+
+                    if ( ! empty( $options ) ) {
+                        $field['options'] = $options;
+                    }
+                }
+
+                if ( 'image' === $field_type ) {
+                    $image_config = is_array( $image_types ) ? ( $image_types[ $field_index ] ?? array() ) : array();
+                    if ( ! empty( $image_config ) ) {
+                        $field['image_types'] = array_values( array_filter( array_map( 'strval', (array) $image_config ) ) );
+                    }
+                }
+
+                $group_fields[] = $field;
             }
         }
 
