@@ -232,7 +232,7 @@
 
         const customFieldsContainer = modal.querySelector('#modpress-custom-fields-container');
         if (customFieldsContainer) {
-            customFieldsContainer.innerHTML = '<div class="text-muted small">No custom fields configured for this group.</div>';
+            customFieldsContainer.innerHTML = '';
         }
 
         const hierarchicalInput = modal.querySelector('[name="group_hierarchical"]');
@@ -444,13 +444,21 @@
             if (!container) {
                 return;
             }
+
+            const placeholder = container.querySelector('.text-muted.small');
+            if (placeholder) {
+                placeholder.remove();
+            }
+
             const template = document.getElementById('modpress-custom-field-template');
             if (!template) {
                 return;
             }
+
             const clone = template.cloneNode(true);
             clone.removeAttribute('id');
             clone.classList.remove('d-none');
+            clone.classList.add('modpress-custom-field-row');
             container.appendChild(clone);
             syncCustomFieldVisibility(clone);
         }
