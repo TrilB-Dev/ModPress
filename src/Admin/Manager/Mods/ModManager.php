@@ -53,7 +53,18 @@ class ModManager extends Manager {
      * @since 1.0.0
      */
     public function __construct() {
+        /**
+         * Mod Manager Page
+         * Initializes the mod manager page and its tabs.
+         * 
+         * @since 1.0.0
+         */
         $this->page = 'mod-manager';
+        /**
+         * Supported mod tabs.
+         * 
+         * @since 1.0.0
+         */
         $this->tabs = array(
             'dashboard',
             'groups',
@@ -62,8 +73,18 @@ class ModManager extends Manager {
             'mods',
             'tags',
         );
-
+        /**
+         * Register actions for Mod Manager.
+         *
+         * @since 1.0.0
+         */
         $this->register_actions();
+        /**
+         * Register the assets for the Mod Manager.
+         *
+         * @since 1.0.0
+         */
+        $this->register_assets( new Assets() );
     }
     /**
      * Register the mod manager admin-post handlers used by taxonomy forms.
