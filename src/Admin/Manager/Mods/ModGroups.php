@@ -1,4 +1,6 @@
 ﻿<?php
+namespace ModPress\Admin\Manager\Mods;
+
 /**
  * Group management screen for the ModPress mod manager.
  *
@@ -6,7 +8,6 @@
  * @subpackage Admin\Manager\Mods
  * @since 1.0.0
  */
-namespace ModPress\Admin\Manager\Mods;
 
 use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Functions\Helpers\DBHelper;
