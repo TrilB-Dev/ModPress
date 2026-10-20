@@ -333,6 +333,42 @@
             syncCustomFieldVisibility(target.closest('.modpress-custom-field-row'));
         }
 
+        if (target.matches('.modpress-image-picker-mode-input')) {
+            const fieldWrapper = target.closest('.modpress-image-field');
+            if (!fieldWrapper) {
+                return;
+            }
+
+            const mode = target.value;
+            const imageMode = fieldWrapper.querySelector('.modpress-image-entry-mode-image');
+            const iconMode = fieldWrapper.querySelector('.modpress-image-entry-mode-icon');
+            const activeHidden = fieldWrapper.querySelector('input[type="hidden"][name="' + target.dataset.inputName + '"]');
+            const imageHidden = fieldWrapper.querySelector('.modpress-image-entry-mode-image input[type="hidden"]');
+            const iconHidden = fieldWrapper.querySelector('.modpress-fa-picker-container input[type="hidden"]');
+
+            if (imageMode) {
+                imageMode.style.display = mode === 'image' ? '' : 'none';
+            }
+            if (iconMode) {
+                iconMode.style.display = mode === 'icon' ? '' : 'none';
+            }
+
+            if (imageHidden) {
+                imageHidden.disabled = mode !== 'image';
+            }
+            if (iconHidden) {
+                iconHidden.disabled = mode !== 'icon';
+            }
+
+            if (mode === 'icon' && iconHidden && (!iconHidden.value || !String(iconHidden.value).includes('fa-'))) {
+                iconHidden.value = 'fas fa-image';
+            }
+
+            if (activeHidden && mode === 'image') {
+                activeHidden.value = activeHidden.value || '';
+            }
+        }
+
     });
 
     document.addEventListener('click', (event) => {
@@ -469,6 +505,78 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
 
+    const buildEntryImageSelector = (inputName, value, mode = 'image') => {
+        const sanitizedValue = String(value || '');
+        const imageValue = sanitizedValue && mode !== 'icon' ? sanitizedValue : '';
+        const iconValue = mode === 'icon' && sanitizedValue ? sanitizedValue : 'fas fa-image';
+        const pickerId = 'modpress-entry-icon-picker-' + inputName.replace(/[^a-zA-Z0-9_-]/g, '-');
+
+        return `
+            <div class="modpress-image-field" data-input-name="${escapeAttributeValue(inputName)}">
+                <div class="mb-2">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input modpress-image-picker-mode-input" type="radio" name="${inputName}_mode" value="image" ${mode === 'image' ? 'checked' : ''} data-input-name="${escapeAttributeValue(inputName)}" />
+                        <label class="form-check-label">Image</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input modpress-image-picker-mode-input" type="radio" name="${inputName}_mode" value="icon" ${mode === 'icon' ? 'checked' : ''} data-input-name="${escapeAttributeValue(inputName)}" />
+                        <label class="form-check-label">Icon</label>
+                    </div>
+                </div>
+
+                <div class="modpress-image-entry-mode modpress-image-entry-mode-image" ${mode === 'image' ? '' : 'style="display:none;"'}>
+                    <input type="hidden" name="${inputName}" value="${escapeAttributeValue(imageValue)}" ${mode === 'image' ? '' : 'disabled'} />
+                    <div class="d-flex gap-2 align-items-center">
+                        <button type="button" class="btn btn-outline-secondary btn-sm modpress-image-select">Select Image</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm modpress-image-clear ${imageValue ? '' : 'd-none'}">Remove</button>
+                    </div>
+                    <div class="modpress-image-preview mt-2 ${imageValue ? '' : 'd-none'}">
+                        <img src="${escapeAttributeValue(imageValue)}" alt="" class="img-thumbnail" style="max-height:120px;max-width:220px;object-fit:cover;" />
+                    </div>
+                </div>
+
+                <div class="modpress-image-entry-mode modpress-image-entry-mode-icon" ${mode === 'icon' ? '' : 'style="display:none;"'}>
+                    <div class="modpress-fa-picker-container" id="${pickerId}">
+                        <input type="hidden" name="${inputName}" value="${escapeAttributeValue(iconValue)}" ${mode === 'icon' ? '' : 'disabled'} />
+                        <button type="button" class="btn btn-outline-secondary modpress-fa-picker-button" data-picker-id="${pickerId}">
+                            <span class="modpress-fa-picker-preview">
+                                <i class="${escapeAttributeValue(iconValue)}" style="font-size: 1.25rem;"></i>
+                            </span>
+                            <span class="modpress-fa-picker-text">Choose Icon</span>
+                        </button>
+                        <div class="modpress-fa-picker-modal" style="display: none;">
+                            <div class="modpress-fa-picker-overlay"></div>
+                            <div class="modpress-fa-picker-dialog">
+                                <div class="modpress-fa-picker-header">
+                                    <h3>Choose an Icon</h3>
+                                    <button type="button" class="modpress-fa-picker-close">&times;</button>
+                                </div>
+                                <div class="modpress-fa-picker-search">
+                                    <input type="search" class="form-control modpress-fa-picker-search-input" placeholder="Search icons..." />
+                                    <select class="form-select modpress-fa-picker-pack-filter">
+                                        <option value="classic">Classic</option>
+                                        <option value="brands">Brands</option>
+                                    </select>
+                                    <select class="form-select modpress-fa-picker-style-filter">
+                                        <option value="solid">Solid</option>
+                                        <option value="regular">Regular</option>
+                                        <option value="light">Light</option>
+                                        <option value="thin">Thin</option>
+                                    </select>
+                                </div>
+                                <div class="modpress-fa-picker-results"><div class="modpress-fa-picker-loading">Loading...</div></div>
+                                <div class="modpress-fa-picker-footer">
+                                    <button type="button" class="btn btn-secondary modpress-fa-picker-cancel">Cancel</button>
+                                    <button type="button" class="btn btn-primary modpress-fa-picker-select" disabled>Select Icon</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
     const renderEntryCustomFields = (modal, currentValues = {}) => {
         const config = modal.dataset.groupFieldConfig ? JSON.parse(modal.dataset.groupFieldConfig) : {};
         const taxonomyKey = modal.querySelector('[name="group_slug"]')?.value || '';
@@ -513,8 +621,9 @@
             }
 
             if (type === 'image') {
-                const imageUrl = String(savedValue || '');
-                inputMarkup = '<div class="modpress-image-field" data-input-name="' + escapeAttributeValue(inputName) + '"><input type="hidden" name="' + inputName + '" value="' + escapeAttributeValue(imageUrl) + '" /><div class="d-flex gap-2 align-items-center"><button type="button" class="btn btn-outline-secondary btn-sm modpress-image-select">Select Image</button><button type="button" class="btn btn-outline-danger btn-sm modpress-image-clear ' + (imageUrl ? '' : 'd-none') + '">Remove</button></div><div class="modpress-image-preview mt-2 ' + (imageUrl ? '' : 'd-none') + '"><img src="' + escapeAttributeValue(imageUrl) + '" alt="" class="img-thumbnail" style="max-height:120px;max-width:220px;object-fit:cover;" /></div></div>';
+                const allowedModes = Array.isArray(field.image_types) ? field.image_types.map((item) => String(item).toLowerCase()) : ['image'];
+                const activeMode = allowedModes.includes('icon') && (String(savedValue || '').startsWith('fa') || String(savedValue || '').includes('fa-')) ? 'icon' : 'image';
+                inputMarkup = buildEntryImageSelector(inputName, savedValue, allowedModes.includes('icon') ? activeMode : 'image');
             }
 
             if (type === 'radio' || type === 'select') {

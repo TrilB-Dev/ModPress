@@ -9,7 +9,7 @@ namespace ModPress\Includes\Plugins\FontAwesome\Assets;
 use ModPress\Assets\Assets as RootAssets;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Plugins\FontAwesome\Includes\Settings\Settings as FontAwesomeSettings;
-use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker\IconPicker;
+use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker;
 
 final class Assets extends RootAssets {
     /**
