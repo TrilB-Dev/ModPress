@@ -84,6 +84,13 @@ namespace {
         }
     }
 
+    if ( ! function_exists( 'register_taxonomy_for_object_type' ) ) {
+        function register_taxonomy_for_object_type( $taxonomy, $object_type ): void {
+            $GLOBALS['modpress_test_taxonomies'][ (string) $taxonomy ]['object_type'] ??= [];
+            $GLOBALS['modpress_test_taxonomies'][ (string) $taxonomy ]['object_type'][] = (string) $object_type;
+        }
+    }
+
     if ( ! function_exists( 'maybe_unserialize' ) ) {
         function maybe_unserialize( $value ) {
             return $value;
@@ -207,15 +214,28 @@ namespace ModPress\Tests\Unit {
             );
 
             $this->assertTrue( $result );
-            $this->assertArrayHasKey( 'mod_group', $GLOBALS['modpress_test_taxonomies'] );
-            $this->assertSame( array( 'modpress_mod' ), $GLOBALS['modpress_test_taxonomies']['mod_group']['post_type'] );
-            $this->assertTrue( $GLOBALS['modpress_test_taxonomies']['mod_group']['args']['public'] );
+            $this->assertArrayHasKey( 'modpress_mod_group', $GLOBALS['modpress_test_taxonomies'] );
+            $this->assertSame( array( 'modpress_mod' ), $GLOBALS['modpress_test_taxonomies']['modpress_mod_group']['post_type'] );
+            $this->assertTrue( $GLOBALS['modpress_test_taxonomies']['modpress_mod_group']['args']['public'] );
         }
 
-        public function testCreateRejectsEmptyAndDuplicateValues(): void {
+        public function testCreateRejectsEmptyAndAllowsIdempotentExistingTaxonomy(): void {
             $this->assertFalse( Taxonomy::create( '', array() ) );
             $this->assertTrue( Taxonomy::create( 'modpress_mod_group', array( 'post_type' => array( 'modpress_mod' ) ) ) );
-            $this->assertFalse( Taxonomy::create( 'modpress_mod_group', array( 'post_type' => array( 'modpress_mod' ) ) ) );
+            $this->assertTrue( Taxonomy::create( 'modpress_mod_group', array( 'post_type' => array( 'modpress_mod' ) ) ) );
+        }
+
+        public function testDynamicallyCreateAllowsReusingExistingTaxonomyForEdits(): void {
+            $this->assertTrue( Taxonomy::create( 'modpress_type', array( 'post_type' => array( 'modpress_mod' ), 'hierarchical' => true ) ) );
+            $this->assertTrue( Taxonomy::dynamically_create(
+                array(
+                    'taxonomy' => 'modpress_type',
+                    'post_type' => array( 'modpress_mod' ),
+                    'hierarchical' => false,
+                    'label' => 'Mod Type',
+                )
+            ) );
+            $this->assertTrue( taxonomy_exists( 'modpress_type' ) );
         }
     }
 }

@@ -51,12 +51,17 @@ final class Taxonomy {
 	 */
 	public static function create( string $taxonomy, array $config = array() ): bool {
 		$taxonomy = self::normalize_taxonomy( $taxonomy );
-		if ( '' === $taxonomy || taxonomy_exists( $taxonomy ) ) {
+		if ( '' === $taxonomy ) {
 			return false;
 		}
 
 		$definition = self::normalize_definition( $taxonomy, $config );
 		self::$registered[ $taxonomy ] = $definition;
+
+		if ( taxonomy_exists( $taxonomy ) ) {
+			return true;
+		}
+
 		self::register_single( $taxonomy, $definition );
 
 		return true;

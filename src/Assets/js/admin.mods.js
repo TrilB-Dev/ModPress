@@ -87,6 +87,41 @@
         }
     };
 
+    const resetGroupModal = () => {
+        const modal = document.getElementById('modpress-group-modal');
+        if (!modal) {
+            return;
+        }
+
+        const fields = [
+            'group_edit_key',
+            'group_name',
+            'group_singular_name',
+            'group_slug',
+            'group_description',
+            'group_parent',
+        ];
+
+        fields.forEach((fieldName) => {
+            const input = modal.querySelector('[name="' + fieldName + '"]');
+            if (input) {
+                input.value = '';
+            }
+        });
+
+        const hierarchicalInput = modal.querySelector('[name="group_hierarchical"]');
+        if (hierarchicalInput) {
+            hierarchicalInput.checked = false;
+        }
+
+        const modalTitle = modal.querySelector('.modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = 'Add Group';
+        }
+
+        syncGroupParentField('');
+    };
+
     const populateGroupModal = (groupData = {}) => {
         const modal = document.getElementById('modpress-group-modal');
         if (!modal) {
@@ -311,6 +346,25 @@
             container.appendChild(fieldRow);
         });
     };
+
+    const groupModalElement = document.getElementById('modpress-group-modal');
+    if (groupModalElement) {
+        groupModalElement.addEventListener('show.bs.modal', (event) => {
+            const trigger = event.relatedTarget;
+            if (!trigger || !trigger.matches('.modpress-tab-edit-btn')) {
+                resetGroupModal();
+                return;
+            }
+
+            const rawGroupData = trigger.dataset.groupData || '{}';
+            try {
+                const parsedData = JSON.parse(rawGroupData);
+                populateGroupModal(parsedData);
+            } catch (error) {
+                resetGroupModal();
+            }
+        });
+    }
 
     const modalElement = document.getElementById('modpress-entry-modal');
     if (modalElement) {
