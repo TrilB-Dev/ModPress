@@ -218,6 +218,20 @@ final class ModGroups extends ModManager {
 																			'data-entry-description' => $term->description,
 																			'data-entry-parent' => (int) $term->parent,
 																			'data-entry-icon' => GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy_key, 'entry_icon' ) ?: '',
+															'data-entry-custom-fields' => wp_json_encode(
+																array_reduce(
+																	(array) json_decode( (string) ( $taxonomy['group_fields'] ?? '[]' ), true ) ?: array(),
+																	static function ( array $carry, array $field ) use ( $term, $taxonomy_key ): array {
+																		$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+																		if ( '' === $field_slug ) {
+																			return $carry;
+																		}
+																		$carry[ $field_slug ] = GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy_key, $field_slug );
+																		return $carry;
+																	},
+																	array()
+																)
+														),
 																		),
 																	)
 																); ?>

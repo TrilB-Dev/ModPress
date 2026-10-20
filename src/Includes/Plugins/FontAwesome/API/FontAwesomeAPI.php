@@ -6,32 +6,20 @@ use ModPress\Includes\Plugins\FontAwesome\Includes\Settings\Settings;
 
 final class FontAwesomeAPI {
     public static function configure(): void {
-        if ( ! class_exists( '\\FortAwesome\\FontAwesome' ) ) {
-            return;
-        }
-
-        add_action( 'font_awesome_preferences', [ self::class, 'register_preferences' ] );
+        // ModPress uses its own Font Awesome asset pipeline and icon picker.
+        // The official WordPress FontAwesome plugin is not required.
     }
 
     public static function register_preferences(): void {
-        if ( ! self::is_available() ) {
-            return;
-        }
-
-        self::instance()->register( [
-            'technology'     => 'svg',
-            'compat'         => true,
-            'pseudoElements' => false,
-            'name'           => 'ModPress',
-        ] );
+        // No plugin bridge is required.
     }
 
     public static function is_available(): bool {
-        return function_exists( 'FortAwesome\\fa' );
+        return true;
     }
 
     public static function instance() {
-        return self::is_available() ? \FortAwesome\fa() : null;
+        return null;
     }
 
     public static function source(): string {

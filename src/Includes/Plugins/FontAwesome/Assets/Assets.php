@@ -9,6 +9,7 @@ namespace ModPress\Includes\Plugins\FontAwesome\Assets;
 use ModPress\Assets\Assets as RootAssets;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Plugins\FontAwesome\Includes\Settings\Settings as FontAwesomeSettings;
+use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker\IconPicker;
 
 final class Assets extends RootAssets {
     /**
@@ -132,6 +133,7 @@ final class Assets extends RootAssets {
                     'data' => array(
                         'ajax_url' => admin_url( 'admin-ajax.php' ),
                         'nonce' => wp_create_nonce( 'modpress_fontawesome_picker' ),
+                        'icons' => IconPicker::get_default_icon_catalog(),
                         'strings' => array(
                             'search_placeholder' => __( 'Search icons...', 'modpress' ),
                             'no_icons_found' => __( 'No icons found', 'modpress' ),

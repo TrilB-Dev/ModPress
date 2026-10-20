@@ -17,7 +17,6 @@ use ModPress\Includes\Plugins\SettingsProviderInterface;
 use ModPress\Includes\Plugins\SettingsPageProviderInterface;
 use ModPress\Includes\Plugins\FontAwesome\Assets\Assets;
 use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker;
-use ModPress\Includes\Plugins\FontAwesome\API\FontAwesomeAPI;
 use ModPress\Includes\Plugins\FontAwesome\Includes\Core\I18n;
 use ModPress\Includes\Plugins\FontAwesome\Includes\Includes;
 use ModPress\Includes\Core\WP\Activator;
@@ -154,8 +153,6 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
      * @since 1.0.0
      */
     public function init(): void {
-
-        FontAwesomeAPI::configure();
         $this->icon_picker = IconPicker::get_instance();
         Includes::get_instance()->init();
     }
@@ -231,41 +228,4 @@ final class FontAwesome implements PluginInterface, SettingsProviderInterface, S
         return self::$instance ??= new self();
     }
 
-    /**
-     * Check whether the official WordPress Font Awesome plugin is active.
-     *
-     * @return bool
-     * @since 1.0.0
-     */
-    public static function is_wordpress_fontawesome_active(): bool {
-        if ( function_exists( 'fa' ) ) {
-            return true;
-        }
-
-        if ( class_exists( '\\FortAwesome\\FontAwesome' ) ) {
-            return true;
-        }
-
-        if ( defined( 'FONTAWESOME_PLUGIN_FILE' ) ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Ensure the runtime is initialized with the official plugin when available.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public static function ensure_vendor_initialized(): void {
-        if ( ! self::is_wordpress_fontawesome_active() ) {
-            return;
-        }
-
-        if ( function_exists( 'fa' ) ) {
-            fa();
-        }
-    }
 }

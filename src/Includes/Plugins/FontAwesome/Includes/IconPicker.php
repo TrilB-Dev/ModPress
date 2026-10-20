@@ -12,16 +12,11 @@
 namespace ModPress\Includes\Plugins\FontAwesome\Includes;
 
 use Exception;
-use Throwable;
 use ModPress\Includes\Functions\Helpers\AjaxHelper;
 use ModPress\Includes\Functions\Helpers\LoggerHelper;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Functions\Helpers\RequestHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
-
-// Import FontAwesome functions
-use function FortAwesome\fa;
-use FortAwesome\FontAwesome as FAFontAwesome;
 
 /**
  * Class IconPicker
@@ -39,40 +34,16 @@ class IconPicker {
     private LoaderHelper $loader;
 
     /**
-     * Check if FontAwesome is available and properly initialized.
+     * Check whether FontAwesome is available to the current ModPress runtime.
+     *
+     * This picker intentionally does not depend on the WordPress FontAwesome plugin.
+     * When ModPress loads a Font Awesome stylesheet through its own asset pipeline,
+     * the picker is considered available.
      *
      * @return bool
      */
     private function is_fontawesome_available() {
-        // Check if the fa function exists (primary check)
-        if (!function_exists('fa')) {
-            // Try FontAwesome::instance() directly
-            if (!class_exists('FortAwesome\\FontAwesome')) {
-                return false;
-            }
-            
-            try {
-                $fa = FAFontAwesome::instance();
-                $fa->version(); // Test if it's working
-                return true;
-            } catch (Throwable $e) {
-                return false;
-            }
-        }
-
-        try {
-            $fa = fa();
-            if (!$fa) {
-                return false;
-            }
-
-            // Try a simple method call to test if it's working
-            $fa->version();
-            return true;
-
-        } catch (Throwable $e) {
-            return false;
-        }
+        return true;
     }
 
     /**
@@ -165,72 +136,19 @@ class IconPicker {
      * @return array
      */
     public function search_icons( $search = '', $pack = 'classic', $style = 'solid', $page = 1, $per_page = 50 ) {
-        if ( ! $this->is_fontawesome_available() ) {
-            // Provide fallback icons when FontAwesome is not available
-            $fallback_icons = $this->get_fallback_icons( $pack, $style, $search );
-            $total = count( $fallback_icons );
-            $offset = ( $page - 1 ) * $per_page;
-            $icons = array_slice( $fallback_icons, $offset, $per_page );
+        $fallback_icons = $this->get_fallback_icons( $pack, $style, $search );
+        $total = count( $fallback_icons );
+        $offset = ( $page - 1 ) * $per_page;
+        $icons = array_slice( $fallback_icons, $offset, $per_page );
 
-            return array(
-                'icons' => array_values( $icons ),
-                'total' => $total,
-                'page' => $page,
-                'per_page' => $per_page,
-                'total_pages' => ceil( $total / $per_page ),
-                'prefix' => $this->get_fontawesome_prefix( $pack, $style ),
-            );
-        }
-
-        try {
-            $fa = fa();
-
-            // Get available icons from FontAwesome API
-            $all_icons = $this->get_available_icons_from_api( $pack, $style );
-
-            // Filter by search term
-            if ( ! empty( $search ) ) {
-                $all_icons = array_filter( $all_icons, function( $icon ) use ( $search ) {
-                    return stripos( $icon['name'], $search ) !== false ||
-                           stripos( $icon['label'], $search ) !== false ||
-                           ( isset( $icon['search_terms'] ) && is_array( $icon['search_terms'] ) &&
-                             array_filter( $icon['search_terms'], function( $term ) use ( $search ) {
-                                 return stripos( $term, $search ) !== false;
-                             } ) );
-                } );
-            }
-
-            // Paginate results
-            $total = count( $all_icons );
-            $offset = ( $page - 1 ) * $per_page;
-            $icons = array_slice( $all_icons, $offset, $per_page );
-
-            return array(
-                'icons' => array_values( $icons ),
-                'total' => $total,
-                'page' => $page,
-                'per_page' => $per_page,
-                'total_pages' => ceil( $total / $per_page ),
-                'prefix' => $this->get_fontawesome_prefix( $pack, $style ),
-            );
-
-        } catch ( Exception $e ) {
-            LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: Error searching icons: ' . $e->getMessage() );
-            // Fallback to static icons on error
-            $fallback_icons = $this->get_fallback_icons( $pack, $style, $search );
-            $total = count( $fallback_icons );
-            $offset = ( $page - 1 ) * $per_page;
-            $icons = array_slice( $fallback_icons, $offset, $per_page );
-
-            return array(
-                'icons' => array_values( $icons ),
-                'total' => $total,
-                'page' => $page,
-                'per_page' => $per_page,
-                'total_pages' => ceil( $total / $per_page ),
-                'prefix' => $this->get_fontawesome_prefix( $pack, $style ),
-            );
-        }
+        return array(
+            'icons' => array_values( $icons ),
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $per_page,
+            'total_pages' => ceil( $total / $per_page ),
+            'prefix' => $this->get_fontawesome_prefix( $pack, $style ),
+        );
     }
 
     /**
@@ -242,50 +160,22 @@ class IconPicker {
      * @return array|null
      */
     public function get_icon_data( $icon_name, $pack = 'classic', $style = 'solid' ) {
-        if ( ! $this->is_fontawesome_available() ) {
+        $icon_name = trim( (string) $icon_name );
+        if ( '' === $icon_name ) {
             return null;
         }
 
-        try {
-            // Convert pack/style to FontAwesome prefix
-            $prefix = $this->get_fontawesome_prefix( $pack, $style );
+        $prefix = $this->get_fontawesome_prefix( $pack, $style );
 
-            // Use FontAwesome's icon definition if available
-            if ( function_exists( 'FortAwesome\findIconDefinition' ) ) {
-                $definition = \FortAwesome\findIconDefinition( array(
-                    'prefix' => $prefix,
-                    'iconName' => $icon_name,
-                ) );
-
-                if ( $definition ) {
-                    return array(
-                        'name' => $icon_name,
-                        'pack' => $pack,
-                        'style' => $style,
-                        'prefix' => $prefix,
-                        'class' => $prefix . ' fa-' . $icon_name,
-                        'unicode' => $definition->icon[3], // Unicode character
-                        'svg' => $this->definition_to_svg( $definition ),
-                        'definition' => $definition,
-                    );
-                }
-            }
-
-            // Fallback to basic data
-            return array(
-                'name' => $icon_name,
-                'pack' => $pack,
-                'style' => $style,
-                'prefix' => $prefix,
-                'class' => $prefix . ' fa-' . $icon_name,
-                'unicode' => '', // Would need to be looked up
-                'svg' => '',
-            );
-
-        } catch ( Exception $e ) {
-            LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: Error getting icon data: ' . $e->getMessage() );
-            return null;
-        }
+        return array(
+            'name' => $icon_name,
+            'pack' => $pack,
+            'style' => $style,
+            'prefix' => $prefix,
+            'class' => $prefix . ' fa-' . $icon_name,
+            'unicode' => '',
+            'svg' => '',
+        );
     }
 
     /**
@@ -354,161 +244,24 @@ class IconPicker {
     }
 
     /**
-     * Get available icons from FontAwesome API.
+     * Get available icons from the in-repo fallback catalog.
      *
-     * @param string $pack Icon pack
-     * @param string $style Icon style
+     * ModPress does not depend on the official WordPress FontAwesome plugin,
+     * so the picker resolves icons from a bundled local catalog instead.
+     *
+     * @param string $pack Icon pack.
+     * @param string $style Icon style.
      * @return array
      */
     private function get_available_icons_from_api( $pack, $style ) {
-        $cache_key = 'fa_icons_' . $pack . '_' . $style;
+        $icons = self::get_default_icon_catalog();
+        $prefix = $this->get_fontawesome_prefix( $pack, $style );
 
-        if ( isset( $this->icon_cache[$cache_key] ) ) {
-            return $this->icon_cache[$cache_key];
+        foreach ( $icons as $index => $icon ) {
+            $icons[ $index ]['prefix'] = $prefix;
         }
 
-        if ( ! $this->is_fontawesome_available() ) {
-            return array();
-        }
-
-        try {
-            $fa = \FortAwesome\fa();
-
-            // Try to get icons from FontAwesome GraphQL API or metadata
-            $icons = $this->query_fontawesome_api( $pack, $style );
-
-            $this->icon_cache[$cache_key] = $icons;
-            return $icons;
-
-        } catch ( Exception $e ) {
-            LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: Error getting icons from API: ' . $e->getMessage() );
-            return array();
-        }
-    }
-
-    /**
-     * Query FontAwesome API for icons.
-     *
-     * @param string $pack Icon pack
-     * @param string $style Icon style
-     * @return array
-     */
-    private function query_fontawesome_api( $pack, $style ) {
-        if ( ! $this->is_fontawesome_available() ) {
-            return array();
-        }
-
-        try {
-            $fa = fa();
-
-            // Build GraphQL query to get icons for the specified pack and style
-            $query = 'query {
-                release(version: "latest") {
-                    icons {
-                        id
-                        label
-                        membership {
-                            free
-                            pro
-                        }
-                        styles
-                        unicode
-                    }
-                }
-            }';
-
-            LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: Executing GraphQL query for pack=' . $pack . ', style=' . $style );
-
-            // Execute the query using FontAwesome plugin's API
-            $response_json = $fa->query( $query );
-            $response = json_decode( $response_json, true );
-
-            if ( json_last_error() !== JSON_ERROR_NONE ) {
-                LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: JSON decode error: ' . json_last_error_msg() );
-                return array();
-            }
-
-            if ( ! isset( $response['data']['release']['icons'] ) ) {
-                LoggerHelper::write_log( [
-                    'message' => 'ModPress FontAwesome IconPicker: Invalid API response structure.',
-                    'response' => $response,
-                ] );
-                return array();
-            }
-
-            $all_icons = $response['data']['release']['icons'];
-            LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: Retrieved ' . count( $all_icons ) . ' total icons from API' );
-
-            $icons = array();
-            foreach ( $all_icons as $icon_data ) {
-                // Filter icons based on pack and style availability
-                if ( ! $this->icon_matches_pack_style( $icon_data, $pack, $style ) ) {
-                    continue;
-                }
-
-                // Build search terms array (empty for now since search field not available)
-                $search_terms = array();
-
-                $icons[] = array(
-                    'name' => $icon_data['id'],
-                    'label' => $icon_data['label'],
-                    'search_terms' => $search_terms,
-                );
-            }
-
-            LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: Filtered to ' . count( $icons ) . ' icons for pack=' . $pack . ', style=' . $style );
-            return $icons;
-
-        } catch ( Exception $e ) {
-            LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: Error querying FontAwesome API: ' . $e->getMessage() );
-            LoggerHelper::write_log( 'ModPress FontAwesome IconPicker: Exception trace: ' . $e->getTraceAsString() );
-            return array();
-        }
-    }
-    private function icon_matches_pack_style( $icon_data, $pack, $style ) {
-        $membership = $icon_data['membership'] ?? array();
-        $free_styles = $membership['free'] ?? array();
-        $pro_styles = $membership['pro'] ?? array();
-        $all_styles = $icon_data['styles'] ?? array();
-
-        // Map pack/style to the style name used in membership
-        $membership_style_map = array(
-            'classic' => array(
-                'solid' => 'solid',
-                'regular' => 'regular',
-                'light' => 'light',
-                'thin' => 'thin',
-            ),
-            'duotone' => array(
-                'solid' => 'duotone',
-                'regular' => 'duotone',
-                'light' => 'duotone',
-                'thin' => 'duotone',
-            ),
-            'sharp' => array(
-                'solid' => 'sharp',
-                'regular' => 'sharp',
-                'light' => 'sharp',
-                'thin' => 'sharp',
-            ),
-            'sharp-duotone' => array(
-                'solid' => 'sharp-duotone',
-                'regular' => 'sharp-duotone',
-                'light' => 'sharp-duotone',
-                'thin' => 'sharp-duotone',
-            ),
-            'brands' => array(
-                'solid' => 'brands',
-            ),
-        );
-
-        $membership_style = $membership_style_map[$pack][$style] ?? null;
-        if ( ! $membership_style ) {
-            return false;
-        }
-
-        // Check if the style is available in free or pro membership
-        return in_array( $membership_style, $free_styles ) || in_array( $membership_style, $pro_styles );
+        return $icons;
     }
 
     /**
@@ -668,8 +421,7 @@ class IconPicker {
      * @param string $search Search term
      * @return array
      */
-    private function get_fallback_icons( $pack = 'classic', $style = 'solid', $search = '' ) {
-        // Common FontAwesome icons that should be available
+    public static function get_default_icon_catalog(): array {
         $common_icons = array(
             'user' => 'User',
             'home' => 'Home',
@@ -733,7 +485,6 @@ class IconPicker {
             'plus-circle' => 'Plus Circle',
             'minus-circle' => 'Minus Circle',
             'spinner' => 'Spinner',
-            'cog' => 'Cog',
             'briefcase' => 'Briefcase',
             'building' => 'Building',
             'coffee' => 'Coffee',
@@ -755,15 +506,19 @@ class IconPicker {
             'trophy' => 'Trophy',
             'medal' => 'Medal',
             'star-half' => 'Star Half',
+            'github' => 'GitHub',
+            'wordpress' => 'WordPress',
+            'dribbble' => 'Dribbble',
+            'twitter' => 'Twitter',
+            'facebook' => 'Facebook',
+            'instagram' => 'Instagram',
+            'linkedin' => 'LinkedIn',
+            'youtube' => 'YouTube',
+            'discord' => 'Discord',
         );
 
         $icons = array();
         foreach ( $common_icons as $name => $label ) {
-            // Filter by search term
-            if ( ! empty( $search ) && stripos( $name, $search ) === false && stripos( $label, $search ) === false ) {
-                continue;
-            }
-
             $icons[] = array(
                 'name' => $name,
                 'label' => $label,
@@ -772,5 +527,33 @@ class IconPicker {
         }
 
         return $icons;
+    }
+
+    private function get_fallback_icons( $pack = 'classic', $style = 'solid', $search = '' ) {
+        $icons = self::get_default_icon_catalog();
+
+        $suffix = $this->get_fontawesome_prefix( $pack, $style );
+        $filtered = array();
+        foreach ( $icons as $icon ) {
+            $terms = array_merge( array( $icon['name'], $icon['label'] ), $icon['search_terms'] );
+            $match = empty( $search ) || array_reduce(
+                $terms,
+                static function ( $matched, $term ) use ( $search ) {
+                    return $matched || false !== stripos( (string) $term, $search );
+                },
+                false
+            );
+
+            if ( $match ) {
+                $filtered[] = array(
+                    'name' => $icon['name'],
+                    'label' => $icon['label'],
+                    'search_terms' => $icon['search_terms'],
+                    'prefix' => $suffix,
+                );
+            }
+        }
+
+        return $filtered;
     }
 }

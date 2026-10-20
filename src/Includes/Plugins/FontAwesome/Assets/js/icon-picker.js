@@ -136,37 +136,27 @@
             var $styleFilter = $container.find('.modpress-fa-picker-style-filter');
             var $results = $container.find('.modpress-fa-picker-results');
 
-            var search = $searchInput.val();
+            var search = ($searchInput.val() || '').toLowerCase();
             var pack = $packFilter.val();
             var style = $styleFilter.val();
+            var catalog = (window.modpress_fa_picker && window.modpress_fa_picker.icons) || [];
 
-            // Show loading
             $results.html('<div class="modpress-fa-picker-loading">' + modpress_fa_picker.strings.loading + '</div>');
 
-            // AJAX request
-            $.ajax({
-                url: modpress_fa_picker.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'modpress_fontawesome_search_icons',
-                    nonce: modpress_fa_picker.nonce,
-                    search: search,
-                    pack: pack,
-                    style: style,
-                    page: this.currentPage,
-                    per_page: 50
-                },
-                success: (response) => {
-                    if (response.success) {
-                        self.displayIcons(response.data, pack, style);
-                    } else {
-                        $results.html('<div class="modpress-fa-picker-error">' + response.data + '</div>');
-                    }
-                },
-                error: () => {
-                    $results.html('<div class="modpress-fa-picker-error">' + modpress_fa_picker.strings.no_icons_found + '</div>');
-                }
+            var filtered = catalog.filter((icon) => {
+                var terms = [(icon.name || ''), (icon.label || ''), ...(icon.search_terms || [])];
+                return !search || terms.some((term) => (term || '').toLowerCase().indexOf(search) !== -1);
+            }).map((icon) => {
+                var prefix = (pack === 'brands') ? 'fab' : ((style === 'regular') ? 'far' : ((style === 'light') ? 'fal' : ((style === 'thin') ? 'fat' : 'fas')));
+                return {
+                    name: icon.name,
+                    label: icon.label,
+                    prefix: prefix,
+                    className: prefix + ' fa-' + icon.name
+                };
             });
+
+            self.displayIcons({ icons: filtered, total: filtered.length, page: 1, total_pages: 1, prefix: (pack === 'brands') ? 'fab' : ((style === 'regular') ? 'far' : ((style === 'light') ? 'fal' : ((style === 'thin') ? 'fat' : 'fas'))) }, pack, style);
         },
 
         /**

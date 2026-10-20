@@ -87,6 +87,127 @@
         }
     };
 
+    const getGroupFields = (groupData = {}) => {
+        if (Array.isArray(groupData.group_fields)) {
+            return groupData.group_fields;
+        }
+
+        if (typeof groupData.group_fields === 'string') {
+            try {
+                const decoded = JSON.parse(groupData.group_fields);
+                return Array.isArray(decoded) ? decoded : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        return [];
+    };
+
+    const populateCustomFieldRows = (groupData = {}) => {
+        const modal = document.getElementById('modpress-group-modal');
+        if (!modal) {
+            return;
+        }
+
+        const container = modal.querySelector('#modpress-custom-fields-container');
+        if (!container) {
+            return;
+        }
+
+        const template = document.getElementById('modpress-custom-field-template');
+        if (!template) {
+            return;
+        }
+
+        container.innerHTML = '';
+        const fields = getGroupFields(groupData);
+
+        if (!fields.length) {
+            container.innerHTML = '<div class="text-muted small">No custom fields configured for this group.</div>';
+            return;
+        }
+
+        fields.forEach((field) => {
+            const row = template.cloneNode(true);
+            row.removeAttribute('id');
+            row.classList.remove('d-none');
+            row.classList.add('modpress-custom-field-row');
+
+            const labelInput = row.querySelector('[name="custom_field_label[]"]');
+            if (labelInput) {
+                labelInput.value = field.name || field.label || '';
+            }
+
+            const slugInput = row.querySelector('[name="custom_field_slug[]"]');
+            if (slugInput) {
+                slugInput.value = field.slug || '';
+            }
+
+            const descriptionInput = row.querySelector('[name="custom_field_description[]"]');
+            if (descriptionInput) {
+                descriptionInput.value = field.description || '';
+            }
+
+            const typeInput = row.querySelector('[name="custom_field_type[]"]');
+            if (typeInput) {
+                typeInput.value = field.type || 'text';
+            }
+
+            const textareaRowsInput = row.querySelector('[name="custom_field_type_textarea_rows[]"]');
+            if (textareaRowsInput) {
+                textareaRowsInput.value = field.rows || 4;
+            }
+
+            const showInTableInput = row.querySelector('[name="custom_field_show_in_table[]"]');
+            if (showInTableInput) {
+                const shouldShowInTable = Boolean(field.show_in_table || field.showInTable);
+                showInTableInput.checked = shouldShowInTable;
+            }
+
+            const optionRepeater = row.querySelector('.modpress-option-repeater');
+            if (optionRepeater) {
+                const optionItems = optionRepeater.querySelector('.modpress-option-repeater-items');
+                const optionTemplate = optionRepeater.querySelector('.modpress-option-row-template');
+                if (optionItems && optionTemplate) {
+                    optionItems.innerHTML = '';
+                    const options = Array.isArray(field.options) ? field.options : [];
+                    options.forEach((option) => {
+                        const optionRow = optionTemplate.cloneNode(true);
+                        optionRow.classList.remove('d-none');
+                        optionRow.classList.remove('modpress-option-row-template');
+                        optionRow.classList.add('modpress-option-row');
+
+                        const labelInputField = optionRow.querySelector('[name="custom_field_type_radio[][label]"]') || optionRow.querySelector('[name="custom_field_type_select[][label]"]');
+                        const optionInputField = optionRow.querySelector('[name="custom_field_type_radio[][option]"]') || optionRow.querySelector('[name="custom_field_type_select[][option]"]');
+
+                        if (labelInputField) {
+                            labelInputField.value = option.label || option.name || '';
+                        }
+
+                        if (optionInputField) {
+                            optionInputField.value = option.value || option.option || option.label || '';
+                        }
+
+                        optionItems.appendChild(optionRow);
+                    });
+                }
+            }
+
+            const imageTypeInputs = row.querySelectorAll('[name^="custom_field_type_image_type_"]');
+            if (imageTypeInputs.length) {
+                const imageTypes = Array.isArray(field.image_types) ? field.image_types : [];
+                imageTypeInputs.forEach((input) => {
+                    const value = String(input.getAttribute('value') || input.value || '').trim();
+                    input.checked = imageTypes.includes(value);
+                });
+            }
+
+            container.appendChild(row);
+            syncCustomFieldVisibility(row);
+        });
+    };
+
     const resetGroupModal = () => {
         const modal = document.getElementById('modpress-group-modal');
         if (!modal) {
@@ -167,6 +288,7 @@
             }
         }
 
+        populateCustomFieldRows(groupData);
         syncGroupParentField(groupKey);
     };
 
@@ -214,6 +336,67 @@
     });
 
     document.addEventListener('click', (event) => {
+        const imageSelectButton = event.target.closest('.modpress-image-select');
+        if (imageSelectButton) {
+            const fieldWrapper = imageSelectButton.closest('.modpress-image-field');
+            if (!fieldWrapper || typeof window === 'undefined' || !window.wp || !window.wp.media) {
+                return;
+            }
+
+            const hiddenInput = fieldWrapper.querySelector('input[type="hidden"]');
+            const preview = fieldWrapper.querySelector('.modpress-image-preview');
+            const previewImg = fieldWrapper.querySelector('.modpress-image-preview img');
+            const removeButton = fieldWrapper.querySelector('.modpress-image-clear');
+            const mediaFrame = window.wp.media({
+                title: 'Select Image',
+                button: { text: 'Use Image' },
+                multiple: false,
+                library: { type: 'image' },
+            });
+
+            mediaFrame.on('select', () => {
+                const attachment = mediaFrame.state().get('selection').first().toJSON();
+                const imageUrl = attachment.url || attachment.sizes?.full?.url || attachment.icon || '';
+
+                if (hiddenInput) {
+                    hiddenInput.value = imageUrl;
+                }
+
+                if (preview && previewImg) {
+                    previewImg.src = imageUrl;
+                    preview.classList.toggle('d-none', !imageUrl);
+                }
+
+                if (removeButton) {
+                    removeButton.classList.toggle('d-none', !imageUrl);
+                }
+            });
+
+            mediaFrame.open();
+            return;
+        }
+
+        const imageClearButton = event.target.closest('.modpress-image-clear');
+        if (imageClearButton) {
+            const fieldWrapper = imageClearButton.closest('.modpress-image-field');
+            if (!fieldWrapper) {
+                return;
+            }
+
+            const hiddenInput = fieldWrapper.querySelector('input[type="hidden"]');
+            const preview = fieldWrapper.querySelector('.modpress-image-preview');
+            const previewImg = fieldWrapper.querySelector('.modpress-image-preview img');
+            if (hiddenInput) {
+                hiddenInput.value = '';
+            }
+            if (preview && previewImg) {
+                previewImg.src = '';
+                preview.classList.add('d-none');
+            }
+            imageClearButton.classList.add('d-none');
+            return;
+        }
+
         const button = event.target.closest('[data-role="add-custom-field"]');
         if (button) {
             const container = document.getElementById('modpress-custom-fields-container');
@@ -280,7 +463,13 @@
         }
     });
 
-    const renderEntryCustomFields = (modal) => {
+    const escapeAttributeValue = (value = '') => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    const renderEntryCustomFields = (modal, currentValues = {}) => {
         const config = modal.dataset.groupFieldConfig ? JSON.parse(modal.dataset.groupFieldConfig) : {};
         const taxonomyKey = modal.querySelector('[name="group_slug"]')?.value || '';
         const container = modal.querySelector('.modpress-entry-custom-fields-container');
@@ -306,36 +495,45 @@
             const label = field.label || field.name || slug;
             const description = field.description || '';
             const inputName = 'entry_custom_field_' + slug;
-            let inputMarkup = '<input type="text" name="' + inputName + '" class="form-control w-100" value="" />';
+            const savedValue = currentValues[slug] ?? '';
+            let inputMarkup = '<input type="text" name="' + inputName + '" class="form-control w-100" value="' + escapeAttributeValue(savedValue) + '" />';
 
             if (type === 'textarea') {
                 const rows = Number(field.rows) > 0 ? Number(field.rows) : 4;
-                inputMarkup = '<textarea name="' + inputName + '" class="form-control w-100" rows="' + rows + '"></textarea>';
+                inputMarkup = '<textarea name="' + inputName + '" class="form-control w-100" rows="' + rows + '">' + escapeAttributeValue(savedValue) + '</textarea>';
             }
 
             if (type === 'number') {
-                inputMarkup = '<input type="number" name="' + inputName + '" class="form-control w-100" value="" />';
+                inputMarkup = '<input type="number" name="' + inputName + '" class="form-control w-100" value="' + escapeAttributeValue(savedValue) + '" />';
             }
 
             if (type === 'switch') {
-                inputMarkup = '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="' + inputName + '" value="1" /><label class="form-check-label">' + label + '</label></div>';
+                const checked = savedValue === true || savedValue === '1' || savedValue === 'yes' || savedValue === 'on' ? ' checked' : '';
+                inputMarkup = '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="' + inputName + '" value="1"' + checked + ' /><label class="form-check-label">' + label + '</label></div>';
+            }
+
+            if (type === 'image') {
+                const imageUrl = String(savedValue || '');
+                inputMarkup = '<div class="modpress-image-field" data-input-name="' + escapeAttributeValue(inputName) + '"><input type="hidden" name="' + inputName + '" value="' + escapeAttributeValue(imageUrl) + '" /><div class="d-flex gap-2 align-items-center"><button type="button" class="btn btn-outline-secondary btn-sm modpress-image-select">Select Image</button><button type="button" class="btn btn-outline-danger btn-sm modpress-image-clear ' + (imageUrl ? '' : 'd-none') + '">Remove</button></div><div class="modpress-image-preview mt-2 ' + (imageUrl ? '' : 'd-none') + '"><img src="' + escapeAttributeValue(imageUrl) + '" alt="" class="img-thumbnail" style="max-height:120px;max-width:220px;object-fit:cover;" /></div></div>';
             }
 
             if (type === 'radio' || type === 'select') {
                 const options = Array.isArray(field.options) ? field.options : [];
                 if (!options.length) {
-                    inputMarkup = '<input type="text" name="' + inputName + '" class="form-control w-100" value="" />';
+                    inputMarkup = '<input type="text" name="' + inputName + '" class="form-control w-100" value="' + escapeAttributeValue(savedValue) + '" />';
                 } else if (type === 'radio') {
                     inputMarkup = options.map((option) => {
                         const optionValue = String(option.value || option.label || option);
                         const optionLabel = String(option.label || option.value || option);
-                        return '<div class="form-check"><input class="form-check-input" type="radio" name="' + inputName + '" value="' + optionValue + '" /><label class="form-check-label">' + optionLabel + '</label></div>';
+                        const checked = String(savedValue) === String(optionValue) ? ' checked' : '';
+                        return '<div class="form-check"><input class="form-check-input" type="radio" name="' + inputName + '" value="' + optionValue + '"' + checked + ' /><label class="form-check-label">' + optionLabel + '</label></div>';
                     }).join('');
                 } else {
                     inputMarkup = '<select name="' + inputName + '" class="form-select w-100"><option value="">Select...</option>' + options.map((option) => {
                         const optionValue = String(option.value || option.label || option);
                         const optionLabel = String(option.label || option.value || option);
-                        return '<option value="' + optionValue + '">' + optionLabel + '</option>';
+                        const selected = String(savedValue) === String(optionValue) ? ' selected' : '';
+                        return '<option value="' + optionValue + '"' + selected + '>' + optionLabel + '</option>';
                     }).join('') + '</select>';
                 }
             }
@@ -430,7 +628,14 @@
                 iconField.value = trigger.dataset.entryIcon || '';
             }
 
-            renderEntryCustomFields(modalElement);
+            let entryCustomFields = {};
+            try {
+                entryCustomFields = trigger.dataset.entryCustomFields ? JSON.parse(trigger.dataset.entryCustomFields) : {};
+            } catch (error) {
+                entryCustomFields = {};
+            }
+
+            renderEntryCustomFields(modalElement, entryCustomFields);
         });
     }
 
