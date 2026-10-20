@@ -647,7 +647,6 @@ final class ModGroups extends ModManager {
 									</div>
 								</div>
 							</div>
-							</div>
 						</div>
 						<div class="modal-footer">
 							<div class="d-flex gap-2 align-self-end">
