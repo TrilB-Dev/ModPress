@@ -86,6 +86,7 @@ final class ModGroups extends ModManager {
 							'attributes' => array(
 								'data-bs-toggle' => 'modal',
 								'data-bs-target' => '#modpress-group-modal',
+								'data-group-add' => 'true',
 							),
 						) ); ?>
 					</div>
@@ -281,7 +282,7 @@ final class ModGroups extends ModManager {
 	 * @param array<int, array<string, mixed>> $taxonomy_tabs Taxonomy tabs for the page.
 	 * @return void
 	 */
-		private function render_group_modal( array $taxonomy_tabs ): void {
+	private function render_group_modal( array $taxonomy_tabs ): void {
 		$group_options = array();
 		$fa_settings = Settings::get_group( 'fontawesome' );
 		$fa_icon_picker = false;

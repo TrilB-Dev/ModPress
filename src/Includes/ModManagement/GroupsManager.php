@@ -345,7 +345,7 @@ final class GroupsManager {
 				'group_slug'          => 'type',
 				'group_singular_name' => 'Mod Type',
 				'group_description'   => 'The Mod Type group is used to categorise your mods by their type.',
-				'group_hierarchical'  => 0,
+				'group_hierarchical'  => false,
 				'group_parent_id'     => null,
 				'group_fields'        => null,
 				'created_by'          => 1,

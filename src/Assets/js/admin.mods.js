@@ -351,7 +351,15 @@
     if (groupModalElement) {
         groupModalElement.addEventListener('show.bs.modal', (event) => {
             const trigger = event.relatedTarget;
-            if (!trigger || !trigger.matches('.modpress-tab-edit-btn')) {
+            const isAddGroup = Boolean(trigger && trigger.matches('[data-group-add="true"]'));
+            const isEditGroup = Boolean(trigger && trigger.matches('.modpress-tab-edit-btn'));
+
+            if (!trigger || isAddGroup) {
+                resetGroupModal();
+                return;
+            }
+
+            if (!isEditGroup) {
                 resetGroupModal();
                 return;
             }
