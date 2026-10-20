@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace ModPress\Admin\Manager\Mods;
 
 /**
