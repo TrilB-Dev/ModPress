@@ -322,6 +322,9 @@ final class FunctionsMod {
         $radio_options = RequestHelper::value( $_POST, 'custom_field_type_radio', array() );
         $select_options = RequestHelper::value( $_POST, 'custom_field_type_select', array() );
         $image_types = RequestHelper::value( $_POST, 'custom_field_type_image_type', array() );
+        $image_type_image = RequestHelper::value( $_POST, 'custom_field_type_image_type_image', array() );
+        $image_type_icon = RequestHelper::value( $_POST, 'custom_field_type_image_type_icon', array() );
+        $image_type_url = RequestHelper::value( $_POST, 'custom_field_type_image_type_url', array() );
         $show_in_table = RequestHelper::value( $_POST, 'custom_field_show_in_table', array() );
 
         if ( is_array( $field_names ) ) {
@@ -373,9 +376,47 @@ final class FunctionsMod {
                 }
 
                 if ( 'image' === $field_type ) {
-                    $image_config = is_array( $image_types ) ? ( $image_types[ $field_index ] ?? array() ) : array();
+                    $legacy_image_config = is_array( $image_types ) ? ( $image_types[ $field_index ] ?? array() ) : array();
+                    $image_config = array();
+
+                    if ( is_array( $legacy_image_config ) ) {
+                        $image_config = array_values( array_filter( array_map( 'strval', $legacy_image_config ) ) );
+                    }
+
+                    foreach ( array(
+                        'image' => $image_type_image,
+                        'icon' => $image_type_icon,
+                        'url' => $image_type_url,
+                    ) as $type_name => $stored_values ) {
+                        if ( ! is_array( $stored_values ) ) {
+                            continue;
+                        }
+
+                        $selected_value = $stored_values[ $field_index ] ?? null;
+                        if ( null === $selected_value ) {
+                            continue;
+                        }
+
+                        if ( is_array( $selected_value ) ) {
+                            $selected_value = array_values( array_filter( array_map( 'strval', $selected_value ) ) );
+                        }
+
+                        $selected_value = is_array( $selected_value ) ? $selected_value : array( $selected_value );
+                        foreach ( $selected_value as $value ) {
+                            $normalized = strtolower( trim( (string) $value ) );
+                            if ( '' !== $normalized && in_array( $normalized, array( 'image', 'icon', 'url' ), true ) ) {
+                                $image_config[] = $normalized;
+                            }
+                        }
+
+                        if ( '1' === (string) $selected_value[0] || 'on' === strtolower( (string) ( $selected_value[0] ?? '' ) ) ) {
+                            $image_config[] = $type_name;
+                        }
+                    }
+
+                    $image_config = array_values( array_unique( array_filter( array_map( 'strval', $image_config ) ) ) );
                     if ( ! empty( $image_config ) ) {
-                        $field['image_types'] = array_values( array_filter( array_map( 'strval', (array) $image_config ) ) );
+                        $field['image_types'] = $image_config;
                     }
                 }
 
