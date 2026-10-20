@@ -88,7 +88,7 @@ final class ModGroups extends ModManager {
                 return strcmp( $a_name, $b_name );
             }
         );
-
+		?>
 
 		<div class="modpress-groups-page">
 			<div class="card border-0 shadow-sm mb-4">
