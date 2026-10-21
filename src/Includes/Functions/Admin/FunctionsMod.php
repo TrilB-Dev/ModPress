@@ -834,16 +834,51 @@ final class FunctionsMod {
      * @param bool   $success Whether the save succeeded.
      * @return void
      */
+    public static function set_admin_notice_flash( string $message, bool $success = true ): void {
+        $key = 'modpress_admin_notice_' . get_current_user_id();
+        $notice = array(
+            'message' => '' !== trim( $message ) ? trim( $message ) : ( $success ? __( 'The ModPress action was completed successfully.', 'modpress' ) : __( 'The ModPress action could not be completed.', 'modpress' ) ),
+            'type' => $success ? 'success' : 'error',
+        );
+
+        set_transient( $key, $notice, 60 );
+    }
+
+    public static function consume_admin_notice_flash(): array {
+        $key = 'modpress_admin_notice_' . get_current_user_id();
+        $notice = get_transient( $key );
+
+        delete_transient( $key );
+
+        if ( ! is_array( $notice ) ) {
+            return array(
+                'message' => '',
+                'type' => 'info',
+            );
+        }
+
+        $message = isset( $notice['message'] ) ? (string) $notice['message'] : '';
+        $type = isset( $notice['type'] ) ? (string) $notice['type'] : 'info';
+
+        if ( ! in_array( $type, array( 'success', 'error', 'warning', 'info' ), true ) ) {
+            $type = 'info';
+        }
+
+        return array(
+            'message' => $message,
+            'type' => $type,
+        );
+    }
+
     private function redirect_mod_action_result( string $tab, string $message = '', bool $success = true ): void {
         $query = array(
             'page' => 'modpress',
             'group' => 'mods',
             'tab' => $tab,
-            $success ? 'mod_group_saved' : 'mod_group_failed' => '1',
         );
 
-        if ( '' !== $message ) {
-            $query['mod_group_message'] = rawurlencode( $message );
+        if ( '' !== trim( $message ) ) {
+            self::set_admin_notice_flash( $message, $success );
         }
 
         wp_safe_redirect( admin_url( 'admin.php?' . build_query( $query ) ) );

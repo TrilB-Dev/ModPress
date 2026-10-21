@@ -27,14 +27,9 @@ final class ModGroups extends ModManager {
 	 * @return void
 	 */
 	public function render_page_content(): void {
-		if ( isset( $_GET['mod_group_saved'] ) ) {
-			$message = isset( $_GET['mod_group_message'] ) ? rawurldecode( wp_unslash( $_GET['mod_group_message'] ) ) : __( 'The ModPress group was saved successfully.', 'modpress' );
-			AlertHelper::render_admin_notice( $message, 'success' );
-		}
-
-		if ( isset( $_GET['mod_group_failed'] ) ) {
-			$message = isset( $_GET['mod_group_message'] ) ? rawurldecode( wp_unslash( $_GET['mod_group_message'] ) ) : __( 'The ModPress group could not be saved.', 'modpress' );
-			AlertHelper::render_admin_notice( $message, 'error' );
+		$flash_notice = FunctionsMod::consume_admin_notice_flash();
+		if ( ! empty( $flash_notice['message'] ) ) {
+			AlertHelper::render_admin_notice( $flash_notice['message'], $flash_notice['type'] );
 		}
 
 		$taxonomy_tabs = array();
