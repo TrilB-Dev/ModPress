@@ -119,10 +119,6 @@ final class Database {
 			return false;
 		}
 
-		if ( self::table_exists( $table ) ) {
-			return true;
-		}
-
 		$schema = self::$registered_core_tables[ $table ] ?? self::$registered_plugin_tables[ $table ] ?? null;
 		if ( ! is_callable( $schema ) ) {
 			return false;

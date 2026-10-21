@@ -453,7 +453,7 @@ final class ModGroups extends ModManager {
 															$parent_entry_select = FormFieldHelper::bootstrap_select(
 																'group_parent_entry',
 																array(
-																	'data' => array(),
+																	'data' => $group_entries,
 																	'selected' => '',
 																	'id' => 'group_parent_entry',
 																	'placeholder' => __( 'Select a parent entry', 'modpress' ),
