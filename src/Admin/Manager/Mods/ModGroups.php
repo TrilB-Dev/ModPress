@@ -445,7 +445,7 @@ final class ModGroups extends ModManager {
 																'group_parent',
 																array(
 																	'data' => $group_options,
-																	'selected' => '',
+																	'selected' => 'modpress_type',
 																	'id' => 'group_parent',
 																	'placeholder' => __( 'Select a parent group', 'modpress' ),
 																)

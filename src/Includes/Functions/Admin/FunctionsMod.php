@@ -444,7 +444,12 @@ final class FunctionsMod {
         if ( is_numeric( $parent_value ) ) {
             $parent_id = absint( $parent_value );
         } elseif ( '' !== (string) $parent_value ) {
-            $parent_group = DBHelper::get_row( 'groups', array( 'group_slug' => sanitize_key( (string) $parent_value ) ) );
+            $resolved_parent_key = sanitize_key( (string) $parent_value );
+            $parent_group = DBHelper::get_row( 'groups', array( 'group_slug' => $resolved_parent_key ) );
+            if ( empty( $parent_group ) ) {
+                $parent_group = DBHelper::get_row( 'groups', array( 'group_key' => $resolved_parent_key ) );
+            }
+
             if ( ! empty( $parent_group ) && isset( $parent_group['id'] ) ) {
                 $parent_id = absint( $parent_group['id'] );
             }
@@ -461,15 +466,16 @@ final class FunctionsMod {
 
         $description = SanitizationHelper::textarea( RequestHelper::value( $_POST, 'group_description', '' ), '' );
 
+        $resolved_group_key = GroupsManager::get_group_taxonomy_key( $taxonomy );
         $group_payload = array(
-            'group_key'           => GroupsManager::get_group_taxonomy_key( $taxonomy ),
+            'group_key'           => $resolved_group_key,
             'group_name'          => $group_name,
             'group_slug'          => $taxonomy,
             'group_singular_name' => RequestHelper::text( $_POST, 'group_singular_name', $group_name ),
             'group_description'   => $description,
             'group_hierarchical'  => RequestHelper::boolean( $_POST, 'group_hierarchical', false ) ? 1 : 0,
-            'group_parent_id'     => $parent_id > 0 ? $parent_id : null,
-            'group_parent_entry'  => $parent_entry_id > 0 ? $parent_entry_id : null,
+            'group_parent_id'     => 'modpress_type' === $resolved_group_key ? 0 : ( $parent_id > 0 ? $parent_id : 0 ),
+            'group_parent_entry'  => $parent_entry_id > 0 ? $parent_entry_id : 0,
             'group_fields'        => ! empty( $group_fields ) ? wp_json_encode( $group_fields ) : null,
             'created_by'          => get_current_user_id(),
             'updated_at'          => current_time( 'mysql' ),
