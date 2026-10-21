@@ -440,12 +440,12 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_parent',
 														__( 'Parent Group', 'modpress' ),
-														function () use ( $group_options, $group_entries ) {
+														function () use ( $group_options ) {
 															$parent_group_select = FormFieldHelper::bootstrap_select(
 																'group_parent',
 																array(
 																	'data' => $group_options,
-																	'selected' => 'modpress_type',
+																	'selected' => '',
 																	'id' => 'group_parent',
 																	'placeholder' => __( 'Select a parent group', 'modpress' ),
 																)
@@ -453,20 +453,19 @@ final class ModGroups extends ModManager {
 															$parent_entry_select = FormFieldHelper::bootstrap_select(
 																'group_parent_entry',
 																array(
-																	'data' => $group_entries,
+																	'data' => array(),
 																	'selected' => '',
 																	'id' => 'group_parent_entry',
 																	'placeholder' => __( 'Select a parent entry', 'modpress' ),
 																)
 															);
 
-															return '<div class="d-flex flex-column gap-2">' . $parent_group_select . '<div id="modpress-group-parent-entry-row" class="d-none">' . $parent_entry_select . '</div></div>';
-
+															return '<div class="d-flex flex-column gap-2">' . $parent_group_select . '</div><div id="modpress-group-parent-entry-row" class="d-none">' . $parent_entry_select . '</div>';
 														},
 														__( 'Choose a parent taxonomy group if needed.', 'modpress' ),
 														__( 'This creates a hierarchy between related taxonomy groups.', 'modpress' ),
-																																																																																		null,
-																																																																																		'modpress-group-parent-row'
+														null,
+														'modpress-group-parent-row'
 													); ?>
 												</tbody>
 											</table>
