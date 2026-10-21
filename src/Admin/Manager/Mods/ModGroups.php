@@ -460,7 +460,10 @@ final class ModGroups extends ModManager {
 																)
 															);
 
-															return '<div class="d-flex align-items-end flex-wrap gap-3">' . $parent_group_select . '<div id="modpress-group-parent-entry-row" class="d-none">' . $parent_entry_select . '</div></div>';
+															return '<div class="d-flex align-items-end flex-wrap gap-3 w-100">' .
+																																			'<div class="flex-fill min-width-0">' . $parent_group_select . '</div>' .
+																																			'<div id="modpress-group-parent-entry-row" class="d-none flex-fill min-width-0">' . $parent_entry_select . '</div>' .
+																																			'</div>';
 														},
 														__( 'Choose a parent taxonomy group if needed.', 'modpress' ),
 														__( 'This creates a hierarchy between related taxonomy groups.', 'modpress' ),
