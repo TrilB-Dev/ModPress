@@ -742,22 +742,49 @@ final class FunctionsMod {
 
         check_admin_referer( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' );
 
-        $term_id  = RequestHelper::integer( $_POST, 'group_entry_id', 0 );
         $taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
+        if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+            LoggerHelper::write_log( 'ModPress group entry delete rejected: invalid taxonomy.' );
+            $this->redirect_mod_group_result( false, __( 'The selected entry could not be deleted.', 'modpress' ) );
+        }
 
-        if ( $term_id <= 0 || '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+        $requested_ids = RequestHelper::value( $_POST, 'group_entry_ids', array() );
+        if ( ! is_array( $requested_ids ) ) {
+            $requested_ids = array( $requested_ids );
+        }
+
+        $term_ids = array();
+        foreach ( $requested_ids as $term_id ) {
+            $parsed = absint( $term_id );
+            if ( $parsed > 0 ) {
+                $term_ids[] = $parsed;
+            }
+        }
+
+        if ( empty( $term_ids ) ) {
+            $term_ids[] = RequestHelper::integer( $_POST, 'group_entry_id', 0 );
+        }
+
+        $valid_ids = array_values( array_unique( array_filter( $term_ids, static fn( $id ) => $id > 0 ) ) );
+        if ( empty( $valid_ids ) ) {
             LoggerHelper::write_log( 'ModPress group entry delete rejected: invalid taxonomy or term id.' );
             $this->redirect_mod_group_result( false, __( 'The selected entry could not be deleted.', 'modpress' ) );
         }
 
-        $deleted = wp_delete_term( $term_id, $taxonomy );
-
-        if ( is_wp_error( $deleted ) ) {
-            LoggerHelper::write_log( 'ModPress group entry delete failed for taxonomy ' . $taxonomy . ': ' . $deleted->get_error_message() );
-            $this->redirect_mod_group_result( false, $deleted->get_error_message() );
+        $failed_ids = array();
+        foreach ( $valid_ids as $term_id ) {
+            $deleted = wp_delete_term( $term_id, $taxonomy );
+            if ( is_wp_error( $deleted ) ) {
+                $failed_ids[] = $term_id;
+                LoggerHelper::write_log( 'ModPress group entry delete failed for taxonomy ' . $taxonomy . ' and term ' . $term_id . ': ' . $deleted->get_error_message() );
+            }
         }
 
-        LoggerHelper::write_log( 'ModPress group entry deleted successfully for taxonomy ' . $taxonomy );
+        if ( count( $failed_ids ) === count( $valid_ids ) ) {
+            $this->redirect_mod_group_result( false, __( 'The selected entries could not be deleted.', 'modpress' ) );
+        }
+
+        LoggerHelper::write_log( 'ModPress group entries deleted successfully for taxonomy ' . $taxonomy . ' (ids=' . implode( ',', $valid_ids ) . ')' );
         $this->redirect_mod_group_result( true, __( 'Entry deleted successfully.', 'modpress' ) );
     }
 

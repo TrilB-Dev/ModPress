@@ -163,11 +163,16 @@ final class ModGroups extends ModManager {
 													'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
 												),
 											) ); ?>
-											<?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
-												'type' => 'button',
-												'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
-												'disabled' => empty( $taxonomy['reserved'] ) ? true : true,
-											) ); ?>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block">
+													<input type="hidden" name="action" value="modpress_delete_group_entry" />
+													<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
+													<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
+													<?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
+														'type' => 'submit',
+														'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
+														'disabled' => true,
+													) ); ?>
+												</form>
 									</div>
 								</div>
 
@@ -193,7 +198,7 @@ final class ModGroups extends ModManager {
 												<?php foreach ( $terms as $term ) : ?>
 													<tr>
 														<td>
-															<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php echo esc_attr( $term->name ); ?>" />
+															<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php echo esc_attr( $term->name ); ?>" />
 														</td>
 														<td><?php echo esc_html( $term->name ); ?></td>
 														<td><?php echo esc_html( $term->slug ); ?></td>
@@ -216,30 +221,39 @@ final class ModGroups extends ModManager {
 																			'data-entry-description' => $term->description,
 																			'data-entry-parent' => (int) $term->parent,
 																			'data-entry-icon' => GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy_key, 'entry_icon' ) ?: '',
-															'data-entry-custom-fields' => wp_json_encode(
-																array_reduce(
-																	(array) json_decode( (string) ( $taxonomy['group_fields'] ?? '[]' ), true ) ?: array(),
-																	static function ( array $carry, array $field ) use ( $term, $taxonomy_key ): array {
-																		$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
-																		if ( '' === $field_slug ) {
-																			return $carry;
-																		}
-																		$carry[ $field_slug ] = GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy_key, $field_slug );
-																		return $carry;
-																	},
-																	array()
-																)
-														),
+                                                                            'data-entry-custom-fields' => wp_json_encode(
+                                                                                array_reduce(
+                                                                                    (array) json_decode( (string) ( $taxonomy['group_fields'] ?? '[]' ), true ) ?: array(),
+                                                                                    static function ( array $carry, array $field ) use ( $term, $taxonomy_key ): array {
+                                                                                        $field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+                                                                                        if ( '' === $field_slug ) {
+                                                                                            return $carry;
+                                                                                        }
+                                                                                        $carry[ $field_slug ] = GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy_key, $field_slug );
+                                                                                        return $carry;
+                                                                                    },
+                                                                                    array()
+                                                                                )
+                                                                        ),
 																		),
 																	)
 																); ?>
-																<?php echo FormFieldHelper::button(
-																	__( 'Delete', 'modpress' ),
-																	array(
-																		'type' => 'button',
-																		'class' => 'btn btn-outline-danger',
-																	)
-																); ?>
+																	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline">
+																		<input type="hidden" name="action" value="modpress_delete_group_entry" />
+																		<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
+																		<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
+																		<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
+																		<?php echo FormFieldHelper::button(
+																			__( 'Delete', 'modpress' ),
+																			array(
+																				'type' => 'submit',
+																				'class' => 'btn btn-outline-danger',
+																				'attributes' => array(
+																					'data-role' => 'delete-group-entry',
+																				),
+																			)
+																		); ?>
+																	</form>
 															</div>
 														</td>
 													</tr>

@@ -7,13 +7,13 @@
     };
 
     const syncDeleteButtons = () => {
-        const rows = document.querySelectorAll('.modpress-row-checkbox');
-        const button = document.querySelector('.btn-delete-selected');
-        if (!button) {
-            return;
-        }
-        const hasSelection = Array.from(rows).some((checkbox) => checkbox.checked);
-        button.disabled = !hasSelection;
+        const buttons = document.querySelectorAll('.btn-delete-selected');
+        buttons.forEach((button) => {
+            const panel = button.closest('.tab-pane');
+            const rows = panel ? panel.querySelectorAll('.modpress-row-checkbox') : document.querySelectorAll('.modpress-row-checkbox');
+            const hasSelection = Array.from(rows).some((checkbox) => checkbox.checked);
+            button.disabled = !hasSelection;
+        });
     };
 
     const syncModManagerTabs = () => {
@@ -697,6 +697,38 @@
                 preview.classList.add('d-none');
             }
             imageClearButton.classList.add('d-none');
+            return;
+        }
+
+        const deleteRowButton = event.target.closest('[data-role="delete-group-entry"]');
+        if (deleteRowButton) {
+            event.preventDefault();
+            const form = deleteRowButton.closest('form');
+            if (!form) {
+                return;
+            }
+            if (!window.confirm('Delete this entry?')) {
+                return;
+            }
+            form.submit();
+            return;
+        }
+
+        const bulkDeleteButton = event.target.closest('.btn-delete-selected');
+        if (bulkDeleteButton) {
+            event.preventDefault();
+            const form = bulkDeleteButton.closest('form');
+            if (!form) {
+                return;
+            }
+            const checkedRows = form.querySelectorAll('.modpress-row-checkbox:checked');
+            if (!checkedRows.length) {
+                return;
+            }
+            if (!window.confirm('Delete the selected entries?')) {
+                return;
+            }
+            form.submit();
             return;
         }
 
