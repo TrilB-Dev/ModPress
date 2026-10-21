@@ -76,6 +76,8 @@
     const syncGroupParentField = (groupKey = '') => {
         const row = document.getElementById('modpress-group-parent-row');
         const select = document.getElementById('group_parent');
+        const parentEntryRow = document.getElementById('modpress-group-parent-entry-row');
+        const parentEntrySelect = document.getElementById('group_parent_entry');
         if (!row || !select) {
             return;
         }
@@ -84,6 +86,66 @@
         row.classList.toggle('d-none', isReserved);
         if (isReserved) {
             select.value = '';
+            if (parentEntrySelect) {
+                parentEntrySelect.value = '';
+            }
+        }
+
+        if (parentEntryRow && parentEntrySelect) {
+            const hasParent = String(select.value || '').trim() !== '' && !isReserved;
+            parentEntryRow.classList.toggle('d-none', !hasParent);
+        }
+
+        if (parentEntrySelect) {
+            const entries = getGroupParentEntries(select.value || '');
+            populateParentEntryOptions(entries, parentEntrySelect.value || '');
+        }
+    };
+
+    const getGroupParentEntries = (parentKey = '') => {
+        const modal = document.getElementById('modpress-group-modal');
+        if (!modal) {
+            return {};
+        }
+
+        try {
+            const groups = JSON.parse(modal.dataset.groupEntries || '{}');
+            if (parentKey && groups[parentKey]) {
+                return groups[parentKey];
+            }
+        } catch (error) {
+            return {};
+        }
+
+        return {};
+    };
+
+    const populateParentEntryOptions = (entries, selectedValue = '') => {
+        const select = document.getElementById('group_parent_entry');
+        if (!select) {
+            return;
+        }
+
+        const options = Object.entries(entries || {}).map(([value, label]) => ({ value: String(value), label: String(label) }));
+        select.innerHTML = '';
+
+        const placeholderOption = document.createElement('option');
+        placeholderOption.value = '';
+        placeholderOption.textContent = 'Select a parent entry';
+        select.appendChild(placeholderOption);
+
+        options.forEach((entry) => {
+            const option = document.createElement('option');
+            option.value = entry.value;
+            option.textContent = entry.label;
+            option.selected = String(selectedValue || '').trim() === String(entry.value).trim();
+            select.appendChild(option);
+        });
+
+        if (selectedValue && !options.some((entry) => String(entry.value) === String(selectedValue))) {
+            select.value = '';
+        } else {
+            select.value = String(selectedValue || '');
         }
     };
 
@@ -238,6 +300,7 @@
             'group_slug',
             'group_description',
             'group_parent',
+            'group_parent_entry',
         ];
 
         fields.forEach((fieldName) => {
@@ -308,6 +371,14 @@
             if (parentValue && String(groupKey).trim() !== 'modpress_type') {
                 parentSelect.value = parentValue;
             }
+        }
+
+        const parentEntrySelect = modal.querySelector('[name="group_parent_entry"]');
+        if (parentEntrySelect) {
+            const selectedEntry = String(groupData.group_parent_entry || groupData.group_parent_entry_id || '').trim();
+            parentEntrySelect.value = '';
+            const entries = getGroupParentEntries(parentSelect?.value || '');
+            populateParentEntryOptions(entries, selectedEntry);
         }
 
         populateCustomFieldRows(groupData);
@@ -481,6 +552,16 @@
 
         if (target.matches('[name="custom_field_type[]"]')) {
             syncCustomFieldVisibility(target.closest('.modpress-custom-field-row'));
+        }
+
+        if (target.matches('[name="group_parent"]')) {
+            const parentValue = String(target.value || '').trim();
+            const parentEntryRow = document.getElementById('modpress-group-parent-entry-row');
+            const parentEntrySelect = document.getElementById('group_parent_entry');
+            if (parentEntryRow && parentEntrySelect) {
+                parentEntryRow.classList.toggle('d-none', '' === parentValue);
+            }
+            populateParentEntryOptions(getGroupParentEntries(parentValue), parentEntrySelect ? parentEntrySelect.value || '' : '');
         }
 
         if (target.matches('.modpress-image-picker-mode-input')) {

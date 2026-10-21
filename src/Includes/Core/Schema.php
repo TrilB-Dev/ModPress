@@ -116,6 +116,7 @@ final class Schema {
                 group_description longtext DEFAULT NULL,
                 group_hierarchical boolean DEFAULT FALSE,
                 group_parent_id bigint(20) unsigned DEFAULT NULL,
+                group_parent_entry bigint(20) unsigned DEFAULT NULL,
                 group_fields longtext DEFAULT NULL,
                 created_by bigint(20) unsigned DEFAULT NULL,
                 created_at datetime DEFAULT CURRENT_TIMESTAMP,

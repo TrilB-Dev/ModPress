@@ -57,6 +57,7 @@ final class Activator {
 
 		Plugins::get_instance()->init();
 		Database::install();
+		Database::update();
 		GroupsManager::create_default_group();
 		Roles::install();
 		Capabilities::install();

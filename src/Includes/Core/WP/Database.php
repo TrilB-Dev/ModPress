@@ -221,6 +221,38 @@ final class Database {
 	}
 
 	/**
+	 * Run database upgrade work only after the registered tables exist.
+	 *
+	 * This method intentionally avoids mutating data while the schema is
+	 * incomplete. Any migration work should be guarded by the presence of the
+	 * expected ModPress tables before inserts, updates, or row-level changes.
+	 *
+	 * @return void
+	 */
+	public static function update(): void {
+		Schema::register_tables();
+
+		$tables = array_merge( self::$registered_core_tables, self::$registered_plugin_tables );
+		if ( empty( $tables ) ) {
+			return;
+		}
+
+		foreach ( array_keys( $tables ) as $table ) {
+			if ( ! self::table_exists( $table ) ) {
+				return;
+			}
+		}
+
+		foreach ( array_keys( $tables ) as $table ) {
+			self::create_table( $table );
+		}
+
+		if ( function_exists( 'update_option' ) ) {
+			update_option( 'modpress_db_version', defined( 'MODPRESS_VERSION' ) ? MODPRESS_VERSION : '1.0.0' );
+		}
+	}
+
+	/**
 	 * Return a prefixed ModPress table name.
 	 *
 	 * @param string $table Unprefixed table suffix.

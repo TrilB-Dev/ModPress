@@ -62,6 +62,7 @@ final class ModGroups extends ModManager {
 				'group_description'  => (string) ( $group['group_description'] ?? '' ),
 				'group_hierarchical' => ! empty( $group['group_hierarchical'] ),
 				'group_parent_id'    => isset( $group['group_parent_id'] ) ? (int) $group['group_parent_id'] : 0,
+				'group_parent_entry' => isset( $group['group_parent_entry'] ) ? (int) $group['group_parent_entry'] : 0,
 				'group_fields'       => isset( $group['group_fields'] ) ? $group['group_fields'] : null,
 				'reserved'           => 'modpress_type' === $group_key,
 				'deletable'          => 'modpress_type' !== $group_key,
@@ -310,6 +311,7 @@ final class ModGroups extends ModManager {
 	 */
 	private function render_group_modal( array $taxonomy_tabs ): void {
 		$group_options = array();
+		$group_entries = array();
 		$fa_settings = Settings::get_group( 'fontawesome' );
 		$fa_icon_picker = false;
 		if ( isset($fa_settings['fontawesome_icon_picker']) && $fa_settings['fontawesome_icon_picker'] ) {
@@ -320,10 +322,18 @@ final class ModGroups extends ModManager {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
 			if ( '' !== $taxonomy_key ) {
 				$group_options[ $taxonomy_key ] = $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
+
+				$terms = taxonomy_exists( $taxonomy_key ) ? get_terms( array( 'taxonomy' => $taxonomy_key, 'hide_empty' => false ) ) : array();
+				if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+					$group_entries[ $taxonomy_key ] = array();
+					foreach ( $terms as $term ) {
+						$group_entries[ $taxonomy_key ][ (string) $term->term_id ] = $term->name;
+					}
+				}
 			}
 		}
 		?>
-		<div class="modal fade" id="modpress-group-modal" tabindex="-1" aria-labelledby="modpress-group-modal-title" aria-hidden="true">
+		<div class="modal fade" id="modpress-group-modal" tabindex="-1" aria-labelledby="modpress-group-modal-title" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -430,15 +440,28 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_parent',
 														__( 'Parent Group', 'modpress' ),
-														function () use ( $group_options ) {
-																return FormFieldHelper::bootstrap_select(
-																	'group_parent',
-																	array(
-																		'data' => $group_options,
-																		'selected' => '',
-																		'id' => 'group_parent',
-																	)
+														function () use ( $group_options, $group_entries ) {
+															$parent_group_select = FormFieldHelper::bootstrap_select(
+																'group_parent',
+																array(
+																	'data' => $group_options,
+																	'selected' => '',
+																	'id' => 'group_parent',
+																	'placeholder' => __( 'Select a parent group', 'modpress' ),
+																)
 															);
+															$parent_entry_select = FormFieldHelper::bootstrap_select(
+																'group_parent_entry',
+																array(
+																	'data' => array(),
+																	'selected' => '',
+																	'id' => 'group_parent_entry',
+																	'placeholder' => __( 'Select a parent entry', 'modpress' ),
+																)
+															);
+
+															return '<div class="d-flex flex-column gap-2">' . $parent_group_select . '<div id="modpress-group-parent-entry-row" class="d-none">' . $parent_entry_select . '</div></div>';
+
 														},
 														__( 'Choose a parent taxonomy group if needed.', 'modpress' ),
 														__( 'This creates a hierarchy between related taxonomy groups.', 'modpress' ),

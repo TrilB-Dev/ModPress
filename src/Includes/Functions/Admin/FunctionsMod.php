@@ -450,6 +450,15 @@ final class FunctionsMod {
             }
         }
 
+        $parent_entry_value = RequestHelper::value( $_POST, 'group_parent_entry', '' );
+        $parent_entry_id    = 0;
+
+        if ( is_numeric( $parent_entry_value ) ) {
+            $parent_entry_id = absint( $parent_entry_value );
+        } elseif ( '' !== (string) $parent_entry_value ) {
+            $parent_entry_id = absint( $parent_entry_value );
+        }
+
         $description = SanitizationHelper::textarea( RequestHelper::value( $_POST, 'group_description', '' ), '' );
 
         $group_payload = array(
@@ -460,6 +469,7 @@ final class FunctionsMod {
             'group_description'   => $description,
             'group_hierarchical'  => RequestHelper::boolean( $_POST, 'group_hierarchical', false ) ? 1 : 0,
             'group_parent_id'     => $parent_id > 0 ? $parent_id : null,
+            'group_parent_entry'  => $parent_entry_id > 0 ? $parent_entry_id : null,
             'group_fields'        => ! empty( $group_fields ) ? wp_json_encode( $group_fields ) : null,
             'created_by'          => get_current_user_id(),
             'updated_at'          => current_time( 'mysql' ),
@@ -495,6 +505,7 @@ final class FunctionsMod {
                     'group_description'   => $group_payload['group_description'],
                     'group_hierarchical'  => $group_payload['group_hierarchical'],
                     'group_parent_id'     => $group_payload['group_parent_id'],
+                    'group_parent_entry'  => $group_payload['group_parent_entry'],
                     'group_fields'        => $group_payload['group_fields'],
                     'updated_at'          => current_time( 'mysql' ),
                 ),
@@ -519,6 +530,7 @@ final class FunctionsMod {
                     'group_description'   => $group_payload['group_description'],
                     'group_hierarchical'  => $group_payload['group_hierarchical'],
                     'group_parent_id'     => $group_payload['group_parent_id'],
+                    'group_parent_entry'  => $group_payload['group_parent_entry'],
                     'group_fields'        => $group_payload['group_fields'],
                     'updated_at'          => current_time( 'mysql' ),
                 ),
@@ -538,6 +550,7 @@ final class FunctionsMod {
                 'group_description'   => $group_payload['group_description'],
                 'group_hierarchical'  => $group_payload['group_hierarchical'],
                 'group_parent_id'     => $group_payload['group_parent_id'],
+                'group_parent_entry'  => $group_payload['group_parent_entry'],
                 'group_fields'        => $group_payload['group_fields'],
                 'created_by'          => $group_payload['created_by'],
                 'created_at'          => current_time( 'mysql' ),
