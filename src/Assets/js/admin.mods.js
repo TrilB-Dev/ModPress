@@ -151,6 +151,130 @@
         }
     };
 
+    const getModpressAjaxConfig = () => {
+        const config = window.modpressManager || {};
+        const ajaxUrl = config.ajaxUrl || (typeof window.ajaxurl !== 'undefined' ? window.ajaxurl : '/wp-admin/admin-ajax.php');
+
+        return {
+            ajaxUrl,
+            getGroupNonce: config.getGroupNonce || config.nonce || '',
+            getGroupEntryNonce: config.getGroupEntryNonce || config.nonce || '',
+        };
+    };
+
+    const fetchGroupModalData = async (trigger) => {
+        if (!trigger || !trigger.dataset.groupKey) {
+            return null;
+        }
+
+        const { ajaxUrl, getGroupNonce } = getModpressAjaxConfig();
+        const groupKey = trigger.dataset.groupKey;
+        const formData = new URLSearchParams({
+            action: 'modpress_get_group',
+            group_key: groupKey,
+            nonce: getGroupNonce,
+        });
+
+        const response = await fetch(ajaxUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            },
+            body: formData.toString(),
+        });
+
+        const payload = await response.json();
+        if (!response.ok || !payload || !payload.success || !payload.data) {
+            throw new Error(payload && payload.data && payload.data.message ? payload.data.message : 'Unable to load this group.');
+        }
+
+        return payload.data;
+    };
+
+    const populateEntryModalFields = (modalElement, entryData = {}, taxonomyKey = '') => {
+        const data = entryData || {};
+        const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
+        fieldsToReset.forEach((fieldName) => {
+            const input = modalElement.querySelector('[name="' + fieldName + '"]');
+            if (input) {
+                input.value = '';
+            }
+        });
+
+        const taxonomyField = modalElement.querySelector('[name="group_slug"]');
+        if (taxonomyField) {
+            taxonomyField.value = taxonomyKey;
+        }
+        const formTaxonomyField = modalElement.querySelector('[name="entry_group_taxonomy"]');
+        if (formTaxonomyField) {
+            formTaxonomyField.value = taxonomyKey;
+        }
+        const entryIdField = modalElement.querySelector('[name="group_entry_id"]');
+        if (entryIdField) {
+            entryIdField.value = data.term_id || '';
+        }
+        const nameField = modalElement.querySelector('[name="entry_name"]');
+        if (nameField) {
+            nameField.value = data.name || '';
+        }
+        const slugField = modalElement.querySelector('[name="entry_slug"]');
+        if (slugField) {
+            slugField.value = data.slug || '';
+        }
+        const descriptionField = modalElement.querySelector('[name="entry_description"]');
+        if (descriptionField) {
+            descriptionField.value = data.description || '';
+        }
+        const parentField = modalElement.querySelector('[name="entry_parent"]');
+        if (parentField) {
+            parentField.value = data.parent ? String(data.parent) : '0';
+        }
+        const iconField = modalElement.querySelector('[name="entry_icon"]');
+        if (iconField) {
+            iconField.value = data.icon || '';
+        }
+
+        const customFieldValues = data.custom_fields && typeof data.custom_fields === 'object' ? data.custom_fields : {};
+        renderEntryCustomFields(modalElement, customFieldValues);
+    };
+
+    const fetchEntryModalData = async (trigger) => {
+        if (!trigger || !trigger.dataset.entryId) {
+            return null;
+        }
+
+        const taxonomyKey = trigger.dataset.taxonomyKey || '';
+        const entryId = Number(trigger.dataset.entryId);
+        if (!taxonomyKey || !entryId) {
+            return null;
+        }
+
+        const { ajaxUrl, nonce } = getModpressAjaxConfig();
+        const formData = new URLSearchParams({
+            action: 'modpress_get_group_entry',
+            group_slug: taxonomyKey,
+            group_entry_id: String(entryId),
+            nonce: nonce,
+        });
+
+        const response = await fetch(ajaxUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            },
+            body: formData.toString(),
+        });
+
+        const payload = await response.json();
+        if (!response.ok || !payload || !payload.success || !payload.data) {
+            throw new Error(payload && payload.data && payload.data.message ? payload.data.message : 'Unable to load this entry.');
+        }
+
+        return payload.data;
+    };
+
     const populateParentEntryOptions = (entries, selectedValue = '') => {
         const select = document.getElementById('group_parent_entry');
         if (!select) {
@@ -761,30 +885,31 @@
 
         const groupEditButton = event.target.closest('.modpress-tab-edit-btn');
         if (groupEditButton) {
-            const rawGroupData = groupEditButton.dataset.groupData || '{}';
-            try {
-                const parsedData = JSON.parse(rawGroupData);
-                populateGroupModal(parsedData);
-            } catch (error) {
-                const modal = document.getElementById('modpress-group-modal');
-                if (modal) {
-                    const title = modal.querySelector('.modal-title');
-                    const groupKey = groupEditButton.dataset.groupKey;
-                    const groupLabel = groupEditButton.dataset.groupLabel || '';
-                    if (title) {
-                        title.textContent = 'Edit Group';
-                    }
-                    const hiddenField = modal.querySelector('[name="group_edit_key"]');
-                    if (hiddenField) {
-                        hiddenField.value = groupKey || '';
-                    }
-                    const labelField = modal.querySelector('[name="group_name"]');
-                    if (labelField) {
-                        labelField.value = groupLabel;
-                    }
-                    syncGroupParentField(groupKey || '');
-                }
+            const groupKey = groupEditButton.dataset.groupKey || '';
+            const modal = document.getElementById('modpress-group-modal');
+            if (!modal || !groupKey) {
+                return;
             }
+
+            const hiddenField = modal.querySelector('[name="group_edit_key"]');
+            if (hiddenField) {
+                hiddenField.value = groupKey;
+            }
+
+            const title = modal.querySelector('.modal-title');
+            if (title) {
+                title.textContent = 'Edit Group';
+            }
+
+            fetchGroupModalData(groupEditButton)
+                .then((groupData) => {
+                    if (groupData) {
+                        populateGroupModal(groupData);
+                    }
+                })
+                .catch(() => {
+                    resetGroupModal();
+                });
         }
     });
 
@@ -969,13 +1094,24 @@
                 return;
             }
 
-            const rawGroupData = trigger.dataset.groupData || '{}';
-            try {
-                const parsedData = JSON.parse(rawGroupData);
-                populateGroupModal(parsedData);
-            } catch (error) {
+            const groupKey = trigger.dataset.groupKey || '';
+            if (!groupKey) {
                 resetGroupModal();
+                return;
             }
+
+            fetchGroupModalData(trigger)
+                .then((groupData) => {
+                    if (!groupData) {
+                        resetGroupModal();
+                        return;
+                    }
+                    populateGroupModal(groupData);
+                })
+                .catch((error) => {
+                    console.warn('[ModPress] Group data fetch failed:', error);
+                    resetGroupModal();
+                });
         });
     }
 
@@ -994,55 +1130,48 @@
                 title.textContent = isEdit ? 'Edit Entry - ' + taxonomyLabel : 'Add New Entry - ' + taxonomyLabel;
             }
 
-            const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
-            fieldsToReset.forEach((fieldName) => {
-                const input = modalElement.querySelector('[name="' + fieldName + '"]');
-                if (input) {
-                    input.value = '';
-                }
-            });
+            const resetEntryModal = () => {
+                const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
+                fieldsToReset.forEach((fieldName) => {
+                    const input = modalElement.querySelector('[name="' + fieldName + '"]');
+                    if (input) {
+                        input.value = '';
+                    }
+                });
 
-            const taxonomyField = modalElement.querySelector('[name="group_slug"]');
-            if (taxonomyField) {
-                taxonomyField.value = taxonomyKey;
+                const taxonomyField = modalElement.querySelector('[name="group_slug"]');
+                if (taxonomyField) {
+                    taxonomyField.value = taxonomyKey;
+                }
+                const formTaxonomyField = modalElement.querySelector('[name="entry_group_taxonomy"]');
+                if (formTaxonomyField) {
+                    formTaxonomyField.value = taxonomyKey;
+                }
+                renderEntryCustomFields(modalElement, {});
+            };
+
+            const entryId = trigger.dataset.entryId ? Number(trigger.dataset.entryId) : 0;
+            resetEntryModal();
+
+            if (!entryId) {
+                return;
             }
-            const formTaxonomyField = modalElement.querySelector('[name="entry_group_taxonomy"]');
-            if (formTaxonomyField) {
-                formTaxonomyField.value = taxonomyKey;
-            }
+
             const entryIdField = modalElement.querySelector('[name="group_entry_id"]');
             if (entryIdField) {
-                entryIdField.value = trigger.dataset.entryId || '';
-            }
-            const nameField = modalElement.querySelector('[name="entry_name"]');
-            if (nameField) {
-                nameField.value = trigger.dataset.entryName || '';
-            }
-            const slugField = modalElement.querySelector('[name="entry_slug"]');
-            if (slugField) {
-                slugField.value = trigger.dataset.entrySlug || '';
-            }
-            const descriptionField = modalElement.querySelector('[name="entry_description"]');
-            if (descriptionField) {
-                descriptionField.value = trigger.dataset.entryDescription || '';
-            }
-            const parentField = modalElement.querySelector('[name="entry_parent"]');
-            if (parentField) {
-                parentField.value = trigger.dataset.entryParent || '0';
-            }
-            const iconField = modalElement.querySelector('[name="entry_icon"]');
-            if (iconField) {
-                iconField.value = trigger.dataset.entryIcon || '';
+                entryIdField.value = String(entryId);
             }
 
-            let entryCustomFields = {};
-            try {
-                entryCustomFields = trigger.dataset.entryCustomFields ? JSON.parse(trigger.dataset.entryCustomFields) : {};
-            } catch (error) {
-                entryCustomFields = {};
-            }
-
-            renderEntryCustomFields(modalElement, entryCustomFields);
+            fetchEntryModalData(trigger)
+                .then((entryData) => {
+                    if (!entryData) {
+                        return;
+                    }
+                    populateEntryModalFields(modalElement, entryData, taxonomyKey);
+                })
+                .catch((error) => {
+                    console.warn('[ModPress] Entry data fetch failed:', error);
+                });
         });
     }
 

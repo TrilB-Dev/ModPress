@@ -99,6 +99,8 @@ class ModManager extends Manager {
         add_action( 'admin_post_modpress_delete_group', array( $this->functions_mod, 'delete_group' ) );
         add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'save_group_entry' ) );
         add_action( 'admin_post_modpress_delete_group_entry', array( $this->functions_mod, 'delete_group_entry' ) );
+        add_action( 'wp_ajax_modpress_get_group', array( $this->functions_mod, 'get_group' ) );
+        add_action( 'wp_ajax_modpress_get_group_entry', array( $this->functions_mod, 'get_group_entry' ) );
         add_action( 'admin_post_modpress_save_tags', array( $this->functions_mod, 'save_tags' ) );
         add_action( 'admin_post_modpress_save_files', array( $this->functions_mod, 'save_files' ) );
         add_action( 'admin_post_modpress_save_file_type', array( $this->functions_mod, 'save_file_type' ) );

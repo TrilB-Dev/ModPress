@@ -131,7 +131,7 @@ final class ModGroups extends ModManager {
 											'data-bs-target' => '#modpress-group-modal',
 											'data-group-key' => $taxonomy_key,
 											'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-											'data-group-data' => wp_json_encode( $taxonomy ),
+
 											'aria-label' => __( 'Edit group', 'modpress' ),
 										),
 									)
@@ -153,26 +153,26 @@ final class ModGroups extends ModManager {
 								<div class="d-flex justify-content-between align-items-center gap-3 mb-3">
 									<div></div>
 									<div class="btn-group">
-											<?php echo FormFieldHelper::button( __( 'Add New Entry', 'modpress' ), array(
-												'type' => 'button',
-												'class' => 'btn btn-outline-primary btn-sm',
-												'attributes' => array(
-													'data-bs-toggle' => 'modal',
-													'data-bs-target' => '#modpress-entry-modal',
-													'data-taxonomy-key' => $taxonomy_key,
-													'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-												),
-											) ); ?>
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block">
-													<input type="hidden" name="action" value="modpress_delete_group_entry" />
-													<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
-													<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
-													<?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
-														'type' => 'submit',
-														'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
-														'disabled' => true,
-													) ); ?>
-												</form>
+                                        <?php echo FormFieldHelper::button( __( 'Add New Entry', 'modpress' ), array(
+                                            'type' => 'button',
+                                            'class' => 'btn btn-outline-primary btn-sm',
+                                            'attributes' => array(
+                                                'data-bs-toggle' => 'modal',
+                                                'data-bs-target' => '#modpress-entry-modal',
+                                                'data-taxonomy-key' => $taxonomy_key,
+                                                'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+                                            ),
+                                        ) ); ?>
+                                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block">
+                                            <input type="hidden" name="action" value="modpress_delete_group_entry" />
+                                            <input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
+                                            <?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
+                                            <?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
+                                                'type' => 'submit',
+                                                'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
+                                                'disabled' => true,
+                                            ) ); ?>
+                                        </form>
 									</div>
 								</div>
 
@@ -216,25 +216,6 @@ final class ModGroups extends ModManager {
 																			'data-taxonomy-key' => $taxonomy_key,
 																			'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
 																			'data-entry-id' => (int) $term->term_id,
-																			'data-entry-name' => $term->name,
-																			'data-entry-slug' => $term->slug,
-																			'data-entry-description' => $term->description,
-																			'data-entry-parent' => (int) $term->parent,
-																			'data-entry-icon' => GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy_key, 'entry_icon' ) ?: '',
-                                                                            'data-entry-custom-fields' => wp_json_encode(
-                                                                                array_reduce(
-                                                                                    (array) json_decode( (string) ( $taxonomy['group_fields'] ?? '[]' ), true ) ?: array(),
-                                                                                    static function ( array $carry, array $field ) use ( $term, $taxonomy_key ): array {
-                                                                                        $field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
-                                                                                        if ( '' === $field_slug ) {
-                                                                                            return $carry;
-                                                                                        }
-                                                                                        $carry[ $field_slug ] = GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy_key, $field_slug );
-                                                                                        return $carry;
-                                                                                    },
-                                                                                    array()
-                                                                                )
-                                                                        ),
 																		),
 																	)
 																); ?>

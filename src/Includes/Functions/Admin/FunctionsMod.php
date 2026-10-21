@@ -631,7 +631,100 @@ final class FunctionsMod {
      *
      * @return void
      */
-    public function save_group_entry(): void {
+public function get_group(): void {
+		if ( ! current_user_can( 'modpress_manager_groups_view' ) && ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress groups.', 'modpress' ) ), 403 );
+		}
+
+		check_ajax_referer( 'modpress_get_group', 'nonce' );
+
+		$group_key = RequestHelper::key( $_POST, 'group_key', '' );
+		if ( '' === $group_key ) {
+			wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 400 );
+		}
+
+		$lookup_value = sanitize_key( (string) $group_key );
+		if ( '' === $lookup_value ) {
+			wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 400 );
+		}
+
+		$group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_value ) );
+		if ( empty( $group_row ) ) {
+			$group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_value ) );
+		}
+
+		if ( empty( $group_row ) ) {
+			wp_send_json_error( array( 'message' => __( 'The selected group could not be found.', 'modpress' ) ), 404 );
+		}
+
+		wp_send_json_success(
+			array(
+				'group_key'           => (string) ( $group_row['group_key'] ?? $lookup_value ),
+				'group_name'          => (string) ( $group_row['group_name'] ?? '' ),
+				'group_slug'          => (string) ( $group_row['group_slug'] ?? $lookup_value ),
+				'group_singular_name' => (string) ( $group_row['group_singular_name'] ?? ( $group_row['group_name'] ?? '' ) ),
+				'group_description'   => (string) ( $group_row['group_description'] ?? '' ),
+				'group_hierarchical'  => ! empty( $group_row['group_hierarchical'] ),
+				'group_parent_id'     => absint( $group_row['group_parent_id'] ?? 0 ),
+				'group_parent_entry'  => absint( $group_row['group_parent_entry'] ?? 0 ),
+				'group_fields'        => is_string( $group_row['group_fields'] ) ? json_decode( $group_row['group_fields'], true ) : ( is_array( $group_row['group_fields'] ) ? $group_row['group_fields'] : array() ),
+			)
+		);
+	}
+
+	public function get_group_entry(): void {
+		if ( ! current_user_can( 'modpress_manager_groups_view' ) && ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress taxonomy entries.', 'modpress' ) ), 403 );
+		}
+
+		check_ajax_referer( 'modpress_get_group_entry', 'nonce' );
+
+		$taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
+		$term_id  = RequestHelper::integer( $_POST, 'group_entry_id', 0 );
+
+		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) || $term_id <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'The selected entry could not be loaded.', 'modpress' ) ), 400 );
+		}
+
+		$term = get_term( $term_id, $taxonomy );
+		if ( is_wp_error( $term ) || ! $term ) {
+			wp_send_json_error( array( 'message' => __( 'The selected entry could not be found.', 'modpress' ) ), 404 );
+		}
+
+		$group_row = DBHelper::get_row( 'groups', array( 'group_key' => sanitize_key( (string) $taxonomy ) ) );
+		if ( empty( $group_row ) ) {
+			$group_row = DBHelper::get_row( 'groups', array( 'group_slug' => sanitize_key( str_replace( 'modpress_', '', $taxonomy ) ) ) );
+		}
+
+		$custom_fields = array();
+		if ( ! empty( $group_row['group_fields'] ) ) {
+			$decoded_fields = json_decode( (string) $group_row['group_fields'], true );
+			if ( is_array( $decoded_fields ) ) {
+				foreach ( $decoded_fields as $field ) {
+					$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+					if ( '' === $field_slug ) {
+						continue;
+					}
+
+					$custom_fields[ $field_slug ] = GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy, $field_slug );
+				}
+			}
+		}
+
+		wp_send_json_success(
+			array(
+				'term_id' => (int) $term->term_id,
+				'name' => $term->name,
+				'slug' => $term->slug,
+				'description' => $term->description,
+				'parent' => (int) $term->parent,
+				'icon' => GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy, 'entry_icon' ) ?: '',
+				'custom_fields' => $custom_fields,
+			)
+		);
+	}
+
+	public function save_group_entry(): void {
         if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress taxonomy entries.', 'modpress' ) );
         }

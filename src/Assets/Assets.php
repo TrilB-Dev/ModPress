@@ -343,8 +343,10 @@ class Assets {
 				'modpress-admin',
 				'modpressManager',
 				array(
-					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => wp_create_nonce( 'modpress_manage' ),
+					'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
+					'nonce'              => wp_create_nonce( 'modpress_manage' ),
+					'getGroupNonce'      => wp_create_nonce( 'modpress_get_group' ),
+					'getGroupEntryNonce' => wp_create_nonce( 'modpress_get_group_entry' ),
 				)
 			);
 		}
