@@ -9,6 +9,7 @@ namespace ModPress\Admin\Manager\Mods;
  * @since 1.0.0
  */
 
+use ModPress\Includes\Functions\Admin\FunctionsMod;
 use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Functions\Helpers\DBHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
@@ -470,7 +471,6 @@ final class ModGroups extends ModManager {
 													<div class="modpress-custom-field-row d-none">
 														<div class="d-flex justify-content-between align-items-center mb-3">
 															<h6 class="mb-0"><?php esc_html_e( 'Field', 'modpress' ); ?></h6>
-															<button type="button" class="btn btn-link btn-sm text-danger p-0" data-role="remove-custom-field"><?php esc_html_e( 'Delete', 'modpress' ); ?></button>
 														</div>
 														<table class="table table-borderless mb-0">
 															<tbody>
@@ -569,7 +569,7 @@ final class ModGroups extends ModManager {
 																	'custom_field_type_radio[]',
 																	__( 'Radio Button Options', 'modpress' ),
 																	function () {
-																		return '<div class="modpress-option-repeater"><div class="modpress-option-repeater-items"><div class="modpress-option-row-template d-none"><div class="row g-2 align-items-center modpress-option-row"><div class="col-md-5"><input type="text" name="custom_field_type_radio[][label]" class="form-control" placeholder="' . esc_attr__( 'Label', 'modpress' ) . '" /></div><div class="col-md-5"><input type="text" name="custom_field_type_radio[][option]" class="form-control" placeholder="' . esc_attr__( 'Option', 'modpress' ) . '" /></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm" data-role="remove-option-row">' . esc_html__( 'Delete', 'modpress' ) . '</button></div></div></div></div><button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-role="add-option-row">' . esc_html__( 'Add Option', 'modpress' ) . '</button></div>';
+																		return FunctionsMod::repeatable_option_row('radio');
 																	},
 																	__( 'Options for the radio button group.', 'modpress' ),
 																	__( 'Enter each option using the options repeater.', 'modpress' ),
@@ -579,7 +579,7 @@ final class ModGroups extends ModManager {
 																	'custom_field_type_select[]',
 																	__( 'Select Options', 'modpress' ),
 																	function () {
-																		return '<div class="modpress-option-repeater"><div class="modpress-option-repeater-items"><div class="modpress-option-row-template d-none"><div class="row g-2 align-items-center modpress-option-row"><div class="col-md-5"><input type="text" name="custom_field_type_select[][label]" class="form-control" placeholder="' . esc_attr__( 'Label', 'modpress' ) . '" /></div><div class="col-md-5"><input type="text" name="custom_field_type_select[][option]" class="form-control" placeholder="' . esc_attr__( 'Option', 'modpress' ) . '" /></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm" data-role="remove-option-row">' . esc_html__( 'Delete', 'modpress' ) . '</button></div></div></div></div><button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-role="add-option-row">' . esc_html__( 'Add Option', 'modpress' ) . '</button></div>';
+																		return FunctionsMod::repeatable_option_row('select');
 																	},
 																	__( 'Options for the select dropdown.', 'modpress' ),
 																	__( 'Enter each option using the options repeater.', 'modpress' ),
@@ -649,6 +649,16 @@ final class ModGroups extends ModManager {
 							</div>
 						</div>
 						<div class="modal-footer">
+							<?php echo FormFieldHelper::button(
+								__( 'Delete', 'modpress' ),
+								array(
+									'type' => 'button',
+									'class' => 'btn btn-link btn-sm text-danger p-0',
+									'attributes' => array(
+										'data-role' => 'remove-custom-field'
+									)
+								)
+							); ?>
 							<div class="d-flex gap-2 align-self-end">
 								<?php echo FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),

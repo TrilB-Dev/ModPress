@@ -15,6 +15,7 @@ use ModPress\Includes\Functions\Helpers\PermalinkHelper;
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
 use ModPress\Includes\Functions\Helpers\RequestHelper;
 use ModPress\Includes\Functions\Helpers\DBHelper;
+use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\ModManagement\ModsManager;
 use ModPress\Includes\ModManagement\ChangelogManager;
@@ -356,6 +357,11 @@ final class FunctionsMod {
                     $option_map = 'radio' === $field_type ? $radio_options : $select_options;
                     $options = array();
                     $option_values = is_array( $option_map ) ? ( $option_map[ $field_index ] ?? array() ) : array();
+
+                    if ( empty( $option_values ) && is_array( $option_map ) ) {
+                        $option_values = array_values( $option_map );
+                    }
+
                     foreach ( $option_values as $option ) {
                         if ( is_array( $option ) ) {
                             $option_label = trim( (string) ( $option['label'] ?? $option['name'] ?? '' ) );
@@ -367,6 +373,14 @@ final class FunctionsMod {
                                 'label' => '' !== $option_label ? $option_label : $option_value,
                                 'value' => '' !== $option_value ? $option_value : ( '' !== $option_label ? $option_label : '' ),
                             );
+                        } elseif ( is_scalar( $option ) ) {
+                            $option_value = trim( (string) $option );
+                            if ( '' !== $option_value ) {
+                                $options[] = array(
+                                    'label' => $option_value,
+                                    'value' => $option_value,
+                                );
+                            }
                         }
                     }
 
@@ -845,5 +859,69 @@ final class FunctionsMod {
      */
     private function redirect_mod_group_result( bool $success, string $message = '' ): void {
         $this->redirect_mod_action_result( 'groups', $message, $success );
+    }
+
+    public static function repeatable_option_row(string $type): void {
+        ?>
+        <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
+            <?php echo FormFieldHelper::button(
+                esc_html__( 'Add Option', 'modpress' ),
+                array(
+                    'type' => 'button',
+                    'class' => 'btn btn-outline-secondary btn-sm mt-2',
+                    'id' => 'add-option-row',
+                    'attributes' => array(
+                        'data-role' => 'add-option-row',
+                        'data-option-type' => $type,
+                    )
+                )
+            ); ?>
+            <div class="modpress-option-repeater-items">
+                <div class="modpress-option-row-template d-none" data-option-type="<?php echo esc_attr( $type ); ?>">
+                    <div class="row g-2 align-items-center modpress-option-row">
+                        <div class="col-md-5">
+                            <?php echo FormFieldHelper::text_input(
+                                'custom_field_type_' . $type . '[][label]',
+                                '',
+                                array(
+                                    'class' => 'form-control w-100',
+                                    'placeholder' => esc_attr__( 'Label', 'modpress' ),
+                                    'attributes' => array(
+                                        'data-option-role' => 'label',
+                                    ),
+                                )
+                            ); ?>
+                        </div>
+                        <div class="col-md-5">
+                            <?php echo FormFieldHelper::text_input(
+                                'custom_field_type_' . $type . '[][option]',
+                                '',
+                                array(
+                                    'class' => 'form-control w-100',
+                                    'placeholder' => esc_attr__( 'Option', 'modpress' ),
+                                    'attributes' => array(
+                                        'data-option-role' => 'value',
+                                    ),
+                                )
+                            ); ?>
+                        </div>
+                        <div class="col-md-2">
+                            <?php echo FormFieldHelper::button(
+                                esc_html__( 'Delete', 'modpress' ),
+                                array(
+                                    'type' => 'button',
+                                    'class' => 'btn btn-outline-danger btn-sm',
+                                    'id' => 'remove-option-row',
+                                    'attributes' => array(
+                                        'data-role' => 'remove-option-row',
+                                    ),
+                                )
+                            ); ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
     }
 }
