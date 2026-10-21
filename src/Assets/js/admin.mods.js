@@ -313,16 +313,36 @@
             return;
         }
 
-        const row = template.content ? template.content.cloneNode(true) : template.cloneNode(true);
-        const renderedRow = row.firstElementChild || row;
-        if (!renderedRow) {
+        let row = null;
+        if (template.content && template.content.firstElementChild) {
+            row = template.content.firstElementChild.cloneNode(true);
+        } else {
+            row = template.firstElementChild ? template.firstElementChild.cloneNode(true) : null;
+        }
+
+        if (!row) {
             return;
         }
 
-        renderedRow.classList.remove('d-none');
-        renderedRow.classList.add('modpress-custom-field-row');
-        container.appendChild(renderedRow);
-        syncCustomFieldVisibility(renderedRow);
+        row.classList.remove('d-none');
+        row.classList.add('modpress-custom-field-row');
+        container.appendChild(row);
+        syncCustomFieldVisibility(row);
+    };
+
+    const bindCustomFieldButtons = () => {
+        document.querySelectorAll('[data-role="add-custom-field"]').forEach((button) => {
+            if (button.dataset.modpressCustomFieldBound === 'true') {
+                return;
+            }
+
+            button.dataset.modpressCustomFieldBound = 'true';
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                addCustomFieldRow();
+            });
+        });
     };
 
     const addOptionRow = (button) => {
@@ -691,6 +711,8 @@
             const isAddGroup = Boolean(trigger && trigger.matches('[data-group-add="true"]'));
             const isEditGroup = Boolean(trigger && trigger.matches('.modpress-tab-edit-btn'));
 
+            bindCustomFieldButtons();
+
             if (!trigger || isAddGroup) {
                 resetGroupModal();
                 return;
@@ -778,6 +800,7 @@
         });
     }
 
+    bindCustomFieldButtons();
     syncDeleteButtons();
     syncModManagerTabs();
 })();
