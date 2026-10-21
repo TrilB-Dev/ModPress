@@ -99,6 +99,11 @@
         if (parentEntrySelect) {
             const entries = getGroupParentEntries(select.value || '');
             populateParentEntryOptions(entries, parentEntrySelect.value || '');
+            refreshBootstrapSelect(parentEntrySelect);
+        }
+
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.selectpicker) {
+            window.jQuery(select).selectpicker('refresh');
         }
     };
 
@@ -118,6 +123,32 @@
         }
 
         return {};
+    };
+
+    const refreshBootstrapSelect = (select) => {
+        if (!select || typeof window === 'undefined') {
+            return;
+        }
+
+        if (window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
+            const instance = window.Selectpicker.getOrCreateInstance(select);
+            if (instance) {
+                instance.refresh();
+                return;
+            }
+
+            try {
+                new window.Selectpicker(select);
+            } catch (error) {
+                // Ignore initialization errors for non-selectpicker elements.
+            }
+            return;
+        }
+
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.selectpicker) {
+            window.jQuery(select).selectpicker('refresh');
+            return;
+        }
     };
 
     const populateParentEntryOptions = (entries, selectedValue = '') => {
@@ -147,6 +178,8 @@
         } else {
             select.value = String(selectedValue || '');
         }
+
+        refreshBootstrapSelect(select);
     };
 
     const getGroupFields = (groupData = {}) => {
@@ -562,6 +595,9 @@
                 parentEntryRow.classList.toggle('d-none', '' === parentValue);
             }
             populateParentEntryOptions(getGroupParentEntries(parentValue), parentEntrySelect ? parentEntrySelect.value || '' : '');
+            if (parentEntrySelect) {
+                refreshBootstrapSelect(parentEntrySelect);
+            }
         }
 
         if (target.matches('.modpress-image-picker-mode-input')) {
