@@ -649,16 +649,18 @@ final class ModGroups extends ModManager {
 							</div>
 						</div>
 						<div class="modal-footer">
-							<?php echo FormFieldHelper::button(
-								__( 'Delete', 'modpress' ),
-								array(
-									'type' => 'button',
-									'class' => 'btn btn-link btn-sm text-danger p-0',
-									'attributes' => array(
-										'data-role' => 'remove-custom-field'
+							<div class="d-flex gap-2 align-self-start">
+								<?php echo FormFieldHelper::button(
+									__( 'Delete', 'modpress' ),
+									array(
+										'type' => 'button',
+										'class' => 'btn btn-outline-danger',
+										'attributes' => array(
+											'data-role' => 'remove-custom-field'
+										)
 									)
-								)
-							); ?>
+								); ?>
+							</div>
 							<div class="d-flex gap-2 align-self-end">
 								<?php echo FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),
