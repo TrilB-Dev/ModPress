@@ -953,7 +953,7 @@
         const deleteGroupButton = event.target.closest('[data-role="delete-group"]');
         if (deleteGroupButton) {
             event.preventDefault();
-            const form = deleteGroupButton.closest('form');
+            const form = deleteGroupButton.form || deleteGroupButton.closest('form');
             if (!form) {
                 return;
             }

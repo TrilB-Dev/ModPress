@@ -678,6 +678,7 @@ public function get_group(): void {
 
 		wp_send_json_success(
 			array(
+				'group_id'            => absint( $group_row['id'] ?? 0 ),
 				'group_key'           => (string) ( $group_row['group_key'] ?? $lookup_value ),
 				'group_name'          => (string) ( $group_row['group_name'] ?? '' ),
 				'group_slug'          => (string) ( $group_row['group_slug'] ?? $lookup_value ),
