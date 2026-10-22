@@ -436,7 +436,16 @@ final class DBHelper {
 		}
 
 		$prepared = $wpdb->prepare( $query, array_merge( $values, $where_args ) );
-		return false !== $wpdb->query( $prepared );
+		$executed = $wpdb->query( $prepared );
+		if ( false === $executed ) {
+			return false;
+		}
+
+		if ( property_exists( $wpdb, 'rows_affected' ) ) {
+			return (int) $wpdb->rows_affected > 0;
+		}
+
+		return true;
 	}
 
 	/**
@@ -467,7 +476,16 @@ final class DBHelper {
 			$query = $wpdb->prepare( $query, $where_args );
 		}
 
-		return false !== $wpdb->query( $query );
+		$executed = $wpdb->query( $query );
+		if ( false === $executed ) {
+			return false;
+		}
+
+		if ( property_exists( $wpdb, 'rows_affected' ) ) {
+			return (int) $wpdb->rows_affected > 0;
+		}
+
+		return true;
 	}
 
 	/**

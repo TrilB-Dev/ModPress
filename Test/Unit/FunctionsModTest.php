@@ -728,6 +728,25 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 55, $method->invoke( new \ModPress\Includes\Functions\Admin\FunctionsMod(), $payload ) );
         }
 
+        public function testDbHelperTreatsZeroRowWriteAsFailure(): void {
+            $GLOBALS['wpdb'] = new class {
+                public string $prefix = 'wp_';
+                public int $rows_affected = 0;
+                public int $insert_id = 0;
+
+                public function prepare( string $query, ...$args ): string {
+                    return $query;
+                }
+
+                public function query( string $query ) {
+                    return 0;
+                }
+            };
+
+            $this->assertFalse( \ModPress\Includes\Functions\Helpers\DBHelper::update( 'groups', [ 'group_name' => 'Sample' ], [ 'id' => 999 ] ) );
+            $this->assertFalse( \ModPress\Includes\Functions\Helpers\DBHelper::delete( 'groups', [ 'id' => 999 ] ) );
+        }
+
         public function testFontAwesomeHelperBuildsStyledAndAnimatedIconMarkup(): void {
             $output = FAHelper::render_icon(
                 'house',
