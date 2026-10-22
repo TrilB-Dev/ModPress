@@ -406,7 +406,7 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::text_input(
 																'group_name',
-																$group_options['group_name'] ?? '',
+																' . ( $group_options['group_name'] ?? '' ) . '',
 																array(
 																	'id' => 'group_name',
 																	'class' => 'w-100',

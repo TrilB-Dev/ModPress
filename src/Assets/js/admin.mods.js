@@ -73,11 +73,11 @@
         });
     };
 
-    const syncGroupParentField = (groupKey = '') => {
-        const row = document.getElementById('modpress-group-parent-row');
-        const select = document.getElementById('group_parent');
-        const parentEntryRow = document.getElementById('modpress-group-parent-entry-row');
-        const parentEntrySelect = document.getElementById('group_parent_entry');
+    const syncGroupParentField = (groupKey = '', modal = document.getElementById('modpress-group-modal')) => {
+        const row = modal ? modal.querySelector('#modpress-group-parent-row') : document.getElementById('modpress-group-parent-row');
+        const select = modal ? modal.querySelector('[name="group_parent"]') : document.getElementById('group_parent');
+        const parentEntryRow = modal ? modal.querySelector('#modpress-group-parent-entry-row') : document.getElementById('modpress-group-parent-entry-row');
+        const parentEntrySelect = modal ? modal.querySelector('[name="group_parent_entry"]') : document.getElementById('group_parent_entry');
         if (!row || !select) {
             return;
         }
@@ -97,8 +97,8 @@
         }
 
         if (parentEntrySelect) {
-            const entries = getGroupParentEntries(select.value || '');
-            populateParentEntryOptions(entries, parentEntrySelect.value || '');
+            const entries = getGroupParentEntries(select.value || '', modal);
+            populateParentEntryOptions(entries, parentEntrySelect.value || '', modal);
             refreshBootstrapSelect(parentEntrySelect);
         }
 
@@ -107,8 +107,7 @@
         }
     };
 
-    const getGroupParentEntries = (parentKey = '') => {
-        const modal = document.getElementById('modpress-group-modal');
+    const getGroupParentEntries = (parentKey = '', modal = document.getElementById('modpress-group-modal')) => {
         if (!modal) {
             return {};
         }
@@ -246,8 +245,8 @@
         return payload.data;
     };
 
-    const populateParentEntryOptions = (entries, selectedValue = '') => {
-        const select = document.getElementById('group_parent_entry');
+    const populateParentEntryOptions = (entries, selectedValue = '', modal = document.getElementById('modpress-group-modal')) => {
+        const select = modal ? modal.querySelector('[name="group_parent_entry"]') : document.getElementById('group_parent_entry');
         if (!select) {
             return;
         }
@@ -294,8 +293,7 @@
         return [];
     };
 
-    const populateCustomFieldRows = (groupData = {}) => {
-        const modal = document.getElementById('modpress-group-modal');
+    const populateCustomFieldRows = (groupData = {}, modal = document.getElementById('modpress-group-modal')) => {
         if (!modal) {
             return;
         }
@@ -415,8 +413,7 @@
         });
     };
 
-    const syncGroupDeleteState = () => {
-        const modal = document.getElementById('modpress-group-modal');
+    const syncGroupDeleteState = (modal = document.getElementById('modpress-group-modal')) => {
         if (!modal) {
             return;
         }
@@ -448,8 +445,7 @@
         }
     };
 
-    const resetGroupModal = () => {
-        const modal = document.getElementById('modpress-group-modal');
+    const resetGroupModal = (modal = document.getElementById('modpress-group-modal')) => {
         if (!modal) {
             return;
         }
@@ -548,6 +544,126 @@
         row.querySelectorAll('.modpress-option-repeater').forEach((repeater) => {
             syncOptionRepeaterNames(repeater, fieldIndex);
         });
+    };
+
+    const fetchGroupModalData = async (trigger) => {
+        if (!trigger) {
+            return null;
+        }
+
+        const groupId = trigger.dataset.groupId || '';
+        const groupKey = trigger.dataset.groupKey || '';
+        if (!groupId && !groupKey) {
+            return null;
+        }
+
+        const { ajaxUrl, getGroupNonce } = getModpressAjaxConfig();
+        const formData = new URLSearchParams({
+            action: 'modpress_get_group',
+            group_id: String(groupId || ''),
+            group_key: String(groupKey || ''),
+            nonce: getGroupNonce || '',
+        });
+
+        const response = await fetch(ajaxUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            },
+            body: formData.toString(),
+        });
+
+        const payload = await response.json();
+        if (!response.ok || !payload || !payload.success || !payload.data) {
+            throw new Error(payload && payload.data && payload.data.message ? payload.data.message : 'Unable to load this group.');
+        }
+
+        return payload.data;
+    };
+
+    const populateGroupModalFields = (modalElement, groupData = {}) => {
+        if (!modalElement) {
+            return;
+        }
+
+        const groupKey = String(groupData.group_key || groupData.group_slug || groupData.group_id || '').trim();
+        const groupNameInput = modalElement.querySelector('[name="group_name"]');
+        const groupSingularInput = modalElement.querySelector('[name="group_singular_name"]');
+        const groupSlugInput = modalElement.querySelector('[name="group_slug"]');
+        const groupDescriptionInput = modalElement.querySelector('[name="group_description"]');
+        const groupHierarchicalInput = modalElement.querySelector('[name="group_hierarchical"]');
+        const groupParentInput = modalElement.querySelector('[name="group_parent"]');
+        const groupParentEntryInput = modalElement.querySelector('[name="group_parent_entry"]');
+        const groupEditKeyInput = modalElement.querySelector('[name="group_edit_key"]');
+        const groupIdInput = modalElement.querySelector('[name="group_id"]');
+
+        if (groupEditKeyInput) {
+            groupEditKeyInput.value = groupKey;
+        }
+        if (groupIdInput) {
+            groupIdInput.value = String(groupData.group_id || 0);
+        }
+        if (groupNameInput) {
+            groupNameInput.value = groupData.group_name || '';
+        }
+        if (groupSingularInput) {
+            groupSingularInput.value = groupData.group_singular_name || '';
+        }
+        if (groupSlugInput) {
+            groupSlugInput.value = groupData.group_slug || '';
+        }
+        if (groupDescriptionInput) {
+            groupDescriptionInput.value = groupData.group_description || '';
+        }
+        if (groupHierarchicalInput) {
+            groupHierarchicalInput.checked = Boolean(groupData.group_hierarchical);
+        }
+        if (groupParentInput) {
+            const parentValue = groupData.group_parent ? String(groupData.group_parent) : '';
+            groupParentInput.value = parentValue;
+            refreshBootstrapSelect(groupParentInput);
+        }
+        if (groupParentEntryInput) {
+            const selectedParentEntry = groupData.group_parent_entry ? String(groupData.group_parent_entry) : '';
+            groupParentEntryInput.value = selectedParentEntry;
+            refreshBootstrapSelect(groupParentEntryInput);
+        }
+
+        const modalTitle = modalElement.querySelector('.modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = groupKey ? 'Edit Group' : 'Add Group';
+        }
+
+        populateCustomFieldRows(groupData, modalElement);
+        syncGroupParentField(groupKey, modalElement);
+        syncGroupDeleteState(modalElement);
+    };
+
+    const loadGroupModalData = (trigger, modalElement = null) => {
+        const targetModal = modalElement || (trigger && trigger.dataset && trigger.dataset.bsTarget ? document.querySelector(trigger.dataset.bsTarget) : document.getElementById('modpress-group-modal'));
+        if (!targetModal) {
+            return;
+        }
+
+        const groupId = trigger ? (trigger.dataset.groupId || '') : '';
+        const groupKey = trigger ? (trigger.dataset.groupKey || '') : '';
+        if (!groupId && !groupKey) {
+            resetGroupModal(targetModal);
+            return;
+        }
+
+        fetchGroupModalData(trigger)
+            .then((groupData) => {
+                if (!groupData) {
+                    return;
+                }
+                populateGroupModalFields(targetModal, groupData);
+            })
+            .catch((error) => {
+                console.warn('[ModPress] Group data fetch failed:', error);
+                resetGroupModal(targetModal);
+            });
     };
 
     const addCustomFieldRow = () => {
@@ -672,13 +788,14 @@
         }
 
         if (target.matches('[name="group_parent"]')) {
+            const modal = target.closest('.modal');
             const parentValue = String(target.value || '').trim();
-            const parentEntryRow = document.getElementById('modpress-group-parent-entry-row');
-            const parentEntrySelect = document.getElementById('group_parent_entry');
+            const parentEntryRow = modal ? modal.querySelector('#modpress-group-parent-entry-row') : document.getElementById('modpress-group-parent-entry-row');
+            const parentEntrySelect = modal ? modal.querySelector('[name="group_parent_entry"]') : document.getElementById('group_parent_entry');
             if (parentEntryRow && parentEntrySelect) {
                 parentEntryRow.classList.toggle('d-none', '' === parentValue);
             }
-            populateParentEntryOptions(getGroupParentEntries(parentValue), parentEntrySelect ? parentEntrySelect.value || '' : '');
+            populateParentEntryOptions(getGroupParentEntries(parentValue, modal), parentEntrySelect ? parentEntrySelect.value || '' : '', modal);
             if (parentEntrySelect) {
                 refreshBootstrapSelect(parentEntrySelect);
             }
@@ -1086,6 +1203,17 @@
                 console.warn('[ModPress] Entry data fetch failed:', error);
             });
     };
+
+    document.querySelectorAll('[id^="modpress-group-modal"]').forEach((modalElement) => {
+        modalElement.addEventListener('show.bs.modal', (event) => {
+            const trigger = event.relatedTarget;
+            if (!trigger) {
+                resetGroupModal(modalElement);
+                return;
+            }
+            loadGroupModalData(trigger, modalElement);
+        });
+    });
 
     const modalElement = document.getElementById('modpress-entry-modal');
     if (modalElement) {
