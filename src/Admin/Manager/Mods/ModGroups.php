@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * ModGroups class file.
  * Handles the rendering and management of ModPress groups within the admin interface.
