@@ -719,9 +719,9 @@ final class ModGroups extends ModManager {
 							</div>
 						</div>
 					</form>
-					<div class="modal-footer d-flex justify-content-between">
+					<div class="modal-footer d-flex justify-content-between align-items-center w-100">
 							<?php if ( 1 !== $group_options['id'] ): ?>
-								<div class="modpress-group-delete-wrap d-none">
+								<div class="modpress-group-delete-wrap d-none me-auto">
 									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block m-0" id="modpress-group-delete-form">
 										<input type="hidden" name="action" value="modpress_delete_group" />
 										<input type="hidden" name="group_id" value="<?php echo esc_attr( (string) ( $group_options['id'] ?? 0 ) ); ?>" />
@@ -741,7 +741,7 @@ final class ModGroups extends ModManager {
 									</form>
 								</div>
 							<?php endif; ?>
-							<div class="d-flex gap-2 align-self-end">
+							<div class="d-flex gap-2 align-self-end ms-auto">
 								<?php echo FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),
 									array(
