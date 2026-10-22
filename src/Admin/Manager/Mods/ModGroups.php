@@ -379,7 +379,7 @@ final class ModGroups extends ModManager {
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content">
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="modpress-group-save-form">
 						<input type="hidden" name="action" value="modpress_save_group" />
 						<?php wp_nonce_field( 'modpress_save_group', 'modpress_group_nonce' ); ?>
 						<div class="modal-header">
@@ -718,7 +718,8 @@ final class ModGroups extends ModManager {
 								</div>
 							</div>
 						</div>
-						<div class="modal-footer d-flex justify-content-between">
+					</form>
+					<div class="modal-footer d-flex justify-content-between">
 							<?php if ( 1 !== $group_options['id'] ): ?>
 								<div class="modpress-group-delete-wrap d-none">
 									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block m-0" id="modpress-group-delete-form">
@@ -755,12 +756,14 @@ final class ModGroups extends ModManager {
 									__( 'Save', 'modpress' ),
 									array(
 										'type' => 'submit',
-										'class' => 'btn btn-primary'
+										'class' => 'btn btn-primary',
+										'attributes' => array(
+											'form' => 'modpress-group-save-form',
+										)
 									)
 								); ?>
 							</div>
 						</div>
-					</form>
 				</div>
 			</div>
 		</div>
