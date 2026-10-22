@@ -421,7 +421,7 @@
         const deleteWrap = modal.querySelector('.modpress-group-delete-wrap');
         const deleteButton = modal.querySelector('[data-role="delete-group"]');
         const editKeyInput = modal.querySelector('[name="group_edit_key"]');
-        const deleteForm = modal.querySelector('#modpress-group-delete-form');
+        const deleteForm = modal.querySelector('[data-role="group-delete-form"]');
         const deleteGroupIdInput = deleteForm ? deleteForm.querySelector('[name="group_id"]') : null;
         const deleteGroupKeyInput = deleteForm ? deleteForm.querySelector('[name="group_edit_key"]') : null;
         const groupKey = String(editKeyInput ? editKeyInput.value : '').trim();
@@ -477,7 +477,7 @@
             hierarchicalInput.checked = false;
         }
 
-        const deleteForm = modal.querySelector('#modpress-group-delete-form');
+        const deleteForm = modal.querySelector('[data-role="group-delete-form"]');
         if (deleteForm) {
             const groupIdInput = deleteForm.querySelector('[name="group_id"]');
             const groupKeyInput = deleteForm.querySelector('[name="group_edit_key"]');

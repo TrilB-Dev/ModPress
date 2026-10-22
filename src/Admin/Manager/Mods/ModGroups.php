@@ -374,12 +374,14 @@ final class ModGroups extends ModManager {
 		$selected_group_key = (string) ( $selected_group['group_key'] ?? $selected_group['taxonomy'] ?? $selected_group['key'] ?? '' );
 		$selected_group_key = '' !== $selected_group_key ? $selected_group_key : (string) ( $selected_group['group_slug'] ?? '' );
 		$modal_id = '' === $selected_group_key ? 'modpress-group-modal' : 'modpress-group-modal-' . sanitize_html_class( $selected_group_key );
+		$save_form_id = 'modpress-group-save-form-' . ( '' === $selected_group_key ? 'new' : sanitize_html_class( $selected_group_key ) );
+		$delete_form_id = 'modpress-group-delete-form-' . ( '' === $selected_group_key ? 'new' : sanitize_html_class( $selected_group_key ) );
 		$modal_title = '' === $selected_group_key ? __( 'Add Group', 'modpress' ) : __( 'Edit Group', 'modpress' );
 		?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content">
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="modpress-group-save-form">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="<?php echo esc_attr( $save_form_id ); ?>" data-role="group-save-form">
 						<input type="hidden" name="action" value="modpress_save_group" />
 						<?php wp_nonce_field( 'modpress_save_group', 'modpress_group_nonce' ); ?>
 						<div class="modal-header">
@@ -722,7 +724,7 @@ final class ModGroups extends ModManager {
 					<div class="modal-footer d-flex justify-content-between align-items-center w-100">
 							<?php if ( 1 !== $group_options['id'] ): ?>
 								<div class="modpress-group-delete-wrap d-none me-auto">
-									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block m-0" id="modpress-group-delete-form">
+									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block m-0" id="<?php echo esc_attr( $delete_form_id ); ?>" data-role="group-delete-form">
 										<input type="hidden" name="action" value="modpress_delete_group" />
 										<input type="hidden" name="group_id" value="<?php echo esc_attr( (string) ( $group_options['id'] ?? 0 ) ); ?>" />
 										<input type="hidden" name="group_edit_key" value="<?php echo esc_attr( (string) ( $group_options['group_key'] ?? '' ) ); ?>" />
@@ -734,7 +736,7 @@ final class ModGroups extends ModManager {
 												'class' => 'btn btn-outline-danger',
 												'attributes' => array(
 													'data-role' => 'delete-group',
-													'form' => 'modpress-group-delete-form',
+													'form' => $delete_form_id,
 												)
 											)
 										); ?>
@@ -758,7 +760,7 @@ final class ModGroups extends ModManager {
 										'type' => 'submit',
 										'class' => 'btn btn-primary',
 										'attributes' => array(
-											'form' => 'modpress-group-save-form',
+											'form' => $save_form_id,
 										)
 									)
 								); ?>
