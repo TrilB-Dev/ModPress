@@ -258,12 +258,12 @@
             return null;
         }
 
-        const { ajaxUrl, nonce } = getModpressAjaxConfig();
+        const { ajaxUrl, getGroupEntryNonce } = getModpressAjaxConfig();
         const formData = new URLSearchParams({
             action: 'modpress_get_group_entry',
             group_slug: taxonomyKey,
             group_entry_id: String(entryId),
-            nonce: nonce,
+            nonce: getGroupEntryNonce || '',
         });
 
         const response = await fetch(ajaxUrl, {
