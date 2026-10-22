@@ -1,4 +1,7 @@
 (() => {
+    const groupModalDataCache = new Map();
+    let groupModalRequestId = 0;
+
     const removeFieldRow = (button) => {
         const row = button.closest('.modpress-custom-field-row');
         if (row && document.querySelectorAll('.modpress-custom-field-row').length > 1) {
@@ -175,6 +178,11 @@
             return null;
         }
 
+        const cacheKey = groupId ? 'group-id:' + groupId : 'group-key:' + groupKey;
+        if (groupModalDataCache.has(cacheKey)) {
+            return groupModalDataCache.get(cacheKey);
+        }
+
         const formData = new URLSearchParams({
             action: 'modpress_get_group',
             group_id: String(groupId),
@@ -196,6 +204,7 @@
             throw new Error(payload && payload.data && payload.data.message ? payload.data.message : 'Unable to load this group.');
         }
 
+        groupModalDataCache.set(cacheKey, payload.data);
         return payload.data;
     };
 
@@ -1166,14 +1175,27 @@
             title.textContent = 'Edit Group';
         }
 
+        const requestId = ++groupModalRequestId;
+        const cachedGroup = groupModalDataCache.get(groupKey ? 'group-key:' + groupKey : 'group-id:' + (trigger.dataset.groupId || ''));
+        if (cachedGroup) {
+            if (requestId === groupModalRequestId) {
+                populateGroupModal(cachedGroup);
+            }
+            return;
+        }
+
         fetchGroupModalData(trigger)
             .then((groupData) => {
-                if (groupData) {
-                    populateGroupModal(groupData);
+                if (!groupData || requestId !== groupModalRequestId) {
+                    return;
                 }
+
+                populateGroupModal(groupData);
             })
             .catch(() => {
-                resetGroupModal();
+                if (requestId === groupModalRequestId) {
+                    resetGroupModal();
+                }
             });
     };
 
