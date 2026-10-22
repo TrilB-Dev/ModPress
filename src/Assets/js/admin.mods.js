@@ -534,7 +534,10 @@
             const parentValue = String(groupData.group_parent || groupData.group_parent_id || '').trim();
             parentSelect.value = '';
             if (parentValue && String(groupKey).trim() !== 'modpress_type') {
-                parentSelect.value = parentValue;
+                const matchingOption = Array.from(parentSelect.options).find((option) => String(option.value).trim() === String(parentValue).trim());
+                if (matchingOption) {
+                    parentSelect.value = matchingOption.value;
+                }
             }
         }
 

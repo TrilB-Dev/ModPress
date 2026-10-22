@@ -667,6 +667,15 @@ public function get_group(): void {
 			wp_send_json_error( array( 'message' => __( 'The selected group could not be found.', 'modpress' ) ), 404 );
 		}
 
+		$parent_group_key = '';
+		$parent_group_id  = absint( $group_row['group_parent_id'] ?? 0 );
+		if ( $parent_group_id > 0 ) {
+			$parent_group = DBHelper::get_by_id( 'groups', $parent_group_id );
+			if ( ! empty( $parent_group ) ) {
+				$parent_group_key = trim( (string) ( $parent_group['group_key'] ?? $parent_group['group_slug'] ?? '' ) );
+			}
+		}
+
 		wp_send_json_success(
 			array(
 				'group_key'           => (string) ( $group_row['group_key'] ?? $lookup_value ),
@@ -675,7 +684,8 @@ public function get_group(): void {
 				'group_singular_name' => (string) ( $group_row['group_singular_name'] ?? ( $group_row['group_name'] ?? '' ) ),
 				'group_description'   => (string) ( $group_row['group_description'] ?? '' ),
 				'group_hierarchical'  => ! empty( $group_row['group_hierarchical'] ),
-				'group_parent_id'     => absint( $group_row['group_parent_id'] ?? 0 ),
+				'group_parent'        => $parent_group_key,
+				'group_parent_id'     => $parent_group_id,
 				'group_parent_entry'  => absint( $group_row['group_parent_entry'] ?? 0 ),
 				'group_fields'        => is_string( $group_row['group_fields'] ) ? json_decode( $group_row['group_fields'], true ) : ( is_array( $group_row['group_fields'] ) ? $group_row['group_fields'] : array() ),
 			)
