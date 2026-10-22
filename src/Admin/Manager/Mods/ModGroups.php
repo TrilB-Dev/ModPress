@@ -100,8 +100,8 @@ final class ModGroups extends ModManager {
 							'class'   => 'btn btn-primary btn-sm',
 							'attributes' => array(
 								'data-bs-toggle' => 'modal',
-								'data-bs-target' => '#modpress-group-modal',
-								'data-group-add' => 'true',
+											'data-bs-target' => '#modpress-group-modal',
+											'data-group-add' => 'true',
 							),
 						) ); ?>
 					</div>
@@ -130,12 +130,11 @@ final class ModGroups extends ModManager {
 										'raw' => true,
 										'attributes' => array(
 											'data-bs-toggle' => 'modal',
-											'data-bs-target' => '#modpress-group-modal',
-											'data-group-id'  => $taxonomy['id'] ?? '',
-											'data-group-key' => $taxonomy_key,
-											'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-
-											'aria-label' => __( 'Edit group', 'modpress' ),
+													'data-bs-target' => '#modpress-group-modal-' . sanitize_html_class( (string) ( $taxonomy['group_key'] ?? $taxonomy_key ) ),
+													'data-group-id'  => $taxonomy['id'] ?? '',
+													'data-group-key' => $taxonomy_key,
+													'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+													'aria-label' => __( 'Edit group', 'modpress' ),
 										),
 									)
 								); ?>
@@ -257,6 +256,9 @@ final class ModGroups extends ModManager {
 			</div>
 		</div>
 
+		<?php foreach ( $taxonomy_tabs as $taxonomy ) : ?>
+			<?php $this->render_group_modal( $taxonomy_tabs, $taxonomy ); ?>
+		<?php endforeach; ?>
 		<?php $this->render_group_modal( $taxonomy_tabs ); ?>
 		<?php $this->render_entry_modal( $taxonomy_tabs ); ?>
 
@@ -309,11 +311,45 @@ final class ModGroups extends ModManager {
 	 * Render the taxonomy group modal.
 	 *
 	 * @param array<int, array<string, mixed>> $taxonomy_tabs Taxonomy tabs for the page.
+	 * @param array<string, mixed>             $selected_group Selected taxonomy group values.
 	 * @return void
 	 */
-	private function render_group_modal( array $taxonomy_tabs ): void {
-		$group_options = array();
+	private function render_group_modal( array $taxonomy_tabs, array $selected_group = array() ): void {
+		$selected_group = array_merge(
+			array(
+				'id'                 => 0,
+				'taxonomy'           => '',
+				'key'                => '',
+				'group_key'          => '',
+				'group_name'         => '',
+				'group_slug'         => '',
+				'group_singular_name' => '',
+				'group_description'  => '',
+				'group_hierarchical' => false,
+				'group_parent'       => '',
+				'group_parent_id'    => 0,
+				'group_parent_entry' => '',
+			),
+			$selected_group
+		);
+
+		$group_options = array(
+			'id'                 => $selected_group['id'] ?? 0,
+			'taxonomy'           => (string) ( $selected_group['taxonomy'] ?? $selected_group['key'] ?? '' ),
+			'key'                => (string) ( $selected_group['key'] ?? $selected_group['taxonomy'] ?? '' ),
+			'group_key'          => (string) ( $selected_group['group_key'] ?? $selected_group['taxonomy'] ?? $selected_group['key'] ?? '' ),
+			'group_name'         => (string) ( $selected_group['group_name'] ?? '' ),
+			'group_slug'         => (string) ( $selected_group['group_slug'] ?? '' ),
+			'group_singular_name' => (string) ( $selected_group['group_singular_name'] ?? '' ),
+			'group_description'  => (string) ( $selected_group['group_description'] ?? '' ),
+			'group_hierarchical' => ! empty( $selected_group['group_hierarchical'] ),
+			'group_parent'       => (string) ( $selected_group['group_parent'] ?? '' ),
+			'group_parent_id'    => (int) ( $selected_group['group_parent_id'] ?? 0 ),
+			'group_parent_entry' => (string) ( $selected_group['group_parent_entry'] ?? '' ),
+		);
+
 		$group_entries = array();
+		$group_parent_options = array();
 		$fa_settings = Settings::get_group( 'fontawesome' );
 		$fa_icon_picker = false;
 		if ( isset($fa_settings['fontawesome_icon_picker']) && $fa_settings['fontawesome_icon_picker'] ) {
@@ -323,6 +359,7 @@ final class ModGroups extends ModManager {
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
 			if ( '' !== $taxonomy_key ) {
+				$group_parent_options[ $taxonomy_key ] = $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
 				$group_options[ $taxonomy_key ] = $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
 
 				$terms = taxonomy_exists( $taxonomy_key ) ? get_terms( array( 'taxonomy' => $taxonomy_key, 'hide_empty' => false ) ) : array();
@@ -334,19 +371,23 @@ final class ModGroups extends ModManager {
 				}
 			}
 		}
+		$selected_group_key = (string) ( $selected_group['group_key'] ?? $selected_group['taxonomy'] ?? $selected_group['key'] ?? '' );
+		$modal_id = '' === $selected_group_key ? 'modpress-group-modal' : 'modpress-group-modal-' . sanitize_html_class( $selected_group_key );
+		$modal_title = '' === $selected_group_key ? __( 'Add Group', 'modpress' ) : __( 'Edit Group', 'modpress' );
 		?>
-		<div class="modal fade" id="modpress-group-modal" tabindex="-1" aria-labelledby="modpress-group-modal-title" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
+		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_group" />
 						<?php wp_nonce_field( 'modpress_save_group', 'modpress_group_nonce' ); ?>
 						<div class="modal-header">
-							<h5 class="modal-title" id="modpress-group-modal-title"><?php esc_html_e( 'Add Group', 'modpress' ); ?></h5>
+							<h5 class="modal-title" id="<?php echo esc_attr( $modal_id . '-title' ); ?>"><?php echo esc_html( $modal_title ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
-							<input type="hidden" name="group_edit_key" value="" />
+							<input type="hidden" name="group_edit_key" value="<?php echo esc_attr( $selected_group_key ); ?>" />
+							<input type="hidden" name="group_id" value="<?php echo esc_attr( (string) ( $selected_group['id'] ?? 0 ) ); ?>" />
 							<div class="accordion" id="modpress-group-accordion">
 								<div class="accordion-item">
 									<h2 class="accordion-header" id="modpress-group-info-heading">
@@ -364,7 +405,7 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::text_input(
 																'group_name',
-																'',
+																$group_options['group_name'] ?? '',
 																array(
 																	'id' => 'group_name',
 																	'class' => 'w-100',
@@ -380,7 +421,7 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::text_input(
 																'group_singular_name',
-																'',
+																$group_options['group_singular_name'] ?? '',
 																array(
 																	'id' => 'group_singular_name',
 																	'class' => 'w-100',
@@ -396,7 +437,7 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::text_input(
 																'group_slug',
-																'',
+																$group_options['group_slug'] ?? '',
 																array(
 																	'id' => 'group_slug',
 																	'class' => 'w-100',
@@ -412,7 +453,7 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::textarea(
 																'group_description',
-																'',
+																$group_options['group_description'] ?? '',
 																array(
 																	'id' => 'group_description',
 																	'rows' => 4,
@@ -429,7 +470,7 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::switch(
 																'group_hierarchical',
-																false,
+																$group_options['group_hierarchical'] ?? false,
 																__( 'Enabled', 'modpress' ),
 																array(
 																	'id' => 'group_hierarchical'
@@ -442,30 +483,36 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_parent',
 														__( 'Parent Group', 'modpress' ),
-														function () use ( $group_options ) {
+														function () use ( $group_parent_options, $group_entries, $selected_group ) {
 															$parent_group_select = FormFieldHelper::bootstrap_select(
 																'group_parent',
 																array(
-																	'data' => $group_options,
-																	'selected' => '',
+																	'data' => $group_parent_options,
+																	'selected' => (string) ( $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? '' ),
 																	'id' => 'group_parent',
 																	'placeholder' => __( 'Select a parent group', 'modpress' ),
 																)
 															);
-															$parent_entry_select = FormFieldHelper::bootstrap_select(
-																'group_parent_entry',
-																array(
-																	'data' => array(),
-																	'selected' => '',
+											$selected_parent_group = (string) ( $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? '' );
+											$selected_parent_entry = (string) ( $selected_group['group_parent_entry'] ?? '' );
+											$parent_entry_data = array();
+											if ( '' !== $selected_parent_group && isset( $group_entries[ $selected_parent_group ] ) ) {
+												$parent_entry_data = $group_entries[ $selected_parent_group ];
+											}
+											$parent_entry_select = FormFieldHelper::bootstrap_select(
+												'group_parent_entry',
+												array(
+													'data' => $parent_entry_data,
+													'selected' => $selected_parent_entry,
 																	'id' => 'group_parent_entry',
 																	'placeholder' => __( 'Select a parent entry', 'modpress' ),
 																)
 															);
 
-															return '<div class="d-flex align-items-end flex-wrap gap-3 w-100">' .
-																																			'<div class="flex-fill min-width-0">' . $parent_group_select . '</div>' .
-																																			'<div id="modpress-group-parent-entry-row" class="d-none flex-fill min-width-0">' . $parent_entry_select . '</div>' .
-																																			'</div>';
+															return 	'<div class="d-flex align-items-end flex-wrap gap-3 w-100">' .
+																	'<div class="flex-fill min-width-0">' . $parent_group_select . '</div>' .
+																	'<div id="modpress-group-parent-entry-row" class="' . ( '' === $selected_parent_group ? 'd-none ' : '' ) . 'flex-fill min-width-0">' . $parent_entry_select . '</div>' .
+																	'</div>';
 														},
 														__( 'Choose a parent taxonomy group if needed.', 'modpress' ),
 														__( 'This creates a hierarchy between related taxonomy groups.', 'modpress' ),
@@ -670,26 +717,28 @@ final class ModGroups extends ModManager {
 								</div>
 							</div>
 						</div>
-						<div class="modal-footer d-flex justify-content-between align-items-center">
-							<div class="modpress-group-delete-wrap d-none">
-								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block m-0" id="modpress-group-delete-form">
-									<input type="hidden" name="action" value="modpress_delete_group" />
-									<input type="hidden" name="group_id" value="" />
-									<input type="hidden" name="group_edit_key" value="" />
-									<?php wp_nonce_field( 'modpress_delete_group', 'modpress_group_nonce' ); ?>
-									<?php echo FormFieldHelper::button(
-										__( 'Delete', 'modpress' ),
-										array(
-											'type' => 'submit',
-											'class' => 'btn btn-outline-danger',
-											'attributes' => array(
-												'data-role' => 'delete-group',
-												'form' => 'modpress-group-delete-form',
+						<div class="modal-footer d-flex justify-content-between">
+							<?php if ( 1 !== $group_options['id'] ): ?>
+								<div class="modpress-group-delete-wrap d-none">
+									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block m-0" id="modpress-group-delete-form">
+										<input type="hidden" name="action" value="modpress_delete_group" />
+										<input type="hidden" name="group_id" value="<?php echo esc_attr( (string) ( $group_options['id'] ?? 0 ) ); ?>" />
+										<input type="hidden" name="group_edit_key" value="<?php echo esc_attr( (string) ( $group_options['group_key'] ?? '' ) ); ?>" />
+										<?php wp_nonce_field( 'modpress_delete_group', 'modpress_group_nonce' ); ?>
+										<?php echo FormFieldHelper::button(
+											__( 'Delete', 'modpress' ),
+											array(
+												'type' => 'submit',
+												'class' => 'btn btn-outline-danger',
+												'attributes' => array(
+													'data-role' => 'delete-group',
+													'form' => 'modpress-group-delete-form',
+												)
 											)
-										)
-									); ?>
-								</form>
-							</div>
+										); ?>
+									</form>
+								</div>
+							<?php endif; ?>
 							<div class="d-flex gap-2 align-self-end">
 								<?php echo FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),
@@ -724,7 +773,19 @@ final class ModGroups extends ModManager {
 	 * @param array<int, array<string, mixed>> $taxonomy_tabs Taxonomy tabs for the page.
 	 * @return void
 	 */
-	private function render_entry_modal( array $taxonomy_tabs ): void {
+	private function render_entry_modal( array $taxonomy_tabs, string $selected_group_key = '', array $selected_entry = array() ): void {
+		$selected_group_key = sanitize_key( (string) $selected_group_key );
+		$selected_entry     = array_merge(
+			array(
+				'term_id'    => 0,
+				'name'       => '',
+				'slug'       => '',
+				'description'=> '',
+				'parent'     => 0,
+				'taxonomy'   => $selected_group_key,
+			),
+			$selected_entry
+		);
 		$entry_parent_options = array(
 			'0' => __( 'None', 'modpress' ),
 		);
@@ -759,18 +820,19 @@ final class ModGroups extends ModManager {
 				}
 			}
 		}
+		$modal_title = (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ? __( 'Edit Entry', 'modpress' ) : __( 'Add Entry', 'modpress' );
 		?>
 		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_group_entry" />
-						<input type="hidden" name="group_slug" value="" />
-						<input type="hidden" name="group_entry_id" value="" />
-						<input type="hidden" name="entry_group_taxonomy" value="" />
+						<input type="hidden" name="group_slug" value="<?php echo esc_attr( $selected_group_key ); ?>" />
+						<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) ( $selected_entry['term_id'] ?? 0 ) ); ?>" />
+						<input type="hidden" name="entry_group_taxonomy" value="<?php echo esc_attr( (string) ( $selected_entry['taxonomy'] ?? $selected_group_key ) ); ?>" />
 						<?php wp_nonce_field( 'modpress_save_group_entry', 'modpress_group_entry_nonce' ); ?>
 						<div class="modal-header">
-							<h5 class="modal-title" id="modpress-entry-modal-title"><?php esc_html_e( 'Add Entry', 'modpress' ); ?></h5>
+							<h5 class="modal-title" id="modpress-entry-modal-title"><?php echo esc_html( $modal_title ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
@@ -779,10 +841,10 @@ final class ModGroups extends ModManager {
 									<?php $this->render_form_row(
 										'entry_name',
 										__( 'Name', 'modpress' ),
-										function () {
+										function () use ( $selected_entry ) {
 											return FormFieldHelper::text_input(
 												'entry_name',
-												'',
+												(string) ( $selected_entry['name'] ?? '' ),
 												array(
 													'id' => 'entry_name',
 													'class' => 'w-100'
@@ -795,10 +857,10 @@ final class ModGroups extends ModManager {
 									<?php $this->render_form_row(
 										'entry_slug',
 										__( 'Slug', 'modpress' ),
-										function () {
+										function () use ( $selected_entry ) {
 											return FormFieldHelper::text_input(
 												'entry_slug',
-												'',
+												(string) ( $selected_entry['slug'] ?? '' ),
 												array(
 													'id' => 'entry_slug',
 													'class' => 'w-100'
@@ -811,10 +873,10 @@ final class ModGroups extends ModManager {
 									<?php $this->render_form_row(
 										'entry_description',
 										__( 'Description', 'modpress' ),
-										function () {
+										function () use ( $selected_entry ) {
 											return FormFieldHelper::textarea(
 												'entry_description',
-												'',
+												(string) ( $selected_entry['description'] ?? '' ),
 												array(
 													'id' => 'entry_description',
 													'rows' => 4,
@@ -828,15 +890,15 @@ final class ModGroups extends ModManager {
 									<?php $this->render_form_row(
 										'entry_parent',
 										__( 'Parent', 'modpress' ),
-											function () use ( $entry_parent_options ) {
-												return FormFieldHelper::bootstrap_select(
-													'entry_parent',
-													array(
-														'data'     => $entry_parent_options,
-														'selected' => '0',
-														'id'       => 'entry_parent',
-													)
-												);
+										function () use ( $entry_parent_options, $selected_entry ) {
+											return FormFieldHelper::bootstrap_select(
+												'entry_parent',
+												array(
+													'data'     => $entry_parent_options,
+													'selected' => (string) ( $selected_entry['parent'] ?? '0' ),
+													'id'       => 'entry_parent',
+												)
+											);
 										},
 										__( 'Choose a parent entry if required.', 'modpress' ),
 										__( 'This is useful for nested categories or grouped options.', 'modpress' )
