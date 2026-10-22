@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * ModGroups class file.
  * Handles the rendering and management of ModPress groups within the admin interface.
@@ -670,7 +670,26 @@ final class ModGroups extends ModManager {
 								</div>
 							</div>
 						</div>
-						<div class="modal-footer">
+						<div class="modal-footer d-flex justify-content-between align-items-center">
+							<div class="modpress-group-delete-wrap d-none">
+								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block m-0" id="modpress-group-delete-form">
+									<input type="hidden" name="action" value="modpress_delete_group" />
+									<input type="hidden" name="group_id" value="" />
+									<input type="hidden" name="group_edit_key" value="" />
+									<?php wp_nonce_field( 'modpress_delete_group', 'modpress_group_nonce' ); ?>
+									<?php echo FormFieldHelper::button(
+										__( 'Delete', 'modpress' ),
+										array(
+											'type' => 'submit',
+											'class' => 'btn btn-outline-danger',
+											'attributes' => array(
+												'data-role' => 'delete-group',
+												'form' => 'modpress-group-delete-form',
+											)
+										)
+									); ?>
+								</form>
+							</div>
 							<div class="d-flex gap-2 align-self-end">
 								<?php echo FormFieldHelper::button(
 									__( 'Cancel', 'modpress' ),
@@ -692,26 +711,6 @@ final class ModGroups extends ModManager {
 							</div>
 						</div>
 					</form>
-
-					<div class="modpress-group-delete-wrap d-none">
-						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block m-0" id="modpress-group-delete-form">
-							<input type="hidden" name="action" value="modpress_delete_group" />
-							<input type="hidden" name="group_id" value="" />
-							<input type="hidden" name="group_edit_key" value="" />
-							<?php wp_nonce_field( 'modpress_delete_group', 'modpress_group_nonce' ); ?>
-							<?php echo FormFieldHelper::button(
-								__( 'Delete', 'modpress' ),
-								array(
-									'type' => 'submit',
-									'class' => 'btn btn-outline-danger',
-									'attributes' => array(
-										'data-role' => 'delete-group',
-										'form' => 'modpress-group-delete-form',
-									)
-								)
-							); ?>
-						</form>
-					</div>
 				</div>
 			</div>
 		</div>
