@@ -152,10 +152,10 @@ final class ModGroups extends ModManager {
 							>
 								<div class="d-flex justify-content-between align-items-center gap-3 mb-3">
 									<div></div>
-									<div class="btn-group">
+									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
                                         <?php echo FormFieldHelper::button( __( 'Add New Entry', 'modpress' ), array(
                                             'type' => 'button',
-                                            'class' => 'btn btn-outline-primary btn-sm',
+                                            'class' => 'btn btn-outline-primary',
                                             'attributes' => array(
                                                 'data-bs-toggle' => 'modal',
                                                 'data-bs-target' => '#modpress-entry-modal',
@@ -163,15 +163,18 @@ final class ModGroups extends ModManager {
                                                 'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
                                             ),
                                         ) ); ?>
-                                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block">
+                                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete selected entries', 'modpress' ); ?>">
                                             <input type="hidden" name="action" value="modpress_delete_group_entry" />
                                             <input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
                                             <?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
-                                            <?php echo FormFieldHelper::button( __( 'Delete', 'modpress' ), array(
-                                                'type' => 'submit',
-                                                'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
-                                                'disabled' => true,
-                                            ) ); ?>
+                                            <?php echo FormFieldHelper::button( 
+                                                __( 'Delete', 'modpress' ), 
+                                                array(
+                                                    'type' => 'submit',
+                                                    'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
+                                                    'disabled' => true,
+                                                ) 
+                                            ); ?>
                                         </form>
 									</div>
 								</div>
@@ -204,7 +207,7 @@ final class ModGroups extends ModManager {
 														<td><?php echo esc_html( $term->slug ); ?></td>
 														<td><?php echo esc_html( wp_trim_words( $term->description, 12 ) ); ?></td>
 														<td class="text-end">
-															<div class="btn-group btn-group-sm">
+															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
 																<?php echo FormFieldHelper::button(
 																	__( 'Edit', 'modpress' ),
 																	array(
@@ -219,7 +222,7 @@ final class ModGroups extends ModManager {
 																		),
 																	)
 																); ?>
-																	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline">
+																	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete entry', 'modpress' ); ?>">
 																		<input type="hidden" name="action" value="modpress_delete_group_entry" />
 																		<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
 																		<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
