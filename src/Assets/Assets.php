@@ -338,17 +338,22 @@ class Assets {
 				}
 			}
 		}
-		if ( 'modpress' === $route['page'] && in_array( $route['group'], array( 'manage-mod', 'mods' ), true ) && wp_script_is( 'modpress-admin', 'enqueued' ) ) {
-			LoaderHelper::localize_script(
-				'modpress-admin',
-				'modpressManager',
-				array(
-					'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
-					'nonce'              => wp_create_nonce( 'modpress_manage' ),
-					'getGroupNonce'      => wp_create_nonce( 'modpress_get_group' ),
-					'getGroupEntryNonce' => wp_create_nonce( 'modpress_get_group_entry' ),
-				)
-			);
+		$mod_manager_handles = array( 'modpress-admin-mods', 'modpress-admin' );
+		if ( 'modpress' === $route['page'] && in_array( $route['group'], array( 'manage-mod', 'mods' ), true ) ) {
+			foreach ( $mod_manager_handles as $handle ) {
+				if ( wp_script_is( $handle, 'enqueued' ) ) {
+					LoaderHelper::localize_script(
+						$handle,
+						'modpressManager',
+						array(
+							'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
+							'nonce'              => wp_create_nonce( 'modpress_manage' ),
+							'getGroupNonce'      => wp_create_nonce( 'modpress_get_group' ),
+							'getGroupEntryNonce' => wp_create_nonce( 'modpress_get_group_entry' ),
+						)
+					);
+				}
+			}
 		}
 	}
 
