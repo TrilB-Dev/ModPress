@@ -1,13 +1,14 @@
-﻿<?php
-namespace ModPress\Admin\Manager\Mods;
-
+<?php
 /**
- * Group management screen for the ModPress mod manager.
- *
+ * ModGroups class file.
+ * Handles the rendering and management of ModPress groups within the admin interface.
+ * 
  * @package ModPress
  * @subpackage Admin\Manager\Mods
- * @since 1.0.0
+ * @author TrilB.Dev
+ * @version 1.0.0
  */
+namespace ModPress\Admin\Manager\Mods;
 
 use ModPress\Includes\Functions\Admin\FunctionsMod;
 use ModPress\Includes\Functions\Helpers\AlertHelper;
@@ -17,7 +18,7 @@ use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\Settings\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit; // Exit if accessed directly.
 }
 
 final class ModGroups extends ModManager {
