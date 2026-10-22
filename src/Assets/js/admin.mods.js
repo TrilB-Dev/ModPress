@@ -163,14 +163,21 @@
     };
 
     const fetchGroupModalData = async (trigger) => {
-        if (!trigger || !trigger.dataset.groupKey) {
+        if (!trigger) {
             return null;
         }
 
         const { ajaxUrl, getGroupNonce } = getModpressAjaxConfig();
-        const groupKey = trigger.dataset.groupKey;
+        const groupId = trigger.dataset.groupId ? Number(trigger.dataset.groupId) : 0;
+        const groupKey = trigger.dataset.groupKey || '';
+
+        if (!groupId && !groupKey) {
+            return null;
+        }
+
         const formData = new URLSearchParams({
             action: 'modpress_get_group',
+            group_id: String(groupId),
             group_key: groupKey,
             nonce: getGroupNonce,
         });
@@ -240,12 +247,13 @@
     };
 
     const fetchEntryModalData = async (trigger) => {
-        if (!trigger || !trigger.dataset.entryId) {
+        const datasetEntryId = trigger ? (trigger.dataset.groupEntryId || trigger.dataset.entryId || '') : '';
+        if (!trigger || !datasetEntryId) {
             return null;
         }
 
         const taxonomyKey = trigger.dataset.taxonomyKey || '';
-        const entryId = Number(trigger.dataset.entryId);
+        const entryId = Number(datasetEntryId);
         if (!taxonomyKey || !entryId) {
             return null;
         }
@@ -1127,8 +1135,9 @@
             const taxonomyKey = trigger.dataset.taxonomyKey || '';
             const taxonomyLabel = trigger.dataset.taxonomyLabel || 'Group';
             const title = modalElement.querySelector('.modal-title');
+            const entryIdValue = trigger.dataset.groupEntryId || trigger.dataset.entryId || '';
             if (title) {
-                const isEdit = Boolean(trigger.dataset.entryId);
+                const isEdit = Boolean(entryIdValue);
                 title.textContent = isEdit ? 'Edit Entry - ' + taxonomyLabel : 'Add New Entry - ' + taxonomyLabel;
             }
 
@@ -1152,7 +1161,7 @@
                 renderEntryCustomFields(modalElement, {});
             };
 
-            const entryId = trigger.dataset.entryId ? Number(trigger.dataset.entryId) : 0;
+            const entryId = trigger.dataset.groupEntryId ? Number(trigger.dataset.groupEntryId) : (trigger.dataset.entryId ? Number(trigger.dataset.entryId) : 0);
             resetEntryModal();
 
             if (!entryId) {

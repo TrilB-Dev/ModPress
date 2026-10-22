@@ -52,6 +52,7 @@ final class ModGroups extends ModManager {
 
 			$group_key = trim( (string) ( $group['group_key'] ?? $taxonomy_key ) );
 			$taxonomy_tabs[] = array(
+				'id'                 => isset( $group['id'] ) ? (int) $group['id'] : 0,
 				'taxonomy'           => $taxonomy_key,
 				'key'                => $taxonomy_key,
 				'label'              => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
@@ -129,6 +130,7 @@ final class ModGroups extends ModManager {
 										'attributes' => array(
 											'data-bs-toggle' => 'modal',
 											'data-bs-target' => '#modpress-group-modal',
+											'data-group-id'  => $taxonomy['id'] ?? '',
 											'data-group-key' => $taxonomy_key,
 											'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
 
@@ -159,6 +161,7 @@ final class ModGroups extends ModManager {
                                             'attributes' => array(
                                                 'data-bs-toggle' => 'modal',
                                                 'data-bs-target' => '#modpress-entry-modal',
+												'data-group-entry-id' => '',
                                                 'data-taxonomy-key' => $taxonomy_key,
                                                 'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
                                             ),
@@ -218,7 +221,7 @@ final class ModGroups extends ModManager {
 																			'data-bs-target' => '#modpress-entry-modal',
 																			'data-taxonomy-key' => $taxonomy_key,
 																			'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-																			'data-entry-id' => (int) $term->term_id,
+																					'data-group-entry-id' => (int) $term->term_id,
 																		),
 																	)
 																); ?>

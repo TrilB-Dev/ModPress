@@ -638,19 +638,25 @@ public function get_group(): void {
 
 		check_ajax_referer( 'modpress_get_group', 'nonce' );
 
+		$group_id  = RequestHelper::integer( $_POST, 'group_id', 0 );
 		$group_key = RequestHelper::key( $_POST, 'group_key', '' );
-		if ( '' === $group_key ) {
-			wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 400 );
-		}
 
-		$lookup_value = sanitize_key( (string) $group_key );
-		if ( '' === $lookup_value ) {
-			wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 400 );
-		}
+		if ( $group_id > 0 ) {
+			$group_row = DBHelper::get_by_id( 'groups', $group_id );
+		} else {
+			if ( '' === $group_key ) {
+				wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 400 );
+			}
 
-		$group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_value ) );
-		if ( empty( $group_row ) ) {
-			$group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_value ) );
+			$lookup_value = sanitize_key( (string) $group_key );
+			if ( '' === $lookup_value ) {
+				wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 400 );
+			}
+
+			$group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_value ) );
+			if ( empty( $group_row ) ) {
+				$group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_value ) );
+			}
 		}
 
 		if ( empty( $group_row ) ) {
