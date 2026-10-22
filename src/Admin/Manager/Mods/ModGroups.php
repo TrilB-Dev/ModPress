@@ -130,11 +130,11 @@ final class ModGroups extends ModManager {
 										'raw' => true,
 										'attributes' => array(
 											'data-bs-toggle' => 'modal',
-													'data-bs-target' => '#modpress-group-modal-' . sanitize_html_class( (string) ( $taxonomy['group_key'] ?? $taxonomy_key ) ),
-													'data-group-id'  => $taxonomy['id'] ?? '',
-													'data-group-key' => $taxonomy_key,
-													'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-													'aria-label' => __( 'Edit group', 'modpress' ),
+											'data-bs-target' => '#modpress-group-modal-' . sanitize_html_class( (string) ( $taxonomy['group_key'] ?? $taxonomy_key ) ),
+											'data-group-id'  => $taxonomy['id'] ?? '',
+											'data-group-key' => (string) ( $taxonomy['group_key'] ?? $taxonomy_key ),
+											'data-group-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+											'aria-label' => __( 'Edit group', 'modpress' ),
 										),
 									)
 								); ?>
@@ -372,6 +372,7 @@ final class ModGroups extends ModManager {
 			}
 		}
 		$selected_group_key = (string) ( $selected_group['group_key'] ?? $selected_group['taxonomy'] ?? $selected_group['key'] ?? '' );
+		$selected_group_key = '' !== $selected_group_key ? $selected_group_key : (string) ( $selected_group['group_slug'] ?? '' );
 		$modal_id = '' === $selected_group_key ? 'modpress-group-modal' : 'modpress-group-modal-' . sanitize_html_class( $selected_group_key );
 		$modal_title = '' === $selected_group_key ? __( 'Add Group', 'modpress' ) : __( 'Edit Group', 'modpress' );
 		?>
