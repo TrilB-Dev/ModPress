@@ -73,7 +73,7 @@
         });
     };
 
-    const syncGroupParentField = (groupKey = '', modal = document.getElementById('modpress-group-modal')) => {
+    const syncGroupParentField = (groupKey = '', modal = document.getElementById('modpress-group-modal'), selectedParentEntry = '') => {
         const row = modal ? modal.querySelector('#modpress-group-parent-row') : document.getElementById('modpress-group-parent-row');
         const select = modal ? modal.querySelector('[name="group_parent"]') : document.getElementById('group_parent');
         const parentEntryRow = modal ? modal.querySelector('#modpress-group-parent-entry-row') : document.getElementById('modpress-group-parent-entry-row');
@@ -97,8 +97,9 @@
         }
 
         if (parentEntrySelect) {
+            const defaultParentEntry = String(selectedParentEntry || parentEntrySelect.value || '').trim();
             const entries = getGroupParentEntries(select.value || '', modal);
-            populateParentEntryOptions(entries, parentEntrySelect.value || '', modal);
+            populateParentEntryOptions(entries, defaultParentEntry, modal);
             refreshBootstrapSelect(parentEntrySelect);
         }
 
@@ -624,8 +625,9 @@
             groupParentInput.value = parentValue;
             refreshBootstrapSelect(groupParentInput);
         }
+
+        const selectedParentEntry = groupData.group_parent_entry ? String(groupData.group_parent_entry) : '';
         if (groupParentEntryInput) {
-            const selectedParentEntry = groupData.group_parent_entry ? String(groupData.group_parent_entry) : '';
             groupParentEntryInput.value = selectedParentEntry;
             refreshBootstrapSelect(groupParentEntryInput);
         }
@@ -636,7 +638,7 @@
         }
 
         populateCustomFieldRows(groupData, modalElement);
-        syncGroupParentField(groupKey, modalElement);
+        syncGroupParentField(groupKey, modalElement, selectedParentEntry);
         syncGroupDeleteState(modalElement);
     };
 
