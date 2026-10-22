@@ -1084,7 +1084,12 @@
 
             bindCustomFieldButtons();
 
-            if (!trigger || isAddGroup) {
+            if (!trigger) {
+                resetGroupModal();
+                return;
+            }
+
+            if (isAddGroup) {
                 resetGroupModal();
                 return;
             }
@@ -1100,18 +1105,15 @@
                 return;
             }
 
-            fetchGroupModalData(trigger)
-                .then((groupData) => {
-                    if (!groupData) {
-                        resetGroupModal();
-                        return;
-                    }
-                    populateGroupModal(groupData);
-                })
-                .catch((error) => {
-                    console.warn('[ModPress] Group data fetch failed:', error);
-                    resetGroupModal();
-                });
+            const hiddenField = groupModalElement.querySelector('[name="group_edit_key"]');
+            if (hiddenField) {
+                hiddenField.value = groupKey;
+            }
+
+            const title = groupModalElement.querySelector('.modal-title');
+            if (title) {
+                title.textContent = 'Edit Group';
+            }
         });
     }
 
