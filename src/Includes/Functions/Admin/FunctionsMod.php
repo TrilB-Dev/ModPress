@@ -636,7 +636,11 @@ public function get_group(): void {
 			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress groups.', 'modpress' ) ), 403 );
 		}
 
-		check_ajax_referer( 'modpress_get_group', 'nonce' );
+		if ( ! empty( $_POST['nonce'] ) ) {
+			check_ajax_referer( 'modpress_get_group', 'nonce' );
+		} elseif ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 403 );
+		}
 
 		$group_id  = RequestHelper::integer( $_POST, 'group_id', 0 );
 		$group_key = RequestHelper::key( $_POST, 'group_key', '' );
@@ -683,7 +687,11 @@ public function get_group(): void {
 			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress taxonomy entries.', 'modpress' ) ), 403 );
 		}
 
-		check_ajax_referer( 'modpress_get_group_entry', 'nonce' );
+		if ( ! empty( $_POST['nonce'] ) ) {
+			check_ajax_referer( 'modpress_get_group_entry', 'nonce' );
+		} elseif ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'The selected entry could not be loaded.', 'modpress' ) ), 403 );
+		}
 
 		$taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
 		$term_id  = RequestHelper::integer( $_POST, 'group_entry_id', 0 );

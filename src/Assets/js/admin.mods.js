@@ -893,31 +893,7 @@
 
         const groupEditButton = event.target.closest('.modpress-tab-edit-btn');
         if (groupEditButton) {
-            const groupKey = groupEditButton.dataset.groupKey || '';
-            const modal = document.getElementById('modpress-group-modal');
-            if (!modal || !groupKey) {
-                return;
-            }
-
-            const hiddenField = modal.querySelector('[name="group_edit_key"]');
-            if (hiddenField) {
-                hiddenField.value = groupKey;
-            }
-
-            const title = modal.querySelector('.modal-title');
-            if (title) {
-                title.textContent = 'Edit Group';
-            }
-
-            fetchGroupModalData(groupEditButton)
-                .then((groupData) => {
-                    if (groupData) {
-                        populateGroupModal(groupData);
-                    }
-                })
-                .catch(() => {
-                    resetGroupModal();
-                });
+            loadGroupModalData(groupEditButton);
         }
     });
 
@@ -1083,6 +1059,102 @@
         });
     };
 
+    const loadGroupModalData = (trigger) => {
+        if (!trigger || !trigger.matches('.modpress-tab-edit-btn')) {
+            return;
+        }
+
+        const groupKey = trigger.dataset.groupKey || '';
+        if (!groupKey) {
+            resetGroupModal();
+            return;
+        }
+
+        const modal = document.getElementById('modpress-group-modal');
+        if (!modal) {
+            return;
+        }
+
+        const hiddenField = modal.querySelector('[name="group_edit_key"]');
+        if (hiddenField) {
+            hiddenField.value = groupKey;
+        }
+
+        const title = modal.querySelector('.modal-title');
+        if (title) {
+            title.textContent = 'Edit Group';
+        }
+
+        fetchGroupModalData(trigger)
+            .then((groupData) => {
+                if (groupData) {
+                    populateGroupModal(groupData);
+                }
+            })
+            .catch(() => {
+                resetGroupModal();
+            });
+    };
+
+    const loadEntryModalData = (trigger) => {
+        if (!trigger) {
+            return;
+        }
+
+        const modalElement = document.getElementById('modpress-entry-modal');
+        if (!modalElement) {
+            return;
+        }
+
+        const taxonomyKey = trigger.dataset.taxonomyKey || '';
+        const taxonomyLabel = trigger.dataset.taxonomyLabel || 'Group';
+        const title = modalElement.querySelector('.modal-title');
+        const entryIdValue = trigger.dataset.groupEntryId || trigger.dataset.entryId || '';
+        if (title) {
+            const isEdit = Boolean(entryIdValue);
+            title.textContent = isEdit ? 'Edit Entry - ' + taxonomyLabel : 'Add New Entry - ' + taxonomyLabel;
+        }
+
+        const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
+        fieldsToReset.forEach((fieldName) => {
+            const input = modalElement.querySelector('[name="' + fieldName + '"]');
+            if (input) {
+                input.value = '';
+            }
+        });
+
+        const taxonomyField = modalElement.querySelector('[name="group_slug"]');
+        if (taxonomyField) {
+            taxonomyField.value = taxonomyKey;
+        }
+        const formTaxonomyField = modalElement.querySelector('[name="entry_group_taxonomy"]');
+        if (formTaxonomyField) {
+            formTaxonomyField.value = taxonomyKey;
+        }
+        renderEntryCustomFields(modalElement, {});
+
+        const entryId = trigger.dataset.groupEntryId ? Number(trigger.dataset.groupEntryId) : (trigger.dataset.entryId ? Number(trigger.dataset.entryId) : 0);
+        if (!entryId) {
+            return;
+        }
+
+        const entryIdField = modalElement.querySelector('[name="group_entry_id"]');
+        if (entryIdField) {
+            entryIdField.value = String(entryId);
+        }
+
+        fetchEntryModalData(trigger)
+            .then((entryData) => {
+                if (!entryData) {
+                    return;
+                }
+                populateEntryModalFields(modalElement, entryData, taxonomyKey);
+            })
+            .catch((error) => {
+                console.warn('[ModPress] Entry data fetch failed:', error);
+            });
+    };
+
     const groupModalElement = document.getElementById('modpress-group-modal');
     if (groupModalElement) {
         groupModalElement.addEventListener('show.bs.modal', (event) => {
@@ -1107,21 +1179,7 @@
                 return;
             }
 
-            const groupKey = trigger.dataset.groupKey || '';
-            if (!groupKey) {
-                resetGroupModal();
-                return;
-            }
-
-            const hiddenField = groupModalElement.querySelector('[name="group_edit_key"]');
-            if (hiddenField) {
-                hiddenField.value = groupKey;
-            }
-
-            const title = groupModalElement.querySelector('.modal-title');
-            if (title) {
-                title.textContent = 'Edit Group';
-            }
+            loadGroupModalData(trigger);
         });
     }
 
@@ -1132,57 +1190,7 @@
             if (!trigger) {
                 return;
             }
-            const taxonomyKey = trigger.dataset.taxonomyKey || '';
-            const taxonomyLabel = trigger.dataset.taxonomyLabel || 'Group';
-            const title = modalElement.querySelector('.modal-title');
-            const entryIdValue = trigger.dataset.groupEntryId || trigger.dataset.entryId || '';
-            if (title) {
-                const isEdit = Boolean(entryIdValue);
-                title.textContent = isEdit ? 'Edit Entry - ' + taxonomyLabel : 'Add New Entry - ' + taxonomyLabel;
-            }
-
-            const resetEntryModal = () => {
-                const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
-                fieldsToReset.forEach((fieldName) => {
-                    const input = modalElement.querySelector('[name="' + fieldName + '"]');
-                    if (input) {
-                        input.value = '';
-                    }
-                });
-
-                const taxonomyField = modalElement.querySelector('[name="group_slug"]');
-                if (taxonomyField) {
-                    taxonomyField.value = taxonomyKey;
-                }
-                const formTaxonomyField = modalElement.querySelector('[name="entry_group_taxonomy"]');
-                if (formTaxonomyField) {
-                    formTaxonomyField.value = taxonomyKey;
-                }
-                renderEntryCustomFields(modalElement, {});
-            };
-
-            const entryId = trigger.dataset.groupEntryId ? Number(trigger.dataset.groupEntryId) : (trigger.dataset.entryId ? Number(trigger.dataset.entryId) : 0);
-            resetEntryModal();
-
-            if (!entryId) {
-                return;
-            }
-
-            const entryIdField = modalElement.querySelector('[name="group_entry_id"]');
-            if (entryIdField) {
-                entryIdField.value = String(entryId);
-            }
-
-            fetchEntryModalData(trigger)
-                .then((entryData) => {
-                    if (!entryData) {
-                        return;
-                    }
-                    populateEntryModalFields(modalElement, entryData, taxonomyKey);
-                })
-                .catch((error) => {
-                    console.warn('[ModPress] Entry data fetch failed:', error);
-                });
+            loadEntryModalData(trigger);
         });
     }
 
