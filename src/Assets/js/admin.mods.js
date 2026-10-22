@@ -452,6 +452,39 @@
         });
     };
 
+    const syncGroupDeleteState = () => {
+        const modal = document.getElementById('modpress-group-modal');
+        if (!modal) {
+            return;
+        }
+
+        const deleteWrap = modal.querySelector('.modpress-group-delete-wrap');
+        const deleteButton = modal.querySelector('[data-role="delete-group"]');
+        const editKeyInput = modal.querySelector('[name="group_edit_key"]');
+        const deleteForm = modal.querySelector('#modpress-group-delete-form');
+        const deleteGroupIdInput = deleteForm ? deleteForm.querySelector('[name="group_id"]') : null;
+        const deleteGroupKeyInput = deleteForm ? deleteForm.querySelector('[name="group_edit_key"]') : null;
+        const groupKey = String(editKeyInput ? editKeyInput.value : '').trim();
+        const shouldShowDelete = Boolean(groupKey) && groupKey !== 'modpress_type';
+
+        if (deleteWrap) {
+            deleteWrap.classList.toggle('d-none', !shouldShowDelete);
+        }
+
+        if (deleteButton) {
+            deleteButton.disabled = !shouldShowDelete;
+        }
+
+        if (deleteForm) {
+            if (deleteGroupIdInput) {
+                deleteGroupIdInput.value = deleteForm.dataset.groupId || '';
+            }
+            if (deleteGroupKeyInput) {
+                deleteGroupKeyInput.value = groupKey;
+            }
+        }
+    };
+
     const resetGroupModal = () => {
         const modal = document.getElementById('modpress-group-modal');
         if (!modal) {
@@ -485,12 +518,25 @@
             hierarchicalInput.checked = false;
         }
 
+        const deleteForm = modal.querySelector('#modpress-group-delete-form');
+        if (deleteForm) {
+            const groupIdInput = deleteForm.querySelector('[name="group_id"]');
+            const groupKeyInput = deleteForm.querySelector('[name="group_edit_key"]');
+            if (groupIdInput) {
+                groupIdInput.value = '';
+            }
+            if (groupKeyInput) {
+                groupKeyInput.value = '';
+            }
+        }
+
         const modalTitle = modal.querySelector('.modal-title');
         if (modalTitle) {
             modalTitle.textContent = 'Add Group';
         }
 
         syncGroupParentField('');
+        syncGroupDeleteState();
     };
 
     const populateGroupModal = (groupData = {}) => {
@@ -503,6 +549,20 @@
         const hiddenField = modal.querySelector('[name="group_edit_key"]');
         if (hiddenField) {
             hiddenField.value = groupKey;
+        }
+
+        const deleteForm = modal.querySelector('#modpress-group-delete-form');
+        if (deleteForm) {
+            const deleteIdInput = deleteForm.querySelector('[name="group_id"]');
+            const deleteKeyInput = deleteForm.querySelector('[name="group_edit_key"]');
+            const resolvedId = String(groupData.group_id || groupData.id || '').trim();
+            if (deleteIdInput) {
+                deleteIdInput.value = resolvedId;
+                deleteForm.dataset.groupId = resolvedId;
+            }
+            if (deleteKeyInput) {
+                deleteKeyInput.value = groupKey;
+            }
         }
 
         const modalTitle = modal.querySelector('.modal-title');
@@ -551,6 +611,7 @@
 
         populateCustomFieldRows(groupData);
         syncGroupParentField(groupKey);
+        syncGroupDeleteState();
     };
 
     const getNextCustomFieldIndex = () => {
@@ -885,6 +946,23 @@
             const optionRow = removeOptionButton.closest('.modpress-option-row');
             if (optionRow) {
                 optionRow.remove();
+            }
+            return;
+        }
+
+        const deleteGroupButton = event.target.closest('[data-role="delete-group"]');
+        if (deleteGroupButton) {
+            event.preventDefault();
+            const form = deleteGroupButton.closest('form');
+            if (!form) {
+                return;
+            }
+            const groupKey = form.querySelector('[name="group_edit_key"]')?.value || '';
+            if (groupKey && groupKey !== 'modpress_type') {
+                if (!window.confirm('Delete this group?')) {
+                    return;
+                }
+                form.submit();
             }
             return;
         }
