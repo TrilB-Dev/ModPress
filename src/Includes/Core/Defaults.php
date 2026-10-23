@@ -56,21 +56,22 @@ final class Defaults {
 		$taxonomies = array_unique( array_merge(
 			get_taxonomies( array(), 'names' ),
 			array(
-				'mod_software',
-				'mod_platforms',
-				'mod_asset_type',
-				'mod_web_extension',
-				'mod_games',
-				'mod_type',
-				'mod_language',
-				'mod_tags',
-				'mod_status',
-				'mod_file_type',
-				'mod_changelog_category',
+				'modpress_software',
+				'modpress_platforms',
+				'modpress_assets',
+				'modpress_web',
+				'modpress_games',
+				'modpress_type',
+				'modpress_language',
+				'modpress_tags',
+				'modpress_mod_status',
+				'modpress_file_type',
+				'modpress_changelog_category',
+				'modpress_licences',
 			)
 		) );
 		foreach ( $taxonomies as $taxonomy ) {
-			if ( 0 !== strpos( (string) $taxonomy, 'modpress_' ) && 0 !== strpos( (string) $taxonomy, 'mod_' ) ) {
+			if ( 0 !== strpos( (string) $taxonomy, 'modpress_' ) ) {
 				continue;
 			}
 
