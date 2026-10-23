@@ -145,7 +145,37 @@ final class ModGroups extends ModManager {
 					<div class="tab-content mt-4" id="modpress-group-tab-content">
 						<?php foreach ( $taxonomy_tabs as $index => $taxonomy ) : ?>
 							<?php $taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' ); ?>
-							<?php $terms = taxonomy_exists( $taxonomy_key ) ? get_terms( array( 'taxonomy' => $taxonomy_key, 'hide_empty' => false ) ) : array(); ?>
+							<?php
+								$group_page_key = 'modpress_group_page_' . sanitize_key( $taxonomy_key );
+								$current_page = absint( $_GET[ $group_page_key ] ?? 1 );
+								$per_page = 10;
+								$terms_response = taxonomy_exists( $taxonomy_key ) ? get_terms(
+									array(
+										'taxonomy'   => $taxonomy_key,
+										'hide_empty' => false,
+										'fields'     => 'ids',
+									)
+								) : array();
+								$total_terms = is_wp_error( $terms_response ) ? 0 : count( (array) $terms_response );
+								$total_pages = 0 === $total_terms ? 1 : (int) ceil( $total_terms / $per_page );
+								$current_page = max( 1, min( $current_page, $total_pages ) );
+								$terms = taxonomy_exists( $taxonomy_key ) ? get_terms(
+									array(
+										'taxonomy' => $taxonomy_key,
+										'hide_empty' => false,
+										'number' => $per_page,
+										'offset' => ( $current_page - 1 ) * $per_page,
+									)
+								) : array();
+								$pagination_args = array();
+								foreach ( $taxonomy_tabs as $taxonomy_nav ) {
+									$taxonomy_nav_key = 'modpress_group_page_' . sanitize_key( (string) ( $taxonomy_nav['taxonomy'] ?? $taxonomy_nav['key'] ?? '' ) );
+									if ( '' !== $taxonomy_nav_key ) {
+										$pagination_args[] = $taxonomy_nav_key;
+									}
+								}
+								$pagination_base = remove_query_arg( $pagination_args, wp_unslash( $_SERVER['REQUEST_URI'] ?? admin_url( 'admin.php' ) ) );
+							?>
 							<div
 								class="tab-pane fade <?php echo 0 === $index ? 'show active' : ''; ?>"
 								id="modpress-taxonomy-pane-<?php echo esc_attr( $taxonomy_key ); ?>"
@@ -197,57 +227,75 @@ final class ModGroups extends ModManager {
 										</thead>
 										<tbody>
 											<?php if ( empty( $terms ) || is_wp_error( $terms ) ) : ?>
-												<tr>
-													<td colspan="5" class="text-muted text-center py-4"><?php esc_html_e( 'No entries in this group yet.', 'modpress' ); ?></td>
-												</tr>
-											<?php else : ?>
-												<?php foreach ( $terms as $term ) : ?>
-													<tr>
-														<td>
-															<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php echo esc_attr( $term->name ); ?>" />
-														</td>
-														<td><?php echo esc_html( $term->name ); ?></td>
-														<td><?php echo esc_html( $term->slug ); ?></td>
-														<td><?php echo esc_html( wp_trim_words( $term->description, 12 ) ); ?></td>
-														<td class="text-end">
-															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
-																<?php echo FormFieldHelper::button(
-																	__( 'Edit', 'modpress' ),
-																	array(
-																		'type' => 'button',
-																		'class' => 'btn btn-outline-secondary',
-																		'attributes' => array(
-																			'data-bs-toggle' => 'modal',
-																			'data-bs-target' => '#modpress-entry-modal',
-																			'data-taxonomy-key' => $taxonomy_key,
-																			'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-																					'data-group-entry-id' => (int) $term->term_id,
-																		),
-																	)
-																); ?>
-																	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete entry', 'modpress' ); ?>">
-																		<input type="hidden" name="action" value="modpress_delete_group_entry" />
-																		<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
-																		<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
-																		<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
-																		<?php echo FormFieldHelper::button(
-																			__( 'Delete', 'modpress' ),
-																			array(
-																				'type' => 'submit',
-																				'class' => 'btn btn-outline-danger',
-																				'attributes' => array(
-																					'data-role' => 'delete-group-entry',
-																				),
-																			)
-																		); ?>
-																	</form>
-															</div>
-														</td>
-													</tr>
-												<?php endforeach; ?>
-											<?php endif; ?>
-										</tbody>
-									</table>
+<tr>
+<td colspan="5" class="text-muted text-center py-4"><?php esc_html_e( 'No entries in this group yet.', 'modpress' ); ?></td>
+</tr>
+<?php else : ?>
+<?php foreach ( $terms as $term ) : ?>
+<tr>
+<td>
+<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php echo esc_attr( $term->name ); ?>" />
+</td>
+<td><?php echo esc_html( $term->name ); ?></td>
+<td><?php echo esc_html( $term->slug ); ?></td>
+<td><?php echo esc_html( wp_trim_words( $term->description, 12 ) ); ?></td>
+<td class="text-end">
+<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
+<?php echo FormFieldHelper::button(
+    __( 'Edit', 'modpress' ),
+    array(
+        'type' => 'button',
+        'class' => 'btn btn-outline-secondary',
+        'attributes' => array(
+            'data-bs-toggle' => 'modal',
+            'data-bs-target' => '#modpress-entry-modal',
+            'data-taxonomy-key' => $taxonomy_key,
+            'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+            'data-group-entry-id' => (int) $term->term_id,
+        ),
+    )
+); ?>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete entry', 'modpress' ); ?>">
+<input type="hidden" name="action" value="modpress_delete_group_entry" />
+<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
+<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
+<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
+<?php echo FormFieldHelper::button(
+    __( 'Delete', 'modpress' ),
+    array(
+        'type' => 'submit',
+        'class' => 'btn btn-outline-danger',
+        'attributes' => array(
+            'data-role' => 'delete-group-entry',
+        ),
+    )
+); ?>
+</form>
+</div>
+</td>
+</tr>
+<?php endforeach; ?>
+<?php endif; ?>
+</tbody>
+</table>
+<?php if ( $total_terms > $per_page ) : ?>
+<nav aria-label="<?php esc_attr_e( 'Group pagination', 'modpress' ); ?>" class="mt-3">
+    <ul class="pagination pagination-sm justify-content-end mb-0">
+        <li class="page-item <?php echo 1 === $current_page ? 'disabled' : ''; ?>">
+            <a class="page-link" href="<?php echo esc_url( add_query_arg( $group_page_key, max( 1, $current_page - 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Previous', 'modpress' ); ?></a>
+        </li>
+        <?php for ( $page_no = 1; $page_no <= $total_pages; $page_no++ ) : ?>
+            <li class="page-item <?php echo $page_no === $current_page ? 'active' : ''; ?>">
+                <a class="page-link" href="<?php echo esc_url( add_query_arg( $group_page_key, $page_no, $pagination_base ) ); ?>"><?php echo esc_html( (string) $page_no ); ?></a>
+            </li>
+        <?php endfor; ?>
+        <li class="page-item <?php echo $current_page >= $total_pages ? 'disabled' : ''; ?>">
+            <a class="page-link" href="<?php echo esc_url( add_query_arg( $group_page_key, min( $total_pages, $current_page + 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Next', 'modpress' ); ?></a>
+        </li>
+    </ul>
+</nav>
+<?php endif; ?>
+
 								</div>
 							</div>
 						<?php endforeach; ?>
