@@ -159,9 +159,9 @@ final class Defaults {
 
 		$group_rows = array(
 			'modpress_assets' => array(
-				'group_name' => 'Mod Asset Type',
-				'group_slug' => 'asset-type',
-				'group_singular_name' => 'Mod Asset Type',
+				'group_name' => 'Asset Types',
+				'group_slug' => 'assets',
+				'group_singular_name' => 'Asset Type',
 				'group_description' => 'The Mod Asset Type group is used to categorise your mods by their asset type.',
 				'group_parent_entry' => array( $type_term_map['asset'] ?? 0 ),
 			),
@@ -237,19 +237,19 @@ final class Defaults {
 
         $types = array(
             'Asset' => array(
-                'slug'        => 'asset',
+                'slug'        => 'assets',
                 'description' => 'Asset type',
             ),
             'Game Mod' => array(
-                'slug'        => 'game-mod',
+                'slug'        => 'games',
                 'description' => 'Game Mod type',
             ),
             'Software Extension' => array(
-                'slug'        => 'software-extension',
+                'slug'        => 'software',
                 'description' => 'Software Extension type',
             ),
             'Web Extension' => array(
-                'slug'        => 'web-extension',
+                'slug'        => 'web',
                 'description' => 'Web Extension type',
             ),
         );
