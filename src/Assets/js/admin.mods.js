@@ -228,7 +228,6 @@
             }
 
             pane.innerHTML = nextPane.innerHTML;
-            window.history.pushState({}, '', nextUrl.toString());
             syncDeleteButtons();
             return true;
         } catch (error) {
