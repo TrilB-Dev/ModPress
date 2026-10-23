@@ -51,6 +51,15 @@ final class Import extends ToolsManager {
 		)->run();
 	}
 	/**
+	 * Render the import page content using the shared manager contract.
+	 *
+	 * @return void
+	 */
+	public function render_page_content(): void {
+		$this->render();
+	}
+
+	/**
 	 * Render the import form.
 	 *
 	 * @return void
