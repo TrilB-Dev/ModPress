@@ -53,9 +53,24 @@ final class Defaults {
 	}
 
 	private static function delete_default_terms(): void {
-		$taxonomies = get_taxonomies( array(), 'names' );
+		$taxonomies = array_unique( array_merge(
+			get_taxonomies( array(), 'names' ),
+			array(
+				'mod_software',
+				'mod_platforms',
+				'mod_asset_type',
+				'mod_web_extension',
+				'mod_games',
+				'mod_type',
+				'mod_language',
+				'mod_tags',
+				'mod_status',
+				'mod_file_type',
+				'mod_changelog_category',
+			)
+		) );
 		foreach ( $taxonomies as $taxonomy ) {
-			if ( 0 !== strpos( (string) $taxonomy, 'modpress_' ) ) {
+			if ( 0 !== strpos( (string) $taxonomy, 'modpress_' ) && 0 !== strpos( (string) $taxonomy, 'mod_' ) ) {
 				continue;
 			}
 
@@ -170,9 +185,9 @@ final class Defaults {
 				'group_description' => 'The Web Extension that mods belong to. This group is used to categorise your mods by their web extensions.',
 				'group_parent_entry' => array( $type_term_map['web-extension'] ?? $type_term_map['web_extension'] ?? 0 ),
 			),
-			'modpress_platform' => array(
+			'modpress_platforms' => array(
 				'group_name' => 'Platforms',
-				'group_slug' => 'platform',
+				'group_slug' => 'platforms',
 				'group_singular_name' => 'Platform',
 				'group_description' => 'The Platform that mods belong to. This group is used to categorise your mods by their platform.',
 				'group_parent_entry' => array_filter( array( $type_term_map['game-mod'] ?? $type_term_map['game_mod'] ?? 0, $type_term_map['software-extension'] ?? $type_term_map['software_extension'] ?? 0 ) ),
@@ -1123,8 +1138,8 @@ final class Defaults {
             ]
         ];
         foreach ( $software as $name => $data ) {
-            if ( ! term_exists( $name, 'mod_software' ) ) {
-                $result = wp_insert_term( $name, 'mod_software', array(
+            if ( ! term_exists( $name, 'modpress_software' ) ) {
+                $result = wp_insert_term( $name, 'modpress_software', array(
                     'slug'        => $data['slug'],
                     'description' => $data['description'],
                 ) );
