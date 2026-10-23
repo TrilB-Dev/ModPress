@@ -438,13 +438,15 @@ final class FunctionsMod {
             }
         }
 
-        $parent_value = RequestHelper::value( $_POST, 'group_parent', '' );
+        $parent_values = RequestHelper::value( $_POST, 'group_parent', array() );
+        $parent_values = is_array( $parent_values ) ? array_map( 'strval', $parent_values ) : array( (string) $parent_values );
+        $parent_value = trim( (string) ( $parent_values[0] ?? '' ) );
         $parent_id    = 0;
 
         if ( is_numeric( $parent_value ) ) {
             $parent_id = absint( $parent_value );
-        } elseif ( '' !== (string) $parent_value ) {
-            $resolved_parent_key = sanitize_key( (string) $parent_value );
+        } elseif ( '' !== $parent_value ) {
+            $resolved_parent_key = sanitize_key( $parent_value );
             $parent_group = DBHelper::get_row( 'groups', array( 'group_slug' => $resolved_parent_key ) );
             if ( empty( $parent_group ) ) {
                 $parent_group = DBHelper::get_row( 'groups', array( 'group_key' => $resolved_parent_key ) );
@@ -455,12 +457,14 @@ final class FunctionsMod {
             }
         }
 
-        $parent_entry_value = RequestHelper::value( $_POST, 'group_parent_entry', '' );
+        $parent_entry_values = RequestHelper::value( $_POST, 'group_parent_entry', array() );
+        $parent_entry_values = is_array( $parent_entry_values ) ? array_map( 'strval', $parent_entry_values ) : array( (string) $parent_entry_values );
+        $parent_entry_value = trim( (string) ( $parent_entry_values[0] ?? '' ) );
         $parent_entry_id    = 0;
 
         if ( is_numeric( $parent_entry_value ) ) {
             $parent_entry_id = absint( $parent_entry_value );
-        } elseif ( '' !== (string) $parent_entry_value ) {
+        } elseif ( '' !== $parent_entry_value ) {
             $parent_entry_id = absint( $parent_entry_value );
         }
 

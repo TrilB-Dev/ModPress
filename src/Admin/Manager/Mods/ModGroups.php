@@ -487,30 +487,35 @@ final class ModGroups extends ModManager {
 														'group_parent',
 														__( 'Parent Group', 'modpress' ),
 														function () use ( $group_parent_options, $group_entries, $selected_group ) {
-															$parent_group_select = FormFieldHelper::bootstrap_select(
+															$selected_parent_group_value = $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? '';
+																																																					$selected_parent_group_values = is_array( $selected_parent_group_value )
+																																																						? array_map( 'strval', $selected_parent_group_value )
+																																																						: array_filter( array_map( 'strval', (array) $selected_parent_group_value ) );
+																																																					$parent_group_select = FormFieldHelper::bootstrap_multiselect(
 																'group_parent',
 																array(
 																	'data' => $group_parent_options,
-																	'selected' => (string) ( $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? '' ),
+																	'selected' => $selected_parent_group_values,
 																	'id' => 'group_parent',
 																	'placeholder' => __( 'Select a parent group', 'modpress' ),
 																)
 															);
-											$selected_parent_group = (string) ( $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? '' );
-											$selected_parent_entry = (string) ( $selected_group['group_parent_entry'] ?? '' );
-											$parent_entry_data = array();
-											if ( '' !== $selected_parent_group && isset( $group_entries[ $selected_parent_group ] ) ) {
-												$parent_entry_data = $group_entries[ $selected_parent_group ];
-											}
-											$parent_entry_select = FormFieldHelper::bootstrap_select(
-												'group_parent_entry',
-												array(
-													'data' => $parent_entry_data,
-													'selected' => $selected_parent_entry,
-																	'id' => 'group_parent_entry',
-																	'placeholder' => __( 'Select a parent entry', 'modpress' ),
-																)
-															);
+															$selected_parent_group = (string) ( $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? '' );
+															$selected_parent_entry = (string) ( $selected_group['group_parent_entry'] ?? '' );
+															$parent_entry_data = array();
+															if ( '' !== $selected_parent_group && isset( $group_entries[ $selected_parent_group ] ) ) {
+																$parent_entry_data = $group_entries[ $selected_parent_group ];
+															}
+															$selected_parent_entry_values = array_filter( array_map( 'strval', (array) $selected_parent_entry ) );
+																																																					$parent_entry_select = FormFieldHelper::bootstrap_multiselect(
+																'group_parent_entry',
+																array(
+																	'data' => $parent_entry_data,
+																	'selected' => $selected_parent_entry_values,
+																					'id' => 'group_parent_entry',
+																					'placeholder' => __( 'Select a parent entry', 'modpress' ),
+																				)
+																			);
 
 															return 	'<div class="d-flex align-items-end flex-wrap gap-3 w-100">' .
 																	'<div class="flex-fill min-width-0">' . $parent_group_select . '</div>' .

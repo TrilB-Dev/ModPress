@@ -89,7 +89,7 @@ final class Taxonomies {
 			array(
 				'label'             => __( 'File Types', 'modpress' ),
 				'description'       => __( 'Types used to categorise files.', 'modpress' ),
-				'post_type'       	=> array( 'modpress_file' ),
+				'post_type'       	=> array( 'modpress_file', 'modpress_mod' ),
 				'hierarchical'      => true,
 				'public'            => true,
 				'show_ui'           => true,
@@ -119,6 +119,50 @@ final class Taxonomies {
 				'show_admin_column' => true,
 				'show_in_rest'      => true,
 				'rewrite'           => array( 'slug' => 'file-links' ),
+			)
+		);
+	}
+
+	public static function mod_status_taxonomy(): bool {
+		if ( taxonomy_exists( 'modpress_mod_status' ) ) {
+			return false;
+		}
+
+		return Taxonomy::create(
+			'modpress_mod_status',
+			array(
+				'label'             => __( 'Mod Statuses', 'modpress' ),
+				'description'       => __( 'Statuses used to describe mods.', 'modpress' ),
+				'post_type'       	=> array( 'modpress_mod' ),
+				'hierarchical'      => true,
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => false,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'rewrite'           => array( 'slug' => 'mod-statuses' ),
+			)
+		);
+	}
+
+	public static function licence_taxonomy(): bool {
+		if ( taxonomy_exists( 'modpress_licence' ) ) {
+			return false;
+		}
+
+		return Taxonomy::create(
+			'modpress_licence',
+			array(
+				'label'             => __( 'Licences', 'modpress' ),
+				'description'       => __( 'Licences used to describe mods.', 'modpress' ),
+				'post_type'       	=> array( 'modpress_mod' ),
+				'hierarchical'      => true,
+				'public'            => true,
+				'show_ui'           => true,
+				'show_in_menu'      => false,
+				'show_admin_column' => true,
+				'show_in_rest'      => true,
+				'rewrite'           => array( 'slug' => 'mod-licences' ),
 			)
 		);
 	}
