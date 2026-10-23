@@ -1122,11 +1122,14 @@ final class Defaults {
                 'description' => 'Illustrator software'
             ]
         ];
-        foreach ( $software as $item ) {
-            if ( ! term_exists( $item, 'mod_software' ) ) {
-                $result = wp_insert_term( $item, 'mod_software' );
+        foreach ( $software as $name => $data ) {
+            if ( ! term_exists( $name, 'mod_software' ) ) {
+                $result = wp_insert_term( $name, 'mod_software', array(
+                    'slug'        => $data['slug'],
+                    'description' => $data['description'],
+                ) );
                 if ( is_wp_error( $result ) ) {
-                    LoggerHelper::write_log( 'ModPress: Failed to create software term ' . $item . ': ' . $result->get_error_message() );
+                    LoggerHelper::write_log( 'ModPress: Failed to create software term ' . $name . ': ' . $result->get_error_message() );
                 }
             }
         }
@@ -1167,11 +1170,14 @@ final class Defaults {
                 'description' => 'Discord web platform'
             ]
         ];
-        foreach ( $Web as $item ) {
-            if ( ! term_exists( $item, 'modpress_web' ) ) {
-                $result = wp_insert_term( $item, 'modpress_web' );
+        foreach ( $Web as $name => $data ) {
+            if ( ! term_exists( $name, 'modpress_web' ) ) {
+                $result = wp_insert_term( $name, 'modpress_web', array(
+                    'slug'        => $data['slug'],
+                    'description' => $data['description'],
+                ) );
                 if ( is_wp_error( $result ) ) {
-                    LoggerHelper::write_log( 'ModPress: Failed to create web platform term ' . $item . ': ' . $result->get_error_message() );
+                    LoggerHelper::write_log( 'ModPress: Failed to create web platform term ' . $name . ': ' . $result->get_error_message() );
                 }
             }
         }
@@ -1298,11 +1304,14 @@ final class Defaults {
                 'description' => 'Space Engineers game'
             ]
         ];
-        foreach ( $games as $game ) {
-            if ( ! term_exists( $game, 'modpress_games' ) ) {
-                $result = wp_insert_term( $game, 'modpress_games' );
+        foreach ( $games as $name => $data ) {
+            if ( ! term_exists( $name, 'modpress_games' ) ) {
+                $result = wp_insert_term( $name, 'modpress_games', array(
+                    'slug'        => $data['slug'],
+                    'description' => $data['description'],
+                ) );
                 if ( is_wp_error( $result ) ) {
-                    LoggerHelper::write_log( 'ModPress: Failed to create game term ' . $game . ': ' . $result->get_error_message() );
+                    LoggerHelper::write_log( 'ModPress: Failed to create game term ' . $name . ': ' . $result->get_error_message() );
                 }
             }
         }
@@ -1378,11 +1387,14 @@ final class Defaults {
                 'description' => 'Steam VR platform'
             ]
         ];
-        foreach ( $platforms as $platform ) {
-            if ( ! term_exists( $platform, 'modpress_platforms' ) ) {
-                $result = wp_insert_term( $platform, 'modpress_platforms' );
+        foreach ( $platforms as $name => $data ) {
+            if ( ! term_exists( $name, 'modpress_platforms' ) ) {
+                $result = wp_insert_term( $name, 'modpress_platforms', array(
+                    'slug'        => $data['slug'],
+                    'description' => $data['description'],
+                ) );
                 if ( is_wp_error( $result ) ) {
-                    LoggerHelper::write_log( 'ModPress: Failed to create platform term ' . $platform . ': ' . $result->get_error_message() );
+                    LoggerHelper::write_log( 'ModPress: Failed to create platform term ' . $name . ': ' . $result->get_error_message() );
                 }
             }
         }
@@ -1462,11 +1474,14 @@ final class Defaults {
                 'description' => 'Archive assets'
             ]
         ];
-        foreach ( $asset_types as $asset_type ) {
-            if ( ! term_exists( $asset_type, 'modpress_assets' ) ) {
-                $result = wp_insert_term( $asset_type, 'modpress_assets' );
+        foreach ( $asset_types as $name => $data ) {
+            if ( ! term_exists( $name, 'modpress_assets' ) ) {
+                $result = wp_insert_term( $name, 'modpress_assets', array(
+                    'slug'        => $data['slug'],
+                    'description' => $data['description'],
+                ) );
                 if ( is_wp_error( $result ) ) {
-                    LoggerHelper::write_log( 'ModPress: Failed to create asset type term ' . $asset_type . ': ' . $result->get_error_message() );
+                    LoggerHelper::write_log( 'ModPress: Failed to create asset type term ' . $name . ': ' . $result->get_error_message() );
                 }
             }
         }
@@ -1550,11 +1565,14 @@ final class Defaults {
                 'slug' => 'lua',
                 'description' => 'Lua language'
             ] ];
-        foreach ( $languages as $language ) {
-            if ( ! term_exists( $language, 'modpress_language' ) ) {
-                $result = wp_insert_term( $language, 'modpress_language' );
+        foreach ( $languages as $name => $data ) {
+            if ( ! term_exists( $name, 'modpress_language' ) ) {
+                $result = wp_insert_term( $name, 'modpress_language', array(
+                    'slug'        => $data['slug'],
+                    'description' => $data['description'],
+                ) );
                 if ( is_wp_error( $result ) ) {
-                    LoggerHelper::write_log( 'ModPress: Failed to create language term ' . $language . ': ' . $result->get_error_message() );
+                    LoggerHelper::write_log( 'ModPress: Failed to create language term ' . $name . ': ' . $result->get_error_message() );
                 }
             }
         }
