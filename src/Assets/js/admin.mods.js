@@ -194,6 +194,48 @@
         };
     };
 
+    const loadGroupEntriesPage = async (link) => {
+        if (!link) {
+            return false;
+        }
+
+        const taxonomyKey = link.dataset.modpressTaxonomyKey || '';
+        const pane = taxonomyKey ? document.getElementById('modpress-taxonomy-pane-' + taxonomyKey) : null;
+        if (!pane || !link.href) {
+            return false;
+        }
+
+        try {
+            const nextUrl = new URL(link.href, window.location.href);
+            const response = await fetch(nextUrl.toString(), {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (!response.ok) {
+                return false;
+            }
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const documentFragment = parser.parseFromString(html, 'text/html');
+            const nextPane = documentFragment.getElementById('modpress-taxonomy-pane-' + taxonomyKey);
+            if (!nextPane) {
+                return false;
+            }
+
+            pane.innerHTML = nextPane.innerHTML;
+            window.history.pushState({}, '', nextUrl.toString());
+            syncDeleteButtons();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    };
+
     const populateEntryModalFields = (modalElement, entryData = {}, taxonomyKey = '') => {
         const data = entryData || {};
         const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
@@ -933,6 +975,13 @@
                 preview.classList.add('d-none');
             }
             imageClearButton.classList.add('d-none');
+            return;
+        }
+
+        const groupPageLink = event.target.closest('.modpress-group-page-link');
+        if (groupPageLink) {
+            event.preventDefault();
+            loadGroupEntriesPage(groupPageLink);
             return;
         }
 

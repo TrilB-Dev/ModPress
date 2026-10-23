@@ -282,15 +282,15 @@ final class ModGroups extends ModManager {
 <nav aria-label="<?php esc_attr_e( 'Group pagination', 'modpress' ); ?>" class="mt-3">
     <ul class="pagination pagination-sm justify-content-end mb-0">
         <li class="page-item <?php echo 1 === $current_page ? 'disabled' : ''; ?>">
-            <a class="page-link" href="<?php echo esc_url( add_query_arg( $group_page_key, max( 1, $current_page - 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Previous', 'modpress' ); ?></a>
+            <a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, max( 1, $current_page - 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Previous', 'modpress' ); ?></a>
         </li>
         <?php for ( $page_no = 1; $page_no <= $total_pages; $page_no++ ) : ?>
             <li class="page-item <?php echo $page_no === $current_page ? 'active' : ''; ?>">
-                <a class="page-link" href="<?php echo esc_url( add_query_arg( $group_page_key, $page_no, $pagination_base ) ); ?>"><?php echo esc_html( (string) $page_no ); ?></a>
+                <a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, $page_no, $pagination_base ) ); ?>"><?php echo esc_html( (string) $page_no ); ?></a>
             </li>
         <?php endfor; ?>
         <li class="page-item <?php echo $current_page >= $total_pages ? 'disabled' : ''; ?>">
-            <a class="page-link" href="<?php echo esc_url( add_query_arg( $group_page_key, min( $total_pages, $current_page + 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Next', 'modpress' ); ?></a>
+            <a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, min( $total_pages, $current_page + 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Next', 'modpress' ); ?></a>
         </li>
     </ul>
 </nav>
