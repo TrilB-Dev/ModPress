@@ -295,7 +295,7 @@ final class Defaults {
                 if ( ! is_wp_error( $result ) ) {
                     update_term_meta( $result['term_id'], 'status_color', $data['status_color'] );
                 } else {
-                    exit;
+                    LoggerHelper::write_log( 'ModPress: Failed to create mod status term ' . $status . ': ' . $result->get_error_message() );
                 }
             }
         }
