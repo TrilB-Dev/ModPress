@@ -439,12 +439,14 @@ final class FunctionsMod {
         }
 
         $group_parent_ids = array_values(
-            array_filter(
-                array_map(
-                    static fn ( $value ) => abs( (int) $value ),
-                    self::normalize_group_parent_values( RequestHelper::value( $_POST, 'group_parent', array() ) )
-                ),
-                static fn ( $value ) => $value > 0
+            array_unique(
+                array_filter(
+                    array_map(
+                        static fn ( $value ) => self::resolve_group_parent_id( $value ),
+                        self::normalize_group_parent_values( RequestHelper::value( $_POST, 'group_parent', array() ) )
+                    ),
+                    static fn ( $value ) => $value > 0
+                )
             )
         );
         $group_parent_entry_ids = array_values(
@@ -540,6 +542,183 @@ final class FunctionsMod {
         }
 
         return array_values( array_unique( array_filter( array_map( 'strval', $normalized ), static fn ( $item ) => '' !== trim( (string) $item ) ) ) );
+    }
+
+    /**
+     * Resolve a parent group taxonomy key or numeric ID to the canonical group row ID.
+     *
+     * @param mixed $value Raw parent group value from the modal or request payload.
+     * @return int
+     */
+    public static function resolve_group_parent_id( $value ): int {
+        $value = trim( (string) $value );
+        if ( '' === $value ) {
+            return 0;
+        }
+
+        if ( is_numeric( $value ) ) {
+            return abs( (int) $value );
+        }
+
+        $lookup_key = sanitize_key( $value );
+        if ( '' === $lookup_key ) {
+            return 0;
+        }
+
+        $group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_key ) );
+        if ( empty( $group_row ) ) {
+            $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_key ) );
+        }
+
+        if ( empty( $group_row ) ) {
+            $group_row = self::find_group_row_by_key_or_slug( $lookup_key );
+        }
+
+        if ( empty( $group_row ) || ! isset( $group_row['id'] ) ) {
+            return 0;
+        }
+
+        return abs( (int) ( $group_row['id'] ?? 0 ) );
+    }
+
+    /**
+     * Convert a stored parent ID back into the taxonomy key used by the UI.
+     *
+     * @param mixed $value Raw parent value.
+     * @param array<int, array<string, mixed>> $taxonomy_tabs Taxonomy definitions for lookup.
+     * @return string
+     */
+    public static function resolve_group_parent_key( $value, array $taxonomy_tabs = array() ): string {
+        $value = trim( (string) $value );
+        if ( '' === $value ) {
+            return '';
+        }
+
+        if ( is_numeric( $value ) ) {
+            $id = abs( (int) $value );
+            if ( $id > 0 ) {
+                if ( ! empty( $taxonomy_tabs ) ) {
+                    foreach ( $taxonomy_tabs as $taxonomy ) {
+                        $taxonomy_id = absint( $taxonomy['id'] ?? 0 );
+                        $taxonomy_key = trim( (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' ) );
+                        if ( $taxonomy_id === $id && '' !== $taxonomy_key ) {
+                            return $taxonomy_key;
+                        }
+                    }
+                }
+
+                $group_row = DBHelper::get_by_id( 'groups', $id );
+                if ( empty( $group_row ) ) {
+                    $group_row = self::find_group_row_by_id( $id );
+                }
+
+                if ( ! empty( $group_row ) ) {
+                    $group_key = trim( (string) ( $group_row['group_key'] ?? $group_row['group_slug'] ?? '' ) );
+                    if ( '' !== $group_key ) {
+                        return $group_key;
+                    }
+                }
+            }
+
+            return '';
+        }
+
+        $lookup_key = sanitize_key( $value );
+        if ( '' !== $lookup_key ) {
+            $group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_key ) );
+            if ( empty( $group_row ) ) {
+                $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_key ) );
+            }
+
+            if ( empty( $group_row ) ) {
+                $group_row = self::find_group_row_by_key_or_slug( $lookup_key );
+            }
+
+            if ( ! empty( $group_row ) ) {
+                $group_key = trim( (string) ( $group_row['group_key'] ?? $group_row['group_slug'] ?? '' ) );
+                if ( '' !== $group_key ) {
+                    return $group_key;
+                }
+            }
+        }
+
+        return $lookup_key !== '' ? $lookup_key : $value;
+    }
+
+    /**
+     * Find a group row by key or slug when direct DB lookups do not return a result.
+     *
+     * @param string $lookup_key Matched group key/slug.
+     * @return array<string, mixed>|null
+     */
+    private static function find_group_row_by_key_or_slug( string $lookup_key ) {
+        $lookup_key = trim( (string) $lookup_key );
+        if ( '' === $lookup_key ) {
+            return null;
+        }
+
+        if ( isset( $GLOBALS['wpdb'] ) && is_object( $GLOBALS['wpdb'] ) && property_exists( $GLOBALS['wpdb'], 'storage' ) && is_array( $GLOBALS['wpdb']->storage ) ) {
+            $table_name = DBHelper::table_name( 'groups' );
+            $rows = $GLOBALS['wpdb']->storage[ $table_name ] ?? array();
+            foreach ( (array) $rows as $row ) {
+                if ( is_array( $row ) ) {
+                    $group_key = trim( (string) ( $row['group_key'] ?? '' ) );
+                    $group_slug = trim( (string) ( $row['group_slug'] ?? '' ) );
+                    if ( $group_key === $lookup_key || $group_slug === $lookup_key ) {
+                        return $row;
+                    }
+                }
+            }
+        }
+
+        if ( function_exists( 'is_admin' ) && is_admin() ) {
+            $rows = DBHelper::get_all( 'groups' );
+            foreach ( $rows as $row ) {
+                if ( is_array( $row ) ) {
+                    $group_key = trim( (string) ( $row['group_key'] ?? '' ) );
+                    $group_slug = trim( (string) ( $row['group_slug'] ?? '' ) );
+                    if ( $group_key === $lookup_key || $group_slug === $lookup_key ) {
+                        return $row;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find a group row by id when direct DB lookups do not return a result.
+     *
+     * @param int $group_id Group ID to match.
+     * @return array<string, mixed>|null
+     */
+    private static function find_group_row_by_id( int $group_id ) {
+        $group_id = abs( (int) $group_id );
+        if ( $group_id <= 0 ) {
+            return null;
+        }
+
+        if ( isset( $GLOBALS['wpdb'] ) && is_object( $GLOBALS['wpdb'] ) && property_exists( $GLOBALS['wpdb'], 'storage' ) && is_array( $GLOBALS['wpdb']->storage ) ) {
+            $table_name = DBHelper::table_name( 'groups' );
+            $rows = $GLOBALS['wpdb']->storage[ $table_name ] ?? array();
+            foreach ( (array) $rows as $row ) {
+                if ( is_array( $row ) && abs( (int) ( $row['id'] ?? 0 ) ) === $group_id ) {
+                    return $row;
+                }
+            }
+        }
+
+        if ( function_exists( 'is_admin' ) && is_admin() ) {
+            $rows = DBHelper::get_all( 'groups' );
+            foreach ( $rows as $row ) {
+                if ( is_array( $row ) && abs( (int) ( $row['id'] ?? 0 ) ) === $group_id ) {
+                    return $row;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -738,18 +917,6 @@ public function get_group(): void {
 				$group_key_map[ $group_id ] = $group_key;
 			}
 		}
-		$group_parent_keys = array_values(
-			array_filter(
-				array_map(
-					static function ( $group_id ) use ( $group_key_map ) {
-						$group_id = absint( $group_id );
-						return $group_id > 0 ? ( $group_key_map[ $group_id ] ?? '' ) : '';
-					},
-					$group_parent_ids
-				)
-			)
-		);
-
 		$serialized_parent_entries = is_string( $group_row['group_parent_entry'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent_entry'] ?? '' ) ) : null;
 		$group_parent_entries = is_array( $serialized_parent_entries ) ? array_values(
 			array_filter(
@@ -773,7 +940,7 @@ public function get_group(): void {
 				'group_singular_name' => (string) ( $group_row['group_singular_name'] ?? ( $group_row['group_name'] ?? '' ) ),
 				'group_description'   => (string) ( $group_row['group_description'] ?? '' ),
 				'group_hierarchical'  => ! empty( $group_row['group_hierarchical'] ),
-				'group_parent'        => $group_parent_keys,
+				'group_parent'        => $group_parent_ids,
 				'group_parent_entry'  => $group_parent_entries,
 				'group_fields'        => is_string( $group_row['group_fields'] ) ? json_decode( $group_row['group_fields'], true ) : ( is_array( $group_row['group_fields'] ) ? $group_row['group_fields'] : array() ),
 			)

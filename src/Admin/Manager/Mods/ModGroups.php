@@ -385,7 +385,19 @@ final class ModGroups extends ModManager {
 			),
 			$selected_group
 		);
-		$selected_group['group_parent'] = FunctionsMod::normalize_group_parent_values( $selected_group['group_parent'] ?? array() );
+		$selected_group['group_parent'] = array_values(
+			array_unique(
+				array_filter(
+					array_map(
+						static function ( $value ) use ( $taxonomy_tabs ) {
+							return FunctionsMod::resolve_group_parent_key( $value, $taxonomy_tabs );
+						},
+						FunctionsMod::normalize_group_parent_values( $selected_group['group_parent'] ?? array() )
+					),
+					static fn ( $value ) => '' !== trim( (string) $value )
+				)
+			)
+		);
 		$selected_group['group_parent_entry'] = FunctionsMod::normalize_group_parent_values( $selected_group['group_parent_entry'] ?? array() );
 
 		$group_options = array(
@@ -404,6 +416,7 @@ final class ModGroups extends ModManager {
 
 		$group_entries = array();
 		$group_parent_options = array();
+		$group_parent_key_lookup = array();
 		$fa_settings = Settings::get_group( 'fontawesome' );
 		$fa_icon_picker = false;
 		if ( isset($fa_settings['fontawesome_icon_picker']) && $fa_settings['fontawesome_icon_picker'] ) {
@@ -413,14 +426,22 @@ final class ModGroups extends ModManager {
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
 			if ( '' !== $taxonomy_key ) {
-				$group_parent_options[ $taxonomy_key ] = $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
-				$group_options[ $taxonomy_key ] = $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
+				$taxonomy_id = absint( $taxonomy['id'] ?? 0 );
+				$option_key = $taxonomy_id > 0 ? (string) $taxonomy_id : $taxonomy_key;
+				$group_parent_options[ $option_key ] = $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
+				$group_options[ $option_key ] = $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
+				if ( $taxonomy_id > 0 ) {
+					$group_parent_key_lookup[ (string) $taxonomy_id ] = $taxonomy_key;
+				}
 
 				$terms = taxonomy_exists( $taxonomy_key ) ? get_terms( array( 'taxonomy' => $taxonomy_key, 'hide_empty' => false ) ) : array();
 				if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
 					$group_entries[ $taxonomy_key ] = array();
 					foreach ( $terms as $term ) {
 						$group_entries[ $taxonomy_key ][ (string) $term->term_id ] = $term->name;
+					}
+					if ( $taxonomy_id > 0 ) {
+						$group_entries[ (string) $taxonomy_id ] = $group_entries[ $taxonomy_key ];
 					}
 				}
 			}

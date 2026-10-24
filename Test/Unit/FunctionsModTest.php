@@ -890,14 +890,77 @@ namespace ModPress\Tests\Unit {
                     'group_singular_name' => 'Language',
                     'group_description' => '',
                     'group_hierarchical' => false,
-                    'group_parent' => array( 'modpress_assets' ),
+                    'group_parent' => array( '2' ),
                     'group_parent_entry' => array( '42' ),
                 )
             );
             $output = ob_get_clean();
 
-            $this->assertStringContainsString( 'value="42"', $output );
+            $this->assertStringContainsString( 'value="2"', $output );
             $this->assertStringContainsString( 'selected', $output );
+        }
+
+        public function testGroupParentSaveUsesNumericGroupIds(): void {
+            $GLOBALS['wpdb'] = new class {
+                public string $prefix = 'wp_';
+                public array $storage = [
+                    'wp_modpress_groups' => [
+                        2 => [
+                            'id' => 2,
+                            'group_key' => 'modpress_assets',
+                            'group_slug' => 'assets',
+                            'group_name' => 'Assets',
+                            'group_singular_name' => 'Asset',
+                            'group_description' => 'Asset group.',
+                            'group_hierarchical' => 1,
+                        ],
+                    ],
+                ];
+
+                public function prepare( string $query, ...$args ): string {
+                    return $query;
+                }
+
+                public function get_row( string $query, $output = null ) {
+                    if ( preg_match( '/group_key.*?=\s*\'([^\']+)\'/i', $query, $matches ) ) {
+                        $value = $matches[1];
+                        foreach ( (array) ( $this->storage['wp_modpress_groups'] ?? array() ) as $row ) {
+                            if ( (string) ( $row['group_key'] ?? '' ) === (string) $value ) {
+                                return $row;
+                            }
+                        }
+                    }
+
+                    if ( preg_match( '/group_slug.*?=\s*\'([^\']+)\'/i', $query, $matches ) ) {
+                        $value = $matches[1];
+                        foreach ( (array) ( $this->storage['wp_modpress_groups'] ?? array() ) as $row ) {
+                            if ( (string) ( $row['group_slug'] ?? '' ) === (string) $value ) {
+                                return $row;
+                            }
+                        }
+                    }
+
+                    return null;
+                }
+            };
+
+            $_POST = array(
+                'group_name' => 'Language',
+                'group_slug' => 'modpress_language',
+                'group_singular_name' => 'Language',
+                'group_description' => 'Language group description.',
+                'group_hierarchical' => '1',
+                'group_parent' => array( 'modpress_assets' ),
+                'group_parent_entry' => array( 42, 43 ),
+            );
+
+            $method = new \ReflectionMethod( \ModPress\Includes\Functions\Admin\FunctionsMod::class, 'build_group_payload' );
+            $method->setAccessible( true );
+
+            $payload = $method->invoke( new \ModPress\Includes\Functions\Admin\FunctionsMod(), 'Language', 'modpress_language' );
+
+            $this->assertSame( 'a:1:{i:0;i:2;}', $payload['group_parent'] );
+            $this->assertSame( 'a:2:{i:0;i:42;i:1;i:43;}', $payload['group_parent_entry'] );
         }
     }
 }
