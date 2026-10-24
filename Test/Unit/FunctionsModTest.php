@@ -778,5 +778,15 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'title="Home"', $output );
             $this->assertStringContainsString( 'data-test="example"', $output );
         }
+
+        public function testGroupParentValuesAreNormalizedToSerializedPhpArrays(): void {
+            $method = new \ReflectionMethod( \ModPress\Includes\Functions\Admin\FunctionsMod::class, 'normalize_parent_id_array' );
+            $method->setAccessible( true );
+
+            $values = $method->invoke( new \ModPress\Includes\Functions\Admin\FunctionsMod(), array( '12', '7', '7' ) );
+
+            $this->assertSame( array( 12, 7 ), $values );
+            $this->assertSame( 'a:2:{i:0;i:12;i:1;i:7;}', serialize( $values ) );
+        }
     }
 }

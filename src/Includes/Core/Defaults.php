@@ -95,7 +95,7 @@ final class Defaults {
 
 	private static function encode_parent_ids( array $ids = array() ): ?string {
 		$values = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
-		return empty( $values ) ? null : wp_json_encode( $values );
+		return empty( $values ) ? null : serialize( $values );
 	}
 
 	private static function get_term_id_map( string $taxonomy ): array {
@@ -136,6 +136,7 @@ final class Defaults {
 		}
 
 		$type_term_map = self::get_term_id_map( 'modpress_type' );
+		$asset_term_map = self::get_term_id_map( 'modpress_assets' );
 		$mod_type_group_id = 1;
 
 		DBHelper::insert(
@@ -159,70 +160,92 @@ final class Defaults {
 
 		$group_rows = array(
 			'modpress_assets' => array(
-				'group_name' => 'Asset Types',
-				'group_slug' => 'assets',
+				'id'                 => 2,
+				'group_name'         => 'Asset Types',
+				'group_slug'         => 'assets',
 				'group_singular_name' => 'Asset Type',
-				'group_description' => 'The Mod Asset Type group is used to categorise your mods by their asset type.',
-				'group_parent_entry' => array( $type_term_map['asset'] ?? 0 ),
+				'group_description'  => 'The Mod Asset Type group is used to categorise your mods by their asset type.',
+				'group_parent'       => array( $mod_type_group_id ),
+				'group_parent_entry' => array( $type_term_map['assets'] ?? 0 ),
 			),
 			'modpress_games' => array(
-				'group_name' => 'Games',
-				'group_slug' => 'games',
+				'id'                 => 3,
+				'group_name'         => 'Games',
+				'group_slug'         => 'games',
 				'group_singular_name' => 'Game',
-				'group_description' => 'The Game that mods belong to. This group is used to categorise your mods by their game.',
-				'group_parent_entry' => array( $type_term_map['game-mod'] ?? $type_term_map['game_mod'] ?? 0 ),
+				'group_description'  => 'The Game that mods belong to. This group is used to categorise your mods by their game.',
+				'group_parent'       => array( $mod_type_group_id ),
+				'group_parent_entry' => array( $type_term_map['games'] ?? 0 ),
 			),
 			'modpress_software' => array(
-				'group_name' => 'Software',
-				'group_slug' => 'software',
+				'id'                 => 4,
+				'group_name'         => 'Software',
+				'group_slug'         => 'software',
 				'group_singular_name' => 'Software',
-				'group_description' => 'The Software that mods belong to. This group is used to categorise your mods by their software.',
-				'group_parent_entry' => array( $type_term_map['software-extension'] ?? $type_term_map['software_extension'] ?? 0 ),
+				'group_description'  => 'The Software that mods belong to. This group is used to categorise your mods by their software.',
+				'group_parent'       => array( $mod_type_group_id ),
+				'group_parent_entry' => array( $type_term_map['software'] ?? 0 ),
 			),
 			'modpress_web' => array(
-				'group_name' => 'Web Extensions',
-				'group_slug' => 'web',
+				'id'                 => 5,
+				'group_name'         => 'Web Extensions',
+				'group_slug'         => 'web',
 				'group_singular_name' => 'Web Extension',
-				'group_description' => 'The Web Extension that mods belong to. This group is used to categorise your mods by their web extensions.',
-				'group_parent_entry' => array( $type_term_map['web-extension'] ?? $type_term_map['web_extension'] ?? 0 ),
+				'group_description'  => 'The Web Extension that mods belong to. This group is used to categorise your mods by their web extensions.',
+				'group_parent'       => array( $mod_type_group_id ),
+				'group_parent_entry' => array( $type_term_map['web'] ?? 0 ),
 			),
 			'modpress_platforms' => array(
-				'group_name' => 'Platforms',
-				'group_slug' => 'platforms',
+				'id'                 => 6,
+				'group_name'         => 'Platforms',
+				'group_slug'         => 'platforms',
 				'group_singular_name' => 'Platform',
-				'group_description' => 'The Platform that mods belong to. This group is used to categorise your mods by their platform.',
-				'group_parent_entry' => array_filter( array( $type_term_map['game-mod'] ?? $type_term_map['game_mod'] ?? 0, $type_term_map['software-extension'] ?? $type_term_map['software_extension'] ?? 0 ) ),
+				'group_description'  => 'The Platform that mods belong to. This group is used to categorise your mods by their platform.',
+				'group_parent'       => array( $mod_type_group_id ),
+				'group_parent_entry' => array_filter( array( $type_term_map['games'] ?? 0, $type_term_map['software'] ?? 0 ) ),
 			),
 			'modpress_language' => array(
-				'group_name' => 'Languages',
-				'group_slug' => 'language',
+				'id'                 => 7,
+				'group_name'         => 'Languages',
+				'group_slug'         => 'language',
 				'group_singular_name' => 'Language',
-				'group_description' => 'The Language that this asset belongs to',
-				'group_parent_entry' => array( $type_term_map['asset'] ?? 0 ),
+				'group_description'  => 'The Language that this asset belongs to',
+				'group_parent'       => array( $mod_type_group_id ),
+				'group_parent_entry' => array_filter( array( $asset_term_map['scripts'] ?? 0, $asset_term_map['libraries'] ?? 0, $asset_term_map['snippets'] ?? 0 ) ),
 			),
 		);
 
-		$id = 2;
 		foreach ( $group_rows as $group_key => $group_data ) {
+			$group_id = isset( $group_data['id'] ) ? (int) $group_data['id'] : 0;
+			$group_parent_ids = array_values(
+				array_filter(
+					array_map( 'absint', (array) ( $group_data['group_parent'] ?? array( $mod_type_group_id ) ) )
+				)
+			);
+			$group_parent_entry_ids = array_values(
+				array_filter(
+					array_map( 'absint', (array) ( $group_data['group_parent_entry'] ?? array() ) )
+				)
+			);
+
 			DBHelper::insert(
 				'groups',
 				array(
-					'id'                  => $id,
+					'id'                  => $group_id,
 					'group_key'           => $group_key,
 					'group_name'          => $group_data['group_name'],
 					'group_slug'          => $group_data['group_slug'],
 					'group_singular_name' => $group_data['group_singular_name'],
 					'group_description'   => $group_data['group_description'],
 					'group_hierarchical'  => false,
-					'group_parent'        => self::encode_parent_ids( array( $mod_type_group_id ) ),
-					'group_parent_entry'  => self::encode_parent_ids( $group_data['group_parent_entry'] ),
+					'group_parent'        => self::encode_parent_ids( $group_parent_ids ),
+					'group_parent_entry'  => self::encode_parent_ids( $group_parent_entry_ids ),
 					'group_fields'        => null,
 					'created_by'          => 1,
 					'created_at'          => current_time( 'mysql' ),
 					'updated_at'          => current_time( 'mysql' ),
 				)
 			);
-			$id++;
 		}
 	}
     /**
@@ -1440,6 +1463,14 @@ final class Defaults {
             'Scripts' =>[
                 'slug' => 'scripts',
                 'description' => 'Script assets'
+            ],
+            'Libraries' =>[
+                'slug' => 'libraries',
+                'description' => 'Library assets'
+            ],
+            'Snippets' =>[
+                'slug' => 'snippets',
+                'description' => 'Snippet assets'
             ],
             'Shaders' =>[
                 'slug' => 'shaders',

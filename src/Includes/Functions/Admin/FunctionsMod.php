@@ -347,7 +347,7 @@ final class FunctionsMod {
                 );
 
                 if ( 'textarea' === $field_type ) {
-                    $rows = absint( $textarea_rows[ $field_index ] ?? 4 );
+                    $rows = abs( (int) ( $textarea_rows[ $field_index ] ?? 4 ) );
                     if ( $rows > 0 ) {
                         $field['rows'] = $rows;
                     }
@@ -438,39 +438,10 @@ final class FunctionsMod {
             }
         }
 
-        $parent_values = RequestHelper::value( $_POST, 'group_parent', array() );
-        $parent_values = is_array( $parent_values ) ? array_map( 'strval', $parent_values ) : array( (string) $parent_values );
-        $parent_value = trim( (string) ( $parent_values[0] ?? '' ) );
-        $parent_id    = 0;
-
-        if ( is_numeric( $parent_value ) ) {
-            $parent_id = absint( $parent_value );
-        } elseif ( '' !== $parent_value ) {
-            $resolved_parent_key = sanitize_key( $parent_value );
-            $parent_group = DBHelper::get_row( 'groups', array( 'group_slug' => $resolved_parent_key ) );
-            if ( empty( $parent_group ) ) {
-                $parent_group = DBHelper::get_row( 'groups', array( 'group_key' => $resolved_parent_key ) );
-            }
-
-            if ( ! empty( $parent_group ) && isset( $parent_group['id'] ) ) {
-                $parent_id = absint( $parent_group['id'] );
-            }
-        }
-
-        $parent_entry_values = RequestHelper::value( $_POST, 'group_parent_entry', array() );
-        $parent_entry_values = is_array( $parent_entry_values ) ? array_map( 'strval', $parent_entry_values ) : array( (string) $parent_entry_values );
-        $parent_entry_value = trim( (string) ( $parent_entry_values[0] ?? '' ) );
-        $parent_entry_id    = 0;
-
-        if ( is_numeric( $parent_entry_value ) ) {
-            $parent_entry_id = absint( $parent_entry_value );
-        } elseif ( '' !== $parent_entry_value ) {
-            $parent_entry_id = absint( $parent_entry_value );
-        }
-
-        $description = SanitizationHelper::textarea( RequestHelper::value( $_POST, 'group_description', '' ), '' );
-
+        $group_parent_ids = $this->normalize_parent_id_array( RequestHelper::value( $_POST, 'group_parent', array() ) );
+        $group_parent_entry_ids = $this->normalize_parent_id_array( RequestHelper::value( $_POST, 'group_parent_entry', array() ) );
         $resolved_group_key = GroupsManager::get_group_taxonomy_key( $taxonomy );
+
         $group_payload = array(
             'group_key'           => $resolved_group_key,
             'group_name'          => $group_name,
@@ -478,18 +449,63 @@ final class FunctionsMod {
             'group_singular_name' => RequestHelper::text( $_POST, 'group_singular_name', $group_name ),
             'group_description'   => $description,
             'group_hierarchical'  => RequestHelper::boolean( $_POST, 'group_hierarchical', false ) ? 1 : 0,
-            'group_parent_id'     => 'modpress_type' === $resolved_group_key ? 0 : ( $parent_id > 0 ? $parent_id : 0 ),
-            'group_parent_entry'  => $parent_entry_id > 0 ? $parent_entry_id : 0,
+            'group_parent'        => serialize( $group_parent_ids ),
+            'group_parent_id'     => 'modpress_type' === $resolved_group_key ? 0 : ( $group_parent_ids[0] ?? 0 ),
+            'group_parent_entry'  => serialize( $group_parent_entry_ids ),
             'group_fields'        => ! empty( $group_fields ) ? wp_json_encode( $group_fields ) : null,
             'created_by'          => get_current_user_id(),
             'updated_at'          => current_time( 'mysql' ),
         );
 
-        if ( empty( $group_payload['group_singular_name'] ) ) {
-            $group_payload['group_singular_name'] = $group_name;
+        return $group_payload;
+    }
+
+    /**
+     * Normalize parent selections to a clean array of numeric IDs.
+     *
+     * @param mixed $raw_value Raw request value.
+     * @return array<int, int>
+     */
+    private function normalize_parent_id_array( $raw_value ): array {
+        if ( is_array( $raw_value ) ) {
+            $values = $raw_value;
+        } else {
+            $values = array( $raw_value );
         }
 
-        return $group_payload;
+        $ids = array();
+        foreach ( $values as $value ) {
+            if ( is_array( $value ) ) {
+                $ids = array_merge( $ids, $this->normalize_parent_id_array( $value ) );
+                continue;
+            }
+
+            $value = trim( (string) $value );
+            if ( '' === $value ) {
+                continue;
+            }
+
+            if ( is_numeric( $value ) ) {
+                $ids[] = abs( (int) $value );
+                continue;
+            }
+
+            $lookup_key = sanitize_key( $value );
+            if ( '' === $lookup_key ) {
+                continue;
+            }
+
+            $found_group = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_key ) );
+            if ( empty( $found_group ) ) {
+                $found_group = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_key ) );
+            }
+
+            if ( ! empty( $found_group ) && isset( $found_group['id'] ) ) {
+                $ids[] = abs( (int) $found_group['id'] );
+            }
+        }
+
+        return array_values( array_unique( array_filter( array_map( static fn ( $id ) => (int) $id, $ids ) ) ) );
     }
 
     /**
@@ -514,8 +530,9 @@ final class FunctionsMod {
                     'group_singular_name' => $group_payload['group_singular_name'] ?? '',
                     'group_description'   => $group_payload['group_description'] ?? '',
                     'group_hierarchical'  => $group_payload['group_hierarchical'] ?? 0,
+                    'group_parent'        => $group_payload['group_parent'] ?? serialize( array() ),
                     'group_parent_id'     => $group_payload['group_parent_id'] ?? 0,
-                    'group_parent_entry'  => $group_payload['group_parent_entry'] ?? 0,
+                    'group_parent_entry'  => $group_payload['group_parent_entry'] ?? serialize( array() ),
                     'group_fields'        => $group_payload['group_fields'] ?? null,
                     'updated_at'          => current_time( 'mysql' ),
                 ),
@@ -525,9 +542,9 @@ final class FunctionsMod {
             return $updated ? $group_id : false;
         }
 
-        $existing_group = DBHelper::get_row( 'groups', array( 'group_key' => $group_payload['group_key'] ) );
+        $existing_group = DBHelper::get_row( 'groups', array( 'group_key' => $group_payload['group_key'] ?? '' ) );
         if ( empty( $existing_group ) ) {
-            $existing_group = DBHelper::get_row( 'groups', array( 'group_slug' => $group_payload['group_slug'] ) );
+            $existing_group = DBHelper::get_row( 'groups', array( 'group_slug' => $group_payload['group_slug'] ?? '' ) );
         }
 
         if ( ! empty( $existing_group ) && isset( $existing_group['id'] ) ) {
@@ -539,8 +556,9 @@ final class FunctionsMod {
                     'group_singular_name' => $group_payload['group_singular_name'] ?? '',
                     'group_description'   => $group_payload['group_description'] ?? '',
                     'group_hierarchical'  => $group_payload['group_hierarchical'] ?? 0,
+                    'group_parent'        => $group_payload['group_parent'] ?? serialize( array() ),
                     'group_parent_id'     => $group_payload['group_parent_id'] ?? 0,
-                    'group_parent_entry'  => $group_payload['group_parent_entry'] ?? 0,
+                    'group_parent_entry'  => $group_payload['group_parent_entry'] ?? serialize( array() ),
                     'group_fields'        => $group_payload['group_fields'] ?? null,
                     'updated_at'          => current_time( 'mysql' ),
                 ),
@@ -559,8 +577,9 @@ final class FunctionsMod {
                 'group_singular_name' => $group_payload['group_singular_name'] ?? '',
                 'group_description'   => $group_payload['group_description'] ?? '',
                 'group_hierarchical'  => $group_payload['group_hierarchical'] ?? 0,
+                'group_parent'        => $group_payload['group_parent'] ?? serialize( array() ),
                 'group_parent_id'     => $group_payload['group_parent_id'] ?? 0,
-                'group_parent_entry'  => $group_payload['group_parent_entry'] ?? 0,
+                'group_parent_entry'  => $group_payload['group_parent_entry'] ?? serialize( array() ),
                 'group_fields'        => $group_payload['group_fields'] ?? null,
                 'created_by'          => $group_payload['created_by'] ?? get_current_user_id(),
                 'created_at'          => current_time( 'mysql' ),
@@ -568,7 +587,7 @@ final class FunctionsMod {
             )
         );
 
-        return false !== $inserted ? (int) $inserted : false;
+        return $inserted;
     }
 
     /**
@@ -582,19 +601,19 @@ final class FunctionsMod {
         $edit_key = trim( (string) $edit_key );
         if ( '' !== $edit_key ) {
             if ( is_numeric( $edit_key ) ) {
-                return absint( $edit_key );
+                return abs( (int) $edit_key );
             }
 
             $lookup_key = sanitize_key( $edit_key );
             if ( '' !== $lookup_key ) {
                 $group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_key ) );
                 if ( ! empty( $group_row ) && isset( $group_row['id'] ) ) {
-                    return absint( $group_row['id'] );
+                    return abs( (int) $group_row['id'] );
                 }
 
                 $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_key ) );
                 if ( ! empty( $group_row ) && isset( $group_row['id'] ) ) {
-                    return absint( $group_row['id'] );
+                    return abs( (int) $group_row['id'] );
                 }
             }
         }
@@ -603,12 +622,12 @@ final class FunctionsMod {
         if ( '' !== $fallback_slug ) {
             $group_row = DBHelper::get_row( 'groups', array( 'group_key' => $fallback_slug ) );
             if ( ! empty( $group_row ) && isset( $group_row['id'] ) ) {
-                return absint( $group_row['id'] );
+                return abs( (int) $group_row['id'] );
             }
 
             $group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $fallback_slug ) );
             if ( ! empty( $group_row ) && isset( $group_row['id'] ) ) {
-                return absint( $group_row['id'] );
+                return abs( (int) $group_row['id'] );
             }
         }
 
@@ -672,7 +691,7 @@ public function get_group(): void {
 		}
 
 		$parent_group_key = '';
-		$parent_group_id  = absint( $group_row['group_parent_id'] ?? 0 );
+		$parent_group_id  = abs( (int) ( $group_row['group_parent_id'] ?? 0 ) );
 		if ( $parent_group_id > 0 ) {
 			$parent_group = DBHelper::get_by_id( 'groups', $parent_group_id );
 			if ( ! empty( $parent_group ) ) {
@@ -680,18 +699,30 @@ public function get_group(): void {
 			}
 		}
 
+		$serialized_parent_ids = is_string( $group_row['group_parent'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent'] ?? '' ) ) : null;
+		$group_parent_ids = is_array( $serialized_parent_ids ) ? array_values( array_filter( array_map( static fn ( $id ) => (int) $id, $serialized_parent_ids ) ) ) : array();
+		if ( empty( $group_parent_ids ) && $parent_group_id > 0 ) {
+			$group_parent_ids = array( $parent_group_id );
+		}
+
+		$serialized_parent_entries = is_string( $group_row['group_parent_entry'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent_entry'] ?? '' ) ) : null;
+		$group_parent_entries = is_array( $serialized_parent_entries ) ? array_values( array_filter( array_map( static fn ( $id ) => (int) $id, $serialized_parent_entries ) ) ) : array();
+		if ( empty( $group_parent_entries ) && isset( $group_row['group_parent_entry'] ) && is_numeric( $group_row['group_parent_entry'] ) ) {
+			$group_parent_entries = array( abs( (int) $group_row['group_parent_entry'] ) );
+		}
+
 		wp_send_json_success(
 			array(
-				'group_id'            => absint( $group_row['id'] ?? 0 ),
+				'group_id'            => abs( (int) ( $group_row['id'] ?? 0 ) ),
 				'group_key'           => (string) ( $group_row['group_key'] ?? $lookup_value ),
 				'group_name'          => (string) ( $group_row['group_name'] ?? '' ),
 				'group_slug'          => (string) ( $group_row['group_slug'] ?? $lookup_value ),
 				'group_singular_name' => (string) ( $group_row['group_singular_name'] ?? ( $group_row['group_name'] ?? '' ) ),
 				'group_description'   => (string) ( $group_row['group_description'] ?? '' ),
 				'group_hierarchical'  => ! empty( $group_row['group_hierarchical'] ),
-				'group_parent'        => $parent_group_key,
+				'group_parent'        => $group_parent_ids,
 				'group_parent_id'     => $parent_group_id,
-				'group_parent_entry'  => absint( $group_row['group_parent_entry'] ?? 0 ),
+				'group_parent_entry'  => $group_parent_entries,
 				'group_fields'        => is_string( $group_row['group_fields'] ) ? json_decode( $group_row['group_fields'], true ) : ( is_array( $group_row['group_fields'] ) ? $group_row['group_fields'] : array() ),
 			)
 		);
@@ -877,7 +908,7 @@ public function get_group(): void {
 
         $term_ids = array();
         foreach ( $requested_ids as $term_id ) {
-            $parsed = absint( $term_id );
+            $parsed = abs( (int) $term_id );
             if ( $parsed > 0 ) {
                 $term_ids[] = $parsed;
             }

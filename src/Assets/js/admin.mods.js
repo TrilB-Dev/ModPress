@@ -694,16 +694,18 @@
             groupHierarchicalInput.checked = Boolean(groupData.group_hierarchical);
         }
         if (groupParentInput) {
-            const parentValue = groupData.group_parent ? String(groupData.group_parent) : '';
-            setSelectedValues(groupParentInput, parentValue ? [parentValue] : []);
+            const parentValues = Array.isArray(groupData.group_parent) ? groupData.group_parent : (groupData.group_parent ? [groupData.group_parent] : []);
+            setSelectedValues(groupParentInput, parentValues.map((value) => String(value || '')));
             refreshBootstrapSelect(groupParentInput);
         }
 
-        const selectedParentEntry = groupData.group_parent_entry ? String(groupData.group_parent_entry) : '';
+        const selectedParentEntryValues = Array.isArray(groupData.group_parent_entry) ? groupData.group_parent_entry : (groupData.group_parent_entry ? [groupData.group_parent_entry] : []);
         if (groupParentEntryInput) {
-            setSelectedValues(groupParentEntryInput, selectedParentEntry ? [selectedParentEntry] : []);
+            setSelectedValues(groupParentEntryInput, selectedParentEntryValues.map((value) => String(value || '')));
             refreshBootstrapSelect(groupParentEntryInput);
         }
+
+        const selectedParentEntry = selectedParentEntryValues.length > 0 ? String(selectedParentEntryValues[0]) : '';
 
         const modalTitle = modalElement.querySelector('.modal-title');
         if (modalTitle) {
