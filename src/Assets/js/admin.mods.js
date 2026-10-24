@@ -752,9 +752,11 @@
             });
     };
 
-    const addCustomFieldRow = () => {
-        const container = document.getElementById('modpress-custom-fields-container');
+    const addCustomFieldRow = (button = null) => {
+        const scope = button ? button.closest('.modal') : null;
+        const container = scope ? scope.querySelector('.modpress-custom-fields-container') : document.getElementById('modpress-custom-fields-container');
         if (!container) {
+            console.error('[ModPress] Missing custom fields container for Add Custom Field action.');
             return;
         }
 
@@ -763,22 +765,29 @@
             placeholder.remove();
         }
 
-        let template = document.getElementById('modpress-custom-field-template');
+        let template = scope ? scope.querySelector('#modpress-custom-field-template') : document.getElementById('modpress-custom-field-template');
         if (!template) {
             template = container.querySelector('#modpress-custom-field-template');
         }
         if (!template) {
+            console.error('[ModPress] Missing custom field template for Add Custom Field action.');
             return;
         }
 
         let row = null;
-        if (template.content && template.content.firstElementChild) {
-            row = template.content.firstElementChild.cloneNode(true);
-        } else {
-            row = template.firstElementChild ? template.firstElementChild.cloneNode(true) : null;
+        try {
+            if (template.content && template.content.firstElementChild) {
+                row = template.content.firstElementChild.cloneNode(true);
+            } else if (template.firstElementChild) {
+                row = template.firstElementChild.cloneNode(true);
+            }
+        } catch (error) {
+            console.error('[ModPress] Failed to clone custom field template.', error);
+            return;
         }
 
         if (!row) {
+            console.error('[ModPress] Custom field template does not contain a valid row to clone.');
             return;
         }
 
@@ -814,7 +823,11 @@
             button.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                addCustomFieldRow();
+                try {
+                    addCustomFieldRow(button);
+                } catch (error) {
+                    console.error('[ModPress] Failed to add custom field row.', error);
+                }
             });
         });
     };
@@ -1033,7 +1046,11 @@
         const button = event.target.closest('[data-role="add-custom-field"]');
         if (button) {
             event.preventDefault();
-            addCustomFieldRow();
+            try {
+                addCustomFieldRow(button);
+            } catch (error) {
+                console.error('[ModPress] Failed to add custom field row.', error);
+            }
             return;
         }
 
