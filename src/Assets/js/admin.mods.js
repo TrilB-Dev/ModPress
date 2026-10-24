@@ -104,7 +104,7 @@
         select.value = selectedValues[0] || '';
     };
 
-    const syncGroupParentField = (groupKey = '', modal = document.getElementById('modpress-group-modal'), selectedParentEntry = '') => {
+    const syncGroupParentField = (groupKey = '', modal = document.getElementById('modpress-group-modal'), selectedParentEntries = []) => {
         const row = modal ? modal.querySelector('#modpress-group-parent-row') : document.getElementById('modpress-group-parent-row');
         const select = modal ? modal.querySelector('[name="group_parent[]"]') : document.getElementById('group_parent');
         const parentEntryRow = modal ? modal.querySelector('#modpress-group-parent-entry-row') : document.getElementById('modpress-group-parent-entry-row');
@@ -129,9 +129,11 @@
         }
 
         if (parentEntrySelect) {
-            const defaultParentEntry = String(selectedParentEntry || getSelectedValues(parentEntrySelect)[0] || '').trim();
+            const defaultParentEntries = Array.isArray(selectedParentEntries)
+                ? selectedParentEntries
+                : (selectedParentEntries ? [String(selectedParentEntries)] : getSelectedValues(parentEntrySelect));
             const entries = getGroupParentEntries(parentValues[0] || '', modal);
-            populateParentEntryOptions(entries, defaultParentEntry, modal);
+            populateParentEntryOptions(entries, defaultParentEntries, modal);
             refreshBootstrapSelect(parentEntrySelect);
         }
 
@@ -319,11 +321,15 @@
         return payload.data;
     };
 
-    const populateParentEntryOptions = (entries, selectedValue = '', modal = document.getElementById('modpress-group-modal')) => {
+    const populateParentEntryOptions = (entries, selectedValues = [], modal = document.getElementById('modpress-group-modal')) => {
         const select = modal ? modal.querySelector('[name="group_parent_entry[]"]') : document.getElementById('group_parent_entry');
         if (!select) {
             return;
         }
+
+        const normalizedSelectedValues = Array.isArray(selectedValues)
+            ? selectedValues.map((value) => String(value || '')).filter((value) => value !== '')
+            : (selectedValues ? [String(selectedValues)] : []);
 
         const options = Object.entries(entries || {}).map(([value, label]) => ({ value: String(value), label: String(label) }));
         select.innerHTML = '';
@@ -337,12 +343,11 @@
             const option = document.createElement('option');
             option.value = entry.value;
             option.textContent = entry.label;
-            option.selected = String(selectedValue || '').trim() === String(entry.value).trim();
+            option.selected = normalizedSelectedValues.some((selectedValue) => String(selectedValue || '').trim() === String(entry.value).trim());
             select.appendChild(option);
         });
 
-        const selectedValues = selectedValue ? [String(selectedValue)] : [];
-        setSelectedValues(select, selectedValues);
+        setSelectedValues(select, normalizedSelectedValues);
         refreshBootstrapSelect(select);
     };
 
@@ -705,15 +710,13 @@
             refreshBootstrapSelect(groupParentEntryInput);
         }
 
-        const selectedParentEntry = selectedParentEntryValues.length > 0 ? String(selectedParentEntryValues[0]) : '';
-
         const modalTitle = modalElement.querySelector('.modal-title');
         if (modalTitle) {
             modalTitle.textContent = groupKey ? 'Edit Group' : 'Add Group';
         }
 
         populateCustomFieldRows(groupData, modalElement);
-        syncGroupParentField(groupKey, modalElement, selectedParentEntry);
+        syncGroupParentField(groupKey, modalElement, selectedParentEntryValues);
         syncGroupDeleteState(modalElement);
     };
 
@@ -873,7 +876,7 @@
             if (parentEntryRow && parentEntrySelect) {
                 parentEntryRow.classList.toggle('d-none', '' === parentValue);
             }
-            populateParentEntryOptions(getGroupParentEntries(parentValue, modal), parentEntrySelect ? getSelectedValues(parentEntrySelect)[0] || '' : '', modal);
+            populateParentEntryOptions(getGroupParentEntries(parentValue, modal), parentEntrySelect ? getSelectedValues(parentEntrySelect) : [], modal);
             if (parentEntrySelect) {
                 refreshBootstrapSelect(parentEntrySelect);
             }
