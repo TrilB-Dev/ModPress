@@ -139,8 +139,11 @@
             refreshBootstrapSelect(parentEntrySelect);
         }
 
-        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.selectpicker) {
-            window.jQuery(select).selectpicker('refresh');
+        if (window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
+            const instance = window.Selectpicker.getOrCreateInstance(select);
+            if (instance) {
+                instance.refresh();
+            }
         }
     };
 
@@ -178,12 +181,6 @@
             } catch (error) {
                 // Ignore initialization errors for non-selectpicker elements.
             }
-            return;
-        }
-
-        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.selectpicker) {
-            window.jQuery(select).selectpicker('refresh');
-            return;
         }
     };
 
@@ -386,6 +383,9 @@
         }
 
         container.innerHTML = '';
+        if (!container.contains(template)) {
+            container.appendChild(template);
+        }
         const fields = getGroupFields(groupData);
 
         if (!fields.length) {
@@ -550,7 +550,11 @@
 
         const customFieldsContainer = modal.querySelector('#modpress-custom-fields-container');
         if (customFieldsContainer) {
+            const customFieldTemplate = document.getElementById('modpress-custom-field-template');
             customFieldsContainer.innerHTML = '';
+            if (customFieldTemplate && !customFieldsContainer.contains(customFieldTemplate)) {
+                customFieldsContainer.appendChild(customFieldTemplate);
+            }
         }
 
         const hierarchicalInput = modal.querySelector('[name="group_hierarchical"]');
@@ -759,7 +763,10 @@
             placeholder.remove();
         }
 
-        const template = document.getElementById('modpress-custom-field-template');
+        let template = document.getElementById('modpress-custom-field-template');
+        if (!template) {
+            template = container.querySelector('#modpress-custom-field-template');
+        }
         if (!template) {
             return;
         }
