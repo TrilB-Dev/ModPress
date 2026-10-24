@@ -210,7 +210,7 @@ final class Defaults {
 				'group_slug'         => 'language',
 				'group_singular_name' => 'Language',
 				'group_description'  => 'The Language that this asset belongs to',
-				'group_parent'       => array( $mod_type_group_id ),
+				'group_parent'       => array( 2 ),
 				'group_parent_entry' => array_filter( array( $asset_term_map['scripts'] ?? 0, $asset_term_map['libraries'] ?? 0, $asset_term_map['snippets'] ?? 0 ) ),
 			),
 		);

@@ -131,6 +131,12 @@ namespace {
         }
     }
 
+    if ( ! function_exists( 'esc_textarea' ) ) {
+        function esc_textarea( $text ): string {
+            return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' );
+        }
+    }
+
     if ( ! function_exists( 'esc_html_e' ) ) {
         function esc_html_e( $text, $domain = null ): void {
             echo esc_html( $text );
@@ -140,6 +146,19 @@ namespace {
     if ( ! function_exists( 'taxonomy_exists' ) ) {
         function taxonomy_exists( $taxonomy ): bool {
             return isset( $GLOBALS['modpress_test_taxonomies'][ (string) $taxonomy ] );
+        }
+    }
+
+    if ( ! function_exists( 'get_terms' ) ) {
+        function get_terms( $args = array() ) {
+            $taxonomy = isset( $args['taxonomy'] ) ? (string) $args['taxonomy'] : '';
+            $terms = $GLOBALS['modpress_test_terms'][ $taxonomy ] ?? array();
+
+            if ( empty( $terms ) ) {
+                return array();
+            }
+
+            return array_values( $terms );
         }
     }
 
@@ -254,6 +273,21 @@ namespace {
     }
 }
 
+namespace ModPress\Admin\Manager\Mods {
+    if ( ! function_exists( __NAMESPACE__ . '\\absint' ) ) {
+        function absint( $value ): int {
+            $value = (int) $value;
+            return $value < 0 ? abs( $value ) : $value;
+        }
+    }
+
+    if ( ! function_exists( __NAMESPACE__ . '\\wp_json_encode' ) ) {
+        function wp_json_encode( $data ) {
+            return json_encode( $data );
+        }
+    }
+}
+
 namespace ModPress\Includes\Functions\Admin {
     if ( ! function_exists( __NAMESPACE__ . '\\current_time' ) ) {
         function current_time( $type = 'mysql' ) {
@@ -264,6 +298,18 @@ namespace ModPress\Includes\Functions\Admin {
     if ( ! function_exists( __NAMESPACE__ . '\\wp_json_encode' ) ) {
         function wp_json_encode( $data ) {
             return json_encode( $data );
+        }
+    }
+
+    if ( ! function_exists( __NAMESPACE__ . '\\esc_html__' ) ) {
+        function esc_html__( $text, $domain = null ) {
+            return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' );
+        }
+    }
+
+    if ( ! function_exists( __NAMESPACE__ . '\\esc_attr__' ) ) {
+        function esc_attr__( $text, $domain = null ) {
+            return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' );
         }
     }
 
@@ -780,13 +826,69 @@ namespace ModPress\Tests\Unit {
         }
 
         public function testGroupParentValuesAreNormalizedToSerializedPhpArrays(): void {
-            $method = new \ReflectionMethod( \ModPress\Includes\Functions\Admin\FunctionsMod::class, 'normalize_parent_id_array' );
+            $values = \ModPress\Includes\Functions\Admin\FunctionsMod::normalize_group_parent_values( array( '12', '7', '7' ) );
+
+            $this->assertSame( array( '12', '7' ), $values );
+            $this->assertSame( 'a:2:{i:0;s:2:"12";i:1;s:1:"7";}', serialize( $values ) );
+        }
+
+        public function testGroupParentSelectionValuesMapToTaxonomyKeys(): void {
+            $method = new \ReflectionMethod( \ModPress\Admin\Manager\Mods\ModGroups::class, 'resolve_group_parent_selection_values' );
             $method->setAccessible( true );
 
-            $values = $method->invoke( new \ModPress\Includes\Functions\Admin\FunctionsMod(), array( '12', '7', '7' ) );
+            $values = $method->invoke(
+                null,
+                array( 2, 7 ),
+                array(
+                    array( 'id' => 2, 'taxonomy' => 'modpress_assets' ),
+                    array( 'id' => 7, 'taxonomy' => 'modpress_language' ),
+                )
+            );
 
-            $this->assertSame( array( 12, 7 ), $values );
-            $this->assertSame( 'a:2:{i:0;i:12;i:1;i:7;}', serialize( $values ) );
+            $this->assertSame( array( 'modpress_assets', 'modpress_language' ), $values );
+        }
+
+        public function testRenderGroupModalKeepsSavedParentSelectionValues(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array(
+                'modpress_assets' => array( 'args' => array( 'hierarchical' => true ) ),
+                'modpress_language' => array( 'args' => array( 'hierarchical' => true ) ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_assets' => array(
+                    42 => (object) array( 'term_id' => 42, 'name' => 'Scripts' ),
+                    43 => (object) array( 'term_id' => 43, 'name' => 'Libraries' ),
+                ),
+            );
+
+            $method = new \ReflectionMethod( \ModPress\Admin\Manager\Mods\ModGroups::class, 'render_group_modal' );
+            $method->setAccessible( true );
+
+            $instance = \ModPress\Admin\Manager\Mods\ModGroups::class;
+            $group_manager = ( new \ReflectionClass( $instance ) )->newInstanceWithoutConstructor();
+
+            ob_start();
+            $method->invoke(
+                $group_manager,
+                array(
+                    array( 'id' => 2, 'taxonomy' => 'modpress_assets', 'label' => 'Assets' ),
+                    array( 'id' => 7, 'taxonomy' => 'modpress_language', 'label' => 'Language' ),
+                ),
+                array(
+                    'id' => 7,
+                    'group_key' => 'modpress_language',
+                    'group_name' => 'Language',
+                    'group_slug' => 'modpress_language',
+                    'group_singular_name' => 'Language',
+                    'group_description' => '',
+                    'group_hierarchical' => false,
+                    'group_parent' => array( 'modpress_assets' ),
+                    'group_parent_entry' => array( '42' ),
+                )
+            );
+            $output = ob_get_clean();
+
+            $this->assertStringContainsString( 'value="42"', $output );
+            $this->assertStringContainsString( 'selected', $output );
         }
     }
 }

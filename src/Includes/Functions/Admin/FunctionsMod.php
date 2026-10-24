@@ -438,8 +438,8 @@ final class FunctionsMod {
             }
         }
 
-        $group_parent_ids = $this->normalize_parent_id_array( RequestHelper::value( $_POST, 'group_parent', array() ) );
-        $group_parent_entry_ids = $this->normalize_parent_id_array( RequestHelper::value( $_POST, 'group_parent_entry', array() ) );
+        $group_parent_ids = array_map( 'absint', self::normalize_group_parent_values( RequestHelper::value( $_POST, 'group_parent', array() ) ) );
+        $group_parent_entry_ids = array_map( 'absint', self::normalize_group_parent_values( RequestHelper::value( $_POST, 'group_parent_entry', array() ) ) );
         $resolved_group_key = GroupsManager::get_group_taxonomy_key( $taxonomy );
 
         $group_payload = array(
@@ -461,23 +461,31 @@ final class FunctionsMod {
     }
 
     /**
-     * Normalize parent selections to a clean array of numeric IDs.
+     * Normalize a group parent value into either numeric IDs or taxonomy keys.
      *
-     * @param mixed $raw_value Raw request value.
-     * @return array<int, int>
+     * This is the single place that converts serialized, nested, and mixed parent values
+     * into a clean array suitable for persistence or for rendering the modal selection.
+     *
+     * @param mixed $raw_value Raw DB or request value.
+     * @param array<int, array<string, mixed>> $taxonomy_tabs Optional taxonomy map used to resolve IDs to taxonomy keys.
+     * @return array<int, string>
      */
-    private function normalize_parent_id_array( $raw_value ): array {
-        if ( is_array( $raw_value ) ) {
-            $values = $raw_value;
-        } else {
-            $values = array( $raw_value );
-        }
+    public static function normalize_group_parent_values( $raw_value, array $taxonomy_tabs = array() ): array {
+        $values = is_array( $raw_value ) ? $raw_value : array( $raw_value );
+        $normalized = array();
 
-        $ids = array();
         foreach ( $values as $value ) {
             if ( is_array( $value ) ) {
-                $ids = array_merge( $ids, $this->normalize_parent_id_array( $value ) );
+                $normalized = array_merge( $normalized, self::normalize_group_parent_values( $value, $taxonomy_tabs ) );
                 continue;
+            }
+
+            if ( is_string( $value ) && '' !== trim( $value ) ) {
+                $unserialized = @unserialize( $value );
+                if ( is_array( $unserialized ) ) {
+                    $normalized = array_merge( $normalized, self::normalize_group_parent_values( $unserialized, $taxonomy_tabs ) );
+                    continue;
+                }
             }
 
             $value = trim( (string) $value );
@@ -486,26 +494,32 @@ final class FunctionsMod {
             }
 
             if ( is_numeric( $value ) ) {
-                $ids[] = abs( (int) $value );
+                $int_value = absint( $value );
+                if ( ! empty( $taxonomy_tabs ) ) {
+                    $group_key_map = array();
+                    foreach ( $taxonomy_tabs as $taxonomy ) {
+                        $taxonomy_id = absint( $taxonomy['id'] ?? 0 );
+                        $taxonomy_key = trim( (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' ) );
+                        if ( $taxonomy_id > 0 && '' !== $taxonomy_key ) {
+                            $group_key_map[ $taxonomy_id ] = $taxonomy_key;
+                        }
+                    }
+
+                    $taxonomy_key = $group_key_map[ $int_value ] ?? '';
+                    if ( '' !== $taxonomy_key ) {
+                        $normalized[] = $taxonomy_key;
+                        continue;
+                    }
+                }
+
+                $normalized[] = (string) $int_value;
                 continue;
             }
 
-            $lookup_key = sanitize_key( $value );
-            if ( '' === $lookup_key ) {
-                continue;
-            }
-
-            $found_group = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_key ) );
-            if ( empty( $found_group ) ) {
-                $found_group = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_key ) );
-            }
-
-            if ( ! empty( $found_group ) && isset( $found_group['id'] ) ) {
-                $ids[] = abs( (int) $found_group['id'] );
-            }
+            $normalized[] = sanitize_key( $value );
         }
 
-        return array_values( array_unique( array_filter( array_map( static fn ( $id ) => (int) $id, $ids ) ) ) );
+        return array_values( array_unique( array_filter( array_map( 'strval', $normalized ), static fn ( $item ) => '' !== trim( (string) $item ) ) ) );
     }
 
     /**
@@ -705,6 +719,27 @@ public function get_group(): void {
 			$group_parent_ids = array( $parent_group_id );
 		}
 
+		$group_rows = DBHelper::get_all( 'groups' );
+		$group_key_map = array();
+		foreach ( $group_rows as $row ) {
+			$group_id = absint( $row['id'] ?? 0 );
+			$group_key = trim( (string) ( $row['group_key'] ?? $row['group_slug'] ?? '' ) );
+			if ( $group_id > 0 && '' !== $group_key ) {
+				$group_key_map[ $group_id ] = $group_key;
+			}
+		}
+		$group_parent_keys = array_values(
+			array_filter(
+				array_map(
+					static function ( $group_id ) use ( $group_key_map ) {
+						$group_id = absint( $group_id );
+						return $group_id > 0 ? ( $group_key_map[ $group_id ] ?? '' ) : '';
+					},
+					$group_parent_ids
+				)
+			)
+		);
+
 		$serialized_parent_entries = is_string( $group_row['group_parent_entry'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent_entry'] ?? '' ) ) : null;
 		$group_parent_entries = is_array( $serialized_parent_entries ) ? array_values( array_filter( array_map( static fn ( $id ) => (int) $id, $serialized_parent_entries ) ) ) : array();
 		if ( empty( $group_parent_entries ) && isset( $group_row['group_parent_entry'] ) && is_numeric( $group_row['group_parent_entry'] ) ) {
@@ -720,7 +755,7 @@ public function get_group(): void {
 				'group_singular_name' => (string) ( $group_row['group_singular_name'] ?? ( $group_row['group_name'] ?? '' ) ),
 				'group_description'   => (string) ( $group_row['group_description'] ?? '' ),
 				'group_hierarchical'  => ! empty( $group_row['group_hierarchical'] ),
-				'group_parent'        => $group_parent_ids,
+				'group_parent'        => $group_parent_keys,
 				'group_parent_id'     => $parent_group_id,
 				'group_parent_entry'  => $group_parent_entries,
 				'group_fields'        => is_string( $group_row['group_fields'] ) ? json_decode( $group_row['group_fields'], true ) : ( is_array( $group_row['group_fields'] ) ? $group_row['group_fields'] : array() ),

@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class ModGroups extends ModManager {
+	
 	/**
 	 * Render the taxonomy manager screen with horizontal tabs, modal forms, and entry tables.
 	 *
@@ -63,8 +64,9 @@ final class ModGroups extends ModManager {
 				'group_singular_name' => (string) ( $group['group_singular_name'] ?? '' ),
 				'group_description'  => (string) ( $group['group_description'] ?? '' ),
 				'group_hierarchical' => ! empty( $group['group_hierarchical'] ),
-				'group_parent_id'    => isset( $group['group_parent_id'] ) ? (int) $group['group_parent_id'] : 0,
-				'group_parent_entry' => isset( $group['group_parent_entry'] ) ? (int) $group['group_parent_entry'] : 0,
+				'group_parent'       => FunctionsMod::normalize_group_parent_values( $group['group_parent'] ?? array() ),
+				'group_parent_id'    => isset( $group['group_parent_id'] ) ? (int) $group['group_parent_id'] : ( ! empty( FunctionsMod::normalize_group_parent_values( $group['group_parent'] ?? array() ) ) ? absint( FunctionsMod::normalize_group_parent_values( $group['group_parent'] ?? array() )[0] ) : 0 ),
+				'group_parent_entry' => FunctionsMod::normalize_group_parent_values( $group['group_parent_entry'] ?? array() ),
 				'group_fields'       => isset( $group['group_fields'] ) ? $group['group_fields'] : null,
 				'reserved'           => 'modpress_type' === $group_key,
 				'deletable'          => 'modpress_type' !== $group_key,
@@ -227,75 +229,80 @@ final class ModGroups extends ModManager {
 										</thead>
 										<tbody>
 											<?php if ( empty( $terms ) || is_wp_error( $terms ) ) : ?>
-<tr>
-<td colspan="5" class="text-muted text-center py-4"><?php esc_html_e( 'No entries in this group yet.', 'modpress' ); ?></td>
-</tr>
-<?php else : ?>
-<?php foreach ( $terms as $term ) : ?>
-<tr>
-<td>
-<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php echo esc_attr( $term->name ); ?>" />
-</td>
-<td><?php echo esc_html( $term->name ); ?></td>
-<td><?php echo esc_html( $term->slug ); ?></td>
-<td><?php echo esc_html( wp_trim_words( $term->description, 12 ) ); ?></td>
-<td class="text-end">
-<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
-<?php echo FormFieldHelper::button(
-    __( 'Edit', 'modpress' ),
-    array(
-        'type' => 'button',
-        'class' => 'btn btn-outline-secondary',
-        'attributes' => array(
-            'data-bs-toggle' => 'modal',
-            'data-bs-target' => '#modpress-entry-modal',
-            'data-taxonomy-key' => $taxonomy_key,
-            'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-            'data-group-entry-id' => (int) $term->term_id,
-        ),
-    )
-); ?>
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete entry', 'modpress' ); ?>">
-<input type="hidden" name="action" value="modpress_delete_group_entry" />
-<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
-<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
-<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
-<?php echo FormFieldHelper::button(
-    __( 'Delete', 'modpress' ),
-    array(
-        'type' => 'submit',
-        'class' => 'btn btn-outline-danger',
-        'attributes' => array(
-            'data-role' => 'delete-group-entry',
-        ),
-    )
-); ?>
-</form>
-</div>
-</td>
-</tr>
-<?php endforeach; ?>
-<?php endif; ?>
-</tbody>
-</table>
-<?php if ( $total_terms > $per_page ) : ?>
-<nav aria-label="<?php esc_attr_e( 'Group pagination', 'modpress' ); ?>" class="mt-3">
-    <ul class="pagination pagination-sm justify-content-end mb-0">
-        <li class="page-item <?php echo 1 === $current_page ? 'disabled' : ''; ?>">
-            <a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, max( 1, $current_page - 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Previous', 'modpress' ); ?></a>
-        </li>
-        <?php for ( $page_no = 1; $page_no <= $total_pages; $page_no++ ) : ?>
-            <li class="page-item <?php echo $page_no === $current_page ? 'active' : ''; ?>">
-                <a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, $page_no, $pagination_base ) ); ?>"><?php echo esc_html( (string) $page_no ); ?></a>
-            </li>
-        <?php endfor; ?>
-        <li class="page-item <?php echo $current_page >= $total_pages ? 'disabled' : ''; ?>">
-            <a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, min( $total_pages, $current_page + 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Next', 'modpress' ); ?></a>
-        </li>
-    </ul>
-</nav>
-<?php endif; ?>
-
+												<tr>
+													<td colspan="5" class="text-muted text-center py-4"><?php esc_html_e( 'No entries in this group yet.', 'modpress' ); ?></td>
+												</tr>
+											<?php else : ?>
+												<?php foreach ( $terms as $term ) : ?>
+													<tr>
+														<td>
+															<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php echo esc_attr( $term->name ); ?>" />
+														</td>
+														<td>
+															<?php echo esc_html( $term->name ); ?>
+														</td>
+														<td>
+															<?php echo esc_html( $term->slug ); ?>
+														</td>
+														<td>
+															<?php echo esc_html( wp_trim_words( $term->description, 12 ) ); ?>
+														</td>
+														<td class="text-end">
+															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
+																<?php echo FormFieldHelper::button(
+																	__( 'Edit', 'modpress' ),
+																	array(
+																		'type' => 'button',
+																		'class' => 'btn btn-outline-secondary',
+																		'attributes' => array(
+																			'data-bs-toggle' => 'modal',
+																			'data-bs-target' => '#modpress-entry-modal',
+																			'data-taxonomy-key' => $taxonomy_key,
+																			'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+																			'data-group-entry-id' => (int) $term->term_id,
+																		),
+																	)
+																); ?>
+																<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete entry', 'modpress' ); ?>">
+																	<input type="hidden" name="action" value="modpress_delete_group_entry" />
+																	<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
+																	<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
+																	<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
+																	<?php echo FormFieldHelper::button(
+																		__( 'Delete', 'modpress' ),
+																		array(
+																			'type' => 'submit',
+																			'class' => 'btn btn-outline-danger',
+																			'attributes' => array(
+																				'data-role' => 'delete-group-entry',
+																			),
+																		)
+																	); ?>
+																</form>
+															</div>
+														</td>
+												</tr>
+												<?php endforeach; ?>
+											<?php endif; ?>
+										</tbody>
+									</table>
+									<?php if ( $total_terms > $per_page ) : ?>
+										<nav aria-label="<?php esc_attr_e( 'Group pagination', 'modpress' ); ?>" class="mt-3">
+											<ul class="pagination pagination-sm justify-content-end mb-0">
+												<li class="page-item <?php echo 1 === $current_page ? 'disabled' : ''; ?>">
+													<a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, max( 1, $current_page - 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Previous', 'modpress' ); ?></a>
+												</li>
+												<?php for ( $page_no = 1; $page_no <= $total_pages; $page_no++ ) : ?>
+													<li class="page-item <?php echo $page_no === $current_page ? 'active' : ''; ?>">
+														<a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, $page_no, $pagination_base ) ); ?>"><?php echo esc_html( (string) $page_no ); ?></a>
+													</li>
+												<?php endfor; ?>
+												<li class="page-item <?php echo $current_page >= $total_pages ? 'disabled' : ''; ?>">
+													<a class="page-link modpress-group-page-link" data-modpress-pagination-key="<?php echo esc_attr( $group_page_key ); ?>" data-modpress-taxonomy-key="<?php echo esc_attr( $taxonomy_key ); ?>" href="<?php echo esc_url( add_query_arg( $group_page_key, min( $total_pages, $current_page + 1 ), $pagination_base ) ); ?>"><?php esc_html_e( 'Next', 'modpress' ); ?></a>
+												</li>
+											</ul>
+										</nav>
+									<?php endif; ?>
 								</div>
 							</div>
 						<?php endforeach; ?>
@@ -380,6 +387,10 @@ final class ModGroups extends ModManager {
 			),
 			$selected_group
 		);
+		$group_parent_ids = FunctionsMod::normalize_group_parent_values( $selected_group['group_parent'] ?? array() );
+		$selected_group['group_parent'] = FunctionsMod::normalize_group_parent_values( $group_parent_ids, $taxonomy_tabs );
+		$selected_group['group_parent_entry'] = FunctionsMod::normalize_group_parent_values( $selected_group['group_parent_entry'] ?? array() );
+		$selected_group['group_parent_id'] = ! empty( $group_parent_ids ) ? absint( (string) $group_parent_ids[0] ) : (int) ( $selected_group['group_parent_id'] ?? 0 );
 
 		$group_options = array(
 			'id'                 => $selected_group['id'] ?? 0,
@@ -391,9 +402,9 @@ final class ModGroups extends ModManager {
 			'group_singular_name' => (string) ( $selected_group['group_singular_name'] ?? '' ),
 			'group_description'  => (string) ( $selected_group['group_description'] ?? '' ),
 			'group_hierarchical' => ! empty( $selected_group['group_hierarchical'] ),
-			'group_parent'       => (string) ( $selected_group['group_parent'] ?? '' ),
+			'group_parent'       => is_array( $selected_group['group_parent'] ?? null ) ? $selected_group['group_parent'] : (array) ( $selected_group['group_parent'] ?? array() ),
 			'group_parent_id'    => (int) ( $selected_group['group_parent_id'] ?? 0 ),
-			'group_parent_entry' => (string) ( $selected_group['group_parent_entry'] ?? '' ),
+			'group_parent_entry' => is_array( $selected_group['group_parent_entry'] ?? null ) ? $selected_group['group_parent_entry'] : (array) ( $selected_group['group_parent_entry'] ?? array() ),
 		);
 
 		$group_entries = array();
@@ -534,12 +545,14 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_parent',
 														__( 'Parent Group', 'modpress' ),
-														function () use ( $group_parent_options, $group_entries, $selected_group ) {
-															$selected_parent_group_value = $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? '';
-																																																					$selected_parent_group_values = is_array( $selected_parent_group_value )
-																																																						? array_map( 'strval', $selected_parent_group_value )
-																																																						: array_filter( array_map( 'strval', (array) $selected_parent_group_value ) );
-																																																					$parent_group_select = FormFieldHelper::bootstrap_multiselect(
+														function () use ( $group_parent_options, $group_entries, $selected_group ) { 
+															$selected_parent_group_value = $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? array();
+															$selected_parent_group_values = array_values(
+																array_filter(
+																	array_map( 'strval', (array) $selected_parent_group_value )
+																)
+															);
+															$parent_group_select = FormFieldHelper::bootstrap_multiselect(
 																'group_parent',
 																array(
 																	'data' => $group_parent_options,
@@ -548,22 +561,22 @@ final class ModGroups extends ModManager {
 																	'placeholder' => __( 'Select a parent group', 'modpress' ),
 																)
 															);
-															$selected_parent_group = (string) ( $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? '' );
-															$selected_parent_entry = (string) ( $selected_group['group_parent_entry'] ?? '' );
+															$selected_parent_group_values = array_values( array_filter( array_map( 'strval', (array) ( $selected_group['group_parent'] ?? array() ) ) ) );
+															$selected_parent_group = ! empty( $selected_parent_group_values ) ? $selected_parent_group_values[0] : '';
+															$selected_parent_entry_values = array_values( array_filter( array_map( 'strval', (array) ( $selected_group['group_parent_entry'] ?? array() ) ) ) );
 															$parent_entry_data = array();
 															if ( '' !== $selected_parent_group && isset( $group_entries[ $selected_parent_group ] ) ) {
 																$parent_entry_data = $group_entries[ $selected_parent_group ];
 															}
-															$selected_parent_entry_values = array_filter( array_map( 'strval', (array) $selected_parent_entry ) );
-																																																					$parent_entry_select = FormFieldHelper::bootstrap_multiselect(
+															$parent_entry_select = FormFieldHelper::bootstrap_multiselect(
 																'group_parent_entry',
 																array(
 																	'data' => $parent_entry_data,
 																	'selected' => $selected_parent_entry_values,
-																					'id' => 'group_parent_entry',
-																					'placeholder' => __( 'Select a parent entry', 'modpress' ),
-																				)
-																			);
+																	'id' => 'group_parent_entry',
+																	'placeholder' => __( 'Select a parent entry', 'modpress' ),
+																)
+															);
 
 															return 	'<div class="d-flex align-items-end flex-wrap gap-3 w-100">' .
 																	'<div class="flex-fill min-width-0">' . $parent_group_select . '</div>' .

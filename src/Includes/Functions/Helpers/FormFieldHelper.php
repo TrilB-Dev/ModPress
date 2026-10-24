@@ -665,7 +665,8 @@ final class FormFieldHelper {
 		$html = '<label ' . self::attributes_to_string( $attributes ) . '>' . esc_html( $text ) . '</label>';
 
 		if ( ! empty( $options['tooltip'] ) ) {
-			$tooltip_type = in_array( $options['tooltip_type'] ?? 'question', array( 'question', 'info' ), true ) ? $options['tooltip_type'] : 'question';
+			$tooltip_type = isset( $options['tooltip_type'] ) ? (string) $options['tooltip_type'] : 'question';
+			$tooltip_type = in_array( $tooltip_type, array( 'question', 'info' ), true ) ? $tooltip_type : 'question';
 			$default_icon = 'info' === $tooltip_type ? 'fa-circle-info' : 'fa-circle-question';
 			$icon         = self::icon_class( $options['tooltip_icon'] ?? $default_icon, $default_icon );
 			$html        .= ' <button type="button" class="btn btn-link p-0 align-baseline modpress-field-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="' . esc_attr( (string) $options['tooltip'] ) . '" aria-label="' . esc_attr( (string) $options['tooltip'] ) . '"><i class="' . esc_attr( $icon ) . '" aria-hidden="true"></i></button>';
