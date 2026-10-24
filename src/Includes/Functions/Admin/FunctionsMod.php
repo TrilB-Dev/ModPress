@@ -438,9 +438,26 @@ final class FunctionsMod {
             }
         }
 
-        $group_parent_ids = array_map( 'absint', self::normalize_group_parent_values( RequestHelper::value( $_POST, 'group_parent', array() ) ) );
-        $group_parent_entry_ids = array_map( 'absint', self::normalize_group_parent_values( RequestHelper::value( $_POST, 'group_parent_entry', array() ) ) );
+        $group_parent_ids = array_values(
+            array_filter(
+                array_map(
+                    static fn ( $value ) => abs( (int) $value ),
+                    self::normalize_group_parent_values( RequestHelper::value( $_POST, 'group_parent', array() ) )
+                ),
+                static fn ( $value ) => $value > 0
+            )
+        );
+        $group_parent_entry_ids = array_values(
+            array_filter(
+                array_map(
+                    static fn ( $value ) => abs( (int) $value ),
+                    self::normalize_group_parent_values( RequestHelper::value( $_POST, 'group_parent_entry', array() ) )
+                ),
+                static fn ( $value ) => $value > 0
+            )
+        );
         $resolved_group_key = GroupsManager::get_group_taxonomy_key( $taxonomy );
+        $description = SanitizationHelper::textarea( RequestHelper::value( $_POST, 'group_description', '' ), '' );
 
         $group_payload = array(
             'group_key'           => $resolved_group_key,
@@ -493,11 +510,15 @@ final class FunctionsMod {
             }
 
             if ( is_numeric( $value ) ) {
-                $int_value = absint( $value );
+                $int_value = abs( (int) $value );
+                if ( $int_value <= 0 ) {
+                    continue;
+                }
+
                 if ( ! empty( $taxonomy_tabs ) ) {
                     $group_key_map = array();
                     foreach ( $taxonomy_tabs as $taxonomy ) {
-                        $taxonomy_id = absint( $taxonomy['id'] ?? 0 );
+                        $taxonomy_id = abs( (int) ( $taxonomy['id'] ?? 0 ) );
                         $taxonomy_key = trim( (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' ) );
                         if ( $taxonomy_id > 0 && '' !== $taxonomy_key ) {
                             $group_key_map[ $taxonomy_id ] = $taxonomy_key;
@@ -701,7 +722,12 @@ public function get_group(): void {
 		}
 
 		$serialized_parent_ids = is_string( $group_row['group_parent'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent'] ?? '' ) ) : null;
-		$group_parent_ids = is_array( $serialized_parent_ids ) ? array_values( array_filter( array_map( static fn ( $id ) => (int) $id, $serialized_parent_ids ) ) ) : array();
+		$group_parent_ids = is_array( $serialized_parent_ids ) ? array_values(
+			array_filter(
+				array_map( static fn ( $id ) => (int) $id, $serialized_parent_ids ),
+				static fn ( $id ) => $id > 0
+			)
+		) : array();
 
 		$group_rows = DBHelper::get_all( 'groups' );
 		$group_key_map = array();
@@ -725,9 +751,17 @@ public function get_group(): void {
 		);
 
 		$serialized_parent_entries = is_string( $group_row['group_parent_entry'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent_entry'] ?? '' ) ) : null;
-		$group_parent_entries = is_array( $serialized_parent_entries ) ? array_values( array_filter( array_map( static fn ( $id ) => (int) $id, $serialized_parent_entries ) ) ) : array();
+		$group_parent_entries = is_array( $serialized_parent_entries ) ? array_values(
+			array_filter(
+				array_map( static fn ( $id ) => (int) $id, $serialized_parent_entries ),
+				static fn ( $id ) => $id > 0
+			)
+		) : array();
 		if ( empty( $group_parent_entries ) && isset( $group_row['group_parent_entry'] ) && is_numeric( $group_row['group_parent_entry'] ) ) {
-			$group_parent_entries = array( abs( (int) $group_row['group_parent_entry'] ) );
+			$parent_entry_id = abs( (int) $group_row['group_parent_entry'] );
+			if ( $parent_entry_id > 0 ) {
+				$group_parent_entries = array( $parent_entry_id );
+			}
 		}
 
 		wp_send_json_success(

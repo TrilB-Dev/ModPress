@@ -92,7 +92,9 @@
         }
 
         const normalized = Array.isArray(values) ? values : [values];
-        const selectedValues = normalized.map((value) => String(value || '')).filter((value) => value !== '');
+        const selectedValues = normalized
+            .map((value) => String(value ?? ''))
+            .filter((value) => value !== '' && value !== '0');
 
         if (select.multiple) {
             Array.from(select.options || []).forEach((option) => {
