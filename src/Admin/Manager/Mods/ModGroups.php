@@ -527,10 +527,11 @@ final class ModGroups extends ModManager {
 														function () {
 															return FormFieldHelper::switch(
 																'group_hierarchical',
-																$group_options['group_hierarchical'] ?? false,
+																true,
 																__( 'Enabled', 'modpress' ),
 																array(
-																	'id' => 'group_hierarchical'
+																	'id' => 'group_hierarchical',
+																	'checked' => (bool) ( $group_options['group_hierarchical'] ?? false ),
 																)
 															);
 														},
