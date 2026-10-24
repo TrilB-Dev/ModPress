@@ -1314,7 +1314,8 @@ public function get_group(): void {
         $this->redirect_mod_action_result( 'groups', $message, $success );
     }
 
-    public static function repeatable_option_row(string $type): void {
+    public static function repeatable_option_row(string $type): string {
+        ob_start();
         ?>
         <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
             <?php echo FormFieldHelper::button(
@@ -1376,5 +1377,6 @@ public function get_group(): void {
             </div>
         </div>
         <?php
+        return (string) ob_get_clean();
     }
 }
