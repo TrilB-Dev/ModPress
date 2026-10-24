@@ -62,7 +62,6 @@ final class ModGroups extends ModManager {
 				'group_singular_name' => (string) ( $group['group_singular_name'] ?? '' ),
 				'group_description'  => (string) ( $group['group_description'] ?? '' ),
 				'group_hierarchical' => ! empty( $group['group_hierarchical'] ),
-				'group_parent_id'    => isset( $group['group_parent_id'] ) ? (int) $group['group_parent_id'] : 0,
 				'group_parent_entry' => isset( $group['group_parent_entry'] ) ? (int) $group['group_parent_entry'] : 0,
 				'group_fields'       => isset( $group['group_fields'] ) ? $group['group_fields'] : null,
 				'reserved'           => 'modpress_type' === $group_key,

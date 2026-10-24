@@ -591,7 +591,6 @@ namespace ModPress\Tests\Unit {
                     'group_slug' => 'type',
                     'group_description' => 'Root type group.',
                     'group_hierarchical' => 0,
-                    'group_parent_id' => null,
                 ],
             ];
 
@@ -697,7 +696,6 @@ namespace ModPress\Tests\Unit {
                             'group_singular_name' => 'Mod Type',
                             'group_description' => 'Root type group.',
                             'group_hierarchical' => 0,
-                            'group_parent_id' => null,
                             'group_fields' => null,
                             'created_by' => 1,
                             'created_at' => '2024-01-01 00:00:00',
@@ -766,7 +764,6 @@ namespace ModPress\Tests\Unit {
                 'group_singular_name' => 'Mod Type',
                 'group_description' => 'Updated group description.',
                 'group_hierarchical' => 0,
-                'group_parent_id' => null,
                 'group_fields' => null,
                 'created_by' => 1,
             ];
@@ -832,20 +829,11 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'a:2:{i:0;s:2:"12";i:1;s:1:"7";}', serialize( $values ) );
         }
 
-        public function testGroupParentSelectionValuesMapToTaxonomyKeys(): void {
-            $method = new \ReflectionMethod( \ModPress\Admin\Manager\Mods\ModGroups::class, 'resolve_group_parent_selection_values' );
-            $method->setAccessible( true );
+        public function testGroupParentSelectionValuesStayAsStoredIds(): void {
+            $values = \ModPress\Includes\Functions\Admin\FunctionsMod::normalize_group_parent_values( array( 420, 421, 421 ) );
 
-            $values = $method->invoke(
-                null,
-                array( 2, 7 ),
-                array(
-                    array( 'id' => 2, 'taxonomy' => 'modpress_assets' ),
-                    array( 'id' => 7, 'taxonomy' => 'modpress_language' ),
-                )
-            );
-
-            $this->assertSame( array( 'modpress_assets', 'modpress_language' ), $values );
+            $this->assertSame( array( '420', '421' ), $values );
+            $this->assertSame( 'a:2:{i:0;i:420;i:1;i:421;}', serialize( array( 420, 421 ) ) );
         }
 
         public function testRenderGroupModalKeepsSavedParentSelectionValues(): void {

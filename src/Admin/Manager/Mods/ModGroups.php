@@ -65,7 +65,6 @@ final class ModGroups extends ModManager {
 				'group_description'  => (string) ( $group['group_description'] ?? '' ),
 				'group_hierarchical' => ! empty( $group['group_hierarchical'] ),
 				'group_parent'       => FunctionsMod::normalize_group_parent_values( $group['group_parent'] ?? array() ),
-				'group_parent_id'    => isset( $group['group_parent_id'] ) ? (int) $group['group_parent_id'] : ( ! empty( FunctionsMod::normalize_group_parent_values( $group['group_parent'] ?? array() ) ) ? absint( FunctionsMod::normalize_group_parent_values( $group['group_parent'] ?? array() )[0] ) : 0 ),
 				'group_parent_entry' => FunctionsMod::normalize_group_parent_values( $group['group_parent_entry'] ?? array() ),
 				'group_fields'       => isset( $group['group_fields'] ) ? $group['group_fields'] : null,
 				'reserved'           => 'modpress_type' === $group_key,
@@ -382,15 +381,12 @@ final class ModGroups extends ModManager {
 				'group_description'  => '',
 				'group_hierarchical' => false,
 				'group_parent'       => '',
-				'group_parent_id'    => 0,
 				'group_parent_entry' => '',
 			),
 			$selected_group
 		);
-		$group_parent_ids = FunctionsMod::normalize_group_parent_values( $selected_group['group_parent'] ?? array() );
-		$selected_group['group_parent'] = FunctionsMod::normalize_group_parent_values( $group_parent_ids, $taxonomy_tabs );
+		$selected_group['group_parent'] = FunctionsMod::normalize_group_parent_values( $selected_group['group_parent'] ?? array() );
 		$selected_group['group_parent_entry'] = FunctionsMod::normalize_group_parent_values( $selected_group['group_parent_entry'] ?? array() );
-		$selected_group['group_parent_id'] = ! empty( $group_parent_ids ) ? absint( (string) $group_parent_ids[0] ) : (int) ( $selected_group['group_parent_id'] ?? 0 );
 
 		$group_options = array(
 			'id'                 => $selected_group['id'] ?? 0,
@@ -403,7 +399,6 @@ final class ModGroups extends ModManager {
 			'group_description'  => (string) ( $selected_group['group_description'] ?? '' ),
 			'group_hierarchical' => ! empty( $selected_group['group_hierarchical'] ),
 			'group_parent'       => is_array( $selected_group['group_parent'] ?? null ) ? $selected_group['group_parent'] : (array) ( $selected_group['group_parent'] ?? array() ),
-			'group_parent_id'    => (int) ( $selected_group['group_parent_id'] ?? 0 ),
 			'group_parent_entry' => is_array( $selected_group['group_parent_entry'] ?? null ) ? $selected_group['group_parent_entry'] : (array) ( $selected_group['group_parent_entry'] ?? array() ),
 		);
 
@@ -546,7 +541,7 @@ final class ModGroups extends ModManager {
 														'group_parent',
 														__( 'Parent Group', 'modpress' ),
 														function () use ( $group_parent_options, $group_entries, $selected_group ) { 
-															$selected_parent_group_value = $selected_group['group_parent'] ?? $selected_group['group_parent_id'] ?? array();
+															$selected_parent_group_value = $selected_group['group_parent'] ?? array();
 															$selected_parent_group_values = array_values(
 																array_filter(
 																	array_map( 'strval', (array) $selected_parent_group_value )

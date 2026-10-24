@@ -450,7 +450,6 @@ final class FunctionsMod {
             'group_description'   => $description,
             'group_hierarchical'  => RequestHelper::boolean( $_POST, 'group_hierarchical', false ) ? 1 : 0,
             'group_parent'        => serialize( $group_parent_ids ),
-            'group_parent_id'     => 'modpress_type' === $resolved_group_key ? 0 : ( $group_parent_ids[0] ?? 0 ),
             'group_parent_entry'  => serialize( $group_parent_entry_ids ),
             'group_fields'        => ! empty( $group_fields ) ? wp_json_encode( $group_fields ) : null,
             'created_by'          => get_current_user_id(),
@@ -545,7 +544,6 @@ final class FunctionsMod {
                     'group_description'   => $group_payload['group_description'] ?? '',
                     'group_hierarchical'  => $group_payload['group_hierarchical'] ?? 0,
                     'group_parent'        => $group_payload['group_parent'] ?? serialize( array() ),
-                    'group_parent_id'     => $group_payload['group_parent_id'] ?? 0,
                     'group_parent_entry'  => $group_payload['group_parent_entry'] ?? serialize( array() ),
                     'group_fields'        => $group_payload['group_fields'] ?? null,
                     'updated_at'          => current_time( 'mysql' ),
@@ -571,7 +569,6 @@ final class FunctionsMod {
                     'group_description'   => $group_payload['group_description'] ?? '',
                     'group_hierarchical'  => $group_payload['group_hierarchical'] ?? 0,
                     'group_parent'        => $group_payload['group_parent'] ?? serialize( array() ),
-                    'group_parent_id'     => $group_payload['group_parent_id'] ?? 0,
                     'group_parent_entry'  => $group_payload['group_parent_entry'] ?? serialize( array() ),
                     'group_fields'        => $group_payload['group_fields'] ?? null,
                     'updated_at'          => current_time( 'mysql' ),
@@ -592,7 +589,6 @@ final class FunctionsMod {
                 'group_description'   => $group_payload['group_description'] ?? '',
                 'group_hierarchical'  => $group_payload['group_hierarchical'] ?? 0,
                 'group_parent'        => $group_payload['group_parent'] ?? serialize( array() ),
-                'group_parent_id'     => $group_payload['group_parent_id'] ?? 0,
                 'group_parent_entry'  => $group_payload['group_parent_entry'] ?? serialize( array() ),
                 'group_fields'        => $group_payload['group_fields'] ?? null,
                 'created_by'          => $group_payload['created_by'] ?? get_current_user_id(),
@@ -704,20 +700,8 @@ public function get_group(): void {
 			wp_send_json_error( array( 'message' => __( 'The selected group could not be found.', 'modpress' ) ), 404 );
 		}
 
-		$parent_group_key = '';
-		$parent_group_id  = abs( (int) ( $group_row['group_parent_id'] ?? 0 ) );
-		if ( $parent_group_id > 0 ) {
-			$parent_group = DBHelper::get_by_id( 'groups', $parent_group_id );
-			if ( ! empty( $parent_group ) ) {
-				$parent_group_key = trim( (string) ( $parent_group['group_key'] ?? $parent_group['group_slug'] ?? '' ) );
-			}
-		}
-
 		$serialized_parent_ids = is_string( $group_row['group_parent'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent'] ?? '' ) ) : null;
 		$group_parent_ids = is_array( $serialized_parent_ids ) ? array_values( array_filter( array_map( static fn ( $id ) => (int) $id, $serialized_parent_ids ) ) ) : array();
-		if ( empty( $group_parent_ids ) && $parent_group_id > 0 ) {
-			$group_parent_ids = array( $parent_group_id );
-		}
 
 		$group_rows = DBHelper::get_all( 'groups' );
 		$group_key_map = array();
@@ -756,7 +740,6 @@ public function get_group(): void {
 				'group_description'   => (string) ( $group_row['group_description'] ?? '' ),
 				'group_hierarchical'  => ! empty( $group_row['group_hierarchical'] ),
 				'group_parent'        => $group_parent_keys,
-				'group_parent_id'     => $parent_group_id,
 				'group_parent_entry'  => $group_parent_entries,
 				'group_fields'        => is_string( $group_row['group_fields'] ) ? json_decode( $group_row['group_fields'], true ) : ( is_array( $group_row['group_fields'] ) ? $group_row['group_fields'] : array() ),
 			)
