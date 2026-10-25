@@ -652,7 +652,7 @@
         }
 
         const type = repeater.dataset.optionType || 'radio';
-        const optionRows = repeater.querySelectorAll('.modpress-option-row');
+        const optionRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((optionRow) => !optionRow.closest('.modpress-option-row-template'));
         optionRows.forEach((optionRow, optionIndex) => {
             const labelInput = optionRow.querySelector('[data-option-role="label"]');
             const valueInput = optionRow.querySelector('[data-option-role="value"]');
@@ -817,7 +817,8 @@
         clone.classList.add('modpress-option-row');
 
         if (fieldIndex !== null && fieldIndex !== undefined && fieldIndex !== '') {
-            const resolvedIndex = optionIndex !== null && optionIndex !== undefined ? optionIndex : repeater.querySelectorAll('.modpress-option-row').length;
+            const actualRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template'));
+            const resolvedIndex = optionIndex !== null && optionIndex !== undefined ? optionIndex : actualRows.length;
             const labelInput = clone.querySelector('[data-option-role="label"]');
             const valueInput = clone.querySelector('[data-option-role="value"]');
             const type = repeater.dataset.optionType || 'radio';
@@ -938,7 +939,7 @@
 
         const fieldRow = button.closest('.modpress-custom-field-row');
         const fieldIndex = fieldRow ? fieldRow.dataset.fieldIndex : null;
-        const optionIndex = repeater.querySelectorAll('.modpress-option-row').length;
+        const optionIndex = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template')).length;
         const clone = createOptionRow(repeater, fieldIndex, optionIndex);
         if (clone) {
             syncOptionRepeaterNames(repeater, fieldIndex);

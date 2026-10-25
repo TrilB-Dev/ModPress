@@ -1334,7 +1334,7 @@ public function get_group(): void {
             </div>
             <div class="modpress-option-repeater-items">
                 <div class="modpress-option-row-template d-none" data-option-type="<?php echo esc_attr( $type ); ?>">
-                    <div class="row g-2 align-items-center modpress-option-row">
+                    <div class="row g-2 align-items-center">
                         <div class="col-md-5">
                             <?php echo FormFieldHelper::text_input(
                                 'custom_field_type_' . $type . '[][label]',
