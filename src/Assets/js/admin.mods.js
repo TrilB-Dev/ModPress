@@ -811,14 +811,20 @@
             return null;
         }
 
+        const items = repeater.querySelector('.modpress-option-repeater-items');
+        if (!items) {
+            return null;
+        }
+
+        const actualRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template'));
+        const resolvedIndex = optionIndex !== null && optionIndex !== undefined ? optionIndex : actualRows.length;
+
         const clone = template.cloneNode(true);
         clone.classList.remove('d-none');
         clone.classList.remove('modpress-option-row-template');
         clone.classList.add('modpress-option-row');
 
         if (fieldIndex !== null && fieldIndex !== undefined && fieldIndex !== '') {
-            const actualRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template'));
-            const resolvedIndex = optionIndex !== null && optionIndex !== undefined ? optionIndex : actualRows.length;
             const labelInput = clone.querySelector('[data-option-role="label"]');
             const valueInput = clone.querySelector('[data-option-role="value"]');
             const type = repeater.dataset.optionType || 'radio';
@@ -830,11 +836,7 @@
             }
         }
 
-        const items = repeater.querySelector('.modpress-option-repeater-items');
-        if (items) {
-            items.appendChild(clone);
-        }
-
+        items.appendChild(clone);
         return clone;
     };
 
@@ -932,17 +934,29 @@
     };
 
     const addOptionRow = (button) => {
+        if (!button || button.dataset.modpressOptionAddPending === 'true') {
+            return;
+        }
+
         const repeater = button.closest('.modpress-option-repeater');
         if (!repeater) {
             return;
         }
 
-        const fieldRow = button.closest('.modpress-custom-field-row');
-        const fieldIndex = fieldRow ? fieldRow.dataset.fieldIndex : null;
-        const optionIndex = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template')).length;
-        const clone = createOptionRow(repeater, fieldIndex, optionIndex);
-        if (clone) {
-            syncOptionRepeaterNames(repeater, fieldIndex);
+        button.dataset.modpressOptionAddPending = 'true';
+
+        try {
+            const fieldRow = button.closest('.modpress-custom-field-row');
+            const fieldIndex = fieldRow ? fieldRow.dataset.fieldIndex : null;
+            const optionIndex = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template')).length;
+            const clone = createOptionRow(repeater, fieldIndex, optionIndex);
+            if (clone) {
+                syncOptionRepeaterNames(repeater, fieldIndex);
+            }
+        } finally {
+            window.setTimeout(() => {
+                delete button.dataset.modpressOptionAddPending;
+            }, 0);
         }
     };
 
@@ -1137,12 +1151,16 @@
 
         const optionButton = event.target.closest('[data-role="add-option-row"]');
         if (optionButton) {
+            event.preventDefault();
+            event.stopPropagation();
             addOptionRow(optionButton);
             return;
         }
 
         const removeOptionButton = event.target.closest('[data-role="remove-option-row"]');
         if (removeOptionButton) {
+            event.preventDefault();
+            event.stopPropagation();
             const optionRow = removeOptionButton.closest('.modpress-option-row');
             if (optionRow) {
                 optionRow.remove();
