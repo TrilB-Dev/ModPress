@@ -1,4 +1,10 @@
 .modpress-admin {
+  .modal-dialog-scrollable .modal-content {
+    max-height: calc(100vh - 2rem);
+  }
+  .modal-dialog-scrollable .modal-body {
+    overflow-y: auto;
+  }
   .modpress-groups-page .tab-pane {
     min-height: 280px;
   }
@@ -26,12 +32,39 @@
     + .modpress-tab-edit-btn {
     display: inline-flex;
   }
+  .modpress-groups-page .modpress-custom-fields-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
   .modpress-groups-page .modpress-custom-field-row {
     border: 1px solid var(--bs-border-color);
     border-radius: 0.75rem;
     padding: 1rem;
     margin-bottom: 1rem;
     background: var(--bs-tertiary-bg);
+  }
+  .modpress-groups-page .modpress-custom-field-row .accordion-header {
+    margin-bottom: 0;
+  }
+  .modpress-groups-page .modpress-custom-field-row .accordion-button {
+    box-shadow: none;
+  }
+  .modpress-groups-page .modpress-custom-field-row .accordion-button:focus {
+    box-shadow: none;
+  }
+  .modpress-groups-page .modpress-option-repeater {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .modpress-groups-page .modpress-option-repeater-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .modpress-groups-page .modpress-option-row {
+    margin-bottom: 0;
   }
   .modpress-groups-page .modpress-field-options {
     display: none;

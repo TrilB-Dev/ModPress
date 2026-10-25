@@ -1318,18 +1318,20 @@ public function get_group(): void {
         ob_start();
         ?>
         <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
-            <?php echo FormFieldHelper::button(
-                esc_html__( 'Add Option', 'modpress' ),
-                array(
-                    'type' => 'button',
-                    'class' => 'btn btn-outline-secondary btn-sm mt-2',
-                    'id' => 'add-option-row',
-                    'attributes' => array(
-                        'data-role' => 'add-option-row',
-                        'data-option-type' => $type,
+            <div class="d-flex justify-content-end mb-2">
+                <?php echo FormFieldHelper::button(
+                    esc_html__( 'Add Option', 'modpress' ),
+                    array(
+                        'type' => 'button',
+                        'class' => 'btn btn-outline-secondary btn-sm',
+                        'id' => 'add-option-row',
+                        'attributes' => array(
+                            'data-role' => 'add-option-row',
+                            'data-option-type' => $type,
+                        )
                     )
-                )
-            ); ?>
+                ); ?>
+            </div>
             <div class="modpress-option-repeater-items">
                 <div class="modpress-option-row-template d-none" data-option-type="<?php echo esc_attr( $type ); ?>">
                     <div class="row g-2 align-items-center modpress-option-row">
