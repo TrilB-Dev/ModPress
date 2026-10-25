@@ -624,177 +624,183 @@ final class ModGroups extends ModManager {
 											<div id="modpress-custom-fields-container" class="modpress-custom-fields-container">
 												<template id="modpress-custom-field-template">
 													<div class="modpress-custom-field-row d-none">
-														<div class="d-flex justify-content-between align-items-center mb-3">
-															<h6 class="mb-0"><?php esc_html_e( 'Field', 'modpress' ); ?></h6>
+														<div class="d-flex justify-content-between align-items-center mb-3 gap-2">
+															<button type="button" class="btn btn-link p-0 d-flex align-items-center gap-2 text-dark text-start fw-semibold modpress-custom-field-toggle" data-bs-toggle="collapse" aria-expanded="true">
+																<span class="modpress-custom-field-toggle-icon" aria-hidden="true">▾</span>
+																<span class="modpress-custom-field-title"><?php esc_html_e( 'Field', 'modpress' ); ?></span>
+															</button>
+															<button type="button" class="btn btn-outline-danger btn-sm ms-auto modpress-remove-custom-field" data-role="remove-custom-field" aria-label="<?php esc_attr_e( 'Remove field', 'modpress' ); ?>"><?php esc_html_e( 'Delete', 'modpress' ); ?></button>
 														</div>
-														<table class="table table-borderless mb-0">
-															<tbody>
-																<?php $this->render_form_row(
-																	'custom_field_label[]',
-																	__( 'Field Label', 'modpress' ),
-																	function () {
-																		return FormFieldHelper::text_input(
-																			'custom_field_label[]',
-																			'',
-																			array(
-																				'placeholder' => __( 'Example: Groupe Subtitle', 'modpress' ),
-																				'class' => 'w-100'
-																			)
-																		);
-																	},
-																	__( 'Human-readable label for the field.', 'modpress' ),
-																	__( 'This will be displayed in the form and table headers.', 'modpress' )
-																); ?>
-																<?php $this->render_form_row(
-																	'custom_field_slug[]',
-																	__( 'Field Slug', 'modpress' ),
-																	function () {
-																		return FormFieldHelper::text_input(
-																			'custom_field_slug[]',
-																			'',
-																			array(
-																				'placeholder' => __( 'Example: group_subtitle', 'modpress' ),
-																				'class' => 'w-100'
-																			)
-																		);
-																	},
-																	__( 'Field slug used for storage and lookup.', 'modpress' ),
-																	__( 'Keep this safe and consistent with your mod metadata.', 'modpress' )
-																); ?>
-																<?php $this->render_form_row(
-																	'custom_field_description[]',
-																	__( 'Field Description', 'modpress' ),
-																	function () {
-																		return FormFieldHelper::text_input(
-																			'custom_field_description[]',
-																			'',
-																			array(
-																				'placeholder' => __( 'Example: The subtitle for the group.', 'modpress' ),
-																				'class' => 'w-100'
-																			)
-																		);
-																	},
-																	__( 'Description for the field.', 'modpress' ),
-																	__( 'This will be displayed as a hint or tooltip in the form.', 'modpress' )
-																); ?>
-																<?php $this->render_form_row(
-																	'custom_field_type[]',
-																	__( 'Field Type', 'modpress' ),
-																	function ()  {
-																		return FormFieldHelper::select(
-																			'custom_field_type[]',
-																			array(
-																				'text' => __( 'Text', 'modpress' ),
-																				'textarea' => __( 'Text Area', 'modpress' ),
-																				'number' => __( 'Number', 'modpress' ),
-																				'color' => __( 'Colour', 'modpress' ),
-																				'switch' => __( 'Switch', 'modpress' ),
-																				'radio' => __( 'Radio button group', 'modpress' ),
-																				'select' => __( 'Select', 'modpress' ),
-																				'image' => __( 'Image/icon button', 'modpress' ),
-																			),
-																			'text',
-																			array(
-																				'class' => 'form-select w-100'
-																			)
-																		);
-																	},
-																	__( 'Choose how the field should be entered.', 'modpress' ),
-																	__( 'Different field types will change the editor experience.', 'modpress' )
-																); ?>
-																<?php $this->render_form_row(
-																	'custom_field_type_textarea_rows[]',
-																	__( 'Text Area Rows', 'modpress' ),
-																	function () {
-																		return FormFieldHelper::input(
-																			'custom_field_type_textarea_rows[]',
-																			'',
-																			array(
-																				'type' => 'number',
-																				'min' => 1,
-																				'class' => 'w-100',
-																			)
-																		);
-																	},
-																	__( 'Text area for the field.', 'modpress' ),
-																	__( 'Use this for longer text input.', 'modpress' ),
-																	'textarea'
-																); ?>
-																<?php $this->render_form_row(
-																	'custom_field_type_radio[]',
-																	__( 'Radio Button Options', 'modpress' ),
-																	function () {
-																		return FunctionsMod::repeatable_option_row('radio');
-																	},
-																	__( 'Options for the radio button group.', 'modpress' ),
-																	__( 'Enter each option using the options repeater.', 'modpress' ),
-																	'radio'
-																); ?>
-																<?php $this->render_form_row(
-																	'custom_field_type_select[]',
-																	__( 'Select Options', 'modpress' ),
-																	function () {
-																		return FunctionsMod::repeatable_option_row('select');
-																	},
-																	__( 'Options for the select dropdown.', 'modpress' ),
-																	__( 'Enter each option using the options repeater.', 'modpress' ),
-																	'select'
-																); ?>
-																<?php $this->render_form_row(
-																	'custom_field_type_image_type[]',
-																	__( 'Image Options', 'modpress' ),
-																	function () use ( $fa_icon_picker ) {
-																		$choices = array();
-																		$choices[] = FormFieldHelper::switch(
-																			'custom_field_type_image_type_image[]',
-																			'image',
-																			__( 'Image', 'modpress' ),
-																			array(
-																				'checked' => false,
-																			)
-																		);
-																		if ( $fa_icon_picker ) {
+														<div class="modpress-custom-field-body collapse show">
+															<table class="table table-borderless mb-0">
+																<tbody>
+																	<?php $this->render_form_row(
+																		'custom_field_label[]',
+																		__( 'Field Label', 'modpress' ),
+																		function () {
+																			return FormFieldHelper::text_input(
+																				'custom_field_label[]',
+																				'',
+																				array(
+																					'placeholder' => __( 'Example: Groupe Subtitle', 'modpress' ),
+																					'class' => 'w-100'
+																				)
+																			);
+																		},
+																		__( 'Human-readable label for the field.', 'modpress' ),
+																		__( 'This will be displayed in the form and table headers.', 'modpress' )
+																	); ?>
+																	<?php $this->render_form_row(
+																		'custom_field_slug[]',
+																		__( 'Field Slug', 'modpress' ),
+																		function () {
+																			return FormFieldHelper::text_input(
+																				'custom_field_slug[]',
+																				'',
+																				array(
+																					'placeholder' => __( 'Example: group_subtitle', 'modpress' ),
+																					'class' => 'w-100'
+																				)
+																			);
+																		},
+																		__( 'Field slug used for storage and lookup.', 'modpress' ),
+																		__( 'Keep this safe and consistent with your mod metadata.', 'modpress' )
+																	); ?>
+																	<?php $this->render_form_row(
+																		'custom_field_description[]',
+																		__( 'Field Description', 'modpress' ),
+																		function () {
+																			return FormFieldHelper::text_input(
+																				'custom_field_description[]',
+																				'',
+																				array(
+																					'placeholder' => __( 'Example: The subtitle for the group.', 'modpress' ),
+																					'class' => 'w-100'
+																				)
+																			);
+																		},
+																		__( 'Description for the field.', 'modpress' ),
+																		__( 'This will be displayed as a hint or tooltip in the form.', 'modpress' )
+																	); ?>
+																	<?php $this->render_form_row(
+																		'custom_field_type[]',
+																		__( 'Field Type', 'modpress' ),
+																		function ()  {
+																			return FormFieldHelper::select(
+																				'custom_field_type[]',
+																				array(
+																					'text' => __( 'Text', 'modpress' ),
+																					'textarea' => __( 'Text Area', 'modpress' ),
+																					'number' => __( 'Number', 'modpress' ),
+																					'color' => __( 'Colour', 'modpress' ),
+																					'switch' => __( 'Switch', 'modpress' ),
+																					'radio' => __( 'Radio button group', 'modpress' ),
+																					'select' => __( 'Select', 'modpress' ),
+																					'image' => __( 'Image/icon button', 'modpress' ),
+																				),
+																				'text',
+																				array(
+																					'class' => 'form-select w-100'
+																				)
+																			);
+																		},
+																		__( 'Choose how the field should be entered.', 'modpress' ),
+																		__( 'Different field types will change the editor experience.', 'modpress' )
+																	); ?>
+																	<?php $this->render_form_row(
+																		'custom_field_type_textarea_rows[]',
+																		__( 'Text Area Rows', 'modpress' ),
+																		function () {
+																			return FormFieldHelper::input(
+																				'custom_field_type_textarea_rows[]',
+																				'',
+																				array(
+																					'type' => 'number',
+																					'min' => 1,
+																					'class' => 'w-100',
+																				)
+																			);
+																		},
+																		__( 'Text area for the field.', 'modpress' ),
+																		__( 'Use this for longer text input.', 'modpress' ),
+																		'textarea'
+																	); ?>
+																	<?php $this->render_form_row(
+																		'custom_field_type_radio[]',
+																		__( 'Radio Button Options', 'modpress' ),
+																		function () {
+																			return FunctionsMod::repeatable_option_row('radio');
+																		},
+																		__( 'Options for the radio button group.', 'modpress' ),
+																		__( 'Enter each option using the options repeater.', 'modpress' ),
+																		'radio'
+																	); ?>
+																	<?php $this->render_form_row(
+																		'custom_field_type_select[]',
+																		__( 'Select Options', 'modpress' ),
+																		function () {
+																			return FunctionsMod::repeatable_option_row('select');
+																		},
+																		__( 'Options for the select dropdown.', 'modpress' ),
+																		__( 'Enter each option using the options repeater.', 'modpress' ),
+																		'select'
+																	); ?>
+																	<?php $this->render_form_row(
+																		'custom_field_type_image_type[]',
+																		__( 'Image Options', 'modpress' ),
+																		function () use ( $fa_icon_picker ) {
+																			$choices = array();
 																			$choices[] = FormFieldHelper::switch(
-																				'custom_field_type_image_type_icon[]',
-																				'icon',
-																				__( 'Icon', 'modpress' ),
+																				'custom_field_type_image_type_image[]',
+																				'image',
+																				__( 'Image', 'modpress' ),
 																				array(
 																					'checked' => false,
 																				)
 																			);
-																		}
-																		$choices[] = FormFieldHelper::switch(
-																			'custom_field_type_image_type_url[]',
-																			'url',
-																			__( 'URL', 'modpress' ),
-																			array(
-																				'checked' => false,
-																			)
-																		);
-																		return implode( '', $choices );
-																	},
-																	__( 'Options for the image field.', 'modpress' ),
-																	__( 'Image fields in ModPress have the option to choose between Images, Icons and URLs.', 'modpress' ),
-																	'image'
-																); ?>
-																<?php $this->render_form_row(
-																	'custom_field_show_in_table[]',
-																	__( 'Show In Table', 'modpress' ),
-																	function () {
-																		return FormFieldHelper::switch(
-																			'custom_field_show_in_table[]',
-																			false,
-																			__( 'Enabled', 'modpress' ),
-																			array(
-																				'checked' => false,
-																			)
-																		);
-																	},
-																	__( 'Display this field in the group table view.', 'modpress' ),
-																	__( 'Enable this when the field should remain visible in the listing.', 'modpress' )
-																); ?>
-															</tbody>
-														</table>
+																			if ( $fa_icon_picker ) {
+																				$choices[] = FormFieldHelper::switch(
+																					'custom_field_type_image_type_icon[]',
+																					'icon',
+																					__( 'Icon', 'modpress' ),
+																					array(
+																						'checked' => false,
+																					)
+																				);
+																			}
+																			$choices[] = FormFieldHelper::switch(
+																				'custom_field_type_image_type_url[]',
+																				'url',
+																				__( 'URL', 'modpress' ),
+																				array(
+																					'checked' => false,
+																				)
+																			);
+																			return implode( '', $choices );
+																		},
+																		__( 'Options for the image field.', 'modpress' ),
+																		__( 'Image fields in ModPress have the option to choose between Images, Icons and URLs.', 'modpress' ),
+																		'image'
+																	); ?>
+																	<?php $this->render_form_row(
+																		'custom_field_show_in_table[]',
+																		__( 'Show In Table', 'modpress' ),
+																		function () {
+																			return FormFieldHelper::switch(
+																				'custom_field_show_in_table[]',
+																				true,
+																				__( 'Enabled', 'modpress' ),
+																				array(
+																					'checked' => false,
+																				)
+																			);
+																		},
+																		__( 'Display this field in the group table view.', 'modpress' ),
+																		__( 'Enable this when the field should remain visible in the listing.', 'modpress' )
+																	); ?>
+																</tbody>
+															</table>
+														</div>
 													</div>
                                     			</template>
 											</div>

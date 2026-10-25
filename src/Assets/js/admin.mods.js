@@ -607,6 +607,42 @@
         syncGroupDeleteState();
     };
 
+    const syncCustomFieldTitle = (row) => {
+        if (!row) {
+            return;
+        }
+
+        const labelInput = row.querySelector('[name="custom_field_label[]"]');
+        const title = row.querySelector('.modpress-custom-field-title');
+        if (!title) {
+            return;
+        }
+
+        const label = labelInput ? String(labelInput.value || '').trim() : '';
+        title.textContent = label ? label : 'Field';
+    };
+
+    const syncCustomFieldToggle = (row) => {
+        if (!row) {
+            return;
+        }
+
+        const body = row.querySelector('.modpress-custom-field-body');
+        const toggle = row.querySelector('.modpress-custom-field-toggle');
+        const icon = row.querySelector('.modpress-custom-field-toggle-icon');
+        if (!body || !toggle || !icon) {
+            return;
+        }
+
+        const fieldIndex = row.dataset.fieldIndex || 'new';
+        const bodyId = 'modpress-custom-field-body-' + fieldIndex;
+        body.id = bodyId;
+        toggle.setAttribute('data-bs-target', '#' + bodyId);
+        toggle.setAttribute('aria-controls', bodyId);
+        toggle.setAttribute('aria-expanded', body.classList.contains('show') ? 'true' : 'false');
+        icon.textContent = body.classList.contains('show') ? '▾' : '▸';
+    };
+
     const getNextCustomFieldIndex = (scope = document) => {
         const rows = scope && scope.querySelectorAll ? scope.querySelectorAll('.modpress-custom-field-row') : document.querySelectorAll('.modpress-custom-field-row');
         let maxIndex = -1;
@@ -628,7 +664,13 @@
 
         const type = repeater.dataset.optionType || 'radio';
         const optionRows = repeater.querySelectorAll('.modpress-option-row');
-        optionRows.forEach((optionRow, optionIndex) => {
+        let optionIndex = 0;
+
+        optionRows.forEach((optionRow) => {
+            if (optionRow.closest('.modpress-option-row-template')) {
+                return;
+            }
+
             const labelInput = optionRow.querySelector('[data-option-role="label"]');
             const valueInput = optionRow.querySelector('[data-option-role="value"]');
             if (labelInput) {
@@ -637,6 +679,8 @@
             if (valueInput) {
                 valueInput.name = 'custom_field_type_' + type + '[' + fieldIndex + '][' + optionIndex + '][option]';
             }
+
+            optionIndex += 1;
         });
     };
 
@@ -819,19 +863,18 @@
         const repeater = row.querySelector('.modpress-option-repeater');
         if (repeater) {
             repeater.dataset.optionType = 'radio';
-            const templateRow = repeater.querySelector('.modpress-option-row-template');
-            if (templateRow) {
-                templateRow.classList.remove('d-none');
-                templateRow.classList.add('modpress-option-row');
-                templateRow.querySelectorAll('[data-option-role]').forEach((input) => {
-                    input.name = '';
-                });
-            }
         }
 
         container.appendChild(row);
+        syncCustomFieldToggle(row);
         syncCustomFieldRepeaterNames(row);
         syncCustomFieldVisibility(row);
+        syncCustomFieldTitle(row);
+
+        const labelInput = row.querySelector('[name="custom_field_label[]"]');
+        if (labelInput) {
+            labelInput.addEventListener('input', () => syncCustomFieldTitle(row));
+        }
     };
 
     const bindCustomFieldButtons = () => {
@@ -866,13 +909,20 @@
             return;
         }
 
-        const clone = template.cloneNode(true);
+        const sourceRow = template.querySelector('.modpress-option-row') || template;
+        const clone = sourceRow ? sourceRow.cloneNode(true) : null;
+        if (!clone) {
+            return;
+        }
+
         clone.classList.remove('d-none');
         clone.classList.remove('modpress-option-row-template');
         clone.classList.add('modpress-option-row');
 
+        const visibleRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template'));
+        const optionIndex = visibleRows.length;
+
         if (fieldIndex !== null && fieldIndex !== undefined && fieldIndex !== '') {
-            const optionIndex = repeater.querySelectorAll('.modpress-option-row').length;
             const labelInput = clone.querySelector('[data-option-role="label"]');
             const valueInput = clone.querySelector('[data-option-role="value"]');
             const type = repeater.dataset.optionType || 'radio';
