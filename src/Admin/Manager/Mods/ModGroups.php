@@ -632,25 +632,21 @@ final class ModGroups extends ModManager {
 												<div class="accordion" id="modpress-custom-fields-accordion">
 													<template id="modpress-custom-field-template">
 														<div class="accordion-item modpress-custom-field-row d-none">
-															<div class="accordion-header" id="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
-																<h3 class="mb-0">
-																	<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" aria-expanded="false" aria-controls="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
-																		<?php esc_html_e( 'Field', 'modpress' ); ?>: <?php echo $input['custom_field_label[]'] ?? ''; ?>
-																	</button>
-																	<div class="d-flex justify-content-end mb-3">
-																		<?php echo FormFieldHelper::button(
-																			__( 'Remove', 'modpress' ),
-																			array(
-																				'type' => 'button',
-																				'class' => 'btn btn-outline-danger btn-sm',
-																				'data-role' => 'remove-custom-field',
-																				'id' => 'remove-custom-field-button'
-																			)
-																		); ?>
-																	</div>
-																</h3>
-															</div>
-															<div id="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" class="accordion-collapse collapse" aria-labelledby="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>" data-bs-parent="#modpress-custom-fields-accordion">
+															<div class="accordion-header d-flex justify-content-between align-items-center gap-2" id="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
+<button class="accordion-button collapsed flex-grow-1 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" aria-expanded="false" aria-controls="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
+<span data-custom-field-prefix><?php esc_html_e( 'Field', 'modpress' ); ?>:</span>
+<span class="ms-1" data-custom-field-title><?php echo esc_html( $input['custom_field_label[]'] ?? '' ); ?></span>
+</button>
+<?php echo FormFieldHelper::button(
+__( 'Remove', 'modpress' ),
+array(
+'type' => 'button',
+'class' => 'btn btn-outline-danger btn-sm ms-2 modpress-remove-custom-field',
+'data-role' => 'remove-custom-field',
+'id' => 'remove-custom-field-button'
+)
+); ?>
+</div><div id="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" class="accordion-collapse collapse" aria-labelledby="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>" data-bs-parent="#modpress-custom-fields-accordion">
 																<div class="accordion-body">
 																	<table class="table table-borderless mb-0">
 																		<tbody>
