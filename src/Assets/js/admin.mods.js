@@ -367,6 +367,30 @@
         return [];
     };
 
+    const getCustomFieldTemplate = (container = null, modal = null) => {
+        const modalTemplate = modal ? modal.querySelector('#modpress-custom-field-template') : null;
+        if (modalTemplate) {
+            return modalTemplate;
+        }
+
+        if (container) {
+            const containerTemplate = container.querySelector('#modpress-custom-field-template');
+            if (containerTemplate) {
+                return containerTemplate;
+            }
+        }
+
+        const globalTemplate = document.getElementById('modpress-custom-field-template');
+        if (globalTemplate) {
+            if (container && !container.contains(globalTemplate)) {
+                container.appendChild(globalTemplate);
+            }
+            return globalTemplate;
+        }
+
+        return null;
+    };
+
     const populateCustomFieldRows = (groupData = {}, modal = document.getElementById('modpress-group-modal')) => {
         if (!modal) {
             return;
@@ -377,7 +401,7 @@
             return;
         }
 
-        const template = document.getElementById('modpress-custom-field-template');
+        const template = getCustomFieldTemplate(container, modal);
         if (!template) {
             return;
         }
@@ -550,7 +574,7 @@
 
         const customFieldsContainer = modal.querySelector('#modpress-custom-fields-container');
         if (customFieldsContainer) {
-            const customFieldTemplate = document.getElementById('modpress-custom-field-template');
+            const customFieldTemplate = getCustomFieldTemplate(customFieldsContainer, modal);
             customFieldsContainer.innerHTML = '';
             if (customFieldTemplate && !customFieldsContainer.contains(customFieldTemplate)) {
                 customFieldsContainer.appendChild(customFieldTemplate);
@@ -583,8 +607,8 @@
         syncGroupDeleteState();
     };
 
-    const getNextCustomFieldIndex = () => {
-        const rows = document.querySelectorAll('.modpress-custom-field-row');
+    const getNextCustomFieldIndex = (scope = document) => {
+        const rows = scope && scope.querySelectorAll ? scope.querySelectorAll('.modpress-custom-field-row') : document.querySelectorAll('.modpress-custom-field-row');
         let maxIndex = -1;
 
         rows.forEach((row) => {
@@ -765,10 +789,7 @@
             placeholder.remove();
         }
 
-        let template = scope ? scope.querySelector('#modpress-custom-field-template') : document.getElementById('modpress-custom-field-template');
-        if (!template) {
-            template = container.querySelector('#modpress-custom-field-template');
-        }
+        const template = getCustomFieldTemplate(container, scope);
         if (!template) {
             console.error('[ModPress] Missing custom field template for Add Custom Field action.');
             return;
@@ -793,7 +814,7 @@
 
         row.classList.remove('d-none');
         row.classList.add('modpress-custom-field-row');
-        row.dataset.fieldIndex = String(getNextCustomFieldIndex());
+        row.dataset.fieldIndex = String(getNextCustomFieldIndex(container));
 
         const repeater = row.querySelector('.modpress-option-repeater');
         if (repeater) {
