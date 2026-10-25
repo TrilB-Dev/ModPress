@@ -338,12 +338,15 @@ final class FunctionsMod {
                 $field_index = is_numeric( $index ) ? (int) $index : 0;
                 $slug        = trim( (string) ( $field_slugs[ $field_index ] ?? SanitizationHelper::slug( $name, '' ) ) );
                 $field_type  = trim( (string) ( $field_types[ $field_index ] ?? 'text' ) );
+                $show_in_table_value = $show_in_table[ $field_index ] ?? '';
                 $field       = array(
                     'name'        => $name,
                     'slug'        => $slug,
                     'type'        => $field_type,
                     'description' => trim( (string) ( $field_descs[ $field_index ] ?? '' ) ),
-                    'show_in_table' => ! empty( $show_in_table[ $field_index ] ) || 'on' === (string) ( $show_in_table[ $field_index ] ?? '' ),
+                    'show_in_table' => is_bool( $show_in_table_value )
+                        ? $show_in_table_value
+                        : in_array( strtolower( trim( (string) $show_in_table_value ) ), array( '1', 'on', 'true', 'yes' ), true ),
                 );
 
                 if ( 'textarea' === $field_type ) {

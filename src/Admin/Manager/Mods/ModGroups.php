@@ -808,7 +808,7 @@ final class ModGroups extends ModManager {
 																				function () {
 																					return FormFieldHelper::switch(
 																						'custom_field_show_in_table[]',
-																						false,
+																						'1',
 																						__( 'Enabled', 'modpress' ),
 																						array(
 																							'checked' => false,

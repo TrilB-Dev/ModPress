@@ -194,7 +194,7 @@ final class FormFieldHelper {
 	 * @param array  $attributes Additional attributes for the switch.
 	 * @return string The HTML markup for the switch input.
 	 */
-	public static function switch( string $name, string $value = '1', string $label = '', array $options = array() ): string {
+	public static function switch( string $name, $value = '1', string $label = '', array $options = array() ): string {
 
 		$options['switch'] = true;
 
@@ -423,6 +423,10 @@ final class FormFieldHelper {
 		$wrapper    = self::classes( array( 'form-check', ! empty( $options['inline'] ) ? 'form-check-inline' : '', ! empty( $options['switch'] ) ? 'form-switch' : '', ! empty( $options['reverse'] ) ? 'form-check-reverse' : '', $options['wrapper_class'] ?? '' ) );
 		$attributes = array_merge( $options['attributes'] ?? array(), $options );
 		unset( $attributes['attributes'], $attributes['class'], $attributes['wrapper_class'], $attributes['inline'], $attributes['switch'], $attributes['reverse'], $attributes['checked'], $attributes['id'], $attributes['type'], $attributes['value'], $attributes['validation'] );
+		if ( is_bool( $value ) ) {
+			$value = '1';
+		}
+
 		$attributes['class'] = self::classes( array( 'form-check-input', $options['class'] ?? '', self::validation_class( $options ) ) );
 		$attributes['id']    = $id;
 		$attributes['type']  = $type;

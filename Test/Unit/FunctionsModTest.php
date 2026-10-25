@@ -857,6 +857,20 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'a:2:{i:0;i:84;i:1;i:85;}', $payload['group_parent_entry'] );
         }
 
+        public function testSwitchCheckboxUsesStandardValueWhenBooleanFalseIsPassed(): void {
+            $output = \ModPress\Includes\Functions\Helpers\FormFieldHelper::switch(
+                'custom_field_show_in_table[]',
+                false,
+                __( 'Enabled', 'modpress' ),
+                array(
+                    'checked' => false,
+                )
+            );
+
+            $this->assertStringContainsString( 'name="custom_field_show_in_table[]"', $output );
+            $this->assertStringContainsString( 'value="1"', $output );
+        }
+
         public function testRenderGroupModalKeepsSavedParentSelectionValues(): void {
             $GLOBALS['modpress_test_taxonomies'] = array(
                 'modpress_assets' => array( 'args' => array( 'hierarchical' => true ) ),
