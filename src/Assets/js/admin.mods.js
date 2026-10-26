@@ -429,9 +429,10 @@
             return;
         }
 
-        container.innerHTML = '';
-        if (!container.contains(template)) {
-            container.appendChild(template);
+        const accordion = container.querySelector('#modpress-custom-fields-accordion') || container;
+        accordion.innerHTML = '';
+        if (!accordion.contains(template)) {
+            accordion.appendChild(template);
         }
         const fields = getGroupFields(groupData);
 
@@ -531,7 +532,7 @@
                 });
             }
 
-            container.appendChild(row);
+            accordion.appendChild(row);
             syncCustomFieldRepeaterNames(row);
             syncCustomFieldVisibility(row);
         });
@@ -846,6 +847,7 @@
             return;
         }
 
+        const accordion = container.querySelector('#modpress-custom-fields-accordion') || container;
         const placeholder = container.querySelector('.text-muted.small');
         if (placeholder) {
             placeholder.remove();
@@ -906,7 +908,7 @@
             createOptionRow(repeater, fieldIndex, 0);
         }
 
-        container.appendChild(row);
+        accordion.appendChild(row);
         syncCustomFieldRepeaterNames(row);
         syncCustomFieldVisibility(row);
         syncCustomFieldLabel(row);

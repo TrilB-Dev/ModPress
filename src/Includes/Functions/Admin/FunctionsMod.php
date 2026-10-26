@@ -1384,6 +1384,7 @@ public function get_group(): void {
         <?php
         return (string) ob_get_clean();
     }
+    
     public static function render_group_custom_fields( $custom_fields, $value = array() ) {
         ob_start();
         $custom_fields = is_array( $custom_fields ) ? $custom_fields : array();
