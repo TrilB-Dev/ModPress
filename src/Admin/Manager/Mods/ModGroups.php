@@ -633,20 +633,21 @@ final class ModGroups extends ModManager {
 													<template id="modpress-custom-field-template">
 														<div class="accordion-item modpress-custom-field-row d-none">
 															<div class="accordion-header d-flex justify-content-between align-items-center gap-2" id="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
-<button class="accordion-button collapsed flex-grow-1 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" aria-expanded="false" aria-controls="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
-<span data-custom-field-prefix><?php esc_html_e( 'Field', 'modpress' ); ?>:</span>
-<span class="ms-1" data-custom-field-title><?php echo esc_html( $input['custom_field_label[]'] ?? '' ); ?></span>
-</button>
-<?php echo FormFieldHelper::button(
-__( 'Remove', 'modpress' ),
-array(
-'type' => 'button',
-'class' => 'btn btn-outline-danger btn-sm ms-2 modpress-remove-custom-field',
-'data-role' => 'remove-custom-field',
-'id' => 'remove-custom-field-button'
-)
-); ?>
-</div><div id="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" class="accordion-collapse collapse" aria-labelledby="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>" data-bs-parent="#modpress-custom-fields-accordion">
+																<button class="accordion-button collapsed flex-grow-1 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" aria-expanded="false" aria-controls="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
+																	<span data-custom-field-prefix><?php esc_html_e( 'Field', 'modpress' ); ?>:</span>
+																	<span class="ms-1" data-custom-field-title><?php echo esc_html( $input['custom_field_label[]'] ?? '' ); ?></span>
+																</button>
+																<?php echo FormFieldHelper::button(
+																	__( 'Remove', 'modpress' ),
+																	array(
+																		'type' => 'button',
+																		'class' => 'btn btn-outline-danger btn-sm ms-2 modpress-remove-custom-field',
+																		'data-role' => 'remove-custom-field',
+																		'id' => 'remove-custom-field-button'
+																	)
+																); ?>
+															</div>
+															<div id="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" class="accordion-collapse collapse" aria-labelledby="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>" data-bs-parent="#modpress-custom-fields-accordion">
 																<div class="accordion-body">
 																	<table class="table table-borderless mb-0">
 																		<tbody>
@@ -934,6 +935,20 @@ array(
 			}
 		}
 		$modal_title = (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ? __( 'Edit Entry', 'modpress' ) : __( 'Add Entry', 'modpress' );
+		$selected_group_fields = $group_field_config[ $selected_group_key ] ?? array();
+		$selected_group_values = array();
+		if ( '' !== $selected_group_key && (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ) {
+			foreach ( $selected_group_fields as $field ) {
+				if ( ! is_array( $field ) ) {
+					continue;
+				}
+				$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+				if ( '' === $field_slug ) {
+					continue;
+				}
+				$selected_group_values[ $field_slug ] = GroupsManager::get_group_entry( (int) $selected_entry['term_id'], $selected_group_key, $field_slug );
+			}
+		}
 		?>
 		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
@@ -1018,10 +1033,14 @@ array(
 									); ?>
 								<tr class="modpress-entry-custom-fields-row">
 									<th scope="row" class="align-top text-nowrap pe-4">
-										<label for="modpress-entry-custom-fields"><?php esc_html_e( 'Custom Fields', 'modpress' ); ?></label>
+										<label for="modpress-entry-custom-fields">
+											<?php esc_html_e( 'Custom Fields', 'modpress' ); ?>
+										</label>
 									</th>
 									<td>
-										<div class="modpress-entry-custom-fields-container"></div>
+										<div class="modpress-entry-custom-fields-container">
+											<?php echo FunctionsMod::render_group_custom_fields( $selected_group_fields, $selected_group_values ); ?>
+										</div>
 									</td>
 								</tr>
 								</tbody>

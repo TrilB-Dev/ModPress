@@ -304,8 +304,6 @@
             iconField.value = data.icon || '';
         }
 
-        const customFieldValues = data.custom_fields && typeof data.custom_fields === 'object' ? data.custom_fields : {};
-        renderEntryCustomFields(modalElement, customFieldValues);
     };
 
     const fetchEntryModalData = async (trigger) => {
@@ -1196,168 +1194,6 @@
         }
     });
 
-    const escapeAttributeValue = (value = '') => String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-
-    const buildEntryImageSelector = (inputName, value, mode = 'image') => {
-        const template = document.getElementById('modpress-entry-image-field-template');
-        if (!template) {
-            return '';
-        }
-
-        const fragment = template.content ? template.content.cloneNode(true) : template.cloneNode(true);
-        const field = fragment.firstElementChild || fragment;
-        if (!field) {
-            return '';
-        }
-
-        const sanitizedValue = String(value || '');
-        const imageValue = sanitizedValue && mode !== 'icon' ? sanitizedValue : '';
-        const iconValue = mode === 'icon' && sanitizedValue ? sanitizedValue : 'fas fa-image';
-        const pickerId = 'modpress-entry-icon-picker-' + inputName.replace(/[^a-zA-Z0-9_-]/g, '-');
-
-        field.dataset.inputName = inputName;
-        field.querySelectorAll('[name=""]').forEach((element) => {
-            element.removeAttribute('name');
-        });
-
-        const modeInputs = field.querySelectorAll('.modpress-image-picker-mode-input');
-        modeInputs.forEach((radio) => {
-            radio.name = inputName + '_mode';
-            radio.dataset.inputName = inputName;
-            radio.checked = radio.value === mode;
-        });
-
-        const imageHidden = field.querySelector('.modpress-image-entry-mode-image input[type="hidden"]');
-        if (imageHidden) {
-            imageHidden.name = inputName;
-            imageHidden.value = imageValue;
-            imageHidden.disabled = mode !== 'image';
-        }
-
-        const imagePreview = field.querySelector('.modpress-image-preview');
-        const imagePreviewImg = field.querySelector('.modpress-image-preview img');
-        if (imagePreview && imagePreviewImg) {
-            imagePreviewImg.src = imageValue;
-            imagePreview.classList.toggle('d-none', !imageValue);
-        }
-
-        const imageClear = field.querySelector('.modpress-image-clear');
-        if (imageClear) {
-            imageClear.classList.toggle('d-none', !imageValue);
-        }
-
-        const iconHidden = field.querySelector('.modpress-image-entry-mode-icon input[type="hidden"]');
-        const iconButton = field.querySelector('.modpress-fa-picker-button');
-        const iconPreview = field.querySelector('.modpress-fa-picker-preview i');
-        const iconContainer = field.querySelector('.modpress-fa-picker-container');
-        if (iconHidden) {
-            iconHidden.name = inputName;
-            iconHidden.value = iconValue;
-            iconHidden.disabled = mode !== 'icon';
-        }
-        if (iconContainer) {
-            iconContainer.id = pickerId;
-        }
-        if (iconButton) {
-            iconButton.dataset.pickerId = pickerId;
-        }
-        if (iconPreview) {
-            iconPreview.className = iconValue;
-        }
-
-        const iconPane = field.querySelector('.modpress-image-entry-mode-icon');
-        const imagePane = field.querySelector('.modpress-image-entry-mode-image');
-        if (iconPane) {
-            iconPane.style.display = mode === 'icon' ? '' : 'none';
-        }
-        if (imagePane) {
-            imagePane.style.display = mode === 'image' ? '' : 'none';
-        }
-
-        return field.outerHTML;
-    };
-
-    const renderEntryCustomFields = (modal, currentValues = {}) => {
-        const config = modal.dataset.groupFieldConfig ? JSON.parse(modal.dataset.groupFieldConfig) : {};
-        const taxonomyKey = modal.querySelector('[name="group_slug"]')?.value || '';
-        const container = modal.querySelector('.modpress-entry-custom-fields-container');
-        if (!container) {
-            return;
-        }
-
-        const fields = Array.isArray(config[taxonomyKey]) ? config[taxonomyKey] : [];
-        container.innerHTML = '';
-
-        if (!fields.length) {
-            container.innerHTML = '<div class="text-muted small">No custom fields configured for this group.</div>';
-            return;
-        }
-
-        fields.forEach((field) => {
-            const slug = String(field.slug || field.name || '').trim();
-            if (!slug) {
-                return;
-            }
-
-            const type = String(field.type || 'text').toLowerCase();
-            const label = field.label || field.name || slug;
-            const description = field.description || '';
-            const inputName = 'entry_custom_field_' + slug;
-            const savedValue = currentValues[slug] ?? '';
-            let inputMarkup = '<input type="text" name="' + inputName + '" class="form-control w-100" value="' + escapeAttributeValue(savedValue) + '" />';
-
-            if (type === 'textarea') {
-                const rows = Number(field.rows) > 0 ? Number(field.rows) : 4;
-                inputMarkup = '<textarea name="' + inputName + '" class="form-control w-100" rows="' + rows + '">' + escapeAttributeValue(savedValue) + '</textarea>';
-            }
-
-            if (type === 'number') {
-                inputMarkup = '<input type="number" name="' + inputName + '" class="form-control w-100" value="' + escapeAttributeValue(savedValue) + '" />';
-            }
-
-            if (type === 'switch') {
-                const checked = savedValue === true || savedValue === '1' || savedValue === 'yes' || savedValue === 'on' ? ' checked' : '';
-                inputMarkup = '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="' + inputName + '" value="1"' + checked + ' /><label class="form-check-label">' + label + '</label></div>';
-            }
-
-            if (type === 'image') {
-                const allowedModes = Array.isArray(field.image_types) ? field.image_types.map((item) => String(item).toLowerCase()) : ['image'];
-                const activeMode = allowedModes.includes('icon') && (String(savedValue || '').startsWith('fa') || String(savedValue || '').includes('fa-')) ? 'icon' : 'image';
-                inputMarkup = buildEntryImageSelector(inputName, savedValue, allowedModes.includes('icon') ? activeMode : 'image');
-            }
-
-            if (type === 'radio' || type === 'select') {
-                const options = Array.isArray(field.options) ? field.options : [];
-                if (!options.length) {
-                    inputMarkup = '<input type="text" name="' + inputName + '" class="form-control w-100" value="' + escapeAttributeValue(savedValue) + '" />';
-                } else if (type === 'radio') {
-                    inputMarkup = options.map((option) => {
-                        const optionValue = String(option.value || option.label || option);
-                        const optionLabel = String(option.label || option.value || option);
-                        const checked = String(savedValue) === String(optionValue) ? ' checked' : '';
-                        return '<div class="form-check"><input class="form-check-input" type="radio" name="' + inputName + '" value="' + optionValue + '"' + checked + ' /><label class="form-check-label">' + optionLabel + '</label></div>';
-                    }).join('');
-                } else {
-                    inputMarkup = '<select name="' + inputName + '" class="form-select w-100"><option value="">Select...</option>' + options.map((option) => {
-                        const optionValue = String(option.value || option.label || option);
-                        const optionLabel = String(option.label || option.value || option);
-                        const selected = String(savedValue) === String(optionValue) ? ' selected' : '';
-                        return '<option value="' + optionValue + '"' + selected + '>' + optionLabel + '</option>';
-                    }).join('') + '</select>';
-                }
-            }
-
-            const fieldRow = document.createElement('div');
-            fieldRow.className = 'mb-3';
-            fieldRow.innerHTML = '<label class="form-label fw-semibold d-block mb-2">' + label + '</label>' + inputMarkup + (description ? '<div class="form-text mt-2">' + description + '</div>' : '');
-            container.appendChild(fieldRow);
-        });
-    };
-
     const loadEntryModalData = (trigger) => {
         if (!trigger) {
             return;
@@ -1393,7 +1229,6 @@
         if (formTaxonomyField) {
             formTaxonomyField.value = taxonomyKey;
         }
-        renderEntryCustomFields(modalElement, {});
 
         const entryId = trigger.dataset.groupEntryId ? Number(trigger.dataset.groupEntryId) : (trigger.dataset.entryId ? Number(trigger.dataset.entryId) : 0);
         if (!entryId) {
