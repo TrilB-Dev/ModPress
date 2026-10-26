@@ -448,6 +448,30 @@
             row.classList.add('modpress-custom-field-row');
             row.dataset.fieldIndex = String(fieldIndex);
 
+            const headingId = 'modpress-custom-field-heading-' + fieldIndex;
+            const collapseId = 'modpress-custom-field-content-' + fieldIndex;
+            const header = row.querySelector('.accordion-header');
+            const trigger = row.querySelector('.accordion-button');
+            const collapse = row.querySelector('.accordion-collapse');
+
+            if (header) {
+                header.id = headingId;
+            }
+            if (trigger) {
+                trigger.setAttribute('data-bs-target', '#' + collapseId);
+                trigger.setAttribute('aria-controls', collapseId);
+                trigger.setAttribute('aria-labelledby', headingId);
+                trigger.classList.remove('collapsed');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+            if (collapse) {
+                collapse.id = collapseId;
+                collapse.setAttribute('aria-labelledby', headingId);
+                collapse.setAttribute('data-bs-parent', '#modpress-custom-fields-accordion');
+                collapse.classList.remove('show');
+                collapse.classList.add('collapse');
+            }
+
             const labelInput = row.querySelector('[name="custom_field_label[]"]');
             if (labelInput) {
                 labelInput.value = field.name || field.label || '';
