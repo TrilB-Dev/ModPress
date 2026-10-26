@@ -904,6 +904,7 @@ final class ModGroups extends ModManager {
 			'0' => __( 'None', 'modpress' ),
 		);
 		$group_field_config   = array();
+		$default_group_key    = '';
 
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
@@ -931,8 +932,14 @@ final class ModGroups extends ModManager {
 				$decoded = json_decode( $group_fields, true );
 				if ( is_array( $decoded ) ) {
 					$group_field_config[ $taxonomy_key ] = $decoded;
+					if ( '' === $default_group_key ) {
+						$default_group_key = $taxonomy_key;
+					}
 				}
 			}
+		}
+		if ( '' === $selected_group_key && '' !== $default_group_key ) {
+			$selected_group_key = $default_group_key;
 		}
 		$modal_title = (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ? __( 'Edit Entry', 'modpress' ) : __( 'Add Entry', 'modpress' );
 		$selected_group_fields = $group_field_config[ $selected_group_key ] ?? array();

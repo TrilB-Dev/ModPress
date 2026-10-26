@@ -1432,188 +1432,137 @@ public function get_group(): void {
         };
         ?>
         <div class="group-custom-fields-container">
-            <?php foreach ( $custom_fields as $custom_field ) : ?>
-                <?php if ( ! is_array( $custom_field ) ) : continue; endif; ?>
-                <?php $field_slug = trim( (string) ( $custom_field['slug'] ?? $custom_field['name'] ?? '' ) ); ?>
-                <?php if ( '' === $field_slug ) : continue; endif; ?>
-                <?php $field_name = 'entry_custom_field_' . $field_slug; ?>
-                <?php $field_value = $resolve_field_value( $field_slug, $field_name ); ?>
-                <?php $field_type = strtolower( (string) ( $custom_field['type'] ?? 'text' ) ); ?>
+            <?php if ( empty( $custom_fields ) ) : ?>
+                <div class="text-muted small"><?php esc_html_e( 'No custom fields configured for this group.', 'modpress' ); ?></div>
+            <?php else : ?>
+                <?php foreach ( $custom_fields as $custom_field ) : ?>
+                    <?php if ( ! is_array( $custom_field ) ) : continue; endif; ?>
+                    <?php $field_slug = trim( (string) ( $custom_field['slug'] ?? $custom_field['name'] ?? '' ) ); ?>
+                    <?php if ( '' === $field_slug ) : continue; endif; ?>
+                    <?php $field_name = 'entry_custom_field_' . $field_slug; ?>
+                    <?php $field_value = $resolve_field_value( $field_slug, $field_name ); ?>
+                    <?php $field_type = strtolower( (string) ( $custom_field['type'] ?? 'text' ) ); ?>
 
-                <?php if ( 'text' === $field_type ) : ?>
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-md-4">
-                            <?php echo FormFieldHelper::label(
-                                $field_name,
-                                $custom_field['label'] ?? $field_slug,
-                                array(
-                                    'class' => 'form-label',
-                                    'description' => $custom_field['description'] ?? '',
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-8">
-                            <?php echo FormFieldHelper::text_input(
-                                $field_name,
-                                (string) $field_value,
-                                array(
-                                    'class' => 'form-control w-100',
-                                    'placeholder' => $custom_field['label'] ?? $field_slug,
-                                )
-                            ); ?>
-                        </div>
-                    </div>
-                <?php elseif ( 'textarea' === $field_type ) : ?>
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-md-4">
-                            <?php echo FormFieldHelper::label(
-                                $field_name,
-                                $custom_field['label'] ?? $field_slug,
-                                array(
-                                    'class' => 'form-label',
-                                    'description' => $custom_field['description'] ?? '',
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-8">
-                            <?php echo FormFieldHelper::textarea(
-                                $field_name,
-                                (string) $field_value,
-                                array(
-                                    'class' => 'form-control w-100',
-                                    'rows' => absint( $custom_field['rows'] ?? 4 ),
-                                    'placeholder' => $custom_field['label'] ?? $field_slug,
-                                )
-                            ); ?>
-                        </div>
-                    </div>
-                <?php elseif ( 'number' === $field_type ) : ?>
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-md-4">
-                            <?php echo FormFieldHelper::label(
-                                $field_name,
-                                $custom_field['label'] ?? $field_slug,
-                                array(
-                                    'class' => 'form-label',
-                                    'description' => $custom_field['description'] ?? '',
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-8">
-                            <?php echo FormFieldHelper::input(
-                                $field_name,
-                                (string) $field_value,
-                                array(
-                                    'type' => 'number',
-                                    'class' => 'form-control w-100',
-                                    'placeholder' => $custom_field['label'] ?? $field_slug,
-                                )
-                            ); ?>
-                        </div>
-                    </div>
-                <?php elseif ( 'color' === $field_type ) : ?>
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-md-4">
-                            <?php echo FormFieldHelper::label(
-                                $field_name,
-                                $custom_field['label'] ?? $field_slug,
-                                array(
-                                    'class' => 'form-label',
-                                    'description' => $custom_field['description'] ?? '',
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-8">
-                            <?php echo FormFieldHelper::input(
-                                $field_name,
-                                (string) $field_value,
-                                array(
-                                    'type' => 'color',
-                                    'class' => 'form-control form-control-color w-100',
-                                )
-                            ); ?>
-                        </div>
-                    </div>
-                <?php elseif ( 'switch' === $field_type ) : ?>
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-md-4">
-                            <?php echo FormFieldHelper::label(
-                                $field_name,
-                                $custom_field['label'] ?? $field_slug,
-                                array(
-                                    'class' => 'form-label',
-                                    'description' => $custom_field['description'] ?? '',
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-8">
-                            <?php echo FormFieldHelper::switch(
-                                $field_name,
-                                '1',
-                                '',
-                                array(
-                                    'checked' => ! empty( $field_value ) && ( '1' === (string) $field_value || true === $field_value || 'true' === strtolower( (string) $field_value ) || 'on' === strtolower( (string) $field_value ) || 'yes' === strtolower( (string) $field_value ) ),
-                                )
-                            ); ?>
-                        </div>
-                    </div>
-                <?php elseif ( 'radio' === $field_type ) : ?>
-                    <?php $option_rows = $normalize_options( $custom_field['options'] ?? array() ); ?>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-4">
-                            <?php echo FormFieldHelper::label(
-                                $field_name,
-                                $custom_field['label'] ?? $field_slug,
-                                array(
-                                    'class' => 'form-label',
-                                    'description' => $custom_field['description'] ?? '',
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-8">
-                            <?php echo FormFieldHelper::button_group(
-                                $field_name,
-                                $option_rows,
-                                ( is_array( $field_value ) ? array_map( 'strval', $field_value ) : (string) $field_value ),
-                                array(
-                                    'type' => 'radio',
-                                )
-                            ); ?>
-                        </div>
-                    </div>
-                <?php elseif ( 'select' === $field_type ) : ?>
-                    <?php $option_rows = $normalize_options( $custom_field['options'] ?? array() ); ?>
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-md-4">
-                            <?php echo FormFieldHelper::label(
-                                $field_name,
-                                $custom_field['label'] ?? $field_slug,
-                                array(
-                                    'class' => 'form-label',
-                                    'description' => $custom_field['description'] ?? '',
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-8">
-                            <?php echo FormFieldHelper::bootstrap_select(
-                                $field_name,
-                                array(
-                                    'data' => $option_rows,
-                                    'selected' => ( is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value ),
-                                    'class' => 'w-100',
-                                )
-                            ); ?>
-                        </div>
-                    </div>
-                <?php elseif ( 'image' === $field_type ) : ?>
-                    <?php $image_choices = array(); ?>
-                    <?php foreach ( array( 'image' => __( 'Image', 'modpress' ), 'icon' => __( 'Icon', 'modpress' ), 'url' => __( 'URL', 'modpress' ) ) as $image_key => $image_label ) : ?>
-                        <?php if ( in_array( $image_key, (array) ( $custom_field['image_types'] ?? array() ), true ) ) : ?>
-                            <?php $image_choices[ $image_key ] = $image_label; ?>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                    <?php if ( ! empty( $image_choices ) ) : ?>
+                    <?php if ( 'text' === $field_type ) : ?>
                         <div class="row g-2 align-items-center mb-3">
+                            <div class="col-md-4">
+                                <?php echo FormFieldHelper::label(
+                                    $field_name,
+                                    $custom_field['label'] ?? $field_slug,
+                                    array(
+                                        'class' => 'form-label',
+                                        'description' => $custom_field['description'] ?? '',
+                                    )
+                                ); ?>
+                            </div>
+                            <div class="col-md-8">
+                                <?php echo FormFieldHelper::text_input(
+                                    $field_name,
+                                    (string) $field_value,
+                                    array(
+                                        'class' => 'form-control w-100',
+                                        'placeholder' => $custom_field['label'] ?? $field_slug,
+                                    )
+                                ); ?>
+                            </div>
+                        </div>
+                    <?php elseif ( 'textarea' === $field_type ) : ?>
+                        <div class="row g-2 align-items-center mb-3">
+                            <div class="col-md-4">
+                                <?php echo FormFieldHelper::label(
+                                    $field_name,
+                                    $custom_field['label'] ?? $field_slug,
+                                    array(
+                                        'class' => 'form-label',
+                                        'description' => $custom_field['description'] ?? '',
+                                    )
+                                ); ?>
+                            </div>
+                            <div class="col-md-8">
+                                <?php echo FormFieldHelper::textarea(
+                                    $field_name,
+                                    (string) $field_value,
+                                    array(
+                                        'class' => 'form-control w-100',
+                                        'rows' => absint( $custom_field['rows'] ?? 4 ),
+                                        'placeholder' => $custom_field['label'] ?? $field_slug,
+                                    )
+                                ); ?>
+                            </div>
+                        </div>
+                    <?php elseif ( 'number' === $field_type ) : ?>
+                        <div class="row g-2 align-items-center mb-3">
+                            <div class="col-md-4">
+                                <?php echo FormFieldHelper::label(
+                                    $field_name,
+                                    $custom_field['label'] ?? $field_slug,
+                                    array(
+                                        'class' => 'form-label',
+                                        'description' => $custom_field['description'] ?? '',
+                                    )
+                                ); ?>
+                            </div>
+                            <div class="col-md-8">
+                                <?php echo FormFieldHelper::input(
+                                    $field_name,
+                                    (string) $field_value,
+                                    array(
+                                        'type' => 'number',
+                                        'class' => 'form-control w-100',
+                                        'placeholder' => $custom_field['label'] ?? $field_slug,
+                                    )
+                                ); ?>
+                            </div>
+                        </div>
+                    <?php elseif ( 'color' === $field_type ) : ?>
+                        <div class="row g-2 align-items-center mb-3">
+                            <div class="col-md-4">
+                                <?php echo FormFieldHelper::label(
+                                    $field_name,
+                                    $custom_field['label'] ?? $field_slug,
+                                    array(
+                                        'class' => 'form-label',
+                                        'description' => $custom_field['description'] ?? '',
+                                    )
+                                ); ?>
+                            </div>
+                            <div class="col-md-8">
+                                <?php echo FormFieldHelper::input(
+                                    $field_name,
+                                    (string) $field_value,
+                                    array(
+                                        'type' => 'color',
+                                        'class' => 'form-control form-control-color w-100',
+                                    )
+                                ); ?>
+                            </div>
+                        </div>
+                    <?php elseif ( 'switch' === $field_type ) : ?>
+                        <div class="row g-2 align-items-center mb-3">
+                            <div class="col-md-4">
+                                <?php echo FormFieldHelper::label(
+                                    $field_name,
+                                    $custom_field['label'] ?? $field_slug,
+                                    array(
+                                        'class' => 'form-label',
+                                        'description' => $custom_field['description'] ?? '',
+                                    )
+                                ); ?>
+                            </div>
+                            <div class="col-md-8">
+                                <?php echo FormFieldHelper::switch(
+                                    $field_name,
+                                    '1',
+                                    '',
+                                    array(
+                                        'checked' => ! empty( $field_value ) && ( '1' === (string) $field_value || true === $field_value || 'true' === strtolower( (string) $field_value ) || 'on' === strtolower( (string) $field_value ) || 'yes' === strtolower( (string) $field_value ) ),
+                                    )
+                                ); ?>
+                            </div>
+                        </div>
+                    <?php elseif ( 'radio' === $field_type ) : ?>
+                        <?php $option_rows = $normalize_options( $custom_field['options'] ?? array() ); ?>
+                        <div class="row g-2 mb-3">
                             <div class="col-md-4">
                                 <?php echo FormFieldHelper::label(
                                     $field_name,
@@ -1627,17 +1576,72 @@ public function get_group(): void {
                             <div class="col-md-8">
                                 <?php echo FormFieldHelper::button_group(
                                     $field_name,
-                                    $image_choices,
-                                    ( is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value ),
+                                    $option_rows,
+                                    ( is_array( $field_value ) ? array_map( 'strval', $field_value ) : (string) $field_value ),
                                     array(
                                         'type' => 'radio',
                                     )
                                 ); ?>
                             </div>
                         </div>
+                    <?php elseif ( 'select' === $field_type ) : ?>
+                        <?php $option_rows = $normalize_options( $custom_field['options'] ?? array() ); ?>
+                        <div class="row g-2 align-items-center mb-3">
+                            <div class="col-md-4">
+                                <?php echo FormFieldHelper::label(
+                                    $field_name,
+                                    $custom_field['label'] ?? $field_slug,
+                                    array(
+                                        'class' => 'form-label',
+                                        'description' => $custom_field['description'] ?? '',
+                                    )
+                                ); ?>
+                            </div>
+                            <div class="col-md-8">
+                                <?php echo FormFieldHelper::bootstrap_select(
+                                    $field_name,
+                                    array(
+                                        'data' => $option_rows,
+                                        'selected' => ( is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value ),
+                                        'class' => 'w-100',
+                                    )
+                                ); ?>
+                            </div>
+                        </div>
+                    <?php elseif ( 'image' === $field_type ) : ?>
+                        <?php $image_choices = array(); ?>
+                        <?php foreach ( array( 'image' => __( 'Image', 'modpress' ), 'icon' => __( 'Icon', 'modpress' ), 'url' => __( 'URL', 'modpress' ) ) as $image_key => $image_label ) : ?>
+                            <?php if ( in_array( $image_key, (array) ( $custom_field['image_types'] ?? array() ), true ) ) : ?>
+                                <?php $image_choices[ $image_key ] = $image_label; ?>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                        <?php if ( ! empty( $image_choices ) ) : ?>
+                            <div class="row g-2 align-items-center mb-3">
+                                <div class="col-md-4">
+                                    <?php echo FormFieldHelper::label(
+                                        $field_name,
+                                        $custom_field['label'] ?? $field_slug,
+                                        array(
+                                            'class' => 'form-label',
+                                            'description' => $custom_field['description'] ?? '',
+                                        )
+                                    ); ?>
+                                </div>
+                                <div class="col-md-8">
+                                    <?php echo FormFieldHelper::button_group(
+                                        $field_name,
+                                        $image_choices,
+                                        ( is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value ),
+                                        array(
+                                            'type' => 'radio',
+                                        )
+                                    ); ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     <?php endif; ?>
-                <?php endif; ?>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
         <?php
         return (string) ob_get_clean();
