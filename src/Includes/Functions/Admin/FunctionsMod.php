@@ -1438,7 +1438,7 @@ public function get_group(): void {
 
         $normalize_options = static function ( $options ) {
             $normalized = array();
-            foreach ( (array) $options as $index => $option ) {
+            foreach ( (array) $options as $option ) {
                 if ( is_array( $option ) ) {
                     $label = (string) ( $option['label'] ?? $option['value'] ?? $option['option'] ?? '' );
                     $option_value = (string) ( $option['option'] ?? $option['value'] ?? $label );
@@ -1474,89 +1474,89 @@ public function get_group(): void {
                     <?php $field_type = strtolower( (string) ( $custom_field['type'] ?? 'text' ) ); ?>
 
                     <?php if ( 'text' === $field_type ) : ?>
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-4">
+                        <tr>
+                            <th>
                                 <?php echo FormFieldHelper::label(
                                     $field_name,
-                                    $custom_field['label'] ?? $field_slug,
+                                    $custom_field['name'] ?? $field_slug,
                                     array(
                                         'class' => 'form-label',
                                         'description' => $custom_field['description'] ?? '',
                                     )
                                 ); ?>
-                            </div>
-                            <div class="col-md-8">
+                            </th>
+                            <td>
                                 <?php echo FormFieldHelper::text_input(
                                     $field_name,
                                     (string) $field_value,
                                     array(
                                         'class' => 'form-control w-100',
-                                        'placeholder' => $custom_field['label'] ?? $field_slug,
+                                        'placeholder' => $custom_field['name'] ?? $field_slug,
                                     )
                                 ); ?>
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
                     <?php elseif ( 'textarea' === $field_type ) : ?>
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-4">
+                        <tr>
+                            <th>
                                 <?php echo FormFieldHelper::label(
                                     $field_name,
-                                    $custom_field['label'] ?? $field_slug,
+                                    $custom_field['name'] ?? $field_slug,
                                     array(
                                         'class' => 'form-label',
                                         'description' => $custom_field['description'] ?? '',
                                     )
                                 ); ?>
-                            </div>
-                            <div class="col-md-8">
+                            </th>
+                            <td>
                                 <?php echo FormFieldHelper::textarea(
                                     $field_name,
                                     (string) $field_value,
                                     array(
                                         'class' => 'form-control w-100',
                                         'rows' => absint( $custom_field['rows'] ?? 4 ),
-                                        'placeholder' => $custom_field['label'] ?? $field_slug,
+                                        'placeholder' => $custom_field['name'] ?? $field_slug,
                                     )
                                 ); ?>
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
                     <?php elseif ( 'number' === $field_type ) : ?>
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-4">
+                        <tr>
+                            <th>
                                 <?php echo FormFieldHelper::label(
                                     $field_name,
-                                    $custom_field['label'] ?? $field_slug,
+                                    $custom_field['name'] ?? $field_slug,
                                     array(
                                         'class' => 'form-label',
                                         'description' => $custom_field['description'] ?? '',
                                     )
                                 ); ?>
-                            </div>
-                            <div class="col-md-8">
+                            </th>
+                            <td>
                                 <?php echo FormFieldHelper::input(
                                     $field_name,
                                     (string) $field_value,
                                     array(
                                         'type' => 'number',
                                         'class' => 'form-control w-100',
-                                        'placeholder' => $custom_field['label'] ?? $field_slug,
+                                        'placeholder' => $custom_field['name'] ?? $field_slug,
                                     )
                                 ); ?>
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
                     <?php elseif ( 'color' === $field_type ) : ?>
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-4">
+                        <tr>
+                            <th>
                                 <?php echo FormFieldHelper::label(
                                     $field_name,
-                                    $custom_field['label'] ?? $field_slug,
+                                    $custom_field['name'] ?? $field_slug,
                                     array(
                                         'class' => 'form-label',
                                         'description' => $custom_field['description'] ?? '',
                                     )
                                 ); ?>
-                            </div>
-                            <div class="col-md-8">
+                            </th>
+                            <td>
                                 <?php echo FormFieldHelper::input(
                                     $field_name,
                                     (string) $field_value,
@@ -1565,21 +1565,21 @@ public function get_group(): void {
                                         'class' => 'form-control form-control-color w-100',
                                     )
                                 ); ?>
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
                     <?php elseif ( 'switch' === $field_type ) : ?>
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-4">
+                        <tr>
+                            <th>
                                 <?php echo FormFieldHelper::label(
                                     $field_name,
-                                    $custom_field['label'] ?? $field_slug,
+                                    $custom_field['name'] ?? $field_slug,
                                     array(
                                         'class' => 'form-label',
                                         'description' => $custom_field['description'] ?? '',
                                     )
                                 ); ?>
-                            </div>
-                            <div class="col-md-8">
+                            </th>
+                            <td>
                                 <?php echo FormFieldHelper::switch(
                                     $field_name,
                                     '1',
@@ -1588,22 +1588,22 @@ public function get_group(): void {
                                         'checked' => ! empty( $field_value ) && ( '1' === (string) $field_value || true === $field_value || 'true' === strtolower( (string) $field_value ) || 'on' === strtolower( (string) $field_value ) || 'yes' === strtolower( (string) $field_value ) ),
                                     )
                                 ); ?>
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
                     <?php elseif ( 'radio' === $field_type ) : ?>
                         <?php $option_rows = $normalize_options( $custom_field['options'] ?? array() ); ?>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-4">
+                        <tr>
+                            <th>
                                 <?php echo FormFieldHelper::label(
                                     $field_name,
-                                    $custom_field['label'] ?? $field_slug,
+                                    $custom_field['name'] ?? $field_slug,
                                     array(
                                         'class' => 'form-label',
                                         'description' => $custom_field['description'] ?? '',
                                     )
                                 ); ?>
-                            </div>
-                            <div class="col-md-8">
+                            </th>
+                            <td>
                                 <?php echo FormFieldHelper::button_group(
                                     $field_name,
                                     $option_rows,
@@ -1612,22 +1612,22 @@ public function get_group(): void {
                                         'type' => 'radio',
                                     )
                                 ); ?>
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
                     <?php elseif ( 'select' === $field_type ) : ?>
                         <?php $option_rows = $normalize_options( $custom_field['options'] ?? array() ); ?>
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-4">
+                        <tr>
+                            <th>
                                 <?php echo FormFieldHelper::label(
                                     $field_name,
-                                    $custom_field['label'] ?? $field_slug,
+                                    $custom_field['name'] ?? $field_slug,
                                     array(
                                         'class' => 'form-label',
                                         'description' => $custom_field['description'] ?? '',
                                     )
                                 ); ?>
-                            </div>
-                            <div class="col-md-8">
+                            </th>
+                            <td>
                                 <?php echo FormFieldHelper::bootstrap_select(
                                     $field_name,
                                     array(
@@ -1636,8 +1636,8 @@ public function get_group(): void {
                                         'class' => 'w-100',
                                     )
                                 ); ?>
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
                     <?php elseif ( 'image' === $field_type ) : ?>
                         <?php $image_choices = array(); ?>
                         <?php foreach ( array( 'image' => __( 'Image', 'modpress' ), 'icon' => __( 'Icon', 'modpress' ), 'url' => __( 'URL', 'modpress' ) ) as $image_key => $image_label ) : ?>
@@ -1646,18 +1646,18 @@ public function get_group(): void {
                             <?php endif; ?>
                         <?php endforeach; ?>
                         <?php if ( ! empty( $image_choices ) ) : ?>
-                            <div class="row g-2 align-items-center mb-3">
-                                <div class="col-md-4">
+                            <tr>
+                                <th>
                                     <?php echo FormFieldHelper::label(
                                         $field_name,
-                                        $custom_field['label'] ?? $field_slug,
+                                        $custom_field['name'] ?? $field_slug,
                                         array(
                                             'class' => 'form-label',
                                             'description' => $custom_field['description'] ?? '',
                                         )
                                     ); ?>
-                                </div>
-                                <div class="col-md-8">
+                                </th>
+                                <td>
                                     <?php echo FormFieldHelper::button_group(
                                         $field_name,
                                         $image_choices,
@@ -1666,8 +1666,8 @@ public function get_group(): void {
                                             'type' => 'radio',
                                         )
                                     ); ?>
-                                </div>
-                            </div>
+                                </td>
+                            </tr>
                         <?php endif; ?>
                     <?php endif; ?>
                 <?php endforeach; ?>
