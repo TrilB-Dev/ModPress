@@ -1384,11 +1384,40 @@ public function get_group(): void {
         <?php
         return (string) ob_get_clean();
     }
-    
+
     public static function render_group_custom_fields( $custom_fields, $value = array() ) {
         ob_start();
         $custom_fields = is_array( $custom_fields ) ? $custom_fields : array();
         $value = is_array( $value ) ? $value : array();
+
+        $normalize_fields = static function ( $fields ) {
+            if ( ! is_array( $fields ) ) {
+                return array();
+            }
+
+            if ( empty( $fields ) ) {
+                return array();
+            }
+
+            if ( array_key_exists( 'slug', $fields ) || array_key_exists( 'name', $fields ) || array_key_exists( 'type', $fields ) ) {
+                return array( $fields );
+            }
+
+            if ( array_key_exists( 'fields', $fields ) && is_array( $fields['fields'] ) ) {
+                return array_values( $fields['fields'] );
+            }
+
+            $normalized = array();
+            foreach ( $fields as $field ) {
+                if ( is_array( $field ) ) {
+                    $normalized[] = $field;
+                }
+            }
+
+            return ! empty( $normalized ) ? $normalized : array_values( $fields );
+        };
+
+        $custom_fields = $normalize_fields( $custom_fields );
 
         $resolve_field_value = static function ( string $field_slug, string $field_name ) use ( $value ) {
             $keys = array(
