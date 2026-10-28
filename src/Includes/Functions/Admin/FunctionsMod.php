@@ -403,8 +403,33 @@ final class FunctionsMod {
                     $legacy_image_config = is_array( $image_types ) ? ( $image_types[ $field_index ] ?? array() ) : array();
                     $image_config = array();
 
+                    $flatten_selected_values = static function ( $values ) {
+                        $flat = array();
+
+                        if ( is_array( $values ) ) {
+                            foreach ( $values as $value ) {
+                                if ( is_array( $value ) ) {
+                                    foreach ( $value as $nested_value ) {
+                                        $flat[] = $nested_value;
+                                    }
+                                    continue;
+                                }
+                                $flat[] = $value;
+                            }
+                        } elseif ( null !== $values ) {
+                            $flat[] = $values;
+                        }
+
+                        return array_values(
+                            array_filter(
+                                array_map( 'strval', $flat ),
+                                static fn ( $item ) => '' !== trim( (string) $item )
+                            )
+                        );
+                    };
+
                     if ( is_array( $legacy_image_config ) ) {
-                        $image_config = array_values( array_filter( array_map( 'strval', $legacy_image_config ) ) );
+                        $image_config = array_merge( $image_config, $flatten_selected_values( $legacy_image_config ) );
                     }
 
                     foreach ( array(
@@ -412,35 +437,31 @@ final class FunctionsMod {
                         'icon' => $image_type_icon,
                         'url' => $image_type_url,
                     ) as $type_name => $stored_values ) {
-                        if ( ! is_array( $stored_values ) ) {
-                            continue;
-                        }
+                        $selected_values = $flatten_selected_values( $stored_values[ $field_index ] ?? $stored_values );
 
-                        $selected_value = $stored_values[ $field_index ] ?? null;
-                        if ( null === $selected_value ) {
-                            continue;
-                        }
-
-                        if ( is_array( $selected_value ) ) {
-                            $selected_value = array_values( array_filter( array_map( 'strval', $selected_value ) ) );
-                        }
-
-                        $selected_value = is_array( $selected_value ) ? $selected_value : array( $selected_value );
-                        foreach ( $selected_value as $value ) {
+                        foreach ( $selected_values as $value ) {
                             $normalized = strtolower( trim( (string) $value ) );
-                            if ( '' !== $normalized && in_array( $normalized, array( 'image', 'icon', 'url' ), true ) ) {
+                            if ( '' !== $normalized && in_array( $normalized, array( 'image', 'icon', 'url', '1', 'on', 'true', 'yes' ), true ) ) {
                                 $image_config[] = $normalized;
                             }
                         }
 
-                        if ( '1' === (string) $selected_value[0] || 'on' === strtolower( (string) ( $selected_value[0] ?? '' ) ) ) {
+                        if ( ! empty( $selected_values ) ) {
                             $image_config[] = $type_name;
                         }
                     }
 
-                    $image_config = array_values( array_unique( array_filter( array_map( 'strval', $image_config ) ) ) );
+                    $image_config = array_values( array_unique( array_filter( array_map( 'strval', $image_config ), static fn ( $item ) => '' !== trim( (string) $item ) ) ) );
                     if ( ! empty( $image_config ) ) {
-                        $field['image_types'] = $image_config;
+                        $field['image_types'] = array_values(
+                            array_filter(
+                                array_map(
+                                    static fn ( $item ) => strtolower( trim( (string) $item ) ),
+                                    $image_config
+                                ),
+                                static fn ( $item ) => '' !== $item
+                            )
+                        );
                     }
                 }
 
@@ -1461,7 +1482,7 @@ public function get_group(): void {
 
         if ( 'text' === $field_type ) {
             return sprintf(
-                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::text_input(
                     $field_name,
@@ -1476,7 +1497,7 @@ public function get_group(): void {
 
         if ( 'textarea' === $field_type ) {
             return sprintf(
-                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::textarea(
                     $field_name,
@@ -1492,7 +1513,7 @@ public function get_group(): void {
 
         if ( 'number' === $field_type ) {
             return sprintf(
-                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::input(
                     $field_name,
@@ -1508,7 +1529,7 @@ public function get_group(): void {
 
         if ( 'color' === $field_type ) {
             return sprintf(
-                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::input(
                     $field_name,
@@ -1523,7 +1544,7 @@ public function get_group(): void {
 
         if ( 'switch' === $field_type ) {
             return sprintf(
-                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::switch(
                     $field_name,
@@ -1539,7 +1560,7 @@ public function get_group(): void {
         if ( 'radio' === $field_type ) {
             $option_rows = $normalize_options( $custom_field['options'] ?? array() );
             return sprintf(
-                '<div class="modpress-custom-field mb-3"><div class="row g-2"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::button_group(
                     $field_name,
@@ -1555,7 +1576,7 @@ public function get_group(): void {
         if ( 'select' === $field_type ) {
             $option_rows = $normalize_options( $custom_field['options'] ?? array() );
             return sprintf(
-                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::bootstrap_select(
                     $field_name,
@@ -1581,7 +1602,7 @@ public function get_group(): void {
             }
 
             return sprintf(
-                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::button_group(
                     $field_name,
