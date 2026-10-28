@@ -1385,7 +1385,7 @@ public function get_group(): void {
         return (string) ob_get_clean();
     }
 
-    public static function render_group_custom_field( $custom_field, $value = array() ) {
+    public static function render_group_custom_field( array $custom_field, $value = array() ) {
         if ( ! is_array( $custom_field ) ) {
             return '';
         }
@@ -1443,17 +1443,19 @@ public function get_group(): void {
             return $normalized;
         };
 
+        $field_label = FormFieldHelper::label(
+            $field_name,
+            $custom_field['name'] ?? $field_slug,
+            array(
+                'class' => 'form-label',
+                'description' => $custom_field['description'] ?? '',
+            )
+        );
+
         if ( 'text' === $field_type ) {
             return sprintf(
-                '<tr><th scope="row" class="align-top text-nowrap pe-4">%s</th><td>%s</td></tr>',
-                FormFieldHelper::label(
-                    $field_name,
-                    $custom_field['name'] ?? $field_slug,
-                    array(
-                        'class' => 'form-label',
-                        'description' => $custom_field['description'] ?? '',
-                    )
-                ),
+                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                $field_label,
                 FormFieldHelper::text_input(
                     $field_name,
                     (string) $field_value,
@@ -1467,15 +1469,8 @@ public function get_group(): void {
 
         if ( 'textarea' === $field_type ) {
             return sprintf(
-                '<tr><th scope="row" class="align-top text-nowrap pe-4">%s</th><td>%s</td></tr>',
-                FormFieldHelper::label(
-                    $field_name,
-                    $custom_field['name'] ?? $field_slug,
-                    array(
-                        'class' => 'form-label',
-                        'description' => $custom_field['description'] ?? '',
-                    )
-                ),
+                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                $field_label,
                 FormFieldHelper::textarea(
                     $field_name,
                     (string) $field_value,
@@ -1490,15 +1485,8 @@ public function get_group(): void {
 
         if ( 'number' === $field_type ) {
             return sprintf(
-                '<tr><th scope="row" class="align-top text-nowrap pe-4">%s</th><td>%s</td></tr>',
-                FormFieldHelper::label(
-                    $field_name,
-                    $custom_field['name'] ?? $field_slug,
-                    array(
-                        'class' => 'form-label',
-                        'description' => $custom_field['description'] ?? '',
-                    )
-                ),
+                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                $field_label,
                 FormFieldHelper::input(
                     $field_name,
                     (string) $field_value,
@@ -1513,15 +1501,8 @@ public function get_group(): void {
 
         if ( 'color' === $field_type ) {
             return sprintf(
-                '<tr><th scope="row" class="align-top text-nowrap pe-4">%s</th><td>%s</td></tr>',
-                FormFieldHelper::label(
-                    $field_name,
-                    $custom_field['name'] ?? $field_slug,
-                    array(
-                        'class' => 'form-label',
-                        'description' => $custom_field['description'] ?? '',
-                    )
-                ),
+                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                $field_label,
                 FormFieldHelper::input(
                     $field_name,
                     (string) $field_value,
@@ -1535,15 +1516,8 @@ public function get_group(): void {
 
         if ( 'switch' === $field_type ) {
             return sprintf(
-                '<tr><th scope="row" class="align-top text-nowrap pe-4">%s</th><td>%s</td></tr>',
-                FormFieldHelper::label(
-                    $field_name,
-                    $custom_field['name'] ?? $field_slug,
-                    array(
-                        'class' => 'form-label',
-                        'description' => $custom_field['description'] ?? '',
-                    )
-                ),
+                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                $field_label,
                 FormFieldHelper::switch(
                     $field_name,
                     '1',
@@ -1558,15 +1532,8 @@ public function get_group(): void {
         if ( 'radio' === $field_type ) {
             $option_rows = $normalize_options( $custom_field['options'] ?? array() );
             return sprintf(
-                '<div class="row g-2 mb-3"><div class="col-md-4">%s</div><div class="col-md-8">%s</div></div>',
-                FormFieldHelper::label(
-                    $field_name,
-                    $custom_field['name'] ?? $field_slug,
-                    array(
-                        'class' => 'form-label',
-                        'description' => $custom_field['description'] ?? '',
-                    )
-                ),
+                '<div class="modpress-custom-field mb-3"><div class="row g-2"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                $field_label,
                 FormFieldHelper::button_group(
                     $field_name,
                     $option_rows,
@@ -1581,15 +1548,8 @@ public function get_group(): void {
         if ( 'select' === $field_type ) {
             $option_rows = $normalize_options( $custom_field['options'] ?? array() );
             return sprintf(
-                '<tr><th scope="row" class="align-top text-nowrap pe-4">%s</th><td>%s</td></tr>',
-                FormFieldHelper::label(
-                    $field_name,
-                    $custom_field['name'] ?? $field_slug,
-                    array(
-                        'class' => 'form-label',
-                        'description' => $custom_field['description'] ?? '',
-                    )
-                ),
+                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                $field_label,
                 FormFieldHelper::bootstrap_select(
                     $field_name,
                     array(
@@ -1614,15 +1574,8 @@ public function get_group(): void {
             }
 
             return sprintf(
-                '<tr><th scope="row" class="align-top text-nowrap pe-4">%s</th><td>%s</td></tr>',
-                FormFieldHelper::label(
-                    $field_name,
-                    $custom_field['name'] ?? $field_slug,
-                    array(
-                        'class' => 'form-label',
-                        'description' => $custom_field['description'] ?? '',
-                    )
-                ),
+                '<div class="modpress-custom-field mb-3"><div class="row g-2 align-items-center"><div class="col-md-4">%1$s</div><div class="col-md-8">%2$s</div></div></div>',
+                $field_label,
                 FormFieldHelper::button_group(
                     $field_name,
                     $image_choices,
@@ -1635,33 +1588,5 @@ public function get_group(): void {
         }
 
         return '';
-    }
-
-    public static function render_group_custom_fields( $custom_fields, $value = array() ) {
-        ob_start();
-        $custom_fields = is_array( $custom_fields ) ? $custom_fields : array();
-
-        if ( empty( $custom_fields ) ) {
-            echo '<div class="text-muted small">' . esc_html__( 'No custom fields configured for this group.', 'modpress' ) . '</div>';
-            return (string) ob_get_clean();
-        }
-
-        $normalized_fields = array();
-        foreach ( $custom_fields as $field ) {
-            if ( is_array( $field ) ) {
-                $normalized_fields[] = $field;
-            }
-        }
-
-        if ( empty( $normalized_fields ) ) {
-            echo '<div class="text-muted small">' . esc_html__( 'No custom fields configured for this group.', 'modpress' ) . '</div>';
-            return (string) ob_get_clean();
-        }
-
-        foreach ( $normalized_fields as $field ) {
-            echo self::render_group_custom_field( $field, $value );
-        }
-
-        return (string) ob_get_clean();
     }
 }

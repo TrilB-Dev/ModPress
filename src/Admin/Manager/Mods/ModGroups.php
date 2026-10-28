@@ -1046,7 +1046,9 @@ final class ModGroups extends ModManager {
 									</th>
 									<td>
 										<div class="modpress-entry-custom-fields-container">
-											<?php echo FunctionsMod::render_group_custom_fields( $selected_group_fields, $selected_group_values ); ?>
+											<?php foreach ( $selected_group_fields as $field ) : ?>
+											<?php echo FunctionsMod::render_group_custom_field( $field, $selected_group_values ); ?>
+											<?php endforeach; ?>
 										</div>
 									</td>
 								</tr>
