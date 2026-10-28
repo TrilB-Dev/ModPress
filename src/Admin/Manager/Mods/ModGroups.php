@@ -632,10 +632,11 @@ final class ModGroups extends ModManager {
 												<div class="accordion" id="modpress-custom-fields-accordion">
 													<template id="modpress-custom-field-template">
 														<div class="accordion-item modpress-custom-field-row d-none">
-															<div class="accordion-header d-flex justify-content-between align-items-center gap-2" id="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
-																<button class="accordion-button collapsed flex-grow-1 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" aria-expanded="false" aria-controls="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>">
+															<input type="hidden" name="custom_field_id[]" value="" />
+																					<div class="accordion-header d-flex justify-content-between align-items-center gap-2">
+																<button class="accordion-button collapsed flex-grow-1 text-start" type="button" data-bs-toggle="collapse" aria-expanded="false">
 																	<span data-custom-field-prefix><?php esc_html_e( 'Field', 'modpress' ); ?>:</span>
-																	<span class="ms-1" data-custom-field-title><?php echo esc_html( $input['custom_field_label[]'] ?? '' ); ?></span>
+																	<span class="ms-1" data-custom-field-title><?php esc_html_e( 'Field', 'modpress' ); ?></span>
 																</button>
 																<?php echo FormFieldHelper::button(
 																	__( 'Remove', 'modpress' ),
@@ -647,7 +648,7 @@ final class ModGroups extends ModManager {
 																	)
 																); ?>
 															</div>
-															<div id="modpress-custom-field-<?php echo $input['custom_field_label[]'] ?? ''; ?>" class="accordion-collapse collapse" aria-labelledby="modpress-custom-field-heading-<?php echo $input['custom_field_label[]'] ?? ''; ?>" data-bs-parent="#modpress-custom-fields-accordion">
+															<div class="accordion-collapse collapse" data-bs-parent="#modpress-custom-fields-accordion">
 																<div class="accordion-body">
 																	<table class="table table-borderless mb-0">
 																		<tbody>

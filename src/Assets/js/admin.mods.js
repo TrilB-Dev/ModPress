@@ -472,6 +472,13 @@
                 collapse.classList.add('collapse');
             }
 
+            const fieldId = field.id || field.field_id || field.slug || String(fieldIndex + 1);
+            const hiddenFieldId = row.querySelector('[name="custom_field_id[]"]');
+            if (hiddenFieldId) {
+                hiddenFieldId.value = String(fieldId);
+            }
+            row.dataset.fieldId = String(fieldId);
+
             const labelInput = row.querySelector('[name="custom_field_label[]"]');
             if (labelInput) {
                 labelInput.value = field.name || field.label || '';
@@ -667,6 +674,22 @@
         });
 
         return maxIndex + 1;
+    };
+
+    const getNextCustomFieldId = (scope = document) => {
+        const rows = scope && scope.querySelectorAll ? scope.querySelectorAll('.modpress-custom-field-row') : document.querySelectorAll('.modpress-custom-field-row');
+        let maxId = 0;
+
+        rows.forEach((row) => {
+            const hiddenInput = row.querySelector('[name="custom_field_id[]"]');
+            const candidate = hiddenInput ? String(hiddenInput.value || row.dataset.fieldId || '') : String(row.dataset.fieldId || '');
+            const numericId = Number(String(candidate).replace(/\D/g, ''));
+            if (!Number.isNaN(numericId) && numericId > maxId) {
+                maxId = numericId;
+            }
+        });
+
+        return String(maxId + 1);
     };
 
     const syncOptionRepeaterNames = (repeater, fieldIndex) => {
@@ -901,9 +924,16 @@
         }
 
         const fieldIndex = getNextCustomFieldIndex(container);
+        const fieldId = getNextCustomFieldId(container);
         row.classList.remove('d-none');
         row.classList.add('modpress-custom-field-row');
         row.dataset.fieldIndex = String(fieldIndex);
+        row.dataset.fieldId = fieldId;
+
+        const hiddenFieldId = row.querySelector('[name="custom_field_id[]"]');
+        if (hiddenFieldId) {
+            hiddenFieldId.value = fieldId;
+        }
 
         const headingId = 'modpress-custom-field-heading-' + fieldIndex;
         const collapseId = 'modpress-custom-field-content-' + fieldIndex;

@@ -315,6 +315,7 @@ final class FunctionsMod {
      */
     private function build_group_payload( string $group_name, string $taxonomy ): array {
         $group_fields = array();
+        $field_ids    = RequestHelper::value( $_POST, 'custom_field_id', array() );
         $field_names  = RequestHelper::value( $_POST, 'custom_field_label', RequestHelper::value( $_POST, 'custom_field_name', array() ) );
         $field_slugs  = RequestHelper::value( $_POST, 'custom_field_slug', array() );
         $field_types  = RequestHelper::value( $_POST, 'custom_field_type', array() );
@@ -336,10 +337,16 @@ final class FunctionsMod {
                 }
 
                 $field_index = is_numeric( $index ) ? (int) $index : 0;
+                $field_id = trim( (string) ( $field_ids[ $field_index ] ?? '' ) );
+                if ( '' === $field_id ) {
+                    $field_id = 'field_' . ( $field_index + 1 );
+                }
+
                 $slug        = trim( (string) ( $field_slugs[ $field_index ] ?? SanitizationHelper::slug( $name, '' ) ) );
                 $field_type  = trim( (string) ( $field_types[ $field_index ] ?? 'text' ) );
                 $show_in_table_value = $show_in_table[ $field_index ] ?? '';
                 $field       = array(
+                    'id'          => $field_id,
                     'name'        => $name,
                     'slug'        => $slug,
                     'type'        => $field_type,
