@@ -20,6 +20,7 @@ use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\ModManagement\ModsManager;
 use ModPress\Includes\ModManagement\ChangelogManager;
 use ModPress\Includes\ModManagement\FileManager;
+use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -1590,28 +1591,100 @@ public function get_group(): void {
         }
 
         if ( 'image' === $field_type ) {
-            $image_choices = array();
-            foreach ( array( 'image' => __( 'Image', 'modpress' ), 'icon' => __( 'Icon', 'modpress' ), 'url' => __( 'URL', 'modpress' ) ) as $image_key => $image_label ) {
-                if ( in_array( $image_key, (array) ( $custom_field['image_types'] ?? array() ), true ) ) {
-                    $image_choices[ $image_key ] = $image_label;
+            $allowed_modes = array_values(
+                array_unique(
+                    array_filter(
+                        array_map(
+                            static fn ( $mode ) => strtolower( trim( (string) $mode ) ),
+                            (array) ( $custom_field['image_types'] ?? array() )
+                        ),
+                        static fn ( $mode ) => in_array( $mode, array( 'image', 'icon', 'url' ), true )
+                    )
+                )
+            );
+
+            if ( empty( $allowed_modes ) ) {
+                return '';
+            }
+
+            $image_value = is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value;
+            $selected_mode = $allowed_modes[0];
+
+            if ( '' !== trim( $image_value ) ) {
+                if ( filter_var( $image_value, FILTER_VALIDATE_URL ) ) {
+                    $selected_mode = in_array( 'url', $allowed_modes, true ) ? 'url' : $selected_mode;
+                } elseif ( false !== stripos( $image_value, 'fa-' ) ) {
+                    $selected_mode = in_array( 'icon', $allowed_modes, true ) ? 'icon' : $selected_mode;
+                } elseif ( in_array( 'image', $allowed_modes, true ) ) {
+                    $selected_mode = 'image';
                 }
             }
 
-            if ( empty( $image_choices ) ) {
-                return '';
+            $mode_html = '';
+            if ( count( $allowed_modes ) > 1 ) {
+                $mode_options = array();
+                foreach ( $allowed_modes as $mode ) {
+                    $mode_options[] = FormFieldHelper::check(
+                        'radio',
+                        $field_name . '_mode',
+                        $mode,
+                        'image' === $mode ? __( 'Image', 'modpress' ) : ( 'icon' === $mode ? __( 'Icon', 'modpress' ) : __( 'URL', 'modpress' ) ),
+                        array(
+                            'checked' => $mode === $selected_mode,
+                            'class' => 'modpress-image-picker-mode-input',
+                            'attributes' => array(
+                                'data-input-name' => $field_name,
+                            ),
+                        )
+                    );
+                }
+                $mode_html = '<div class="d-flex flex-wrap gap-2 mb-2">' . implode( '', $mode_options ) . '</div>';
             }
+
+            $display_image = 'image' === $selected_mode ? '' : ' style="display:none;"';
+            $display_icon = 'icon' === $selected_mode ? '' : ' style="display:none;"';
+            $display_url = 'url' === $selected_mode ? '' : ' style="display:none;"';
+
+            $image_field_html = sprintf(
+                '<div class="modpress-image-field mb-2">%1$s<div class="modpress-image-entry-mode modpress-image-entry-mode-image"%2$s><input type="hidden" name="%3$s" value="%4$s" /><button type="button" class="btn btn-secondary modpress-image-select">%5$s</button> <button type="button" class="btn btn-link text-danger modpress-image-clear%6$s">%7$s</button><div class="modpress-image-preview%8$s"><img src="%9$s" alt="%10$s" class="img-fluid rounded" style="max-height:120px;" /></div></div><div class="modpress-image-entry-mode modpress-image-entry-mode-icon"%11$s>%12$s</div><div class="modpress-image-entry-mode modpress-image-entry-mode-url"%13$s>%14$s<div class="modpress-image-preview%15$s"><img src="%16$s" alt="%17$s" class="img-fluid rounded" style="max-height:120px;" /></div></div></div>',
+                $mode_html,
+                $display_image,
+                esc_attr( $field_name ),
+                esc_attr( $image_value ),
+                esc_html__( 'Select Image', 'modpress' ),
+                empty( $image_value ) ? ' d-none' : '',
+                esc_html__( 'Remove', 'modpress' ),
+                empty( $image_value ) ? ' d-none' : '',
+                esc_url( $image_value ),
+                esc_attr( $custom_field['name'] ?? $field_slug ),
+                $display_icon,
+                IconPicker::get_instance()->render_picker(
+                    $field_name,
+                    $image_value,
+                    array(
+                        'id' => sanitize_key( $field_name . '-picker' ),
+                        'button_text' => __( 'Choose Icon', 'modpress' ),
+                    )
+                ),
+                $display_url,
+                FormFieldHelper::input(
+                    $field_name,
+                    $image_value,
+                    array(
+                        'type' => 'url',
+                        'class' => 'form-control modpress-image-url-input',
+                        'placeholder' => __( 'https://example.com/image.jpg', 'modpress' ),
+                    )
+                ),
+                empty( $image_value ) || ! filter_var( $image_value, FILTER_VALIDATE_URL ) ? ' d-none' : '',
+                esc_url( $image_value ),
+                esc_attr( $custom_field['name'] ?? $field_slug )
+            );
 
             return sprintf(
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
-                FormFieldHelper::button_group(
-                    $field_name,
-                    $image_choices,
-                    ( is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value ),
-                    array(
-                        'type' => 'radio',
-                    )
-                )
+                $image_field_html
             );
         }
 

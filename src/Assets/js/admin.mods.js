@@ -1062,15 +1062,20 @@
             const mode = target.value;
             const imageMode = fieldWrapper.querySelector('.modpress-image-entry-mode-image');
             const iconMode = fieldWrapper.querySelector('.modpress-image-entry-mode-icon');
+            const urlMode = fieldWrapper.querySelector('.modpress-image-entry-mode-url');
             const activeHidden = fieldWrapper.querySelector('input[type="hidden"][name="' + target.dataset.inputName + '"]');
             const imageHidden = fieldWrapper.querySelector('.modpress-image-entry-mode-image input[type="hidden"]');
             const iconHidden = fieldWrapper.querySelector('.modpress-fa-picker-container input[type="hidden"]');
+            const urlInput = fieldWrapper.querySelector('.modpress-image-entry-mode-url input[type="url"]');
 
             if (imageMode) {
                 imageMode.style.display = mode === 'image' ? '' : 'none';
             }
             if (iconMode) {
                 iconMode.style.display = mode === 'icon' ? '' : 'none';
+            }
+            if (urlMode) {
+                urlMode.style.display = mode === 'url' ? '' : 'none';
             }
 
             if (imageHidden) {
@@ -1079,6 +1084,9 @@
             if (iconHidden) {
                 iconHidden.disabled = mode !== 'icon';
             }
+            if (urlInput) {
+                urlInput.disabled = mode !== 'url';
+            }
 
             if (mode === 'icon' && iconHidden && (!iconHidden.value || !String(iconHidden.value).includes('fa-'))) {
                 iconHidden.value = 'fas fa-image';
@@ -1086,6 +1094,22 @@
 
             if (activeHidden && mode === 'image') {
                 activeHidden.value = activeHidden.value || '';
+            }
+        }
+
+        if (target.matches('.modpress-image-url-input')) {
+            const fieldWrapper = target.closest('.modpress-image-field');
+            if (!fieldWrapper) {
+                return;
+            }
+
+            const preview = fieldWrapper.querySelector('.modpress-image-entry-mode-url .modpress-image-preview');
+            const previewImg = preview ? preview.querySelector('img') : null;
+            const value = String(target.value || '').trim();
+
+            if (preview && previewImg) {
+                previewImg.src = value;
+                preview.classList.toggle('d-none', !value);
             }
         }
 
@@ -1100,8 +1124,8 @@
             }
 
             const hiddenInput = fieldWrapper.querySelector('input[type="hidden"]');
-            const preview = fieldWrapper.querySelector('.modpress-image-preview');
-            const previewImg = fieldWrapper.querySelector('.modpress-image-preview img');
+            const preview = fieldWrapper.querySelector('.modpress-image-entry-mode-image .modpress-image-preview');
+            const previewImg = preview ? preview.querySelector('img') : null;
             const removeButton = fieldWrapper.querySelector('.modpress-image-clear');
             const mediaFrame = window.wp.media({
                 title: 'Select Image',
@@ -1140,8 +1164,8 @@
             }
 
             const hiddenInput = fieldWrapper.querySelector('input[type="hidden"]');
-            const preview = fieldWrapper.querySelector('.modpress-image-preview');
-            const previewImg = fieldWrapper.querySelector('.modpress-image-preview img');
+            const preview = fieldWrapper.querySelector('.modpress-image-entry-mode-image .modpress-image-preview');
+            const previewImg = preview ? preview.querySelector('img') : null;
             if (hiddenInput) {
                 hiddenInput.value = '';
             }

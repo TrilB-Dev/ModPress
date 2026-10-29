@@ -31,20 +31,12 @@ class IconPicker {
      * @var IconPicker
      */
     private static $instance = null;
-    private LoaderHelper $loader;
-
     /**
-     * Check whether FontAwesome is available to the current ModPress runtime.
+     * Loader helper instance.
      *
-     * This picker intentionally does not depend on the WordPress FontAwesome plugin.
-     * When ModPress loads a Font Awesome stylesheet through its own asset pipeline,
-     * the picker is considered available.
-     *
-     * @return bool
+     * @var LoaderHelper
      */
-    private function is_fontawesome_available() {
-        return true;
-    }
+    private LoaderHelper $loader;
 
     /**
      * Cached icon data
