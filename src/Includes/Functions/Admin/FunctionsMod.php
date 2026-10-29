@@ -1685,7 +1685,7 @@ public function get_group(): void {
                     $image_value,
                     array(
                         'type' => 'url',
-                        'class' => 'form-control modpress-image-url-input',
+                        'class' => 'form-control modpress-image-url-input w-100',
                         'placeholder' => __( 'https://example.com/image.jpg', 'modpress' ),
                     )
                 ),
