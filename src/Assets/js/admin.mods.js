@@ -1202,12 +1202,14 @@
             return;
         }
 
-        const modalElement = document.getElementById('modpress-entry-modal');
+        const taxonomyKey = trigger.dataset.taxonomyKey || '';
+        const fallbackTarget = taxonomyKey ? '#modpress-entry-modal-' + taxonomyKey.replace(/[^a-zA-Z0-9_-]/g, '-') : '#modpress-entry-modal';
+        const targetSelector = trigger.dataset.bsTarget || fallbackTarget;
+        const modalElement = document.querySelector(targetSelector);
         if (!modalElement) {
             return;
         }
 
-        const taxonomyKey = trigger.dataset.taxonomyKey || '';
         const taxonomyLabel = trigger.dataset.taxonomyLabel || 'Group';
         const title = modalElement.querySelector('.modal-title');
         const entryIdValue = trigger.dataset.groupEntryId || trigger.dataset.entryId || '';
@@ -1266,8 +1268,7 @@
         });
     });
 
-    const modalElement = document.getElementById('modpress-entry-modal');
-    if (modalElement) {
+    document.querySelectorAll('[id^="modpress-entry-modal-"]').forEach((modalElement) => {
         modalElement.addEventListener('show.bs.modal', (event) => {
             const trigger = event.relatedTarget;
             if (!trigger) {
@@ -1275,7 +1276,7 @@
             }
             loadEntryModalData(trigger);
         });
-    }
+    });
 
     bindCustomFieldButtons();
     syncDeleteButtons();

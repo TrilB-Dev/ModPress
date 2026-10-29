@@ -191,7 +191,7 @@ final class ModGroups extends ModManager {
                                             'class' => 'btn btn-outline-primary',
                                             'attributes' => array(
                                                 'data-bs-toggle' => 'modal',
-                                                'data-bs-target' => '#modpress-entry-modal',
+                                                'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ),
 												'data-group-entry-id' => '',
                                                 'data-taxonomy-key' => $taxonomy_key,
                                                 'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
@@ -255,7 +255,7 @@ final class ModGroups extends ModManager {
 																		'class' => 'btn btn-outline-secondary',
 																		'attributes' => array(
 																			'data-bs-toggle' => 'modal',
-																			'data-bs-target' => '#modpress-entry-modal',
+																			'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ),
 																			'data-taxonomy-key' => $taxonomy_key,
 																			'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
 																			'data-group-entry-id' => (int) $term->term_id,
@@ -314,7 +314,9 @@ final class ModGroups extends ModManager {
 			<?php $this->render_group_modal( $taxonomy_tabs, $taxonomy ); ?>
 		<?php endforeach; ?>
 		<?php $this->render_group_modal( $taxonomy_tabs ); ?>
-		<?php $this->render_entry_modal( $taxonomy_tabs ); ?>
+		<?php foreach ( $taxonomy_tabs as $taxonomy ) : ?>
+			<?php $this->render_entry_modal( $taxonomy_tabs, (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' ) ); ?>
+		<?php endforeach; ?>
 
 		<?php
 	}
@@ -958,7 +960,8 @@ final class ModGroups extends ModManager {
 			}
 		}
 		?>
-		<div class="modal fade" id="modpress-entry-modal" tabindex="-1" aria-labelledby="modpress-entry-modal-title" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
+		<?php $modal_id = 'modpress-entry-modal-' . sanitize_html_class( (string) ( $selected_group_key ?: ( $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'default' ) ) ); ?>
+		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -968,7 +971,7 @@ final class ModGroups extends ModManager {
 						<input type="hidden" name="entry_group_taxonomy" value="<?php echo esc_attr( (string) ( $selected_entry['taxonomy'] ?? $selected_group_key ) ); ?>" />
 						<?php wp_nonce_field( 'modpress_save_group_entry', 'modpress_group_entry_nonce' ); ?>
 						<div class="modal-header">
-							<h5 class="modal-title" id="modpress-entry-modal-title"><?php echo esc_html( $modal_title ); ?></h5>
+							<h5 class="modal-title" id="<?php echo esc_attr( $modal_id . '-title' ); ?>"><?php echo esc_html( $modal_title ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
