@@ -1053,7 +1053,7 @@
             }
         }
 
-        if (target.matches('.modpress-image-picker-mode-input')) {
+        if (target.matches('[name$="_mode"]') || target.matches('.modpress-image-picker-mode-input')) {
             const fieldWrapper = target.closest('.modpress-image-field');
             if (!fieldWrapper) {
                 return;
@@ -1063,7 +1063,7 @@
             const imageMode = fieldWrapper.querySelector('.modpress-image-entry-mode-image');
             const iconMode = fieldWrapper.querySelector('.modpress-image-entry-mode-icon');
             const urlMode = fieldWrapper.querySelector('.modpress-image-entry-mode-url');
-            const activeHidden = fieldWrapper.querySelector('input[type="hidden"][name="' + target.dataset.inputName + '"]');
+            const activeHidden = fieldWrapper.querySelector('input[type="hidden"][name="' + (target.dataset.inputName || target.name.replace(/_mode$/, '')) + '"]');
             const imageHidden = fieldWrapper.querySelector('.modpress-image-entry-mode-image input[type="hidden"]');
             const iconHidden = fieldWrapper.querySelector('.modpress-fa-picker-container input[type="hidden"]');
             const urlInput = fieldWrapper.querySelector('.modpress-image-entry-mode-url input[type="url"]');

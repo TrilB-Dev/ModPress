@@ -1622,23 +1622,27 @@ public function get_group(): void {
 
             $mode_html = '';
             if ( count( $allowed_modes ) > 1 ) {
-                $mode_options = array();
+                $mode_choices = array();
                 foreach ( $allowed_modes as $mode ) {
-                    $mode_options[] = FormFieldHelper::check(
-                        'radio',
-                        $field_name . '_mode',
-                        $mode,
-                        'image' === $mode ? __( 'Image', 'modpress' ) : ( 'icon' === $mode ? __( 'Icon', 'modpress' ) : __( 'URL', 'modpress' ) ),
-                        array(
-                            'checked' => $mode === $selected_mode,
-                            'class' => 'modpress-image-picker-mode-input',
-                            'attributes' => array(
-                                'data-input-name' => $field_name,
-                            ),
-                        )
+                    $mode_choices[] = array(
+                        'value' => $mode,
+                        'label' => 'image' === $mode ? __( 'Image', 'modpress' ) : ( 'icon' === $mode ? __( 'Icon', 'modpress' ) : __( 'URL', 'modpress' ) ),
+                        'input_attributes' => array(
+                            'data-input-name' => $field_name,
+                        ),
                     );
                 }
-                $mode_html = '<div class="d-flex flex-wrap gap-2 mb-2">' . implode( '', $mode_options ) . '</div>';
+
+                $mode_html = FormFieldHelper::button_group(
+                    $field_name . '_mode',
+                    $mode_choices,
+                    $selected_mode,
+                    array(
+                        'type' => 'radio',
+                        'class' => 'modpress-image-picker-mode-group mb-2',
+                        'button_class' => 'btn-sm',
+                    )
+                );
             }
 
             $display_image = 'image' === $selected_mode ? '' : ' style="display:none;"';
