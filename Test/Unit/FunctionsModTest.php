@@ -871,6 +871,23 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'value="1"', $output );
         }
 
+        public function testRenderGroupCustomFieldUsesUniqueFieldIdsForModeInputs(): void {
+            $output = \ModPress\Includes\Functions\Admin\FunctionsMod::render_group_custom_field(
+                array(
+                    'id' => 'field_3',
+                    'name' => 'Image',
+                    'slug' => 'image',
+                    'type' => 'image',
+                    'image_types' => array( 'image', 'icon', 'url' ),
+                ),
+                array()
+            );
+
+            $this->assertStringContainsString( 'name="entry_custom_field_field_3_mode"', $output );
+            $this->assertStringContainsString( 'name="entry_custom_field_field_3"', $output );
+            $this->assertStringNotContainsString( 'name="entry_custom_field_image_mode"', $output );
+        }
+
         public function testRenderGroupModalKeepsSavedParentSelectionValues(): void {
             $GLOBALS['modpress_test_taxonomies'] = array(
                 'modpress_assets' => array( 'args' => array( 'hierarchical' => true ) ),

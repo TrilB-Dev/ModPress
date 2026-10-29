@@ -1102,7 +1102,12 @@ public function get_group(): void {
                     continue;
                 }
 
-                $field_key = 'entry_custom_field_' . $field_slug;
+                $field_id = trim( (string) ( $field['id'] ?? '' ) );
+                if ( '' === $field_id ) {
+                    $field_id = 'field_' . sanitize_key( $field_slug );
+                }
+
+                $field_key = 'entry_custom_field_' . sanitize_key( $field_id );
                 $field_value = RequestHelper::value( $_POST, $field_key, null );
 
                 if ( null === $field_value ) {
@@ -1424,16 +1429,20 @@ public function get_group(): void {
             return '';
         }
 
-        $field_name = 'entry_custom_field_' . $field_slug;
+        $field_id = trim( (string) ( $custom_field['id'] ?? '' ) );
+        if ( '' === $field_id ) {
+            $field_id = 'field_' . sanitize_key( $field_slug );
+        }
+
+        $field_name = 'entry_custom_field_' . sanitize_key( $field_id );
         $field_type = strtolower( (string) ( $custom_field['type'] ?? 'text' ) );
         $value = is_array( $value ) ? $value : array();
 
-        $resolve_field_value = static function ( string $field_key, string $field_field_name ) use ( $value ) {
+        $resolve_field_value = static function ( string $field_name_key ) use ( $value ) {
             $keys = array(
-                $field_key,
-                $field_field_name,
-                $field_field_name . '[]',
-                $field_field_name . '[0]',
+                $field_name_key,
+                $field_name_key . '[]',
+                $field_name_key . '[0]',
             );
 
             foreach ( $keys as $key ) {
@@ -1445,7 +1454,7 @@ public function get_group(): void {
             return '';
         };
 
-        $field_value = $resolve_field_value( $field_slug, $field_name );
+        $field_value = $resolve_field_value( $field_name );
 
         $normalize_options = static function ( $options ) {
             $normalized = array();
@@ -1640,7 +1649,7 @@ public function get_group(): void {
                     array(
                         'type' => 'radio',
                         'class' => 'modpress-image-picker-mode-group mb-2',
-                        'button_class' => 'btn-sm',
+                        'button_class' => 'btn-outline-primary',
                     )
                 );
             }
