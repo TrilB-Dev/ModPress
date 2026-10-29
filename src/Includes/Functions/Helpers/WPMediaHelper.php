@@ -113,13 +113,13 @@ final class WPMediaHelper {
 		$preview_alt    = esc_attr( (string) ( $image_preview_config['alt'] ?? $field_name ) );
 		$preview_markup = sprintf(
 			'<div class="%1$s%2$s" data-modpress-media-preview-container="true">' .
-			'<img src="%3$s" alt="%4$s" class="%5$s" data-modpress-media-preview-image="true" />' .
+			'<img src="%3$s" alt="%4$s" class="%5$s" style="max-width:120px; max-height:120px; width:auto; height:auto; object-fit:cover;" data-modpress-media-preview-image="true" />' .
 			'</div>',
 			esc_attr( $preview_class ),
 			esc_attr( $preview_hidden ),
 			$preview_src,
 			$preview_alt,
-			esc_attr( self::classes( array( 'img-fluid', $image_preview_config['image_class'] ?? 'rounded' ) ) )
+			esc_attr( self::classes( array( 'img-fluid', 'rounded', $image_preview_config['image_class'] ?? '' ) ) )
 		);
 
 		$hidden_input = FormFieldHelper::input(

@@ -41,6 +41,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const closeMediaFrame = (mediaFrame) => {
+        if (!mediaFrame) {
+            return;
+        }
+
+        try {
+            if (typeof mediaFrame.close === 'function') {
+                mediaFrame.close();
+                return;
+            }
+
+            if (typeof mediaFrame.dispose === 'function') {
+                mediaFrame.dispose();
+                return;
+            }
+
+            if (
+                window.wp &&
+                window.wp.media &&
+                window.wp.media.editor &&
+                typeof window.wp.media.editor.close === 'function'
+            ) {
+                window.wp.media.editor.close();
+            }
+        } catch (error) {
+            console.error('ModPress media picker: could not close media frame.', error);
+        }
+    };
+
     const openMediaPicker = (button) => {
         const mediaTarget = getMediaTarget(button);
         if (!mediaTarget || !mediaTarget.field) {
@@ -79,9 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             syncMediaPreview(wrapper, nextValue);
 
             window.setTimeout(() => {
-                if (typeof mediaFrame.close === 'function') {
-                    mediaFrame.close();
-                }
+                closeMediaFrame(mediaFrame);
             }, 0);
         });
 
