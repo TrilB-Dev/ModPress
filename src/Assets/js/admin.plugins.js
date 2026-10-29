@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
             shownModal.style.removeProperty('display');
             shownModal.removeAttribute('aria-modal');
             shownModal.removeAttribute('role');
-            shownModal.setAttribute('aria-hidden', 'true');
         });
     };
 
@@ -42,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 modal.style.removeProperty('display');
                 modal.removeAttribute('aria-modal');
                 modal.removeAttribute('role');
-                modal.setAttribute('aria-hidden', 'true');
                 instance.dispose();
                 resolve();
             };
