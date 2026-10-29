@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    let activeMediaFrame = null;
+
     const closeMediaFrame = (mediaFrame) => {
         if (!mediaFrame) {
             return;
@@ -54,16 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (typeof mediaFrame.dispose === 'function') {
                 mediaFrame.dispose();
-                return;
-            }
-
-            if (
-                window.wp &&
-                window.wp.media &&
-                window.wp.media.editor &&
-                typeof window.wp.media.editor.close === 'function'
-            ) {
-                window.wp.media.editor.close();
             }
         } catch (error) {
             console.error('ModPress media picker: could not close media frame.', error);
@@ -89,6 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
             },
         });
 
+        activeMediaFrame = mediaFrame;
+
         mediaFrame.on('select', () => {
             const attachment = mediaFrame.state().get('selection').first();
             if (!attachment) {
@@ -107,22 +101,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             syncMediaPreview(wrapper, nextValue);
 
-            window.setTimeout(() => {
-                closeMediaFrame(mediaFrame);
-            }, 0);
+            closeMediaFrame(mediaFrame);
+            activeMediaFrame = null;
+        });
+
+        mediaFrame.on('close', () => {
+            if (activeMediaFrame === mediaFrame) {
+                activeMediaFrame = null;
+            }
         });
 
         mediaFrame.open();
     };
 
     document.addEventListener('click', (event) => {
-        const mediaModalButton = event.target.closest('.media-button-select');
-        if (mediaModalButton && mediaModalButton.closest('.media-modal')) {
-            window.setTimeout(() => {
-                closeMediaFrame(window.wp && window.wp.media ? window.wp.media.frame || null : null);
-            }, 0);
-        }
-
         const pickerButton = event.target.closest('[data-modpress-media-picker="true"]');
         if (pickerButton) {
             event.preventDefault();
