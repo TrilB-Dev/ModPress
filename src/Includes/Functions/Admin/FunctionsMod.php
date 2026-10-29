@@ -16,6 +16,7 @@ use ModPress\Includes\Functions\Helpers\SanitizationHelper;
 use ModPress\Includes\Functions\Helpers\RequestHelper;
 use ModPress\Includes\Functions\Helpers\DBHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
+use ModPress\Includes\Functions\Helpers\WPMediaHelper;
 use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\ModManagement\ModsManager;
 use ModPress\Includes\ModManagement\ChangelogManager;
@@ -1654,33 +1655,51 @@ public function get_group(): void {
                 );
             }
 
-            $display_image = 'image' === $selected_mode ? '' : ' style="display:none;"';
-            $display_icon = 'icon' === $selected_mode ? '' : ' style="display:none;"';
-            $display_url = 'url' === $selected_mode ? '' : ' style="display:none;"';
-
-            $image_field_html = sprintf(
-                '<div class="modpress-image-field mb-2">%1$s<div class="modpress-image-entry-mode modpress-image-entry-mode-image"%2$s><input type="hidden" name="%3$s" value="%4$s" /><button type="button" class="btn btn-secondary modpress-image-select">%5$s</button> <button type="button" class="btn btn-link text-danger modpress-image-clear%6$s">%7$s</button><div class="modpress-image-preview%8$s"><img src="%9$s" alt="%10$s" class="img-fluid rounded" style="max-height:120px;" /></div></div><div class="modpress-image-entry-mode modpress-image-entry-mode-icon"%11$s>%12$s</div><div class="modpress-image-entry-mode modpress-image-entry-mode-url"%13$s>%14$s<div class="modpress-image-preview%15$s"><img src="%16$s" alt="%17$s" class="img-fluid rounded" style="max-height:120px;" /></div></div></div>',
-                $mode_html,
-                $display_image,
-                esc_attr( $field_name ),
-                esc_attr( $image_value ),
-                esc_html__( 'Select Image', 'modpress' ),
-                empty( $image_value ) ? ' d-none' : '',
-                esc_html__( 'Remove', 'modpress' ),
-                empty( $image_value ) ? ' d-none' : '',
-                esc_url( $image_value ),
-                esc_attr( $custom_field['name'] ?? $field_slug ),
-                $display_icon,
-                IconPicker::get_instance()->render_picker(
-                    $field_name,
-                    $image_value,
-                    array(
-                        'id' => sanitize_key( $field_name . '-picker' ),
-                        'button_text' => __( 'Choose Icon', 'modpress' ),
+            $image_block = '';
+            if ( in_array( 'image', $allowed_modes, true ) ) {
+                $image_block .= sprintf(
+                    '<div class="modpress-image-entry-mode modpress-image-entry-mode-image" data-image-mode="image"%1$s>%2$s</div>',
+                    'image' === $selected_mode ? '' : ' style="display:none;"',
+                    WPMediaHelper::create(
+                        $image_value,
+                        array(
+                            'name' => $field_name,
+                            'id' => sanitize_key( $field_name . '_image' ),
+                            'button_text' => __( 'Select Image', 'modpress' ),
+                            'class' => 'btn btn-secondary modpress-image-select',
+                            'show_remove' => true,
+                            'media_type' => 'image',
+                            'return_value' => 'url',
+                            'helper_text' => '',
+                        ),
+                        array(
+                            'class' => 'img-fluid rounded',
+                            'style' => 'card',
+                            'alt' => $custom_field['name'] ?? $field_slug,
+                            'show_remove' => true,
+                        )
                     )
-                ),
-                $display_url,
-                FormFieldHelper::input(
+                );
+            }
+
+            if ( in_array( 'icon', $allowed_modes, true ) ) {
+                $image_block .= sprintf(
+                    '<div class="modpress-image-entry-mode modpress-image-entry-mode-icon" data-image-mode="icon"%1$s>%2$s</div>',
+                    'icon' === $selected_mode ? '' : ' style="display:none;"',
+                    IconPicker::get_instance()->render_picker(
+                        $field_name,
+                        $image_value,
+                        array(
+                            'id' => sanitize_key( $field_name . '-picker' ),
+                            'button_text' => __( 'Choose Icon', 'modpress' ),
+                        )
+                    )
+                );
+            }
+
+            if ( in_array( 'url', $allowed_modes, true ) ) {
+                $url_mode_display = 'url' === $selected_mode ? '' : ' style="display:none;"';
+                $url_field = FormFieldHelper::input(
                     $field_name,
                     $image_value,
                     array(
@@ -1688,10 +1707,26 @@ public function get_group(): void {
                         'class' => 'form-control modpress-image-url-input w-100',
                         'placeholder' => __( 'https://example.com/image.jpg', 'modpress' ),
                     )
-                ),
-                empty( $image_value ) || ! filter_var( $image_value, FILTER_VALIDATE_URL ) ? ' d-none' : '',
-                esc_url( $image_value ),
-                esc_attr( $custom_field['name'] ?? $field_slug )
+                );
+                $url_preview = sprintf(
+                    '<div class="modpress-image-preview%1$s"><img src="%2$s" alt="%3$s" class="img-fluid rounded" style="max-height:120px;" /></div>',
+                    empty( $image_value ) || ! filter_var( $image_value, FILTER_VALIDATE_URL ) ? ' d-none' : '',
+                    esc_url( $image_value ),
+                    esc_attr( $custom_field['name'] ?? $field_slug )
+                );
+
+                $image_block .= sprintf(
+                    '<div class="modpress-image-entry-mode modpress-image-entry-mode-url" data-image-mode="url"%1$s>%2$s%3$s</div>',
+                    $url_mode_display,
+                    $url_field,
+                    $url_preview
+                );
+            }
+
+            $image_field_html = sprintf(
+                '<div class="modpress-image-field mb-2">%1$s%2$s</div>',
+                $mode_html,
+                $image_block
             );
 
             return sprintf(

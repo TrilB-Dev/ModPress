@@ -1097,92 +1097,9 @@
             }
         }
 
-        if (target.matches('.modpress-image-url-input')) {
-            const fieldWrapper = target.closest('.modpress-image-field');
-            if (!fieldWrapper) {
-                return;
-            }
-
-            const preview = fieldWrapper.querySelector('.modpress-image-entry-mode-url .modpress-image-preview');
-            const previewImg = preview ? preview.querySelector('img') : null;
-            const value = String(target.value || '').trim();
-
-            if (preview && previewImg) {
-                previewImg.src = value;
-                preview.classList.toggle('d-none', !value);
-            }
-        }
-
     });
 
     document.addEventListener('click', (event) => {
-        const imageSelectButton = event.target.closest('.modpress-image-select');
-        if (imageSelectButton) {
-            const fieldWrapper = imageSelectButton.closest('.modpress-image-field');
-            if (!fieldWrapper || typeof window === 'undefined' || !window.wp || !window.wp.media) {
-                return;
-            }
-
-            const hiddenInput = fieldWrapper.querySelector('input[type="hidden"]');
-            const preview = fieldWrapper.querySelector('.modpress-image-entry-mode-image .modpress-image-preview');
-            const previewImg = preview ? preview.querySelector('img') : null;
-            const removeButton = fieldWrapper.querySelector('.modpress-image-clear');
-            const mediaFrame = window.wp.media({
-                title: 'Select Image',
-                button: { text: 'Use Image' },
-                multiple: false,
-                library: { type: 'image' },
-            });
-
-            mediaFrame.on('select', () => {
-                const attachment = mediaFrame.state().get('selection').first().toJSON();
-                const imageUrl = attachment.url || attachment.sizes?.full?.url || attachment.icon || '';
-
-                if (hiddenInput) {
-                    hiddenInput.value = imageUrl;
-                }
-
-                if (preview && previewImg) {
-                    previewImg.src = imageUrl;
-                    preview.classList.toggle('d-none', !imageUrl);
-                }
-
-                if (removeButton) {
-                    removeButton.classList.toggle('d-none', !imageUrl);
-                }
-
-                window.setTimeout(() => {
-                    if (typeof mediaFrame.close === 'function') {
-                        mediaFrame.close();
-                    }
-                }, 0);
-            });
-
-            mediaFrame.open();
-            return;
-        }
-
-        const imageClearButton = event.target.closest('.modpress-image-clear');
-        if (imageClearButton) {
-            const fieldWrapper = imageClearButton.closest('.modpress-image-field');
-            if (!fieldWrapper) {
-                return;
-            }
-
-            const hiddenInput = fieldWrapper.querySelector('input[type="hidden"]');
-            const preview = fieldWrapper.querySelector('.modpress-image-entry-mode-image .modpress-image-preview');
-            const previewImg = preview ? preview.querySelector('img') : null;
-            if (hiddenInput) {
-                hiddenInput.value = '';
-            }
-            if (preview && previewImg) {
-                previewImg.src = '';
-                preview.classList.add('d-none');
-            }
-            imageClearButton.classList.add('d-none');
-            return;
-        }
-
         const groupPageLink = event.target.closest('.modpress-group-page-link');
         if (groupPageLink) {
             event.preventDefault();
