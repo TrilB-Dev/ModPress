@@ -1151,9 +1151,11 @@
                     removeButton.classList.toggle('d-none', !imageUrl);
                 }
 
-                if (typeof mediaFrame.close === 'function') {
-                    mediaFrame.close();
-                }
+                window.setTimeout(() => {
+                    if (typeof mediaFrame.close === 'function') {
+                        mediaFrame.close();
+                    }
+                }, 0);
             });
 
             mediaFrame.open();
