@@ -77,6 +77,7 @@ final class WPMediaHelper {
 					'data-modpress-media-picker' => 'true',
 					'data-media-field-name' => $field_name,
 					'data-media-field-id' => $field_id,
+					'data-media-target' => $field_name,
 					'data-media-type' => $button_config['media_type'] ?? 'image',
 					'data-return-value' => $return_value_mode,
 					'data-media-title' => $button_config['media_title'] ?? __( 'Select Media', 'modpress' ),
@@ -129,6 +130,9 @@ final class WPMediaHelper {
 				'id' => $field_id,
 				'attributes' => array(
 					'data-media-field' => 'true',
+					'data-media-field-name' => $field_name,
+					'data-media-field-id' => $field_id,
+					'data-media-target' => $field_name,
 					'data-media-value-type' => $value_type,
 				),
 			)

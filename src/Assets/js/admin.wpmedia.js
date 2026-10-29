@@ -1,68 +1,54 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof window.wp === 'undefined' || !window.wp.media) {
+        console.error('ModPress media picker: WordPress media library is not available.');
         return;
     }
 
-    const updatePreviewFromValue = (wrapper) => {
+    const getMediaTarget = (button) => {
+        const wrapper = button.closest('[data-modpress-media-wrapper="true"]');
         if (!wrapper) {
-            return;
+            return null;
         }
 
-        const hiddenInput = wrapper.querySelector('[data-media-field]');
+        const targetName = button.dataset.mediaTarget || button.dataset.mediaFieldName || '';
+        const targetId = button.dataset.mediaFieldId || '';
+
+        const targetByName = targetName ? wrapper.querySelector(`[name="${CSS.escape(targetName)}"]`) : null;
+        const targetById = targetId ? wrapper.querySelector(`#${CSS.escape(targetId)}`) : null;
+        const targetField = wrapper.querySelector('[data-media-field="true"]') || targetByName || targetById || null;
+
+        return {
+            wrapper,
+            field: targetField,
+        };
+    };
+
+    const syncMediaPreview = (wrapper, nextValue) => {
         const previewContainer = wrapper.querySelector('[data-modpress-media-preview-container="true"]');
         const previewImage = wrapper.querySelector('[data-modpress-media-preview-image="true"]');
         const removeButton = wrapper.querySelector('[data-modpress-media-remove]');
 
-        if (!hiddenInput || !previewContainer || !previewImage) {
-            return;
+        if (previewImage) {
+            previewImage.src = nextValue || '';
         }
 
-        const value = String(hiddenInput.value || '').trim();
-        if ('' === value) {
-            previewContainer.classList.add('d-none');
-            if (removeButton) {
-                removeButton.classList.add('d-none');
-            }
-            return;
+        if (previewContainer) {
+            previewContainer.classList.toggle('d-none', !nextValue);
         }
 
-        if (/^\d+$/.test(value)) {
-            const attachment = window.wp.media.attachment(value);
-            attachment.fetch({
-                success: (model) => {
-                    const url = model && model.attributes && model.attributes.url ? model.attributes.url : '';
-                    if (!url) {
-                        return;
-                    }
-                    previewImage.src = url;
-                    previewContainer.classList.remove('d-none');
-                    if (removeButton) {
-                        removeButton.classList.remove('d-none');
-                    }
-                },
-            });
-            return;
-        }
-
-        previewImage.src = value;
-        previewContainer.classList.remove('d-none');
         if (removeButton) {
-            removeButton.classList.remove('d-none');
+            removeButton.classList.toggle('d-none', !nextValue);
         }
     };
 
     const openMediaPicker = (button) => {
-        const wrapper = button.closest('[data-modpress-media-wrapper="true"]');
-        if (!wrapper) {
+        const mediaTarget = getMediaTarget(button);
+        if (!mediaTarget || !mediaTarget.field) {
+            console.error('ModPress media picker: no target field found for this button.');
             return;
         }
 
-        const hiddenInput = wrapper.querySelector('[data-media-field]');
-        const previewContainer = wrapper.querySelector('[data-modpress-media-preview-container="true"]');
-        const previewImage = wrapper.querySelector('[data-modpress-media-preview-image="true"]');
-        const removeButton = wrapper.querySelector('[data-modpress-media-remove]');
-        const mediaType = button.dataset.mediaType || 'image';
-        const returnValue = button.dataset.returnValue || 'url';
+        const { wrapper, field } = mediaTarget;
         const mediaFrame = window.wp.media({
             title: button.dataset.mediaTitle || 'Select Media',
             button: {
@@ -70,35 +56,27 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             multiple: false,
             library: {
-                type: mediaType,
+                type: button.dataset.mediaType || 'image',
             },
         });
 
         mediaFrame.on('select', () => {
             const attachment = mediaFrame.state().get('selection').first();
             if (!attachment) {
+                console.error('ModPress media picker: no media selected.');
                 return;
             }
 
             const selected = attachment.toJSON();
-            const nextValue = 'id' === returnValue ? String(selected.id || '') : (selected.url || selected.sizes?.full?.url || selected.icon || '');
+            const nextValue = button.dataset.returnValue === 'id'
+                ? String(selected.id || '')
+                : (selected.url || selected.sizes?.full?.url || selected.icon || '');
 
-            if (hiddenInput) {
-                hiddenInput.value = nextValue;
-                hiddenInput.dataset.mediaValueType = returnValue;
-            }
+            field.value = nextValue;
+            field.dataset.mediaValueType = button.dataset.returnValue || 'url';
+            field.dispatchEvent(new Event('input', { bubbles: true }));
 
-            if (previewImage) {
-                previewImage.src = nextValue;
-            }
-
-            if (previewContainer) {
-                previewContainer.classList.toggle('d-none', !nextValue);
-            }
-
-            if (removeButton) {
-                removeButton.classList.toggle('d-none', !nextValue);
-            }
+            syncMediaPreview(wrapper, nextValue);
 
             window.setTimeout(() => {
                 if (typeof mediaFrame.close === 'function') {
@@ -132,26 +110,58 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const hiddenInput = wrapper.querySelector('[data-media-field]');
-        const previewContainer = wrapper.querySelector('[data-modpress-media-preview-container="true"]');
-        const previewImage = wrapper.querySelector('[data-modpress-media-preview-image="true"]');
-
-        if (hiddenInput) {
-            hiddenInput.value = '';
+        const hiddenField = wrapper.querySelector('[data-media-field="true"]');
+        if (hiddenField) {
+            hiddenField.value = '';
         }
 
-        if (previewImage) {
-            previewImage.src = '';
-        }
-
-        if (previewContainer) {
-            previewContainer.classList.add('d-none');
-        }
-
-        removeButton.classList.add('d-none');
+        syncMediaPreview(wrapper, '');
     });
 
     document.querySelectorAll('[data-modpress-media-wrapper="true"]').forEach((wrapper) => {
-        updatePreviewFromValue(wrapper);
+        const hiddenField = wrapper.querySelector('[data-media-field="true"]');
+        if (!hiddenField) {
+            return;
+        }
+
+        const value = String(hiddenField.value || '').trim();
+        const previewContainer = wrapper.querySelector('[data-modpress-media-preview-container="true"]');
+        const previewImage = wrapper.querySelector('[data-modpress-media-preview-image="true"]');
+
+        if (!value) {
+            if (previewContainer) {
+                previewContainer.classList.add('d-none');
+            }
+            return;
+        }
+
+        if (/^\d+$/.test(value)) {
+            const attachment = window.wp.media.attachment(value);
+            attachment.fetch({
+                success: (model) => {
+                    const url = model && model.attributes && model.attributes.url ? model.attributes.url : '';
+                    if (!url) {
+                        return;
+                    }
+
+                    if (previewImage) {
+                        previewImage.src = url;
+                    }
+
+                    if (previewContainer) {
+                        previewContainer.classList.remove('d-none');
+                    }
+                },
+            });
+            return;
+        }
+
+        if (previewImage) {
+            previewImage.src = value;
+        }
+
+        if (previewContainer) {
+            previewContainer.classList.remove('d-none');
+        }
     });
 });
