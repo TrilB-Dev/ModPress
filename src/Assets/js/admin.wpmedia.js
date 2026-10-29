@@ -116,6 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.addEventListener('click', (event) => {
+        const mediaModalButton = event.target.closest('.media-button-select');
+        if (mediaModalButton && mediaModalButton.closest('.media-modal')) {
+            window.setTimeout(() => {
+                closeMediaFrame(window.wp && window.wp.media ? window.wp.media.frame || null : null);
+            }, 0);
+        }
+
         const pickerButton = event.target.closest('[data-modpress-media-picker="true"]');
         if (pickerButton) {
             event.preventDefault();
