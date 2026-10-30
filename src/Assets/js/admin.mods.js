@@ -548,6 +548,7 @@
             if (labelInput) {
                 labelInput.value = field.name || field.label || '';
             }
+            syncCustomFieldLabel(row);
 
             const slugInput = row.querySelector('[name="custom_field_slug[]"]');
             if (slugInput) {
@@ -1112,6 +1113,14 @@
             }, 0);
         }
     };
+
+    document.addEventListener('input', (event) => {
+        const target = event.target;
+
+        if (target.matches('[name="custom_field_label[]"]')) {
+            syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
+        }
+    });
 
     document.addEventListener('change', (event) => {
         const target = event.target;
