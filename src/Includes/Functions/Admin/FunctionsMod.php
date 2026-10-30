@@ -1527,7 +1527,46 @@ final class FunctionsMod {
         $field_type = strtolower( (string) ( $custom_field['type'] ?? 'text' ) );
         $value = is_array( $value ) ? $value : array();
 
-        $resolve_field_value = static function ( string $field_name_key ) use ( $value, $field_slug, $field_id ) {
+        $normalize_saved_value = static function ( $raw ) use ( &$normalize_saved_value ) {
+            if ( is_array( $raw ) ) {
+                $flattened = array();
+                foreach ( $raw as $item ) {
+                    if ( is_array( $item ) ) {
+                        $nested = $normalize_saved_value( $item );
+                        if ( is_array( $nested ) ) {
+                            foreach ( $nested as $nested_item ) {
+                                $trimmed = trim( (string) $nested_item );
+                                if ( '' !== $trimmed ) {
+                                    $flattened[] = $trimmed;
+                                }
+                            }
+                            continue;
+                        }
+
+                        $trimmed = trim( (string) $nested );
+                        if ( '' !== $trimmed ) {
+                            $flattened[] = $trimmed;
+                        }
+                        continue;
+                    }
+
+                    $trimmed = trim( (string) $item );
+                    if ( '' !== $trimmed ) {
+                        $flattened[] = $trimmed;
+                    }
+                }
+
+                return array_values( array_unique( $flattened ) );
+            }
+
+            if ( null === $raw ) {
+                return '';
+            }
+
+            return is_scalar( $raw ) ? trim( (string) $raw ) : '';
+        };
+
+        $resolve_field_value = static function ( string $field_name_key ) use ( $value, $field_slug, $field_id, $normalize_saved_value ) {
             $keys = array(
                 $field_name_key,
                 $field_name_key . '[]',
@@ -1544,14 +1583,18 @@ final class FunctionsMod {
 
             foreach ( $keys as $key ) {
                 if ( array_key_exists( $key, $value ) ) {
-                    return $value[ $key ];
+                    return $normalize_saved_value( $value[ $key ] );
                 }
             }
 
             if ( is_array( $value ) ) {
                 foreach ( $value as $candidate ) {
-                    if ( is_scalar( $candidate ) ) {
-                        return $candidate;
+                    $normalized = $normalize_saved_value( $candidate );
+                    if ( is_array( $normalized ) && ! empty( $normalized ) ) {
+                        return $normalized;
+                    }
+                    if ( '' !== (string) $normalized ) {
+                        return $normalized;
                     }
                 }
             }
@@ -1674,13 +1717,14 @@ final class FunctionsMod {
 
         if ( 'radio' === $field_type ) {
             $option_rows = $normalize_options( $custom_field['options'] ?? array() );
+            $selected_values = is_array( $field_value ) ? array_values( array_filter( array_map( 'strval', $field_value ), static fn( $value ) => '' !== trim( (string) $value ) ) ) : array( (string) $field_value );
             return sprintf(
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::button_group(
                     $field_name,
                     $option_rows,
-                    ( is_array( $field_value ) ? array_map( 'strval', $field_value ) : (string) $field_value ),
+                    $selected_values,
                     array(
                         'type' => 'radio',
                     )
@@ -1690,6 +1734,7 @@ final class FunctionsMod {
 
         if ( 'select' === $field_type ) {
             $option_rows = $normalize_options( $custom_field['options'] ?? array() );
+            $selected_value = is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value;
             return sprintf(
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
@@ -1697,7 +1742,7 @@ final class FunctionsMod {
                     $field_name,
                     array(
                         'data' => $option_rows,
-                        'selected' => ( is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value ),
+                        'selected' => $selected_value,
                         'class' => 'w-100',
                     )
                 )

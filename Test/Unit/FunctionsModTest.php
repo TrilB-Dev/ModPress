@@ -888,6 +888,29 @@ namespace ModPress\Tests\Unit {
             $this->assertStringNotContainsString( 'name="entry_custom_field_image_mode"', $output );
         }
 
+        public function testRenderGroupCustomFieldRestoresNestedSavedOptionValues(): void {
+            $output = \ModPress\Includes\Functions\Admin\FunctionsMod::render_group_custom_field(
+                array(
+                    'id' => 'field_7',
+                    'name' => 'Priority',
+                    'slug' => 'priority',
+                    'type' => 'radio',
+                    'options' => array(
+                        array( 'label' => 'Low', 'value' => 'low' ),
+                        array( 'label' => 'High', 'value' => 'high' ),
+                    ),
+                ),
+                array(
+                    'entry_custom_field_field_7' => array(
+                        array( 'value' => 'high' ),
+                    ),
+                )
+            );
+
+            $this->assertStringContainsString( 'value="high"', $output );
+            $this->assertStringContainsString( 'checked', $output );
+        }
+
         public function testRenderGroupModalKeepsSavedParentSelectionValues(): void {
             $GLOBALS['modpress_test_taxonomies'] = array(
                 'modpress_assets' => array( 'args' => array( 'hierarchical' => true ) ),
