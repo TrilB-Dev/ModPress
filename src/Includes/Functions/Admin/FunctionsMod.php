@@ -1435,38 +1435,6 @@ final class FunctionsMod {
      * @return string HTML output.
      */
     public static function repeatable_option_row(string $type, array $options = array() ): string {
-        $type = in_array( $type, array( 'radio', 'select' ), true ) ? $type : 'radio';
-        $option_rows = array();
-
-        foreach ( (array) $options as $index => $option ) {
-            if ( is_array( $option ) ) {
-                $label = trim( (string) ( $option['label'] ?? $option['name'] ?? '' ) );
-                $value = trim( (string) ( $option['option'] ?? $option['value'] ?? $label ) );
-                $option_rows[] = array(
-                    'label' => '' !== $label ? $label : $value,
-                    'value' => '' !== $value ? $value : $label,
-                );
-                continue;
-            }
-
-            $option_value = trim( (string) $option );
-            if ( '' === $option_value ) {
-                continue;
-            }
-
-            $option_rows[] = array(
-                'label' => $option_value,
-                'value' => $option_value,
-            );
-        }
-
-        if ( empty( $option_rows ) ) {
-            $option_rows[] = array(
-                'label' => '',
-                'value' => '',
-            );
-        }
-
         ob_start();
         ?>
         <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
@@ -1485,51 +1453,6 @@ final class FunctionsMod {
                 ); ?>
             </div>
             <div class="modpress-option-repeater-items">
-                <?php foreach ( $option_rows as $option_index => $option_data ) : ?>
-                    <div class="modpress-option-row" data-option-type="<?php echo esc_attr( $type ); ?>">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-5">
-                                <?php echo FormFieldHelper::text_input(
-                                    'custom_field_type_' . $type . '[' . $option_index . '][label]',
-                                    (string) ( $option_data['label'] ?? '' ),
-                                    array(
-                                        'class' => 'form-control w-100',
-                                        'placeholder' => esc_attr__( 'Label', 'modpress' ),
-                                        'attributes' => array(
-                                            'data-option-role' => 'label',
-                                        ),
-                                    )
-                                ); ?>
-                            </div>
-                            <div class="col-md-5">
-                                <?php echo FormFieldHelper::text_input(
-                                    'custom_field_type_' . $type . '[' . $option_index . '][option]',
-                                    (string) ( $option_data['value'] ?? '' ),
-                                    array(
-                                        'class' => 'form-control w-100',
-                                        'placeholder' => esc_attr__( 'Option', 'modpress' ),
-                                        'attributes' => array(
-                                            'data-option-role' => 'value',
-                                        ),
-                                    )
-                                ); ?>
-                            </div>
-                            <div class="col-md-2">
-                                <?php echo FormFieldHelper::button(
-                                    esc_html__( 'Delete', 'modpress' ),
-                                    array(
-                                        'type' => 'button',
-                                        'class' => 'btn btn-outline-danger btn-sm',
-                                        'id' => 'remove-option-row',
-                                        'attributes' => array(
-                                            'data-role' => 'remove-option-row',
-                                        ),
-                                    )
-                                ); ?>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
                 <div class="modpress-option-row-template d-none" data-option-type="<?php echo esc_attr( $type ); ?>">
                     <div class="row g-2 align-items-center">
                         <div class="col-md-5">
