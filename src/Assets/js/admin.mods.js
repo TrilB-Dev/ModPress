@@ -949,6 +949,23 @@
         return clone;
     };
 
+    const syncOptionRepeaterType = (row) => {
+        if (!row) {
+            return;
+        }
+
+        const typeField = row.querySelector('[name="custom_field_type[]"]');
+        const repeater = row.querySelector('.modpress-option-repeater');
+        if (!typeField || !repeater) {
+            return;
+        }
+
+        const nextType = String(typeField.value || 'radio').toLowerCase();
+        const resolvedType = nextType === 'select' ? 'select' : 'radio';
+        repeater.dataset.optionType = resolvedType;
+        syncOptionRepeaterNames(repeater, row.dataset.fieldIndex);
+    };
+
     const addCustomFieldRow = (button = null) => {
         const scope = button ? button.closest('.modal') : null;
         const container = scope ? scope.querySelector('.modpress-custom-fields-container') : document.getElementById('modpress-custom-fields-container');
@@ -1029,6 +1046,7 @@
         syncCustomFieldRepeaterNames(row);
         syncCustomFieldVisibility(row);
         syncCustomFieldLabel(row);
+        syncOptionRepeaterType(row);
     };
 
     const bindCustomFieldButtons = () => {
@@ -1098,7 +1116,9 @@
         }
 
         if (target.matches('[name="custom_field_type[]"]')) {
-            syncCustomFieldVisibility(target.closest('.modpress-custom-field-row'));
+            const fieldRow = target.closest('.modpress-custom-field-row');
+            syncCustomFieldVisibility(fieldRow);
+            syncOptionRepeaterType(fieldRow);
         }
 
         if (target.matches('[name="group_parent[]"]')) {
