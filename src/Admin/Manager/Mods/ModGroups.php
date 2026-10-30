@@ -749,7 +749,7 @@ final class ModGroups extends ModManager {
 																				'custom_field_type_radio[]',
 																				__( 'Radio Button Options', 'modpress' ),
 																				function () {
-																					return FunctionsMod::repeatable_option_row('radio');
+																					return FunctionsMod::repeatable_option_row('radio', $options);
 																				},
 																				__( 'Options for the radio button group.', 'modpress' ),
 																				__( 'Enter each option using the options repeater.', 'modpress' ),
@@ -759,7 +759,7 @@ final class ModGroups extends ModManager {
 																				'custom_field_type_select[]',
 																				__( 'Select Options', 'modpress' ),
 																				function () {
-																					return FunctionsMod::repeatable_option_row('select');
+																					return FunctionsMod::repeatable_option_row('select', $options);
 																				},
 																				__( 'Options for the select dropdown.', 'modpress' ),
 																				__( 'Enter each option using the options repeater.', 'modpress' ),
