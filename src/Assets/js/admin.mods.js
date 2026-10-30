@@ -575,7 +575,7 @@
                 showInTableInput.checked = shouldShowInTable;
             }
 
-            const fieldType = String(field.type || 'radio' || 'select').toLowerCase();
+            const fieldType = String(field.type || 'text').toLowerCase();
             row.querySelectorAll('.modpress-option-repeater').forEach((optionRepeater) => {
                 const optionItems = optionRepeater.querySelector('.modpress-option-repeater-items');
                 const optionTemplate = optionRepeater.querySelector('.modpress-option-row-template');
@@ -584,7 +584,8 @@
                 }
 
                 const repeaterType = String(optionRepeater.dataset.optionType || 'radio').toLowerCase();
-                const shouldPopulate = repeaterType === fieldType || (repeaterType !== 'select' && fieldType === 'radio');
+                const supportsOptions = ['radio', 'select'].includes(repeaterType);
+                const shouldPopulate = supportsOptions && repeaterType === fieldType;
                 optionItems.innerHTML = '';
 
                 if (!shouldPopulate) {
@@ -592,7 +593,17 @@
                     return;
                 }
 
-                const options = normalizeFieldOptions(field.options);
+                const options = normalizeFieldOptions(field.options || []);
+                if (!options.length) {
+                    const emptyRow = optionTemplate.cloneNode(true);
+                    emptyRow.classList.remove('d-none');
+                    emptyRow.classList.remove('modpress-option-row-template');
+                    emptyRow.classList.add('modpress-option-row');
+                    optionItems.appendChild(emptyRow);
+                    syncOptionRepeaterNames(optionRepeater, fieldIndex);
+                    return;
+                }
+
                 options.forEach((option) => {
                     const optionRow = optionTemplate.cloneNode(true);
                     optionRow.classList.remove('d-none');
@@ -612,14 +623,6 @@
 
                     optionItems.appendChild(optionRow);
                 });
-
-                if (!options.length) {
-                    const emptyRow = optionTemplate.cloneNode(true);
-                    emptyRow.classList.remove('d-none');
-                    emptyRow.classList.remove('modpress-option-row-template');
-                    emptyRow.classList.add('modpress-option-row');
-                    optionItems.appendChild(emptyRow);
-                }
 
                 syncOptionRepeaterNames(optionRepeater, fieldIndex);
             });
@@ -967,10 +970,11 @@
             return;
         }
 
-        const nextType = String(typeField.value || 'radio').toLowerCase();
+        const nextType = String(typeField.value || 'text').toLowerCase();
+        const optionTypes = ['radio', 'select'];
         repeaters.forEach((repeater) => {
             const repeaterType = String(repeater.dataset.optionType || 'radio').toLowerCase();
-            const shouldShow = repeaterType === nextType;
+            const shouldShow = optionTypes.includes(repeaterType) && repeaterType === nextType;
             repeater.classList.toggle('d-none', !shouldShow);
             const repeatableGroup = repeater.closest('tr');
             if (repeatableGroup) {
