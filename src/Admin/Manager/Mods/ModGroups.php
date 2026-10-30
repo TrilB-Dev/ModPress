@@ -969,7 +969,7 @@ final class ModGroups extends ModManager {
 		?>
 		<?php $modal_id = 'modpress-entry-modal-' . sanitize_html_class( (string) ( $selected_group_key ?: ( $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'default' ) ) ); ?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
-			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
+			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" style="overflow:scroll" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_group_entry" />
