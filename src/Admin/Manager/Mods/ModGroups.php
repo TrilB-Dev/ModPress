@@ -456,7 +456,7 @@ final class ModGroups extends ModManager {
 		$modal_title = '' === $selected_group_key ? __( 'Add Group', 'modpress' ) : __( 'Edit Group', 'modpress' );
 		?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
-			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
+			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" style="overflow:scroll" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="<?php echo esc_attr( $save_form_id ); ?>" data-role="group-save-form">
 						<input type="hidden" name="action" value="modpress_save_group" />
