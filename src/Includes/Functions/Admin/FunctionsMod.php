@@ -1434,7 +1434,7 @@ final class FunctionsMod {
      * @param string $type The option type.
      * @return string HTML output.
      */
-    public static function repeatable_option_row(string $type, array $options = array() ): string {
+    public static function repeatable_option_row(string $type): string {
         ob_start();
         ?>
         <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
