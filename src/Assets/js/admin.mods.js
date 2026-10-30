@@ -575,7 +575,7 @@
                 showInTableInput.checked = shouldShowInTable;
             }
 
-            const fieldType = String(field.type || 'radio').toLowerCase();
+            const fieldType = String(field.type || 'radio' || 'select').toLowerCase();
             row.querySelectorAll('.modpress-option-repeater').forEach((optionRepeater) => {
                 const optionItems = optionRepeater.querySelector('.modpress-option-repeater-items');
                 const optionTemplate = optionRepeater.querySelector('.modpress-option-row-template');
