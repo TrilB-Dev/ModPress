@@ -956,7 +956,14 @@ final class ModGroups extends ModManager {
 				if ( '' === $field_slug ) {
 					continue;
 				}
-				$selected_group_values[ $field_slug ] = GroupsManager::get_group_entry( (int) $selected_entry['term_id'], $selected_group_key, $field_slug );
+				$field_id = trim( (string) ( $field['id'] ?? '' ) );
+				if ( '' === $field_id ) {
+					$field_id = 'field_' . sanitize_key( $field_slug );
+				}
+				$field_name_key = 'entry_custom_field_' . sanitize_key( $field_id );
+				$meta_value = GroupsManager::get_group_entry( (int) $selected_entry['term_id'], $selected_group_key, $field_slug );
+				$selected_group_values[ $field_slug ] = $meta_value;
+				$selected_group_values[ $field_name_key ] = $meta_value;
 			}
 		}
 		?>

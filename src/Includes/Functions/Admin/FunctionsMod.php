@@ -82,7 +82,12 @@ final class FunctionsMod {
 			)
 		)->run();
 	}
-
+    /**
+     * Save a ModPress form submission.
+     *
+     * @return void
+     * @since 1.0.0
+     */
 	public function save(): void {
 		$action = RequestHelper::key( $_POST, 'action', '' );
 		if ( '' === $action ) {
@@ -133,6 +138,7 @@ final class FunctionsMod {
 	 * Save a Mod submitted through the native admin form.
 	 *
 	 * @return string Rendered admin notice, or an empty string when the form was not submitted.
+     * @since 1.0.0
 	 */
 	public function save_mod(): string {
 		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
@@ -194,6 +200,7 @@ final class FunctionsMod {
      * Save a custom taxonomy group from the group modal.
      *
      * @return void
+     * @since 1.0.0
      */
     public function save_group(): void {
         if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
@@ -265,6 +272,7 @@ final class FunctionsMod {
      * The default Mod Type group is reserved and remains editable, but cannot be removed.
      *
      * @return void
+     * @since 1.0.0
      */
     public function delete_group(): void {
         if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
@@ -314,6 +322,7 @@ final class FunctionsMod {
      * @param string $group_name Display label.
      * @param string $taxonomy Taxonomy slug.
      * @return array<string, mixed>
+     * @since 1.0.0
      */
     private function build_group_payload( string $group_name, string $taxonomy ): array {
         $group_fields = array();
@@ -520,6 +529,7 @@ final class FunctionsMod {
      * @param mixed $raw_value Raw DB or request value.
      * @param array<int, array<string, mixed>> $taxonomy_tabs Optional taxonomy map used to resolve IDs to taxonomy keys.
      * @return array<int, string>
+     * @since 1.0.0
      */
     public static function normalize_group_parent_values( $raw_value, array $taxonomy_tabs = array() ): array {
         $values = is_array( $raw_value ) ? $raw_value : array( $raw_value );
@@ -582,6 +592,7 @@ final class FunctionsMod {
      *
      * @param mixed $value Raw parent group value from the modal or request payload.
      * @return int
+     * @since 1.0.0
      */
     public static function resolve_group_parent_id( $value ): int {
         $value = trim( (string) $value );
@@ -620,6 +631,7 @@ final class FunctionsMod {
      * @param mixed $value Raw parent value.
      * @param array<int, array<string, mixed>> $taxonomy_tabs Taxonomy definitions for lookup.
      * @return string
+     * @since 1.0.0
      */
     public static function resolve_group_parent_key( $value, array $taxonomy_tabs = array() ): string {
         $value = trim( (string) $value );
@@ -683,6 +695,7 @@ final class FunctionsMod {
      *
      * @param string $lookup_key Matched group key/slug.
      * @return array<string, mixed>|null
+     * @since 1.0.0
      */
     private static function find_group_row_by_key_or_slug( string $lookup_key ) {
         $lookup_key = trim( (string) $lookup_key );
@@ -725,6 +738,7 @@ final class FunctionsMod {
      *
      * @param int $group_id Group ID to match.
      * @return array<string, mixed>|null
+     * @since 1.0.0
      */
     private static function find_group_row_by_id( int $group_id ) {
         $group_id = abs( (int) $group_id );
@@ -759,6 +773,7 @@ final class FunctionsMod {
      *
      * @param array<string, mixed> $group_payload Row payload.
      * @return int|false
+     * @since 1.0.0
      */
     private function persist_group_record( array $group_payload ) {
         $group_id = $this->resolve_group_record_id(
@@ -839,6 +854,7 @@ final class FunctionsMod {
      * @param string $edit_key Raw value from the edit form.
      * @param string $fallback_slug Group slug fallback.
      * @return int
+     * @since 1.0.0
      */
     private function resolve_group_record_id( string $edit_key, string $fallback_slug = '' ): int {
         $edit_key = trim( (string) $edit_key );
@@ -881,6 +897,7 @@ final class FunctionsMod {
      * Return a readable database error message when a group save fails.
      *
      * @return string
+     * @since 1.0.0
      */
     private function get_group_save_failure_reason(): string {
         global $wpdb;
@@ -896,8 +913,9 @@ final class FunctionsMod {
      * Save a taxonomy term from the entry modal.
      *
      * @return void
+     * @since 1.0.0
      */
-public function get_group(): void {
+    public function get_group(): void {
 		if ( ! current_user_can( 'modpress_manager_groups_view' ) && ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress groups.', 'modpress' ) ), 403 );
 		}
@@ -979,7 +997,12 @@ public function get_group(): void {
 			)
 		);
 	}
-
+    /**
+     * Get a group entry.
+     *
+     * @return void
+     * @since 1.0.0
+     */
 	public function get_group_entry(): void {
 		if ( ! current_user_can( 'modpress_manager_groups_view' ) && ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress taxonomy entries.', 'modpress' ) ), 403 );
@@ -1035,7 +1058,12 @@ public function get_group(): void {
 			)
 		);
 	}
-
+    /**
+     * Save a group entry.
+     *
+     * @return void
+     * @since 1.0.0
+     */
 	public function save_group_entry(): void {
         if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress taxonomy entries.', 'modpress' ) );
@@ -1108,20 +1136,50 @@ public function get_group(): void {
                     $field_id = 'field_' . sanitize_key( $field_slug );
                 }
 
-                $field_key = 'entry_custom_field_' . sanitize_key( $field_id );
-                $field_value = RequestHelper::value( $_POST, $field_key, null );
+                $field_keys = array(
+                    'entry_custom_field_' . sanitize_key( $field_id ),
+                    'entry_custom_field_' . sanitize_key( $field_slug ),
+                    $field_slug,
+                    sanitize_key( $field_slug ),
+                );
+
+                $field_value = null;
+                foreach ( $field_keys as $field_key ) {
+                    if ( array_key_exists( $field_key, $_POST ) ) {
+                        $field_value = RequestHelper::value( $_POST, $field_key, null );
+                        break;
+                    }
+
+                    if ( array_key_exists( $field_key . '[]', $_POST ) ) {
+                        $field_value = RequestHelper::value( $_POST, $field_key . '[]', null );
+                        break;
+                    }
+                }
 
                 if ( null === $field_value ) {
                     continue;
                 }
 
                 if ( is_array( $field_value ) ) {
-                    $field_value = array_map( 'sanitize_text_field', wp_unslash( $field_value ) );
+                    $field_value = array_values(
+                        array_map(
+                            static function ( $item ) {
+                                return is_scalar( $item ) ? sanitize_text_field( wp_unslash( (string) $item ) ) : '';
+                            },
+                            wp_unslash( $field_value )
+                        )
+                    );
                 } else {
                     $field_value = sanitize_text_field( wp_unslash( (string) $field_value ) );
                 }
 
-                if ( '' === trim( (string) $field_value ) ) {
+                if ( is_array( $field_value ) ) {
+                    $field_value = array_filter( $field_value, static fn( $value ) => '' !== trim( (string) $value ) );
+                    if ( empty( $field_value ) ) {
+                        delete_term_meta( $saved_term_id, $field_slug );
+                        continue;
+                    }
+                } elseif ( '' === trim( (string) $field_value ) ) {
                     delete_term_meta( $saved_term_id, $field_slug );
                     continue;
                 }
@@ -1144,6 +1202,7 @@ public function get_group(): void {
      * Delete a taxonomy term from the entry modal.
      *
      * @return void
+     * @since 1.0.0
      */
     public function delete_group_entry(): void {
         if ( ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
@@ -1204,6 +1263,7 @@ public function get_group(): void {
      * @param string $name Method name.
      * @param array  $arguments Arguments passed to the callback.
      * @return void
+     * @since 1.0.0
      */
     public function __call( string $name, array $arguments ): void {
         LoggerHelper::write_log( 'ModPress admin action callback not implemented: ' . $name );
@@ -1216,6 +1276,7 @@ public function get_group(): void {
      * Handle a tag save request.
      *
      * @return void
+     * @since 1.0.0
      */
     public function save_tags(): void {
         if ( ! current_user_can( 'modpress_manager_tags_edit' ) && ! current_user_can( 'manage_options' ) ) {
@@ -1230,6 +1291,7 @@ public function get_group(): void {
      * Handle a file save request.
      *
      * @return void
+     * @since 1.0.0
      */
     public function save_files(): void {
         if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
@@ -1244,6 +1306,7 @@ public function get_group(): void {
      * Handle a file type save request.
      *
      * @return void
+     * @since 1.0.0
      */
     public function save_file_type(): void {
         if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
@@ -1258,6 +1321,7 @@ public function get_group(): void {
      * Handle a changelog save request.
      *
      * @return void
+     * @since 1.0.0
      */
     public function save_changelog(): void {
         if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
@@ -1272,6 +1336,7 @@ public function get_group(): void {
      * Handle a changelog category save request.
      *
      * @return void
+     * @since 1.0.0
      */
     public function save_changelog_category(): void {
         if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
@@ -1299,7 +1364,12 @@ public function get_group(): void {
 
         set_transient( $key, $notice, 60 );
     }
-
+    /**
+     * Consume and return the admin notice flash.
+     *
+     * @return array Notice data with 'message' and 'type'.
+     * @since 1.0.0
+     */
     public static function consume_admin_notice_flash(): array {
         $key = 'modpress_admin_notice_' . get_current_user_id();
         $notice = get_transient( $key );
@@ -1325,7 +1395,14 @@ public function get_group(): void {
             'type' => $type,
         );
     }
-
+    /**
+     * Redirect back to the Mod action result with a notice.
+     *
+     * @param string $tab Page tab to return to.
+     * @param string $message Notice text.
+     * @param bool   $success Whether the save succeeded.
+     * @return void
+     */
     private function redirect_mod_action_result( string $tab, string $message = '', bool $success = true ): void {
         $query = array(
             'page' => 'modpress',
@@ -1351,7 +1428,12 @@ public function get_group(): void {
     private function redirect_mod_group_result( bool $success, string $message = '' ): void {
         $this->redirect_mod_action_result( 'groups', $message, $success );
     }
-
+    /**
+     * Render a repeatable option row template.
+     *
+     * @param string $type The option type.
+     * @return string HTML output.
+     */
     public static function repeatable_option_row(string $type): string {
         ob_start();
         ?>
@@ -1419,7 +1501,13 @@ public function get_group(): void {
         <?php
         return (string) ob_get_clean();
     }
-
+    /**
+     * Render a group custom field.
+     *
+     * @param array $custom_field The custom field configuration.
+     * @param array $value The current value of the custom field.
+     * @return string HTML output.
+     */
     public static function render_group_custom_field( array $custom_field, $value = array() ) {
         if ( ! is_array( $custom_field ) ) {
             return '';
@@ -1439,16 +1527,32 @@ public function get_group(): void {
         $field_type = strtolower( (string) ( $custom_field['type'] ?? 'text' ) );
         $value = is_array( $value ) ? $value : array();
 
-        $resolve_field_value = static function ( string $field_name_key ) use ( $value ) {
+        $resolve_field_value = static function ( string $field_name_key ) use ( $value, $field_slug, $field_id ) {
             $keys = array(
                 $field_name_key,
                 $field_name_key . '[]',
                 $field_name_key . '[0]',
+                $field_slug,
+                $field_slug . '[]',
+                sanitize_key( $field_slug ),
+                sanitize_key( $field_slug ) . '[]',
+                $field_id,
+                $field_id . '[]',
+                sanitize_key( $field_id ),
+                sanitize_key( $field_id ) . '[]',
             );
 
             foreach ( $keys as $key ) {
                 if ( array_key_exists( $key, $value ) ) {
                     return $value[ $key ];
+                }
+            }
+
+            if ( is_array( $value ) ) {
+                foreach ( $value as $candidate ) {
+                    if ( is_scalar( $candidate ) ) {
+                        return $candidate;
+                    }
                 }
             }
 
