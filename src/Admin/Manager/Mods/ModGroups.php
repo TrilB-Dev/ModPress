@@ -457,7 +457,7 @@ final class ModGroups extends ModManager {
 		?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
-				<div class="modal-content">
+				<div class="modal-content" style="overflow-y: scroll;">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="<?php echo esc_attr( $save_form_id ); ?>" data-role="group-save-form">
 						<input type="hidden" name="action" value="modpress_save_group" />
 						<?php wp_nonce_field( 'modpress_save_group', 'modpress_group_nonce' ); ?>
@@ -465,7 +465,7 @@ final class ModGroups extends ModManager {
 							<h5 class="modal-title" id="<?php echo esc_attr( $modal_id . '-title' ); ?>"><?php echo esc_html( $modal_title ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
-						<div class="modal-body" style="overflow:scroll">
+						<div class="modal-body">
 							<input type="hidden" name="group_edit_key" value="<?php echo esc_attr( $selected_group_key ); ?>" />
 							<input type="hidden" name="group_id" value="<?php echo esc_attr( (string) ( $selected_group['id'] ?? 0 ) ); ?>" />
 							<div class="accordion" id="modpress-group-accordion">
@@ -969,124 +969,123 @@ final class ModGroups extends ModManager {
 		?>
 		<?php $modal_id = 'modpress-entry-modal-' . sanitize_html_class( (string) ( $selected_group_key ?: ( $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'default' ) ) ); ?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
-			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
+			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" style="overflow:scroll" role="document">
 				<div class="modal-content">
-					<div class="modal-header">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<input type="hidden" name="action" value="modpress_save_group_entry" />
+						<input type="hidden" name="group_slug" value="<?php echo esc_attr( $selected_group_key ); ?>" />
+						<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) ( $selected_entry['term_id'] ?? 0 ) ); ?>" />
+						<input type="hidden" name="entry_group_taxonomy" value="<?php echo esc_attr( (string) ( $selected_entry['taxonomy'] ?? $selected_group_key ) ); ?>" />
+						<?php wp_nonce_field( 'modpress_save_group_entry', 'modpress_group_entry_nonce' ); ?>
+						<div class="modal-header">
 							<h5 class="modal-title" id="<?php echo esc_attr( $modal_id . '-title' ); ?>"><?php echo esc_html( $modal_title ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
-						<div class="modal-body" style="overflow:scroll">
-							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-								<input type="hidden" name="action" value="modpress_save_group_entry" />
-								<input type="hidden" name="group_slug" value="<?php echo esc_attr( $selected_group_key ); ?>" />
-								<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) ( $selected_entry['term_id'] ?? 0 ) ); ?>" />
-								<input type="hidden" name="entry_group_taxonomy" value="<?php echo esc_attr( (string) ( $selected_entry['taxonomy'] ?? $selected_group_key ) ); ?>" />
-								<?php wp_nonce_field( 'modpress_save_group_entry', 'modpress_group_entry_nonce' ); ?>
-									<table class="table table-borderless mb-0">
-										<tbody>
-											<?php $this->render_form_row(
+						<div class="modal-body">
+							<table class="table table-borderless mb-0">
+								<tbody>
+									<?php $this->render_form_row(
+										'entry_name',
+										__( 'Name', 'modpress' ),
+										function () use ( $selected_entry ) {
+											return FormFieldHelper::text_input(
 												'entry_name',
-												__( 'Name', 'modpress' ),
-												function () use ( $selected_entry ) {
-													return FormFieldHelper::text_input(
-														'entry_name',
-														(string) ( $selected_entry['name'] ?? '' ),
-														array(
-															'id' => 'entry_name',
-															'class' => 'w-100'
-														)
-													);
-												},
-												__( 'Display name for the entry.', 'modpress' ),
-												__( 'Use a human-friendly name that is easy to recognise.', 'modpress' )
-											); ?>
-											<?php $this->render_form_row(
+												(string) ( $selected_entry['name'] ?? '' ),
+												array(
+													'id' => 'entry_name',
+													'class' => 'w-100'
+												)
+											);
+										},
+										__( 'Display name for the entry.', 'modpress' ),
+										__( 'Use a human-friendly name that is easy to recognise.', 'modpress' )
+									); ?>
+									<?php $this->render_form_row(
+										'entry_slug',
+										__( 'Slug', 'modpress' ),
+										function () use ( $selected_entry ) {
+											return FormFieldHelper::text_input(
 												'entry_slug',
-												__( 'Slug', 'modpress' ),
-												function () use ( $selected_entry ) {
-													return FormFieldHelper::text_input(
-														'entry_slug',
-														(string) ( $selected_entry['slug'] ?? '' ),
-														array(
-															'id' => 'entry_slug',
-															'class' => 'w-100'
-														)
-													);
-												},
-												__( 'Unique identifier used internally.', 'modpress' ),
-												__( 'This should be stable and match the taxonomy slug pattern.', 'modpress' )
-											); ?>
-											<?php $this->render_form_row(
+												(string) ( $selected_entry['slug'] ?? '' ),
+												array(
+													'id' => 'entry_slug',
+													'class' => 'w-100'
+												)
+											);
+										},
+										__( 'Unique identifier used internally.', 'modpress' ),
+										__( 'This should be stable and match the taxonomy slug pattern.', 'modpress' )
+									); ?>
+									<?php $this->render_form_row(
+										'entry_description',
+										__( 'Description', 'modpress' ),
+										function () use ( $selected_entry ) {
+											return FormFieldHelper::textarea(
 												'entry_description',
-												__( 'Description', 'modpress' ),
-												function () use ( $selected_entry ) {
-													return FormFieldHelper::textarea(
-														'entry_description',
-														(string) ( $selected_entry['description'] ?? '' ),
-														array(
-															'id' => 'entry_description',
-															'rows' => 4,
-															'class' => 'w-100'
-														)
-													);
-												},
-												__( 'Optional description for this entry.', 'modpress' ),
-												__( 'Brief descriptions help editors understand what this entry represents.', 'modpress' )
-											); ?>
-											<?php $this->render_form_row(
+												(string) ( $selected_entry['description'] ?? '' ),
+												array(
+													'id' => 'entry_description',
+													'rows' => 4,
+													'class' => 'w-100'
+												)
+											);
+										},
+										__( 'Optional description for this entry.', 'modpress' ),
+										__( 'Brief descriptions help editors understand what this entry represents.', 'modpress' )
+									); ?>
+									<?php $this->render_form_row(
+										'entry_parent',
+										__( 'Parent', 'modpress' ),
+										function () use ( $entry_parent_options, $selected_entry ) {
+											return FormFieldHelper::bootstrap_select(
 												'entry_parent',
-												__( 'Parent', 'modpress' ),
-												function () use ( $entry_parent_options, $selected_entry ) {
-													return FormFieldHelper::bootstrap_select(
-														'entry_parent',
-														array(
-															'data'     => $entry_parent_options,
-															'selected' => (string) ( $selected_entry['parent'] ?? '0' ),
-															'id'       => 'entry_parent',
-														)
-													);
-												},
-												__( 'Choose a parent entry if required.', 'modpress' ),
-												__( 'This is useful for nested categories or grouped options.', 'modpress' )
-											); ?>
-										<tr class="modpress-entry-custom-fields-row">
-											<th scope="row" class="align-top text-nowrap pe-4">
-												<label for="modpress-entry-custom-fields">
-													<?php esc_html_e( 'Custom Fields', 'modpress' ); ?>
-												</label>
-											</th>
-											<td>
-												<div class="modpress-entry-custom-fields-container">
-													<?php foreach ( $selected_group_fields as $field ) : ?>
-													<?php echo FunctionsMod::render_group_custom_field( $field, $selected_group_values ); ?>
-													<?php endforeach; ?>
-												</div>
-											</td>
-										</tr>
-										</tbody>
-									</table>
-								<div class="modal-footer">
-									<?php echo FormFieldHelper::button(
-										__( 'Cancel', 'modpress' ),
-										array(
-											'type' => 'button',
-											'class' => 'btn btn-outline-secondary',
-											'attributes' => array(
-												'data-bs-dismiss' => 'modal'
-											)
-										)
+												array(
+													'data'     => $entry_parent_options,
+													'selected' => (string) ( $selected_entry['parent'] ?? '0' ),
+													'id'       => 'entry_parent',
+												)
+											);
+										},
+										__( 'Choose a parent entry if required.', 'modpress' ),
+										__( 'This is useful for nested categories or grouped options.', 'modpress' )
 									); ?>
-									<?php echo FormFieldHelper::button(
-										__( 'Save', 'modpress' ),
-										array(
-											'type' => 'submit',
-											'class' => 'btn btn-primary'
-										)
-									); ?>
-								</div>
-							</form>
+								<tr class="modpress-entry-custom-fields-row">
+									<th scope="row" class="align-top text-nowrap pe-4">
+										<label for="modpress-entry-custom-fields">
+											<?php esc_html_e( 'Custom Fields', 'modpress' ); ?>
+										</label>
+									</th>
+									<td>
+										<div class="modpress-entry-custom-fields-container">
+											<?php foreach ( $selected_group_fields as $field ) : ?>
+											<?php echo FunctionsMod::render_group_custom_field( $field, $selected_group_values ); ?>
+											<?php endforeach; ?>
+										</div>
+									</td>
+								</tr>
+								</tbody>
+							</table>
 						</div>
-					</div>
+						<div class="modal-footer">
+							<?php echo FormFieldHelper::button(
+								__( 'Cancel', 'modpress' ),
+								array(
+									'type' => 'button',
+									'class' => 'btn btn-outline-secondary',
+									'attributes' => array(
+										'data-bs-dismiss' => 'modal'
+									)
+								)
+							); ?>
+							<?php echo FormFieldHelper::button(
+								__( 'Save', 'modpress' ),
+								array(
+									'type' => 'submit',
+									'class' => 'btn btn-primary'
+								)
+							); ?>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
