@@ -457,7 +457,7 @@ final class ModGroups extends ModManager {
 		?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
-				<div class="modal-content" style="overflow-y: scroll;">
+				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="<?php echo esc_attr( $save_form_id ); ?>" data-role="group-save-form">
 						<input type="hidden" name="action" value="modpress_save_group" />
 						<?php wp_nonce_field( 'modpress_save_group', 'modpress_group_nonce' ); ?>
@@ -465,7 +465,7 @@ final class ModGroups extends ModManager {
 							<h5 class="modal-title" id="<?php echo esc_attr( $modal_id . '-title' ); ?>"><?php echo esc_html( $modal_title ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
-						<div class="modal-body">
+						<div class="modal-body" style="overflow-y: scroll;">
 							<input type="hidden" name="group_edit_key" value="<?php echo esc_attr( $selected_group_key ); ?>" />
 							<input type="hidden" name="group_id" value="<?php echo esc_attr( (string) ( $selected_group['id'] ?? 0 ) ); ?>" />
 							<div class="accordion" id="modpress-group-accordion">
@@ -969,7 +969,7 @@ final class ModGroups extends ModManager {
 		?>
 		<?php $modal_id = 'modpress-entry-modal-' . sanitize_html_class( (string) ( $selected_group_key ?: ( $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'default' ) ) ); ?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
-			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" style="overflow:scroll" role="document">
+			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_group_entry" />
@@ -981,7 +981,7 @@ final class ModGroups extends ModManager {
 							<h5 class="modal-title" id="<?php echo esc_attr( $modal_id . '-title' ); ?>"><?php echo esc_html( $modal_title ); ?></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
-						<div class="modal-body">
+						<div class="modal-body" style="overflow-y: scroll;">
 							<table class="table table-borderless mb-0">
 								<tbody>
 									<?php $this->render_form_row(

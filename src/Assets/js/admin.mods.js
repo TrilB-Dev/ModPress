@@ -414,6 +414,71 @@
         return null;
     };
 
+    const normalizeOptionEntry = (option = null) => {
+        if (!option || typeof option !== 'object') {
+            return null;
+        }
+
+        const label = String(option.label ?? option.name ?? option.text ?? '').trim();
+        const value = String(option.value ?? option.option ?? option.id ?? label).trim();
+        if (label === '' && value === '') {
+            return null;
+        }
+
+        return {
+            label: label || value,
+            value: value || label,
+        };
+    };
+
+    const normalizeFieldOptions = (options) => {
+        if (Array.isArray(options)) {
+            return options
+                .map((option) => {
+                    if (option && typeof option === 'object') {
+                        return normalizeOptionEntry(option);
+                    }
+
+                    if (typeof option === 'string') {
+                        const trimmed = option.trim();
+                        return trimmed ? { label: trimmed, value: trimmed } : null;
+                    }
+
+                    return null;
+                })
+                .filter(Boolean);
+        }
+
+        if (typeof options === 'string') {
+            try {
+                const decoded = JSON.parse(options);
+                return normalizeFieldOptions(decoded);
+            } catch (error) {
+                return [];
+            }
+        }
+
+        if (options && typeof options === 'object') {
+            const entries = Array.isArray(options) ? options : Object.values(options);
+            return entries
+                .map((entry) => {
+                    if (entry && typeof entry === 'object') {
+                        return normalizeOptionEntry(entry);
+                    }
+
+                    if (typeof entry === 'string') {
+                        const trimmed = entry.trim();
+                        return trimmed ? { label: trimmed, value: trimmed } : null;
+                    }
+
+                    return null;
+                })
+                .filter(Boolean);
+        }
+
+        return [];
+    };
+
     const populateCustomFieldRows = (groupData = {}, modal = document.getElementById('modpress-group-modal')) => {
         if (!modal) {
             return;
@@ -516,11 +581,11 @@
                 const optionTemplate = optionRepeater.querySelector('.modpress-option-row-template');
                 if (optionItems && optionTemplate) {
                     optionItems.innerHTML = '';
-                    const options = Array.isArray(field.options) ? field.options : [];
+                    const options = normalizeFieldOptions(field.options);
                     const fieldType = String(field.type || 'radio').toLowerCase();
                     optionRepeater.dataset.optionType = fieldType === 'select' ? 'select' : 'radio';
 
-                    options.forEach((option, optionIndex) => {
+                    options.forEach((option) => {
                         const optionRow = optionTemplate.cloneNode(true);
                         optionRow.classList.remove('d-none');
                         optionRow.classList.remove('modpress-option-row-template');
@@ -530,16 +595,14 @@
                         const optionInputField = optionRow.querySelector('[data-option-role="value"]');
 
                         if (labelInputField) {
-                            labelInputField.value = option.label || option.name || '';
+                            labelInputField.value = option.label || option.value || '';
                         }
 
                         if (optionInputField) {
-                            optionInputField.value = option.value || option.option || option.label || '';
+                            optionInputField.value = option.value || option.label || '';
                         }
 
-                        syncOptionRepeaterNames(optionRepeater, fieldIndex);
                         optionItems.appendChild(optionRow);
-                        syncOptionRepeaterNames(optionRepeater, fieldIndex);
                     });
 
                     if (!options.length) {
