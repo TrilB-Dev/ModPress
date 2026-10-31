@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * ModGroups class file.
  * Handles the rendering and management of ModPress groups within the admin interface.
@@ -331,7 +331,7 @@ final class ModGroups extends ModManager {
 	 * @param string        $tooltip       Optional tooltip copy.
 	 * @return void
 	 */
-	private function render_form_row( string $field_name, string $label, callable $field_callback, string $description = '', string $tooltip = '', ?string $condition = null, ?string $row_id = null ): void {
+	private function render_form_row( string $field_name, string $label, callable $field_callback, string $description = '', string $tooltip = '', $condition = null, ?string $row_id = null ): void {
 		$field_id = 'modpress-' . sanitize_key( str_replace( array( '[]', '[', ']' ), '', $field_name ) );
 		$field    = call_user_func( $field_callback );
 		$meta     = array(
@@ -340,7 +340,20 @@ final class ModGroups extends ModManager {
 		);
 		$tr_attrs = '';
 		if ( null !== $condition && '' !== $condition ) {
-			$tr_attrs = ' data-custom-field-condition="' . esc_attr( $condition ) . '" class="d-none"';
+			$condition_values = is_array( $condition )
+				? array_values( array_map( static fn ( $item ) => (string) $item, $condition ) )
+				: array( (string) $condition );
+			$condition_target = null;
+			if ( is_array( $condition ) && count( $condition ) > 1 ) {
+				$condition_target = preg_replace( '/_custom(?=\[\]|$)/', '', $field_name );
+				if ( is_string( $condition_target ) && '' !== trim( $condition_target ) ) {
+					$condition_target = str_replace( '[]', '', $condition_target ) . '[]';
+				}
+			}
+			$tr_attrs = ' data-custom-field-condition="' . esc_attr( wp_json_encode( $condition_values ) ?: '' ) . '" class="d-none"';
+			if ( null !== $condition_target && '' !== trim( (string) $condition_target ) ) {
+				$tr_attrs .= ' data-custom-field-condition-target="' . esc_attr( $condition_target ) . '"';
+			}
 		}
 		if ( null !== $row_id && '' !== trim( $row_id ) ) {
 			$tr_attrs .= ' id="' . esc_attr( $row_id ) . '"';
@@ -744,6 +757,62 @@ final class ModGroups extends ModManager {
 																				__( 'Text area for the field.', 'modpress' ),
 																				__( 'Use this for longer text input.', 'modpress' ),
 																				'textarea'
+																			); ?>
+																			<?php $this->render_form_row(
+																				'custom_field_type_switch[]',
+																					__( 'Switch Default', 'modpress' ),
+																					function () {
+																						return FormFieldHelper::select(
+																							'custom_field_type_switch[]',
+																							array(
+																								'true' => __( 'True/False', 'modpress' ),
+																								'yes' => __( 'Yes/No', 'modpress' ),
+																								'1' => __( '1/0', 'modpress' ),
+																								'custom' => __( 'Custom', 'modpress' ),
+																							),
+																						'true',
+																						array(
+																							'class' => 'form-select w-100',
+																						)
+																					);
+																				},
+																				__( 'Default value for the switch.', 'modpress' ),
+																				__( 'Use this for longer text input.', 'modpress' ),
+																				'switch'
+																			); ?>
+																			<?php $this->render_form_row(
+																				'custom_field_type_switch_custom[]',
+																				__( 'Custom Switch Value', 'modpress' ),
+																				function () {
+																					return FormFieldHelper::input(
+																						'custom_field_type_switch_custom[]',
+																						'',
+																						array(
+																							'type' => 'text',
+																							'class' => 'w-100',
+																						)
+																					);
+																				},
+																				__( 'Custom value for the switch. separate with comma. e.g. enable, disable', 'modpress' ),
+																				__( 'Enter the custom values for the switch when "Custom" is selected.', 'modpress' ),
+																				array( 'switch', 'custom' )
+																			); ?>
+																			<?php $this->render_form_row(
+																				'custom_field_type_color[]',
+																				__( 'Apply colour to entry name', 'modpress' ),
+																				function () {
+																					return FormFieldHelper::switch(
+																						'custom_field_type_color[]',
+																						true,
+																						'',
+																						array(
+																							'checked' => false,
+																						)
+																					);
+																				},
+																				__( 'Apply colour to the entry name instead of placing the colour in a separate column.', 'modpress' ),
+																				__( 'This will determine if the entry name should have a colour applied.', 'modpress' ),
+																				'color'
 																			); ?>
 																			<?php $this->render_form_row(
 																				'custom_field_type_radio[]',

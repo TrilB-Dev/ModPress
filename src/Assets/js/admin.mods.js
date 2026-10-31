@@ -81,6 +81,23 @@
         });
     };
 
+    const normalizeConditionValue = (value) => {
+        if (value === null || value === undefined) {
+            return '';
+        }
+
+        const normalized = String(value).trim().toLowerCase();
+        if (['on', 'yes', 'true', 'checked', '1'].includes(normalized)) {
+            return 'true';
+        }
+
+        if (['off', 'no', 'false', 'unchecked', '0'].includes(normalized)) {
+            return 'false';
+        }
+
+        return normalized;
+    };
+
     const syncCustomFieldVisibility = (row) => {
         if (!row) {
             return;
@@ -91,9 +108,30 @@
             return;
         }
 
-        const value = String(typeField.value || '').toLowerCase();
+        const currentType = normalizeConditionValue(typeField.value || '');
         row.querySelectorAll('[data-custom-field-condition]').forEach((group) => {
-            const shouldShow = group.dataset.customFieldCondition === value;
+            const rawCondition = group.dataset.customFieldCondition || '';
+            let conditionValues = [];
+
+            try {
+                const parsed = JSON.parse(rawCondition);
+                conditionValues = Array.isArray(parsed) ? parsed : [parsed];
+            } catch (error) {
+                conditionValues = String(rawCondition).split(',').map((value) => value.trim()).filter(Boolean);
+            }
+
+            const normalizedCondition = conditionValues.map((value) => normalizeConditionValue(value));
+            const targetName = group.dataset.customFieldConditionTarget || '';
+            let shouldShow = false;
+
+            if (targetName && normalizedCondition.length > 1) {
+                const targetField = row.querySelector('[name="' + targetName + '"]');
+                const targetValue = targetField ? normalizeConditionValue(targetField.value || (targetField.checked ? 'true' : '')) : '';
+                shouldShow = currentType === normalizedCondition[0] && targetValue === normalizedCondition[1];
+            } else {
+                shouldShow = normalizedCondition.includes(currentType);
+            }
+
             group.classList.toggle('d-none', !shouldShow);
         });
     };
@@ -568,6 +606,30 @@
             const textareaRowsInput = row.querySelector('[name="custom_field_type_textarea_rows[]"]');
             if (textareaRowsInput) {
                 textareaRowsInput.value = field.rows || 4;
+            }
+
+            const switchDefaultInput = row.querySelector('[name="custom_field_type_switch[]"]');
+            if (switchDefaultInput) {
+                const switchValue = field.switch || field.switch_default || field.switch_value || 'true';
+                switchDefaultInput.value = String(switchValue).trim() || 'true';
+            }
+
+            const switchCustomInput = row.querySelector('[name="custom_field_type_switch_custom[]"]');
+            if (switchCustomInput) {
+                const switchCustomValue = Array.isArray(field.switch_custom)
+                    ? field.switch_custom.join(', ')
+                    : (field.switch_custom || '');
+                switchCustomInput.value = String(switchCustomValue || '').trim();
+            }
+
+            const colorInput = row.querySelector('[name="custom_field_type_color[]"]');
+            if (colorInput) {
+                const colorValue = field.color || field.apply_color || field.color_value || false;
+                if (colorInput.type === 'checkbox') {
+                    colorInput.checked = Boolean(colorValue);
+                } else {
+                    colorInput.value = String(colorValue || '');
+                }
             }
 
             const showInTableInput = row.querySelector('[name="custom_field_show_in_table[]"]');

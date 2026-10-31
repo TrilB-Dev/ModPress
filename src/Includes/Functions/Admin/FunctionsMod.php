@@ -332,6 +332,9 @@ final class FunctionsMod {
         $field_types  = RequestHelper::value( $_POST, 'custom_field_type', array() );
         $field_descs  = RequestHelper::value( $_POST, 'custom_field_description', array() );
         $textarea_rows = RequestHelper::value( $_POST, 'custom_field_type_textarea_rows', array() );
+        $switch_values = RequestHelper::value( $_POST, 'custom_field_type_switch', array() );
+        $switch_custom_values = RequestHelper::value( $_POST, 'custom_field_type_switch_custom', array() );
+        $color_values = RequestHelper::value( $_POST, 'custom_field_type_color', array() );
         $radio_options = RequestHelper::value( $_POST, 'custom_field_type_radio', array() );
         $select_options = RequestHelper::value( $_POST, 'custom_field_type_select', array() );
         $image_types = RequestHelper::value( $_POST, 'custom_field_type_image_type', array() );
@@ -372,6 +375,38 @@ final class FunctionsMod {
                     if ( $rows > 0 ) {
                         $field['rows'] = $rows;
                     }
+                }
+
+                if ( 'switch' === $field_type ) {
+                    $switch_value = trim( (string) ( $switch_values[ $field_index ] ?? 'true' ) );
+                    if ( '' !== $switch_value ) {
+                        $field['switch'] = $switch_value;
+                    }
+
+                    $custom_switch_values = $switch_custom_values[ $field_index ] ?? '';
+                    if ( is_array( $custom_switch_values ) ) {
+                        $field['switch_custom'] = array_values(
+                            array_filter(
+                                array_map(
+                                    static fn ( $value ) => trim( (string) $value ),
+                                    $custom_switch_values
+                                ),
+                                static fn ( $value ) => '' !== $value
+                            )
+                        );
+                    } elseif ( is_scalar( $custom_switch_values ) ) {
+                        $parsed = array_map(
+                            static fn ( $part ) => trim( (string) $part ),
+                            preg_split( '/\s*,\s*/', (string) $custom_switch_values )
+                        );
+                        $field['switch_custom'] = array_values(
+                            array_filter( $parsed, static fn ( $value ) => '' !== $value )
+                        );
+                    }
+                }
+
+                if ( 'color' === $field_type ) {
+                    $field['color'] = in_array( strtolower( trim( (string) ( $color_values[ $field_index ] ?? '' ) ) ), array( '1', 'on', 'true', 'yes', 'checked' ), true );
                 }
 
                 if ( in_array( $field_type, array( 'radio', 'select' ), true ) ) {
@@ -1706,10 +1741,10 @@ final class FunctionsMod {
                 $field_label,
                 FormFieldHelper::switch(
                     $field_name,
-                    '1',
+                    true,
                     '',
                     array(
-                        'checked' => ! empty( $field_value ) && ( '1' === (string) $field_value || true === $field_value || 'true' === strtolower( (string) $field_value ) || 'on' === strtolower( (string) $field_value ) || 'yes' === strtolower( (string) $field_value ) ),
+                        'checked' => ! empty( $field_value ) && ( true === (string) $field_value || true === $field_value || 'true' === strtolower( (string) $field_value ) || 'on' === strtolower( (string) $field_value ) || 'yes' === strtolower( (string) $field_value ) ),
                     )
                 )
             );
