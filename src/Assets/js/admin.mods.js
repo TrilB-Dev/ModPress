@@ -1210,6 +1210,11 @@
             syncOptionRepeaterType(fieldRow);
         }
 
+        if (target.matches('[name="custom_field_type_switch[]"]')) {
+            const fieldRow = target.closest('.modpress-custom-field-row');
+            syncCustomFieldVisibility(fieldRow);
+        }
+
         if (target.matches('[name="group_parent[]"]')) {
             const modal = target.closest('.modal');
             const parentValues = getSelectedValues(target);
