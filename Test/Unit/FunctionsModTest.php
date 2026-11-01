@@ -851,6 +851,37 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'a:2:{i:0;i:84;i:1;i:85;}', $payload['group_parent_entry'] );
         }
 
+        public function testSwitchSettingRendersBootstrapSwitchMarkupInsteadOfCheckboxFallback(): void {
+            $method = new \ReflectionMethod( \ModPress\Admin\Manager\Settings\SettingsPlugins::class, 'render_plugin_settings_fields' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke(
+                new \ModPress\Admin\Manager\Settings\SettingsPlugins(),
+                array(
+                    'slug' => 'fontawesome',
+                    'layout' => 'table',
+                    'fields' => array(
+                        array(
+                            'key' => 'fontawesome_enable_icon_picker',
+                            'label' => 'Enable icon picker',
+                            'type' => 'switch',
+                            'default' => true,
+                        ),
+                    ),
+                ),
+                array(
+                    'fontawesome_enable_icon_picker' => true,
+                ),
+                'modpress-fontawesome'
+            );
+            $output = ob_get_clean();
+
+            $this->assertStringContainsString( 'name="settings[fontawesome_enable_icon_picker]"', $output );
+            $this->assertStringContainsString( 'role="switch"', $output );
+            $this->assertStringContainsString( 'class="form-check form-switch', $output );
+        }
+
         public function testSwitchCheckboxUsesStandardValueWhenBooleanFalseIsPassed(): void {
             $output = \ModPress\Includes\Functions\Helpers\FormFieldHelper::switch(
                 'custom_field_show_in_table[]',

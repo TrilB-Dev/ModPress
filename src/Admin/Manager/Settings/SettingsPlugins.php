@@ -505,7 +505,7 @@ final class SettingsPlugins {
                     <div class="card-body">
                         <div class="modpress-plugin-settings-field-header d-flex align-items-start justify-content-between gap-3">
                             <?php echo wp_kses_post( $label ); ?>
-                            <?php if ( 'checkbox' === $type ) : ?>
+                            <?php if ( 'checkbox' === $type || 'switch' === $type ) : ?>
                                 <?php echo FormFieldHelper::switch( $name, '1', '', [ 'id' => $id, 'checked' => ! empty( $value ), 'wrapper_class' => 'ms-auto flex-shrink-0' ] ); ?>
                             <?php endif; ?>
                         </div>
@@ -548,7 +548,7 @@ final class SettingsPlugins {
                     ] 
                 );
             } elseif ( 'table' === $layout ) {
-                echo FormFieldHelper::checkbox( 
+                echo FormFieldHelper::switch( 
                     $name, 
                     '1', 
                     '', 
@@ -589,7 +589,7 @@ final class SettingsPlugins {
                         'type' => 'text' 
                     ] 
                 );
-            } elseif ( 'checkbox' === $type ) {
+            } elseif ( 'checkbox' === $type || 'switch' === $type ) {
                 echo FormFieldHelper::switch( 
                     $name, 
                     '1', 
