@@ -894,6 +894,44 @@ namespace ModPress\Tests\Unit {
             $this->assertArrayNotHasKey( 'color', $fields[0] );
         }
 
+        public function testColorFieldUsesBooleanCustomColorSettingWhenRowsAreSparseAndIdKeyed(): void {
+            $_POST = array(
+                'group_name' => 'Mod release',
+                'group_slug' => 'modpress_mod_release',
+                'group_singular_name' => 'Mod release',
+                'group_description' => '',
+                'group_hierarchical' => '0',
+                'custom_field_id' => array(
+                    'field_1' => 'field_1',
+                    'field_3' => 'field_3',
+                ),
+                'custom_field_label' => array(
+                    'field_1' => 'First field',
+                    'field_3' => 'Accent colour',
+                ),
+                'custom_field_slug' => array(
+                    'field_1' => 'first-field',
+                    'field_3' => 'accent-colour',
+                ),
+                'custom_field_type' => array(
+                    'field_1' => 'text',
+                    'field_3' => 'color',
+                ),
+                'custom_field_type_color' => array(
+                    'field_3' => '1',
+                ),
+            );
+
+            $method = new \ReflectionMethod( \ModPress\Includes\Functions\Admin\FunctionsMod::class, 'build_group_payload' );
+            $method->setAccessible( true );
+
+            $payload = $method->invoke( new \ModPress\Includes\Functions\Admin\FunctionsMod(), 'Mod release', 'modpress_mod_release' );
+            $fields = json_decode( (string) $payload['group_fields'], true );
+
+            $this->assertSame( true, $fields[1]['custom_color_use'] );
+            $this->assertSame( 'Accent colour', $fields[1]['name'] );
+        }
+
         public function testRenderGroupCustomFieldUsesUniqueFieldIdsForModeInputs(): void {
             $output = \ModPress\Includes\Functions\Admin\FunctionsMod::render_group_custom_field(
                 array(

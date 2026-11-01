@@ -344,6 +344,38 @@ final class FunctionsMod {
         $show_in_table = RequestHelper::value( $_POST, 'custom_field_show_in_table', array() );
 
         if ( is_array( $field_names ) ) {
+            $resolve_field_value = static function ( $source, $field_index, $field_key, $field_id, $fallback = null ) {
+                if ( ! is_array( $source ) ) {
+                    return $fallback;
+                }
+
+                $candidates = array();
+                if ( is_numeric( $field_index ) ) {
+                    $candidates[] = (int) $field_index;
+                }
+                if ( '' !== (string) $field_key ) {
+                    $candidates[] = (string) $field_key;
+                }
+                if ( '' !== (string) $field_id ) {
+                    $candidates[] = (string) $field_id;
+                }
+
+                foreach ( $candidates as $candidate ) {
+                    if ( array_key_exists( $candidate, $source ) ) {
+                        return $source[ $candidate ];
+                    }
+                }
+
+                if ( is_numeric( $field_index ) ) {
+                    $numeric_key = (string) (int) $field_index;
+                    if ( array_key_exists( $numeric_key, $source ) ) {
+                        return $source[ $numeric_key ];
+                    }
+                }
+
+                return $fallback;
+            };
+
             foreach ( $field_names as $index => $field_name ) {
                 $name = trim( (string) $field_name );
                 if ( '' === $name ) {
@@ -351,39 +383,40 @@ final class FunctionsMod {
                 }
 
                 $field_index = is_numeric( $index ) ? (int) $index : 0;
-                $field_id = trim( (string) ( $field_ids[ $field_index ] ?? '' ) );
+                $field_key   = is_string( $index ) ? (string) $index : (string) $field_index;
+                $field_id    = trim( (string) ( $field_ids[ $field_index ] ?? $field_ids[ $field_key ] ?? $field_ids[ $index ] ?? '' ) );
                 if ( '' === $field_id ) {
                     $field_id = 'field_' . ( $field_index + 1 );
                 }
 
-                $slug        = trim( (string) ( $field_slugs[ $field_index ] ?? SanitizationHelper::slug( $name, '' ) ) );
-                $field_type  = trim( (string) ( $field_types[ $field_index ] ?? 'text' ) );
-                $show_in_table_value = $show_in_table[ $field_index ] ?? '';
+                $slug        = trim( (string) ( $resolve_field_value( $field_slugs, $field_index, $field_key, $field_id, SanitizationHelper::slug( $name, '' ) ) ?? SanitizationHelper::slug( $name, '' ) ) );
+                $field_type  = trim( (string) ( $resolve_field_value( $field_types, $field_index, $field_key, $field_id, 'text' ) ?? 'text' ) );
+                $show_in_table_value = $resolve_field_value( $show_in_table, $field_index, $field_key, $field_id, '' );
                 $field       = array(
                     'id'          => $field_id,
                     'name'        => $name,
                     'slug'        => $slug,
                     'type'        => $field_type,
-                    'description' => trim( (string) ( $field_descs[ $field_index ] ?? '' ) ),
+                    'description' => trim( (string) ( $resolve_field_value( $field_descs, $field_index, $field_key, $field_id, '' ) ?? '' ) ),
                     'show_in_table' => is_bool( $show_in_table_value )
                         ? $show_in_table_value
                         : in_array( strtolower( trim( (string) $show_in_table_value ) ), array( '1', 'on', 'true', 'yes' ), true ),
                 );
 
                 if ( 'textarea' === $field_type ) {
-                    $rows = abs( (int) ( $textarea_rows[ $field_index ] ?? 4 ) );
+                    $rows = abs( (int) ( $resolve_field_value( $textarea_rows, $field_index, $field_key, $field_id, 4 ) ?? 4 ) );
                     if ( $rows > 0 ) {
                         $field['rows'] = $rows;
                     }
                 }
 
                 if ( 'switch' === $field_type ) {
-                    $switch_value = trim( (string) ( $switch_values[ $field_index ] ?? 'true' ) );
+                    $switch_value = trim( (string) ( $resolve_field_value( $switch_values, $field_index, $field_key, $field_id, 'true' ) ?? 'true' ) );
                     if ( '' !== $switch_value ) {
                         $field['switch'] = $switch_value;
                     }
 
-                    $custom_switch_values = $switch_custom_values[ $field_index ] ?? '';
+                    $custom_switch_values = $resolve_field_value( $switch_custom_values, $field_index, $field_key, $field_id, '' );
                     if ( is_array( $custom_switch_values ) ) {
                         $field['switch_custom'] = array_values(
                             array_filter(
@@ -406,7 +439,7 @@ final class FunctionsMod {
                 }
 
                 if ( 'color' === $field_type ) {
-                    $raw_color_value = is_array( $color_use_values ) ? ( $color_use_values[ $field_index ] ?? false ) : $color_use_values;
+                    $raw_color_value = $resolve_field_value( $color_use_values, $field_index, $field_key, $field_id, false );
                     $field['custom_color_use'] = is_bool( $raw_color_value )
                         ? $raw_color_value
                         : in_array( strtolower( trim( (string) $raw_color_value ) ), array( '1', 'on', 'true', 'yes', 'checked' ), true );
