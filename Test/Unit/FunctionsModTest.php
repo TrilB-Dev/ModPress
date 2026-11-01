@@ -863,6 +863,8 @@ namespace ModPress\Tests\Unit {
 
             $this->assertStringContainsString( 'name="custom_field_show_in_table[]"', $output );
             $this->assertStringContainsString( 'value="1"', $output );
+            $this->assertStringContainsString( 'type="hidden"', $output );
+            $this->assertStringContainsString( 'value="0"', $output );
         }
 
         public function testColorFieldUsesBooleanCustomColorSetting(): void {

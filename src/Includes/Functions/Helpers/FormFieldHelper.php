@@ -446,7 +446,13 @@ final class FormFieldHelper {
 
 		}
 
-		$html = '<div class="' . esc_attr( $wrapper ) . '"><input ' . self::attributes_to_string( $attributes ) . ' />';
+		$html = '<div class="' . esc_attr( $wrapper ) . '">';
+
+		if ( 'checkbox' === $type ) {
+			$html .= '<input type="hidden" name="' . esc_attr( $name ) . '" value="0" />';
+		}
+
+		$html .= '<input ' . self::attributes_to_string( $attributes ) . ' />';
 
 		if ( '' !== $label ) {
 
