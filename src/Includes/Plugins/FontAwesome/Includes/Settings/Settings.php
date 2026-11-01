@@ -30,7 +30,12 @@ final class Settings {
      * @since 1.0.0
      */
     public static function enable_icon_picker(): bool {
-        return BaseSettings::get_bool( 'fontawesome_enable_icon_picker', true );
+        $enabled = BaseSettings::get_bool( 'fontawesome_enable_icon_picker', true );
+        if ( ! $enabled ) {
+            $enabled = BaseSettings::get_bool( 'fontawesome_icon_picker', false );
+        }
+
+        return $enabled;
     }
 
     /**
@@ -126,13 +131,13 @@ final class Settings {
                     ],
                 ],
                 [
-                    'key' => 'fontawesome_icon_picker',
+                    'key' => 'fontawesome_enable_icon_picker',
                     'label' => __( 'Enable icon picker', 'modpress' ),
-                    'description' => __( 'Enable the Font Awesome icon picker inside ModPress admin interfaces.', 'modpress' ),
-                    'tooltip' => __( 'This only controls the ModPress icon picker UI. The official Font Awesome admin bundle is still enqueued for the ModPress screens.', 'modpress' ),
+                    'description' => __( 'Enable the bundled Font Awesome icon picker inside ModPress admin interfaces.', 'modpress' ),
+                    'tooltip' => __( 'ModPress includes its own icon picker and fallback icon catalog, so no WordPress FontAwesome plugin is required.', 'modpress' ),
                     'tooltip_type' => 'info',
-                    'type' => 'checkbox',
-                    'default' => false,
+                    'type' => 'switch',
+                    'default' => true,
                 ],
             ],
         ];
@@ -156,7 +161,10 @@ final class Settings {
             $input['fontawesome_kit_id'] = '';
         }
 
-        $input['fontawesome_icon_picker'] = (bool) ( $input['fontawesome_icon_picker'] ?? false );
+        $legacy_picker = ! empty( $input['fontawesome_icon_picker'] );
+        $input['fontawesome_enable_icon_picker'] = (bool) ( $input['fontawesome_enable_icon_picker'] ?? $legacy_picker );
+        $input['fontawesome_icon_picker'] = $input['fontawesome_enable_icon_picker'];
+
         BaseSettings::set_group( 'fontawesome', $input );
         return $input;
     }

@@ -21,7 +21,6 @@ use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\ModManagement\ModsManager;
 use ModPress\Includes\ModManagement\ChangelogManager;
 use ModPress\Includes\ModManagement\FileManager;
-use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -411,12 +410,13 @@ final class FunctionsMod {
                 }
 
                 if ( 'switch' === $field_type ) {
-                    $switch_value = trim( (string) ( $resolve_field_value( $switch_values, $field_index, $field_key, $field_id, 'true' ) ?? 'true' ) );
-                    if ( '' !== $switch_value ) {
-                        $field['switch'] = $switch_value;
-                    }
-
+                    $switch_value = $resolve_field_value( $switch_values, $field_index, $field_key, $field_id, true );
                     $custom_switch_values = $resolve_field_value( $switch_custom_values, $field_index, $field_key, $field_id, '' );
+
+                    $field['switch'] = is_bool( $switch_value )
+                        ? $switch_value
+                        : in_array( strtolower( trim( (string) $switch_value ) ), array( '1', 'on', 'true', 'yes', 'checked' ), true );
+
                     if ( is_array( $custom_switch_values ) ) {
                         $field['switch_custom'] = array_values(
                             array_filter(
@@ -435,6 +435,10 @@ final class FunctionsMod {
                         $field['switch_custom'] = array_values(
                             array_filter( $parsed, static fn ( $value ) => '' !== $value )
                         );
+                    }
+
+                    if ( empty( $field['switch_custom'] ?? array() ) ) {
+                        $field['switch'] = is_bool( $switch_value ) ? $switch_value : in_array( strtolower( trim( (string) $switch_value ) ), array( '1', 'on', 'true', 'yes', 'checked' ), true );
                     }
                 }
 

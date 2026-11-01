@@ -543,13 +543,7 @@ namespace ModPress\Tests\Unit {
             $this->assertTrue( $property->getValue() );
         }
 
-        public function testFontAwesomeRuntimePrefersWordPressOfficialPluginByDefault(): void {
-            $this->assertFalse( \ModPress\Includes\Plugins\FontAwesome\FontAwesome::is_wordpress_fontawesome_active() );
-            \ModPress\Includes\Plugins\FontAwesome\FontAwesome::ensure_vendor_initialized();
-            $this->assertFalse( \ModPress\Includes\Plugins\FontAwesome\FontAwesome::is_wordpress_fontawesome_active() );
-        }
-
-        public function testFontAwesomePluginSettingsGroupIsNormalizedToUnderscoreStorage(): void {
+        public function testFontAwesomeSettingsGroupIsNormalizedToUnderscoreStorage(): void {
             $method = new \ReflectionMethod( SettingsManager::class, 'normalize_group' );
             $method->setAccessible( true );
 

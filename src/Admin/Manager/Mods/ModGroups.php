@@ -213,23 +213,76 @@ final class ModGroups extends ModManager {
 									</div>
 								</div>
 
-								<div class="table-responsive">
+								<?php
+										$group_field_config = array();
+										$group_fields_json = $taxonomy['group_fields'] ?? null;
+										if ( is_string( $group_fields_json ) && '' !== trim( $group_fields_json ) ) {
+											$decoded_group_fields = json_decode( $group_fields_json, true );
+											if ( is_array( $decoded_group_fields ) ) {
+												$group_field_config = $decoded_group_fields;
+											}
+										}
+
+										$show_in_table_image_field = null;
+										$show_in_table_icon_field = null;
+										$show_in_table_fields = array();
+										$custom_color_field = null;
+
+										foreach ( $group_field_config as $field ) {
+											if ( ! is_array( $field ) ) {
+												continue;
+											}
+
+											$field_type = strtolower( (string) ( $field['type'] ?? 'text' ) );
+											$show_in_table = ! empty( $field['show_in_table'] );
+
+											if ( 'image' === $field_type && $show_in_table && null === $show_in_table_image_field ) {
+												$show_in_table_image_field = $field;
+											}
+
+											if ( 'icon' === $field_type && $show_in_table && null === $show_in_table_icon_field ) {
+												$show_in_table_icon_field = $field;
+											}
+
+											if ( 'color' === $field_type && ! empty( $field['custom_color_use'] ) && null === $custom_color_field ) {
+												$custom_color_field = $field;
+											}
+
+											if ( $show_in_table && ! in_array( $field_type, array( 'image', 'icon' ), true ) ) {
+												$show_in_table_fields[] = $field;
+											}
+										}
+
+										$table_colspan = 1 + ( $show_in_table_image_field ? 1 : 0 ) + ( $show_in_table_icon_field ? 1 : 0 ) + 3 + count( $show_in_table_fields ) + 1;
+									?>
+
+									<div class="table-responsive">
 									<table class="table table-hover align-middle mb-0">
 										<thead>
 											<tr>
 												<th style="width: 42px;">
 													<input type="checkbox" class="form-check-input modpress-select-all" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" aria-label="Select all entries" />
 												</th>
+												<?php if ( $show_in_table_image_field ) : ?>
+													<th><?php esc_html_e( 'Image', 'modpress' ); ?></th>
+												<?php endif; ?>
+												<?php if ( $show_in_table_icon_field ) : ?>
+													<th><?php esc_html_e( 'Icon', 'modpress' ); ?></th>
+												<?php endif; ?>
 												<th><?php esc_html_e( 'Name', 'modpress' ); ?></th>
 												<th><?php esc_html_e( 'Slug', 'modpress' ); ?></th>
 												<th><?php esc_html_e( 'Description', 'modpress' ); ?></th>
+												<?php foreach ( $show_in_table_fields as $column_field ) : ?>
+													<?php $column_label = (string) ( $column_field['name'] ?? $column_field['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', (string) ( $column_field['slug'] ?? '' ) ) ) ); ?>
+													<th><?php echo esc_html( $column_label ); ?></th>
+												<?php endforeach; ?>
 												<th class="text-end"><?php esc_html_e( 'Actions', 'modpress' ); ?></th>
 											</tr>
 										</thead>
 										<tbody>
 											<?php if ( empty( $terms ) || is_wp_error( $terms ) ) : ?>
 												<tr>
-													<td colspan="5" class="text-muted text-center py-4"><?php esc_html_e( 'No entries in this group yet.', 'modpress' ); ?></td>
+													<td colspan="<?php echo esc_attr( (string) $table_colspan ); ?>" class="text-muted text-center py-4"><?php esc_html_e( 'No entries in this group yet.', 'modpress' ); ?></td>
 												</tr>
 											<?php else : ?>
 												<?php foreach ( $terms as $term ) : ?>
@@ -237,8 +290,48 @@ final class ModGroups extends ModManager {
 														<td>
 															<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="Select entry <?php echo esc_attr( $term->name ); ?>" />
 														</td>
+														<?php if ( $show_in_table_image_field ) : ?>
+															<td>
+																<?php $image_meta_key = (string) ( $show_in_table_image_field['slug'] ?? $show_in_table_image_field['name'] ?? 'image' ); ?>
+																		<?php $image_url = get_term_meta( $term->term_id, $image_meta_key, true ); ?>
+																<?php if ( $image_url ) : ?>
+																	<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $term->name ); ?>" style="max-width: 30px; max-height: 30px; object-fit: cover;" />
+																<?php endif; ?>
+															</td>
+														<?php endif; ?>
+														<?php if ( $show_in_table_icon_field ) : ?>
+															<td>
+																<?php $icon_meta_key = (string) ( $show_in_table_icon_field['slug'] ?? $show_in_table_icon_field['name'] ?? 'icon' ); ?>
+																		<?php $icon_value = get_term_meta( $term->term_id, $icon_meta_key, true ); ?>
+																<?php if ( $icon_value ) : ?>
+																	<i class="<?php echo esc_attr( $icon_value ); ?>" aria-hidden="true" style="font-size: 30px;"></i>
+																<?php endif; ?>
+															</td>
+														<?php endif; ?>
 														<td>
-															<?php echo esc_html( $term->name ); ?>
+															<?php
+																	$entry_name_color = '';
+																	foreach ( $group_field_config as $field ) {
+																		if ( ! is_array( $field ) ) {
+																			continue;
+																		}
+																		if ( strtolower( (string) ( $field['type'] ?? 'text' ) ) !== 'color' || empty( $field['custom_color_use'] ) ) {
+																			continue;
+																		}
+																		$meta_key = (string) ( $field['slug'] ?? $field['name'] ?? 'color' );
+																		$entry_name_color = (string) get_term_meta( $term->term_id, $meta_key, true );
+																		if ( '' !== trim( $entry_name_color ) ) {
+																			break;
+																		}
+																	}
+																?>
+																<?php if ( '' !== trim( $entry_name_color ) ) : ?>
+																<span style="color: <?php echo esc_attr( $entry_name_color ); ?>;">
+																	<?php echo esc_html( $term->name ); ?>
+																</span>
+															<?php else : ?>
+																<?php echo esc_html( $term->name ); ?>
+															<?php endif; ?>
 														</td>
 														<td>
 															<?php echo esc_html( $term->slug ); ?>
@@ -246,6 +339,13 @@ final class ModGroups extends ModManager {
 														<td>
 															<?php echo esc_html( wp_trim_words( $term->description, 12 ) ); ?>
 														</td>
+														<?php foreach ( $show_in_table_fields as $column_field ) : ?>
+																<?php $column_key = (string) ( $column_field['slug'] ?? $column_field['id'] ?? $column_field['name'] ?? '' ); ?>
+															<td>
+																<?php $column_value = get_term_meta( $term->term_id, $column_key, true ); ?>
+																	<?php echo esc_html( is_array( $column_value ) ? implode( ', ', array_map( 'strval', $column_value ) ) : (string) $column_value ); ?>
+															</td>
+														<?php endforeach; ?>
 														<td class="text-end">
 															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
 																<?php echo FormFieldHelper::button(
@@ -434,7 +534,7 @@ final class ModGroups extends ModManager {
 		$group_parent_key_lookup = array();
 		$fa_settings = Settings::get_group( 'fontawesome' );
 		$fa_icon_picker = false;
-		if ( isset($fa_settings['fontawesome_icon_picker']) && $fa_settings['fontawesome_icon_picker'] ) {
+		if ( ! empty( $fa_settings['fontawesome_enable_icon_picker'] ) || ! empty( $fa_settings['fontawesome_icon_picker'] ) ) {
 			$fa_icon_picker = true;
 		}
 
