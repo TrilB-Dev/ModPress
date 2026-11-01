@@ -624,7 +624,7 @@
 
             const colorInput = row.querySelector('[name="custom_field_type_color[]"]');
             if (colorInput) {
-                const colorValue = field.color || field.apply_color || field.color_value || false;
+                const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
                 if (colorInput.type === 'checkbox') {
                     colorInput.checked = Boolean(colorValue);
                 } else {

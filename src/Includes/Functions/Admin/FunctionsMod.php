@@ -334,7 +334,7 @@ final class FunctionsMod {
         $textarea_rows = RequestHelper::value( $_POST, 'custom_field_type_textarea_rows', array() );
         $switch_values = RequestHelper::value( $_POST, 'custom_field_type_switch', array() );
         $switch_custom_values = RequestHelper::value( $_POST, 'custom_field_type_switch_custom', array() );
-        $color_values = RequestHelper::value( $_POST, 'custom_field_type_color', array() );
+        $color_use_values = RequestHelper::value( $_POST, 'custom_field_type_color', false );
         $radio_options = RequestHelper::value( $_POST, 'custom_field_type_radio', array() );
         $select_options = RequestHelper::value( $_POST, 'custom_field_type_select', array() );
         $image_types = RequestHelper::value( $_POST, 'custom_field_type_image_type', array() );
@@ -406,7 +406,10 @@ final class FunctionsMod {
                 }
 
                 if ( 'color' === $field_type ) {
-                    $field['color'] = in_array( strtolower( trim( (string) ( $color_values[ $field_index ] ?? '' ) ) ), array( '1', 'on', 'true', 'yes', 'checked' ), true );
+                    $raw_color_value = is_array( $color_use_values ) ? ( $color_use_values[ $field_index ] ?? false ) : $color_use_values;
+                    $field['custom_color_use'] = is_bool( $raw_color_value )
+                        ? $raw_color_value
+                        : in_array( strtolower( trim( (string) $raw_color_value ) ), array( '1', 'on', 'true', 'yes', 'checked' ), true );
                 }
 
                 if ( in_array( $field_type, array( 'radio', 'select' ), true ) ) {
@@ -1290,21 +1293,6 @@ final class FunctionsMod {
 
         LoggerHelper::write_log( 'ModPress group entries deleted successfully for taxonomy ' . $taxonomy . ' (ids=' . implode( ',', $valid_ids ) . ')' );
         $this->redirect_mod_group_result( true, __( 'Entry deleted successfully.', 'modpress' ) );
-    }
-
-    /**
-     * Fallback for any unimplemented Mod admin action callback.
-     *
-     * @param string $name Method name.
-     * @param array  $arguments Arguments passed to the callback.
-     * @return void
-     * @since 1.0.0
-     */
-    public function __call( string $name, array $arguments ): void {
-        LoggerHelper::write_log( 'ModPress admin action callback not implemented: ' . $name );
-
-        $tab = RequestHelper::key( $_POST, 'return_tab', 'groups' );
-        $this->redirect_mod_action_result( $tab, __( 'This ModPress action is not available yet.', 'modpress' ), false );
     }
 
     /**
