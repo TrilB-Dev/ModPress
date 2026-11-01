@@ -1,10 +1,78 @@
 (() => {
+    const normalizeFieldName = (name = '', fieldId = '') => {
+        if (!name) {
+            return name;
+        }
+
+        const trimmedName = String(name).trim();
+        if (!trimmedName || !fieldId) {
+            return trimmedName;
+        }
+
+        if (trimmedName.endsWith('[]')) {
+            return trimmedName.slice(0, -2) + '[' + String(fieldId) + ']';
+        }
+
+        if (trimmedName.endsWith(']')) {
+            return trimmedName.replace(/\]$/, '[' + String(fieldId) + ']');
+        }
+
+        return trimmedName + '[' + String(fieldId) + ']';
+    };
+
+    const syncCustomFieldRowNames = (row) => {
+        if (!row) {
+            return;
+        }
+
+        const fieldId = String(row.dataset.fieldId || row.querySelector('[name^="custom_field_id"]').value || '').trim();
+        if (!fieldId) {
+            return;
+        }
+
+        const keyedNames = [
+            'custom_field_id',
+            'custom_field_label',
+            'custom_field_slug',
+            'custom_field_description',
+            'custom_field_type',
+            'custom_field_type_textarea_rows',
+            'custom_field_type_switch',
+            'custom_field_type_switch_custom',
+            'custom_field_type_color',
+            'custom_field_show_in_table',
+            'custom_field_type_radio',
+            'custom_field_type_select',
+            'custom_field_type_image_type',
+            'custom_field_type_image_type_image',
+            'custom_field_type_image_type_icon',
+            'custom_field_type_image_type_url',
+        ];
+
+        row.querySelectorAll('input, select, textarea').forEach((element) => {
+            const currentName = element.getAttribute('name');
+            if (!currentName) {
+                return;
+            }
+
+            const matchedName = keyedNames.find((name) => currentName === name + '[]' || currentName.startsWith(name + '[') || currentName === name);
+            if (!matchedName) {
+                return;
+            }
+
+            const nextName = normalizeFieldName(matchedName + '[]', fieldId);
+            if (nextName !== currentName) {
+                element.setAttribute('name', nextName);
+            }
+        });
+    };
+
     const syncCustomFieldLabel = (row) => {
         if (!row) {
             return;
         }
 
-        const labelInput = row.querySelector('[name="custom_field_label[]"]');
+        const labelInput = row.querySelector('[name^="custom_field_label"]');
         const title = row.querySelector('[data-custom-field-title]');
         const triggerButton = row.querySelector('.accordion-button');
         if (!title && !triggerButton) {
@@ -98,12 +166,37 @@
         return normalized;
     };
 
+    const getCustomFieldTypeControl = (row) => {
+        if (!row) {
+            return null;
+        }
+
+        return Array.from(row.querySelectorAll('[name^="custom_field_type"]')).find((field) => {
+            const name = String(field.getAttribute('name') || '');
+            if (name === 'custom_field_type' || name.startsWith('custom_field_type[')) {
+                return true;
+            }
+
+            if (name.startsWith('custom_field_type_')) {
+                return !name.startsWith('custom_field_type_switch')
+                    && !name.startsWith('custom_field_type_switch_custom')
+                    && !name.startsWith('custom_field_type_color')
+                    && !name.startsWith('custom_field_type_radio')
+                    && !name.startsWith('custom_field_type_select')
+                    && !name.startsWith('custom_field_type_image_type')
+                    && !name.startsWith('custom_field_type_textarea_rows');
+            }
+
+            return false;
+        }) || null;
+    };
+
     const syncCustomFieldVisibility = (row) => {
         if (!row) {
             return;
         }
 
-        const typeField = row.querySelector('[name="custom_field_type[]"]');
+        const typeField = getCustomFieldTypeControl(row);
         if (!typeField) {
             return;
         }
@@ -576,45 +669,46 @@
             }
 
             const fieldId = field.id || field.field_id || field.slug || String(fieldIndex + 1);
-            const hiddenFieldId = row.querySelector('[name="custom_field_id[]"]');
+            const hiddenFieldId = row.querySelector('[name^="custom_field_id"]');
             if (hiddenFieldId) {
                 hiddenFieldId.value = String(fieldId);
             }
             row.dataset.fieldId = String(fieldId);
+            syncCustomFieldRowNames(row);
 
-            const labelInput = row.querySelector('[name="custom_field_label[]"]');
+            const labelInput = row.querySelector('[name^="custom_field_label"]');
             if (labelInput) {
                 labelInput.value = field.name || field.label || '';
             }
             syncCustomFieldLabel(row);
 
-            const slugInput = row.querySelector('[name="custom_field_slug[]"]');
+            const slugInput = row.querySelector('[name^="custom_field_slug"]');
             if (slugInput) {
                 slugInput.value = field.slug || '';
             }
 
-            const descriptionInput = row.querySelector('[name="custom_field_description[]"]');
+            const descriptionInput = row.querySelector('[name^="custom_field_description"]');
             if (descriptionInput) {
                 descriptionInput.value = field.description || '';
             }
 
-            const typeInput = row.querySelector('[name="custom_field_type[]"]');
+            const typeInput = row.querySelector('[name^="custom_field_type"][name$=""]') || row.querySelector('[name^="custom_field_type"]');
             if (typeInput) {
                 typeInput.value = field.type || 'text';
             }
 
-            const textareaRowsInput = row.querySelector('[name="custom_field_type_textarea_rows[]"]');
+            const textareaRowsInput = row.querySelector('[name^="custom_field_type_textarea_rows"]');
             if (textareaRowsInput) {
                 textareaRowsInput.value = field.rows || 4;
             }
 
-            const switchDefaultInput = row.querySelector('[name="custom_field_type_switch[]"]');
+            const switchDefaultInput = row.querySelector('[name^="custom_field_type_switch"]');
             if (switchDefaultInput) {
                 const switchValue = field.switch || field.switch_default || field.switch_value || 'true';
                 switchDefaultInput.value = String(switchValue).trim() || 'true';
             }
 
-            const switchCustomInput = row.querySelector('[name="custom_field_type_switch_custom[]"]');
+            const switchCustomInput = row.querySelector('[name^="custom_field_type_switch_custom"]');
             if (switchCustomInput) {
                 const switchCustomValue = Array.isArray(field.switch_custom)
                     ? field.switch_custom.join(', ')
@@ -622,7 +716,7 @@
                 switchCustomInput.value = String(switchCustomValue || '').trim();
             }
 
-            const colorInput = row.querySelector('[name="custom_field_type_color[]"]');
+            const colorInput = row.querySelector('[name^="custom_field_type_color"]');
             if (colorInput) {
                 const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
                 if (colorInput.type === 'checkbox') {
@@ -632,7 +726,7 @@
                 }
             }
 
-            const showInTableInput = row.querySelector('[name="custom_field_show_in_table[]"]');
+            const showInTableInput = row.querySelector('[name^="custom_field_show_in_table"]');
             if (showInTableInput) {
                 const shouldShowInTable = Boolean(field.show_in_table || field.showInTable);
                 showInTableInput.checked = shouldShowInTable;
@@ -834,15 +928,17 @@
         }
 
         const type = repeater.dataset.optionType || 'radio';
+        const rowFieldId = String(repeater.closest('.modpress-custom-field-row')?.dataset.fieldId || fieldIndex || '').trim();
         const optionRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((optionRow) => !optionRow.closest('.modpress-option-row-template'));
         optionRows.forEach((optionRow, optionIndex) => {
             const labelInput = optionRow.querySelector('[data-option-role="label"]');
             const valueInput = optionRow.querySelector('[data-option-role="value"]');
+            const keyedFieldId = rowFieldId || String(fieldIndex || '');
             if (labelInput) {
-                labelInput.name = 'custom_field_type_' + type + '[' + fieldIndex + '][' + optionIndex + '][label]';
+                labelInput.name = 'custom_field_type_' + type + '[' + keyedFieldId + '][' + optionIndex + '][label]';
             }
             if (valueInput) {
-                valueInput.name = 'custom_field_type_' + type + '[' + fieldIndex + '][' + optionIndex + '][option]';
+                valueInput.name = 'custom_field_type_' + type + '[' + keyedFieldId + '][' + optionIndex + '][option]';
             }
         });
     };
@@ -1027,7 +1123,7 @@
             return;
         }
 
-        const typeField = row.querySelector('[name="custom_field_type[]"]');
+        const typeField = getCustomFieldTypeControl(row);
         const repeaters = row.querySelectorAll('.modpress-option-repeater');
         if (!typeField || !repeaters.length) {
             return;
@@ -1091,10 +1187,12 @@
         row.dataset.fieldIndex = String(fieldIndex);
         row.dataset.fieldId = fieldId;
 
-        const hiddenFieldId = row.querySelector('[name="custom_field_id[]"]');
+        const hiddenFieldId = row.querySelector('[name^="custom_field_id"]');
         if (hiddenFieldId) {
             hiddenFieldId.value = fieldId;
         }
+        row.dataset.fieldId = fieldId;
+        syncCustomFieldRowNames(row);
 
         const headingId = 'modpress-custom-field-heading-' + fieldIndex;
         const collapseId = 'modpress-custom-field-content-' + fieldIndex;
@@ -1179,7 +1277,7 @@
     document.addEventListener('input', (event) => {
         const target = event.target;
 
-        if (target.matches('[name="custom_field_label[]"]')) {
+        if (target.matches('[name^="custom_field_label"]')) {
             syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
         }
     });
@@ -1200,17 +1298,17 @@
             syncDeleteButtons();
         }
 
-        if (target.matches('[name="custom_field_label[]"]')) {
+        if (target.matches('[name^="custom_field_label"]')) {
             syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
         }
 
-        if (target.matches('[name="custom_field_type[]"]')) {
+        if (target.matches('[name^="custom_field_type"]')) {
             const fieldRow = target.closest('.modpress-custom-field-row');
             syncCustomFieldVisibility(fieldRow);
             syncOptionRepeaterType(fieldRow);
         }
 
-        if (target.matches('[name="custom_field_type_switch[]"]')) {
+        if (target.matches('[name^="custom_field_type_switch"]')) {
             const fieldRow = target.closest('.modpress-custom-field-row');
             syncCustomFieldVisibility(fieldRow);
         }
