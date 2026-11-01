@@ -82,10 +82,21 @@ final class SettingsPlugins {
                                     'type' => 'text',
                                 ]
                             ); ?>
-                        <?php else : ?>
+
+                        <?php elseif ( 'switch' === $type ) : ?>
+                            <?php echo FormFieldHelper::switch(
+                                $name,
+                                true,
+                                '',
+                                [
+                                    'id' => 'modpress-' . $key,
+                                    'checked' => ! empty( $value ),
+                                ]
+                            ); ?>
+                        <?php else :?>
                             <?php echo FormFieldHelper::checkbox(
                                 $name,
-                                false,
+                                true,
                                 '',
                                 [
                                     'id' => 'modpress-' . $key,
