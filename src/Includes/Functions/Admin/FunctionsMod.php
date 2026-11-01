@@ -21,6 +21,7 @@ use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\ModManagement\ModsManager;
 use ModPress\Includes\ModManagement\ChangelogManager;
 use ModPress\Includes\ModManagement\FileManager;
+use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
