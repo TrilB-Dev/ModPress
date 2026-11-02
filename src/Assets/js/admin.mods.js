@@ -166,6 +166,29 @@
         return normalized;
     };
 
+    const normalizeBooleanValue = (value) => {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+
+        if (typeof value === 'number') {
+            return value !== 0;
+        }
+
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            if (['1', 'true', 'yes', 'on', 'checked'].includes(normalized)) {
+                return true;
+            }
+
+            if (['0', 'false', 'no', 'off', 'unchecked', ''].includes(normalized)) {
+                return false;
+            }
+        }
+
+        return Boolean(value);
+    };
+
     const getCustomFieldTypeControl = (row) => {
         if (!row) {
             return null;
@@ -720,13 +743,13 @@
             if (colorInput) {
                 const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
                 if (colorInput.type === 'checkbox') {
-                    colorInput.checked = Boolean(colorValue);
+                    colorInput.checked = normalizeBooleanValue(colorValue);
                 }
             }
 
             const showInTableInput = row.querySelector('[name^="custom_field_show_in_table"]');
             if (showInTableInput) {
-                const shouldShowInTable = Boolean(field.show_in_table || field.showInTable);
+                const shouldShowInTable = normalizeBooleanValue(field.show_in_table ?? field.showInTable ?? false);
                 showInTableInput.checked = shouldShowInTable;
             }
 
@@ -1027,7 +1050,7 @@
             groupDescriptionInput.value = groupData.group_description || '';
         }
         if (groupHierarchicalInput) {
-            groupHierarchicalInput.checked = Boolean(groupData.group_hierarchical);
+            groupHierarchicalInput.checked = normalizeBooleanValue(groupData.group_hierarchical ?? false);
         }
         if (groupParentInput) {
             const parentValues = Array.isArray(groupData.group_parent) ? groupData.group_parent : (groupData.group_parent ? [groupData.group_parent] : []);
