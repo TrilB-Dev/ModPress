@@ -218,11 +218,9 @@
             let shouldShow = false;
 
             if (targetName && normalizedCondition.length > 1) {
-                const targetField = row.querySelector('[name="' + targetName + '"]') || row.querySelector('[name^="custom_field_type_switch"]');
+                const targetField = row.querySelector('[name="' + targetName + '"]');
                 const targetValue = targetField ? normalizeConditionValue(targetField.value || (targetField.checked ? 'true' : '')) : '';
                 shouldShow = currentType === normalizedCondition[0] && targetValue === normalizedCondition[1];
-
-                
             } else {
                 shouldShow = normalizedCondition.includes(currentType);
             }
@@ -723,6 +721,8 @@
                 const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
                 if (colorInput.type === 'checkbox') {
                     colorInput.checked = Boolean(colorValue);
+                } else {
+                    colorInput.value = String(colorValue || '');
                 }
             }
 
