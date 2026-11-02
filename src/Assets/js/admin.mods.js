@@ -235,11 +235,12 @@
         }
 
         const typeField = getCustomFieldTypeControl(row);
-        if (!typeField) {
+        const targetFields = row.querySelectorAll('[data-custom-field-condition]');
+        if (!typeField && !targetFields.length) {
             return;
         }
 
-        const currentType = normalizeConditionValue(typeField.value || '');
+        const currentType = normalizeConditionValue(typeField ? (typeField.value || '') : '');
         row.querySelectorAll('[data-custom-field-condition]').forEach((group) => {
             const rawCondition = group.dataset.customFieldCondition || '';
             let conditionValues = [];
@@ -253,14 +254,21 @@
 
             const normalizedCondition = conditionValues.map((value) => normalizeConditionValue(value));
             const targetName = group.dataset.customFieldConditionTarget || '';
+            const targetTypeHint = targetName
+                ? String(targetName)
+                    .replace(/^custom_field_type_/, '')
+                    .replace(/\[\]$/, '')
+                    .replace(/\[[^\]]*\]$/, '')
+                : '';
+            const effectiveCurrentType = currentType || (targetTypeHint ? normalizeConditionValue(targetTypeHint) : '');
             let shouldShow = false;
 
             if (targetName && normalizedCondition.length > 1) {
-                const targetField = row.querySelector('[name="' + targetName + '"]');
+                const targetField = row.querySelector('[name="' + targetName + '"]') || (targetName ? row.querySelector('[name^="' + targetName.replace(/\[\]$/, '') + '"]') : null);
                 const targetValue = targetField ? normalizeConditionValue(targetField.value || (targetField.checked ? 'true' : '')) : '';
-                shouldShow = currentType === normalizedCondition[0] && targetValue === normalizedCondition[1];
+                shouldShow = effectiveCurrentType === normalizedCondition[0] && targetValue === normalizedCondition[1];
             } else {
-                shouldShow = normalizedCondition.includes(currentType);
+                shouldShow = normalizedCondition.includes(effectiveCurrentType);
             }
 
             group.classList.toggle('d-none', !shouldShow);
