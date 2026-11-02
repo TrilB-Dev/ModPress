@@ -414,9 +414,21 @@ final class FunctionsMod {
                     $switch_value = $resolve_field_value( $switch_values, $field_index, $field_key, $field_id, true );
                     $custom_switch_values = $resolve_field_value( $switch_custom_values, $field_index, $field_key, $field_id, '' );
 
-                    $field['switch'] = is_bool( $switch_value )
-                        ? $switch_value
-                        : in_array( strtolower( trim( (string) $switch_value ) ), array( '1', 'on', 'true', 'yes', 'checked' ), true );
+                    $normalized_switch_value = is_bool( $switch_value )
+                        ? ( $switch_value ? 'true' : 'false' )
+                        : strtolower( trim( (string) $switch_value ) );
+
+                    if ( '' === $normalized_switch_value ) {
+                        $normalized_switch_value = 'true';
+                    }
+
+                    if ( in_array( $normalized_switch_value, array( '1', 'on', 'true', 'yes', 'checked' ), true ) ) {
+                        $normalized_switch_value = 'true';
+                    } elseif ( in_array( $normalized_switch_value, array( '0', 'off', 'false', 'no', 'unchecked' ), true ) ) {
+                        $normalized_switch_value = 'false';
+                    }
+
+                    $field['switch'] = $normalized_switch_value;
 
                     if ( is_array( $custom_switch_values ) ) {
                         $field['switch_custom'] = array_values(
@@ -436,10 +448,6 @@ final class FunctionsMod {
                         $field['switch_custom'] = array_values(
                             array_filter( $parsed, static fn ( $value ) => '' !== $value )
                         );
-                    }
-
-                    if ( empty( $field['switch_custom'] ?? array() ) ) {
-                        $field['switch'] = is_bool( $switch_value ) ? $switch_value : in_array( strtolower( trim( (string) $switch_value ) ), array( '1', 'on', 'true', 'yes', 'checked' ), true );
                     }
                 }
 

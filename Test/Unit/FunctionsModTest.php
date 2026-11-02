@@ -851,6 +851,30 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'a:2:{i:0;i:84;i:1;i:85;}', $payload['group_parent_entry'] );
         }
 
+        public function testSwitchSelectPreservesSelectedModeValue(): void {
+            $_POST = array(
+                'group_name' => 'Mod release',
+                'group_slug' => 'modpress_mod_release',
+                'group_singular_name' => 'Mod release',
+                'group_description' => '',
+                'group_hierarchical' => '0',
+                'custom_field_label' => array( 'Toggle label' ),
+                'custom_field_slug' => array( 'toggle_label' ),
+                'custom_field_type' => array( 'switch' ),
+                'custom_field_type_switch' => array( 'custom' ),
+                'custom_field_type_switch_custom' => array( 'enable, disable' ),
+            );
+
+            $method = new \ReflectionMethod( \ModPress\Includes\Functions\Admin\FunctionsMod::class, 'build_group_payload' );
+            $method->setAccessible( true );
+
+            $payload = $method->invoke( new \ModPress\Includes\Functions\Admin\FunctionsMod(), 'Mod release', 'modpress_mod_release' );
+            $fields = json_decode( (string) $payload['group_fields'], true );
+
+            $this->assertSame( 'custom', $fields[0]['switch'] );
+            $this->assertSame( array( 'enable', 'disable' ), $fields[0]['switch_custom'] );
+        }
+
         public function testSwitchSettingRendersBootstrapSwitchMarkupInsteadOfCheckboxFallback(): void {
             $method = new \ReflectionMethod( \ModPress\Admin\Manager\Settings\SettingsPlugins::class, 'render_plugin_settings_fields' );
             $method->setAccessible( true );
