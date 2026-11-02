@@ -218,9 +218,13 @@
             let shouldShow = false;
 
             if (targetName && normalizedCondition.length > 1) {
-                const targetField = row.querySelector('[name="' + targetName + '"]');
+                const targetField = row.querySelector('[name="' + targetName + '"]') || row.querySelector('[name^="custom_field_type_switch"]');
                 const targetValue = targetField ? normalizeConditionValue(targetField.value || (targetField.checked ? 'true' : '')) : '';
                 shouldShow = currentType === normalizedCondition[0] && targetValue === normalizedCondition[1];
+
+                if (normalizedCondition[0] === 'switch' && normalizedCondition[1] === 'custom') {
+                    shouldShow = currentType === 'switch' && targetValue === 'custom';
+                }
             } else {
                 shouldShow = normalizedCondition.includes(currentType);
             }
