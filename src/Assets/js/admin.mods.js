@@ -748,19 +748,24 @@
                 textareaRowsInput.value = field.rows || 4;
             }
 
-            const switchDefaultInput = row.querySelector('[name^="custom_field_type_switch"]');
+            const switchDefaultInput = Array.from(row.querySelectorAll('select[name^="custom_field_type_switch"]')).find((selectField) => {
+                const name = String(selectField.getAttribute('name') || '');
+                return name === 'custom_field_type_switch[]' || name.startsWith('custom_field_type_switch[');
+            }) || row.querySelector('select[name^="custom_field_type_switch"]');
             if (switchDefaultInput) {
                 const switchValue = field.switch || field.switch_default || field.switch_value || 'true';
                 switchDefaultInput.value = String(switchValue).trim() || 'true';
             }
 
-            const switchCustomInput = row.querySelector('[name^="custom_field_type_switch_custom"]');
+            const switchCustomInput = row.querySelector('input[name^="custom_field_type_switch_custom"]');
             if (switchCustomInput) {
                 const switchCustomValue = Array.isArray(field.switch_custom)
                     ? field.switch_custom.join(', ')
                     : (field.switch_custom || '');
                 switchCustomInput.value = String(switchCustomValue || '').trim();
             }
+
+            syncCustomFieldVisibility(row);
 
             const colorInput = getNamedCheckbox(row, 'custom_field_type_color');
             if (colorInput) {
