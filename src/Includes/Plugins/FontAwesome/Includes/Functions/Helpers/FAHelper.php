@@ -8,6 +8,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class FAHelper {
 	/**
+	 * Alias for render_icon.
+	 *
+	 * @param string $icon_name The icon name.
+	 * @param array  $options   Rendering options.
+	 * @return string The output markup.
+	 */
+	public static function faicon( string $icon_name, array $options = [] ): string {
+		
+		return self::render_icon( $icon_name, $options );
+	}
+	/**
 	 * Render a Font Awesome icon element.
 	 *
 	 * Supports the official Font Awesome styling API, including modifier classes,
@@ -60,17 +71,6 @@ final class FAHelper {
 		$tag .= '></i>';
 
 		return $tag;
-	}
-	/**
-	 * Alias for render_icon.
-	 *
-	 * @param string $icon_name The icon name.
-	 * @param array  $options   Rendering options.
-	 * @return string The output markup.
-	 */
-	public static function faicon( string $icon_name, array $options = [] ): string {
-		
-		return self::render_icon( $icon_name, $options );
 	}
 	/**
 	 * Normalize the icon name by removing any leading "fa-" and converting it to a valid format.

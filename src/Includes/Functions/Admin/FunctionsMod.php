@@ -22,6 +22,7 @@ use ModPress\Includes\ModManagement\ModsManager;
 use ModPress\Includes\ModManagement\ChangelogManager;
 use ModPress\Includes\ModManagement\FileManager;
 use ModPress\Includes\Plugins\FontAwesome\Includes\IconPicker;
+use ModPress\Includes\Plugins\FontAwesome\Includes\Functions\Helpers\FAHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -1509,7 +1510,7 @@ final class FunctionsMod {
         <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
             <div class="d-flex justify-content-end mb-2">
                 <?php echo FormFieldHelper::button(
-                    esc_html__( 'Add Option', 'modpress' ),
+                    FAHelper::faicon( 'plus' ).' '.esc_html__( 'Add Option', 'modpress' ),
                     array(
                         'type' => 'button',
                         'class' => 'btn btn-outline-secondary btn-sm',
@@ -1552,7 +1553,7 @@ final class FunctionsMod {
                         </div>
                         <div class="col-md-2">
                             <?php echo FormFieldHelper::button(
-                                esc_html__( 'Delete', 'modpress' ),
+                                FAHelper::faicon( 'trash' ),
                                 array(
                                     'type' => 'button',
                                     'class' => 'btn btn-outline-danger btn-sm',

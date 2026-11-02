@@ -16,6 +16,7 @@ use ModPress\Includes\Functions\Helpers\DBHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\Settings\Settings;
+use ModPress\Includes\Plugins\FontAwesome\Includes\Functions\Helpers\FAHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -96,15 +97,18 @@ final class ModGroups extends ModManager {
 				<div class="card-body p-4">
 					<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
 						<h2 class="h5 mb-0"><?php esc_html_e( 'Mod Groups', 'modpress' ); ?></h2>
-						<?php echo FormFieldHelper::button( __( 'Add New Group', 'modpress' ), array(
-							'type'    => 'button',
-							'class'   => 'btn btn-primary btn-sm',
-							'attributes' => array(
-								'data-bs-toggle' => 'modal',
-											'data-bs-target' => '#modpress-group-modal',
-											'data-group-add' => 'true',
-							),
-						) ); ?>
+						<?php echo FormFieldHelper::button( 
+							__( 'Add New Group', 'modpress' ), 
+							array(
+								'type'    => 'button',
+								'class'   => 'btn btn-primary btn-sm',
+								'attributes' => array(
+									'data-bs-toggle' => 'modal',
+												'data-bs-target' => '#modpress-group-modal',
+												'data-group-add' => 'true',
+								),
+							) 
+						); ?>
 					</div>
 
 					<ul class="nav nav-tabs" id="modpress-group-tabs" role="tablist">
@@ -124,7 +128,7 @@ final class ModGroups extends ModManager {
 									<?php echo esc_html( $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ); ?>
 								</button>
 								<?php echo FormFieldHelper::button(
-									'<span class="dashicons dashicons-edit"></span>',
+									FAHelper::faicon( 'pen-to-square' ),
 									array(
 										'type' => 'button',
 										'class' => 'btn btn-link btn-sm text-secondary modpress-tab-edit-btn',
@@ -225,6 +229,7 @@ final class ModGroups extends ModManager {
 
 										$show_in_table_image_field = null;
 										$show_in_table_icon_field = null;
+										$show_in_table_url_field = null;
 										$show_in_table_fields = array();
 										$custom_color_field = null;
 
@@ -235,13 +240,16 @@ final class ModGroups extends ModManager {
 
 											$field_type = strtolower( (string) ( $field['type'] ?? 'text' ) );
 											$show_in_table = ! empty( $field['show_in_table'] );
-
 											if ( 'image' === $field_type && $show_in_table && null === $show_in_table_image_field ) {
 												$show_in_table_image_field = $field;
 											}
 
 											if ( 'icon' === $field_type && $show_in_table && null === $show_in_table_icon_field ) {
 												$show_in_table_icon_field = $field;
+											}
+
+											if ( 'url' === $field_type && $show_in_table && null === $show_in_table_url_field ) {
+												$show_in_table_url_field = $field;
 											}
 
 											if ( 'color' === $field_type && ! empty( $field['custom_color_use'] ) && null === $custom_color_field ) {
@@ -253,7 +261,7 @@ final class ModGroups extends ModManager {
 											}
 										}
 
-										$table_colspan = 1 + ( $show_in_table_image_field ? 1 : 0 ) + ( $show_in_table_icon_field ? 1 : 0 ) + 3 + count( $show_in_table_fields ) + 1;
+										$table_colspan = 1 + ( $show_in_table_image_field ? 1 : 0 ) + ( $show_in_table_icon_field ? 1 : 0 ) + ( $show_in_table_url_field ? 1 : 0 ) + 3 + count( $show_in_table_fields ) + 1;
 									?>
 
 									<div class="table-responsive">
@@ -268,6 +276,9 @@ final class ModGroups extends ModManager {
 												<?php endif; ?>
 												<?php if ( $show_in_table_icon_field ) : ?>
 													<th><?php esc_html_e( 'Icon', 'modpress' ); ?></th>
+												<?php endif; ?>
+												<?php if ( $show_in_table_url_field ) : ?>
+													<th><?php esc_html_e( 'Image', 'modpress' ); ?></th>
 												<?php endif; ?>
 												<th><?php esc_html_e( 'Name', 'modpress' ); ?></th>
 												<th><?php esc_html_e( 'Slug', 'modpress' ); ?></th>
@@ -304,7 +315,16 @@ final class ModGroups extends ModManager {
 																<?php $icon_meta_key = (string) ( $show_in_table_icon_field['slug'] ?? $show_in_table_icon_field['name'] ?? 'icon' ); ?>
 																		<?php $icon_value = get_term_meta( $term->term_id, $icon_meta_key, true ); ?>
 																<?php if ( $icon_value ) : ?>
-																	<i class="<?php echo esc_attr( $icon_value ); ?>" aria-hidden="true" style="font-size: 30px;"></i>
+																	<?php echo FAHelper::faicon( $icon_value, [ 'style' => 'solid' ] ); ?>
+																<?php endif; ?>
+															</td>
+														<?php endif; ?>
+														<?php if ( $show_in_table_url_field ) : ?>
+															<td>
+																<?php $image_meta_key = (string) ( $show_in_table_image_field['slug'] ?? $show_in_table_image_field['name'] ?? 'url' ); ?>
+																		<?php $image_url = get_term_meta( $term->term_id, $image_meta_key, true ); ?>
+																<?php if ( $image_url ) : ?>
+																	<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $term->name ); ?>" style="max-width: 30px; max-height: 30px; object-fit: cover;" />
 																<?php endif; ?>
 															</td>
 														<?php endif; ?>
@@ -349,7 +369,7 @@ final class ModGroups extends ModManager {
 														<td class="text-end">
 															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
 																<?php echo FormFieldHelper::button(
-																	__( 'Edit', 'modpress' ),
+																	FAHelper::faicon( 'pen-to-square' ),
 																	array(
 																		'type' => 'button',
 																		'class' => 'btn btn-outline-secondary',
@@ -368,7 +388,7 @@ final class ModGroups extends ModManager {
 																	<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
 																	<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
 																	<?php echo FormFieldHelper::button(
-																		__( 'Delete', 'modpress' ),
+																		FAHelper::faicon( 'trash' ),
 																		array(
 																			'type' => 'submit',
 																			'class' => 'btn btn-outline-danger',
@@ -754,12 +774,13 @@ final class ModGroups extends ModManager {
 																	<span class="ms-1" data-custom-field-title><?php esc_html_e( 'Field', 'modpress' ); ?></span>
 																</button>
 																<?php echo FormFieldHelper::button(
-																	__( 'Remove', 'modpress' ),
+																	FAHelper::faicon( 'trash' ),
 																	array(
 																		'type' => 'button',
 																		'class' => 'btn btn-outline-danger btn-sm ms-2 modpress-remove-custom-field',
 																		'data-role' => 'remove-custom-field',
-																		'id' => 'remove-custom-field-button'
+																		'id' => 'remove-custom-field-button',
+																		'style' => 'border-radius: 0px 20px 20px 20px'
 																	)
 																); ?>
 															</div>
@@ -1037,7 +1058,7 @@ final class ModGroups extends ModManager {
 								<?php echo FormFieldHelper::button(
 									__( 'Save', 'modpress' ),
 									array(
-										'type' => 'submit',
+										'type' => FAHelper::faicon( 'floppy-disk' ).' '.'submit',
 										'class' => 'btn btn-primary',
 										'attributes' => array(
 											'form' => $save_form_id,
