@@ -1056,9 +1056,9 @@ final class ModGroups extends ModManager {
 									)
 								); ?>
 								<?php echo FormFieldHelper::button(
-									__( 'Save', 'modpress' ),
+									FAHelper::faicon( 'floppy-disk' ).' '.__( 'Save', 'modpress' ),
 									array(
-										'type' => FAHelper::faicon( 'floppy-disk' ).' '.'submit',
+										'type' => 'submit',
 										'class' => 'btn btn-primary',
 										'attributes' => array(
 											'form' => $save_form_id,
