@@ -222,9 +222,7 @@
                 const targetValue = targetField ? normalizeConditionValue(targetField.value || (targetField.checked ? 'true' : '')) : '';
                 shouldShow = currentType === normalizedCondition[0] && targetValue === normalizedCondition[1];
 
-                if (normalizedCondition[0] === 'switch' && normalizedCondition[1] === 'custom') {
-                    shouldShow = currentType === 'switch' && targetValue === 'custom';
-                }
+                
             } else {
                 shouldShow = normalizedCondition.includes(currentType);
             }
