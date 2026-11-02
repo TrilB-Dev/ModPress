@@ -189,6 +189,21 @@
         return Boolean(value);
     };
 
+    const getNamedCheckbox = (scope, namePrefix = '') => {
+        if (!scope || !namePrefix) {
+            return null;
+        }
+
+        const inputs = Array.from(scope.querySelectorAll('input[type="checkbox"]'));
+        return inputs.find((input) => {
+            const name = String(input.getAttribute('name') || '');
+            return name === namePrefix
+                || name.startsWith(namePrefix + '[')
+                || name.startsWith(namePrefix + '[]')
+                || name.startsWith(namePrefix);
+        }) || null;
+    };
+
     const getCustomFieldTypeControl = (row) => {
         if (!row) {
             return null;
@@ -739,15 +754,13 @@
                 switchCustomInput.value = String(switchCustomValue || '').trim();
             }
 
-            const colorInput = row.querySelector('[name^="custom_field_type_color"]');
+            const colorInput = getNamedCheckbox(row, 'custom_field_type_color');
             if (colorInput) {
                 const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
-                if (colorInput.type === 'checkbox') {
-                    colorInput.checked = normalizeBooleanValue(colorValue);
-                }
+                colorInput.checked = normalizeBooleanValue(colorValue);
             }
 
-            const showInTableInput = row.querySelector('[name^="custom_field_show_in_table"]');
+            const showInTableInput = getNamedCheckbox(row, 'custom_field_show_in_table');
             if (showInTableInput) {
                 const shouldShowInTable = normalizeBooleanValue(field.show_in_table ?? field.showInTable ?? false);
                 showInTableInput.checked = shouldShowInTable;
@@ -887,7 +900,7 @@
             }
         }
 
-        const hierarchicalInput = modal.querySelector('[name="group_hierarchical"]');
+        const hierarchicalInput = getNamedCheckbox(modal, 'group_hierarchical');
         if (hierarchicalInput) {
             hierarchicalInput.checked = false;
         }
@@ -1025,7 +1038,7 @@
         const groupSingularInput = modalElement.querySelector('[name="group_singular_name"]');
         const groupSlugInput = modalElement.querySelector('[name="group_slug"]');
         const groupDescriptionInput = modalElement.querySelector('[name="group_description"]');
-        const groupHierarchicalInput = modalElement.querySelector('[name="group_hierarchical"]');
+        const groupHierarchicalInput = getNamedCheckbox(modalElement, 'group_hierarchical');
         const groupParentInput = modalElement.querySelector('[name="group_parent[]"]');
         const groupParentEntryInput = modalElement.querySelector('[name="group_parent_entry[]"]');
         const groupEditKeyInput = modalElement.querySelector('[name="group_edit_key"]');
