@@ -166,15 +166,6 @@
         return normalized;
     };
 
-    const getToggleControl = (row, prefix = '') => {
-        if (!row || !prefix) {
-            return null;
-        }
-
-        const controls = Array.from(row.querySelectorAll('[name^="' + prefix + '"]'));
-        return controls.find((control) => control.type !== 'hidden' && (control.type === 'checkbox' || control.type === 'radio')) || controls[0] || null;
-    };
-
     const getCustomFieldTypeControl = (row) => {
         if (!row) {
             return null;
@@ -729,17 +720,15 @@
                 switchCustomInput.value = String(switchCustomValue || '').trim();
             }
 
-            const colorInput = getToggleControl(row, 'custom_field_type_color');
+            const colorInput = row.querySelector('[name^="custom_field_type_color"]');
             if (colorInput) {
                 const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
                 if (colorInput.type === 'checkbox') {
                     colorInput.checked = Boolean(colorValue);
-                } else {
-                    colorInput.value = String(colorValue || '');
                 }
             }
 
-            const showInTableInput = getToggleControl(row, 'custom_field_show_in_table');
+            const showInTableInput = row.querySelector('[name^="custom_field_show_in_table"]');
             if (showInTableInput) {
                 const shouldShowInTable = Boolean(field.show_in_table || field.showInTable);
                 showInTableInput.checked = shouldShowInTable;
