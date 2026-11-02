@@ -340,6 +340,7 @@ namespace ModPress\Tests\Unit {
     use ModPress\Includes\Functions\Admin\FunctionsMod;
     use ModPress\Includes\Functions\Helpers\DBHelper;
     use ModPress\Includes\Functions\Helpers\FAHelper;
+    use ModPress\Includes\Functions\Helpers\FormFieldHelper;
     use ModPress\Includes\Settings\SettingsManager;
     use PHPUnit\Framework\TestCase;
 
@@ -403,6 +404,19 @@ namespace ModPress\Tests\Unit {
                 $GLOBALS['modpress_test_nonce']
             );
             $this->assertNull( $GLOBALS['modpress_test_inserted_post'] );
+        }
+
+        public function testButtonHelperRendersHtmlLabelsForIcons(): void {
+            $markup = FormFieldHelper::button(
+                '<i class="fa fa-trash"></i>',
+                array(
+                    'type' => 'button',
+                    'class' => 'btn btn-danger',
+                )
+            );
+
+            $this->assertStringContainsString( '<i class="fa fa-trash"></i>', $markup );
+            $this->assertStringNotContainsString( '&lt;i class=&quot;fa fa-trash&quot;&gt;', $markup );
         }
 
         public function testValidSubmissionIsSanitizedAndInserted(): void {

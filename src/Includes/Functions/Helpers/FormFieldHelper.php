@@ -273,7 +273,7 @@ final class FormFieldHelper {
 			}
 
 			$html .= '<input ' . self::attributes_to_string( $input_attributes ) . ' />';
-			$html .= '<label class="' . esc_attr( $button_class ) . '" for="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</label>';
+			$html .= '<label class="' . esc_attr( $button_class ) . '" for="' . esc_attr( $id ) . '">' . self::render_button_label( $label, $definition ) . '</label>';
 		}
 
 		return $html . '</div>' . self::feedback( $options );
@@ -307,9 +307,43 @@ final class FormFieldHelper {
 			}
 		}
 
-		$content = ! empty( $options['raw'] ) ? $label : esc_html( $label );
+		$content = self::render_button_label( $label, $options );
 
 		return '<' . $tag . ' ' . self::attributes_to_string( $attributes ) . '>' . $content . '</' . $tag . '>';
+	}
+
+	/**
+	 * Safely render a button label, allowing trusted inline HTML such as FontAwesome or SVG icons.
+	 *
+	 * @param string $label   Raw label content.
+	 * @param array  $options Button options.
+	 * @return string
+	 */
+	private static function render_button_label( string $label, array $options = array() ): string {
+		if ( ! empty( $options['raw'] ) || preg_match( '/<\s*([a-zA-Z][^>]*)>/', $label ) ) {
+			$sanitized = function_exists( 'wp_kses_post' ) ? wp_kses_post( $label ) : (string) $label;
+			if ( '' !== trim( (string) $sanitized ) ) {
+				return $sanitized;
+			}
+
+			return self::sanitize_inline_button_markup( $label );
+		}
+
+		return esc_html( (string) $label );
+	}
+
+	/**
+	 * Strip unsafe markup while preserving trusted inline icon markup such as FontAwesome or SVG tags.
+	 *
+	 * @param string $label Html to sanitize.
+	 * @return string
+	 */
+	private static function sanitize_inline_button_markup( string $label ): string {
+		$clean = preg_replace( '/<\s*(script|style|iframe|object|embed|form|input|button)\b[^>]*>.*?<\s*\/\s*\1\s*>/is', '', $label );
+		$clean = preg_replace( '/\s+on[a-zA-Z0-9_-]+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^"]*?)/i', '', (string) $clean );
+		$clean = preg_replace( '/<(?!\/?(?:i|span|svg|path|circle|use|strong|em|b|br)\b)[^>]+>/i', '', (string) $clean );
+
+		return (string) $clean;
 	}
 
 	/**
@@ -340,7 +374,7 @@ final class FormFieldHelper {
 		$attributes['id']    = $dropdown_id;
 		$attributes['type']  = 'button';
 		$attributes['class'] = $button_class . ( ! empty( $options['split'] ) ? ' dropdown-toggle-split' : ' dropdown-toggle' );
-		$toggle              = '<button ' . self::attributes_to_string( $attributes ) . '>' . esc_html( $label );
+		$toggle              = '<button ' . self::attributes_to_string( $attributes ) . '>' . self::render_button_label( $label, $options );
 
 		if ( ! empty( $options['split'] ) ) {
 			$toggle .= '<span class="visually-hidden">' . esc_html__( 'Toggle Dropdown', 'modpress' ) . '</span>';
