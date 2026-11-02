@@ -721,8 +721,6 @@
                 const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
                 if (colorInput.type === 'checkbox') {
                     colorInput.checked = Boolean(colorValue);
-                } else {
-                    colorInput.value = String(colorValue || '');
                 }
             }
 
