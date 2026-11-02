@@ -780,7 +780,7 @@ final class ModGroups extends ModManager {
 																		'class' => 'btn btn-outline-danger btn-sm ms-2 modpress-remove-custom-field',
 																		'data-role' => 'remove-custom-field',
 																		'id' => 'remove-custom-field-button',
-																		'style' => 'border-radius: 0rem 0rem 0.375rem 0.375rem'
+																		'style' => 'border-radius: 0rem 0.375rem 0.375rem 0rem'
 																	)
 																); ?>
 															</div>
