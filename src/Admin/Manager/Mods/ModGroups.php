@@ -44,7 +44,7 @@ final class ModGroups extends ModManager {
 				continue;
 			}
 
-			$taxonomy_key = GroupsManager::get_group_taxonomy_key( $group_slug );
+			$taxonomy_key = GroupsManager::get_group_key( $group_slug );
 			if ( '' === $taxonomy_key ) {
 				continue;
 			}

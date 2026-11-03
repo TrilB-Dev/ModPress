@@ -50,7 +50,12 @@ final class DashboardManager extends Manager {
         $this->render_resources();
         $this->footer();
     }
-
+    /**
+     * Renders the summary section of the dashboard.
+     *
+     * @since 1.0.0
+     * @return void
+     */
     private function render_summary(): void {
         $mod_counts  = '0';
         $page_counts  = '0';
@@ -65,7 +70,12 @@ final class DashboardManager extends Manager {
         </div>
         <?php
     }
-
+    /**
+     * Renders the welcome section of the dashboard.
+     *
+     * @since 1.0.0
+     * @return void
+     */
     private function render_welcome(): void {
         ?>
         <div class="row g-4 mb-4">
@@ -91,6 +101,12 @@ final class DashboardManager extends Manager {
         <?php
     }
 
+    /**
+     * Renders the recent pages section of the dashboard.
+     *
+     * @since 1.0.0
+     * @return void
+     */
     private function render_recent_pages(): void {
         $query = new \WP_Query( [
             'post_type'      => 'modpress_page',
@@ -126,7 +142,12 @@ final class DashboardManager extends Manager {
         </div>
         <?php
     }
-
+    /**
+     * Renders the resources section of the dashboard.
+     *
+     * @since 1.0.0
+     * @return void
+     */
     private function render_resources(): void {
         $resources = [
             [ 
@@ -168,7 +189,16 @@ final class DashboardManager extends Manager {
         </div>
         <?php
     }
-
+    /**
+     * Renders a summary card for the dashboard.
+     *
+     * @since 1.0.0
+     * @param string $label The label for the summary card.
+     * @param int $value The value to display.
+     * @param string $slug The slug for the admin page link.
+     * @param string $icon The dashicon class for the icon.
+     * @return void
+     */
     private function summary_card( string $label, int $value, string $slug, string $icon ): void {
         ?>
         <div class="col-12 col-md-4">
@@ -180,7 +210,13 @@ final class DashboardManager extends Manager {
         </div>
         <?php
     }
-
+    /**
+     * Calculates the total count from an object of counts.
+     *
+     * @since 1.0.0
+     * @param object $counts The object containing count values.
+     * @return int The total count.
+     */
     private function total_count( $counts ): int {
         if ( ! is_object( $counts ) ) {
             return 0;
@@ -188,7 +224,13 @@ final class DashboardManager extends Manager {
 
         return array_sum( array_map( 'absint', get_object_vars( $counts ) ) );
     }
-
+    /**
+     * Registers the assets for the dashboard page.
+     *
+     * @since 1.0.0
+     * @param Assets $assets The assets manager instance.
+     * @return void
+     */
     public function register_assets( Assets $assets ): void {
         $this->register_page_assets( $assets, [ 'modpress' ], 'dashboard' );
     }
