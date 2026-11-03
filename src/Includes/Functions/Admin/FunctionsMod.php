@@ -35,6 +35,7 @@ final class FunctionsMod {
 	 *
 	 * @param LoaderHelper $loader Loader instance used to register hooks.
 	 * @return void
+     * @since 1.0.0
 	 */
 	public function register_admin_post_hooks( LoaderHelper $loader ): void {
 		$loader->register_component(
@@ -585,7 +586,7 @@ final class FunctionsMod {
                 static fn ( $value ) => $value > 0
             )
         );
-        $resolved_group_key = GroupsManager::get_group_taxonomy_key( $taxonomy );
+        $resolved_group_key = GroupsManager::get_group_key( $taxonomy );
         $description = SanitizationHelper::textarea( RequestHelper::value( $_POST, 'group_description', '' ), '' );
 
         $group_payload = array(
@@ -604,7 +605,6 @@ final class FunctionsMod {
 
         return $group_payload;
     }
-
     /**
      * Normalize a group parent value into either numeric IDs or taxonomy keys.
      *
@@ -671,7 +671,6 @@ final class FunctionsMod {
 
         return array_values( array_unique( array_filter( array_map( 'strval', $normalized ), static fn ( $item ) => '' !== trim( (string) $item ) ) ) );
     }
-
     /**
      * Resolve a parent group taxonomy key or numeric ID to the canonical group row ID.
      *
@@ -709,7 +708,6 @@ final class FunctionsMod {
 
         return abs( (int) ( $group_row['id'] ?? 0 ) );
     }
-
     /**
      * Convert a stored parent ID back into the taxonomy key used by the UI.
      *
@@ -774,7 +772,6 @@ final class FunctionsMod {
 
         return $lookup_key !== '' ? $lookup_key : $value;
     }
-
     /**
      * Find a group row by key or slug when direct DB lookups do not return a result.
      *
@@ -817,7 +814,6 @@ final class FunctionsMod {
 
         return null;
     }
-
     /**
      * Find a group row by id when direct DB lookups do not return a result.
      *
@@ -852,7 +848,6 @@ final class FunctionsMod {
 
         return null;
     }
-
     /**
      * Persist the custom groups row to the ModPress DB table.
      *
@@ -932,7 +927,6 @@ final class FunctionsMod {
 
         return $inserted;
     }
-
     /**
      * Resolve an existing ModPress group row by the canonical key or slug.
      *
@@ -977,7 +971,6 @@ final class FunctionsMod {
 
         return 0;
     }
-
     /**
      * Return a readable database error message when a group save fails.
      *
@@ -993,155 +986,24 @@ final class FunctionsMod {
 
         return __( 'The database update failed while saving the group record.', 'modpress' );
     }
-
     /**
-     * Save a taxonomy term from the entry modal.
+     * Retrieve a single group record based on the provided ID or key.
      *
-     * @return void
+     * @return array<string, mixed>
      * @since 1.0.0
      */
-    public function get_group(): void {
-		if ( ! current_user_can( 'modpress_manager_groups_view' ) && ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress groups.', 'modpress' ) ), 403 );
-		}
-
-		if ( ! empty( $_POST['nonce'] ) ) {
-			check_ajax_referer( 'modpress_get_group', 'nonce' );
-		} elseif ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 403 );
-		}
-
-		$group_id  = RequestHelper::integer( $_POST, 'group_id', 0 );
-		$group_key = RequestHelper::key( $_POST, 'group_key', '' );
-
-		if ( $group_id > 0 ) {
-			$group_row = DBHelper::get_by_id( 'groups', $group_id );
-		} else {
-			if ( '' === $group_key ) {
-				wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 400 );
-			}
-
-			$lookup_value = sanitize_key( (string) $group_key );
-			if ( '' === $lookup_value ) {
-				wp_send_json_error( array( 'message' => __( 'The selected group could not be loaded.', 'modpress' ) ), 400 );
-			}
-
-			$group_row = DBHelper::get_row( 'groups', array( 'group_key' => $lookup_value ) );
-			if ( empty( $group_row ) ) {
-				$group_row = DBHelper::get_row( 'groups', array( 'group_slug' => $lookup_value ) );
-			}
-		}
-
-		if ( empty( $group_row ) ) {
-			wp_send_json_error( array( 'message' => __( 'The selected group could not be found.', 'modpress' ) ), 404 );
-		}
-
-		$serialized_parent_ids = is_string( $group_row['group_parent'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent'] ?? '' ) ) : null;
-		$group_parent_ids = is_array( $serialized_parent_ids ) ? array_values(
-			array_filter(
-				array_map( static fn ( $id ) => (int) $id, $serialized_parent_ids ),
-				static fn ( $id ) => $id > 0
-			)
-		) : array();
-
-		$group_rows = DBHelper::get_all( 'groups' );
-		$group_key_map = array();
-		foreach ( $group_rows as $row ) {
-			$group_id = absint( $row['id'] ?? 0 );
-			$group_key = trim( (string) ( $row['group_key'] ?? $row['group_slug'] ?? '' ) );
-			if ( $group_id > 0 && '' !== $group_key ) {
-				$group_key_map[ $group_id ] = $group_key;
-			}
-		}
-		$serialized_parent_entries = is_string( $group_row['group_parent_entry'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent_entry'] ?? '' ) ) : null;
-		$group_parent_entries = is_array( $serialized_parent_entries ) ? array_values(
-			array_filter(
-				array_map( static fn ( $id ) => (int) $id, $serialized_parent_entries ),
-				static fn ( $id ) => $id > 0
-			)
-		) : array();
-		if ( empty( $group_parent_entries ) && isset( $group_row['group_parent_entry'] ) && is_numeric( $group_row['group_parent_entry'] ) ) {
-			$parent_entry_id = abs( (int) $group_row['group_parent_entry'] );
-			if ( $parent_entry_id > 0 ) {
-				$group_parent_entries = array( $parent_entry_id );
-			}
-		}
-
-		wp_send_json_success(
-			array(
-				'group_id'            => abs( (int) ( $group_row['id'] ?? 0 ) ),
-				'group_key'           => (string) ( $group_row['group_key'] ?? $lookup_value ),
-				'group_name'          => (string) ( $group_row['group_name'] ?? '' ),
-				'group_slug'          => (string) ( $group_row['group_slug'] ?? $lookup_value ),
-				'group_singular_name' => (string) ( $group_row['group_singular_name'] ?? ( $group_row['group_name'] ?? '' ) ),
-				'group_description'   => (string) ( $group_row['group_description'] ?? '' ),
-				'group_hierarchical'  => ! empty( $group_row['group_hierarchical'] ),
-				'group_parent'        => $group_parent_ids,
-				'group_parent_entry'  => $group_parent_entries,
-				'group_fields'        => is_string( $group_row['group_fields'] ) ? json_decode( $group_row['group_fields'], true ) : ( is_array( $group_row['group_fields'] ) ? $group_row['group_fields'] : array() ),
-			)
-		);
+    public function get_group( string $group_id = '' ): array {
+		GroupsManager::load_group();
+		return array();
 	}
     /**
-     * Get a group entry.
+     * Load a group entry for editing.
      *
      * @return void
      * @since 1.0.0
      */
 	public function get_group_entry(): void {
-		if ( ! current_user_can( 'modpress_manager_groups_view' ) && ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress taxonomy entries.', 'modpress' ) ), 403 );
-		}
-
-		if ( ! empty( $_POST['nonce'] ) ) {
-			check_ajax_referer( 'modpress_get_group_entry', 'nonce' );
-		} elseif ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'The selected entry could not be loaded.', 'modpress' ) ), 403 );
-		}
-
-		$taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
-		$term_id  = RequestHelper::integer( $_POST, 'group_entry_id', 0 );
-
-		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) || $term_id <= 0 ) {
-			wp_send_json_error( array( 'message' => __( 'The selected entry could not be loaded.', 'modpress' ) ), 400 );
-		}
-
-		$term = get_term( $term_id, $taxonomy );
-		if ( is_wp_error( $term ) || ! $term ) {
-			wp_send_json_error( array( 'message' => __( 'The selected entry could not be found.', 'modpress' ) ), 404 );
-		}
-
-		$group_row = DBHelper::get_row( 'groups', array( 'group_key' => sanitize_key( (string) $taxonomy ) ) );
-		if ( empty( $group_row ) ) {
-			$group_row = DBHelper::get_row( 'groups', array( 'group_slug' => sanitize_key( str_replace( 'modpress_', '', $taxonomy ) ) ) );
-		}
-
-		$custom_fields = array();
-		if ( ! empty( $group_row['group_fields'] ) ) {
-			$decoded_fields = json_decode( (string) $group_row['group_fields'], true );
-			if ( is_array( $decoded_fields ) ) {
-				foreach ( $decoded_fields as $field ) {
-					$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
-					if ( '' === $field_slug ) {
-						continue;
-					}
-
-					$custom_fields[ $field_slug ] = GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy, $field_slug );
-				}
-			}
-		}
-
-		wp_send_json_success(
-			array(
-				'term_id' => (int) $term->term_id,
-				'name' => $term->name,
-				'slug' => $term->slug,
-				'description' => $term->description,
-				'parent' => (int) $term->parent,
-				'icon' => GroupsManager::get_group_entry( (int) $term->term_id, $taxonomy, 'entry_icon' ) ?: '',
-				'custom_fields' => $custom_fields,
-			)
-		);
+		GroupsManager::load_group_entry();
 	}
     /**
      * Save a group entry.
@@ -1282,7 +1144,6 @@ final class FunctionsMod {
         LoggerHelper::write_log( 'ModPress group entry saved successfully for taxonomy ' . $taxonomy );
         $this->redirect_mod_group_result( true, __( 'Entry saved successfully.', 'modpress' ) );
     }
-
     /**
      * Delete a taxonomy term from the entry modal.
      *
@@ -1341,242 +1202,13 @@ final class FunctionsMod {
         LoggerHelper::write_log( 'ModPress group entries deleted successfully for taxonomy ' . $taxonomy . ' (ids=' . implode( ',', $valid_ids ) . ')' );
         $this->redirect_mod_group_result( true, __( 'Entry deleted successfully.', 'modpress' ) );
     }
-
-    /**
-     * Handle a tag save request.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function save_tags(): void {
-        if ( ! current_user_can( 'modpress_manager_tags_edit' ) && ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You are not allowed to manage ModPress tags.', 'modpress' ) );
-        }
-
-        check_admin_referer( 'modpress_save_tags' );
-        $this->redirect_mod_action_result( 'groups', __( 'Tags saved successfully.', 'modpress' ), true );
-    }
-
-    /**
-     * Handle a file save request.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function save_files(): void {
-        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You are not allowed to manage ModPress files.', 'modpress' ) );
-        }
-
-        check_admin_referer( 'modpress_save_files' );
-        $this->redirect_mod_action_result( 'files', __( 'Files saved successfully.', 'modpress' ), true );
-    }
-
-    /**
-     * Handle a file type save request.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function save_file_type(): void {
-        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You are not allowed to manage ModPress file types.', 'modpress' ) );
-        }
-
-        check_admin_referer( 'modpress_save_file_type' );
-        $this->redirect_mod_action_result( 'files', __( 'File type saved successfully.', 'modpress' ), true );
-    }
-
-    /**
-     * Handle a changelog save request.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function save_changelog(): void {
-        if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You are not allowed to manage ModPress changelogs.', 'modpress' ) );
-        }
-
-        check_admin_referer( 'modpress_save_changelog' );
-        $this->redirect_mod_action_result( 'changelog', __( 'Changelog saved successfully.', 'modpress' ), true );
-    }
-
-    /**
-     * Handle a changelog category save request.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function save_changelog_category(): void {
-        if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'You are not allowed to manage ModPress changelog categories.', 'modpress' ) );
-        }
-
-        check_admin_referer( 'modpress_save_changelog_category' );
-        $this->redirect_mod_action_result( 'changelog', __( 'Changelog category saved successfully.', 'modpress' ), true );
-    }
-
-    /**
-     * Redirect back to the Mod manager screen with a notice.
-     *
-     * @param string $tab Page tab to return to.
-     * @param string $message Notice text.
-     * @param bool   $success Whether the save succeeded.
-     * @return void
-     */
-    public static function set_admin_notice_flash( string $message, bool $success = true ): void {
-        $key = 'modpress_admin_notice_' . get_current_user_id();
-        $notice = array(
-            'message' => '' !== trim( $message ) ? trim( $message ) : ( $success ? __( 'The ModPress action was completed successfully.', 'modpress' ) : __( 'The ModPress action could not be completed.', 'modpress' ) ),
-            'type' => $success ? 'success' : 'error',
-        );
-
-        set_transient( $key, $notice, 60 );
-    }
-    /**
-     * Consume and return the admin notice flash.
-     *
-     * @return array Notice data with 'message' and 'type'.
-     * @since 1.0.0
-     */
-    public static function consume_admin_notice_flash(): array {
-        $key = 'modpress_admin_notice_' . get_current_user_id();
-        $notice = get_transient( $key );
-
-        delete_transient( $key );
-
-        if ( ! is_array( $notice ) ) {
-            return array(
-                'message' => '',
-                'type' => 'info',
-            );
-        }
-
-        $message = isset( $notice['message'] ) ? (string) $notice['message'] : '';
-        $type = isset( $notice['type'] ) ? (string) $notice['type'] : 'info';
-
-        if ( ! in_array( $type, array( 'success', 'error', 'warning', 'info' ), true ) ) {
-            $type = 'info';
-        }
-
-        return array(
-            'message' => $message,
-            'type' => $type,
-        );
-    }
-    /**
-     * Redirect back to the Mod action result with a notice.
-     *
-     * @param string $tab Page tab to return to.
-     * @param string $message Notice text.
-     * @param bool   $success Whether the save succeeded.
-     * @return void
-     */
-    private function redirect_mod_action_result( string $tab, string $message = '', bool $success = true ): void {
-        $query = array(
-            'page' => 'modpress',
-            'group' => 'mods',
-            'tab' => $tab,
-        );
-
-        if ( '' !== trim( $message ) ) {
-            self::set_admin_notice_flash( $message, $success );
-        }
-
-        wp_safe_redirect( admin_url( 'admin.php?' . build_query( $query ) ) );
-        exit;
-    }
-
-    /**
-     * Redirect back to the Mod Groups screen with a notice.
-     *
-     * @param bool   $success Whether the save succeeded.
-     * @param string $message Notice text.
-     * @return void
-     */
-    private function redirect_mod_group_result( bool $success, string $message = '' ): void {
-        $this->redirect_mod_action_result( 'groups', $message, $success );
-    }
-    /**
-     * Render a repeatable option row template.
-     *
-     * @param string $type The option type.
-     * @return string HTML output.
-     */
-    public static function repeatable_option_row(string $type): string {
-        ob_start();
-        ?>
-        <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
-            <div class="d-flex justify-content-end mb-2">
-                <?php echo FormFieldHelper::button(
-                    FAHelper::faicon( 'plus' ).' '.esc_html__( 'Add Option', 'modpress' ),
-                    array(
-                        'type' => 'button',
-                        'class' => 'btn btn-outline-secondary btn-sm',
-                        'id' => 'add-option-row',
-                        'attributes' => array(
-                            'data-role' => 'add-option-row',
-                            'data-option-type' => $type,
-                        )
-                    )
-                ); ?>
-            </div>
-            <div class="modpress-option-repeater-items">
-                <div class="modpress-option-row-template d-none" data-option-type="<?php echo esc_attr( $type ); ?>">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md-5">
-                            <?php echo FormFieldHelper::text_input(
-                                'custom_field_type_' . $type . '[][label]',
-                                '',
-                                array(
-                                    'class' => 'form-control w-100',
-                                    'placeholder' => esc_attr__( 'Label', 'modpress' ),
-                                    'attributes' => array(
-                                        'data-option-role' => 'label',
-                                    ),
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-5">
-                            <?php echo FormFieldHelper::text_input(
-                                'custom_field_type_' . $type . '[][option]',
-                                '',
-                                array(
-                                    'class' => 'form-control w-100',
-                                    'placeholder' => esc_attr__( 'Option', 'modpress' ),
-                                    'attributes' => array(
-                                        'data-option-role' => 'value',
-                                    ),
-                                )
-                            ); ?>
-                        </div>
-                        <div class="col-md-2">
-                            <?php echo FormFieldHelper::button(
-                                FAHelper::faicon( 'trash' ),
-                                array(
-                                    'type' => 'button',
-                                    'class' => 'btn btn-outline-danger btn-sm',
-                                    'id' => 'remove-option-row',
-                                    'attributes' => array(
-                                        'data-role' => 'remove-option-row',
-                                    ),
-                                )
-                            ); ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php
-        return (string) ob_get_clean();
-    }
-    /**
+     /**
      * Render a group custom field.
      *
      * @param array $custom_field The custom field configuration.
      * @param array $value The current value of the custom field.
      * @return string HTML output.
+     * @since 1.0.0
      */
     public static function render_group_custom_field( array $custom_field, $value = array() ) {
         if ( ! is_array( $custom_field ) ) {
@@ -1956,5 +1588,237 @@ final class FunctionsMod {
         }
 
         return '';
+    }
+      /**
+     * Redirect back to the Mod Groups screen with a notice.
+     *
+     * @param bool   $success Whether the save succeeded.
+     * @param string $message Notice text.
+     * @return void
+     * @since 1.0.0
+     */
+    private function redirect_mod_group_result( bool $success, string $message = '' ): void {
+        $this->redirect_mod_action_result( 'groups', $message, $success );
+    }
+    /**
+     * Render a repeatable option row template.
+     *
+     * @param string $type The option type.
+     * @return string HTML output.
+     * @since 1.0.0
+     */
+    public static function repeatable_option_row(string $type): string {
+        ob_start();
+        ?>
+        <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
+            <div class="d-flex justify-content-end mb-2">
+                <?php echo FormFieldHelper::button(
+                    FAHelper::faicon( 'plus' ).' '.esc_html__( 'Add Option', 'modpress' ),
+                    array(
+                        'type' => 'button',
+                        'class' => 'btn btn-outline-secondary btn-sm',
+                        'id' => 'add-option-row',
+                        'attributes' => array(
+                            'data-role' => 'add-option-row',
+                            'data-option-type' => $type,
+                        )
+                    )
+                ); ?>
+            </div>
+            <div class="modpress-option-repeater-items">
+                <div class="modpress-option-row-template d-none" data-option-type="<?php echo esc_attr( $type ); ?>">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-5">
+                            <?php echo FormFieldHelper::text_input(
+                                'custom_field_type_' . $type . '[][label]',
+                                '',
+                                array(
+                                    'class' => 'form-control w-100',
+                                    'placeholder' => esc_attr__( 'Label', 'modpress' ),
+                                    'attributes' => array(
+                                        'data-option-role' => 'label',
+                                    ),
+                                )
+                            ); ?>
+                        </div>
+                        <div class="col-md-5">
+                            <?php echo FormFieldHelper::text_input(
+                                'custom_field_type_' . $type . '[][option]',
+                                '',
+                                array(
+                                    'class' => 'form-control w-100',
+                                    'placeholder' => esc_attr__( 'Option', 'modpress' ),
+                                    'attributes' => array(
+                                        'data-option-role' => 'value',
+                                    ),
+                                )
+                            ); ?>
+                        </div>
+                        <div class="col-md-2">
+                            <?php echo FormFieldHelper::button(
+                                FAHelper::faicon( 'trash' ),
+                                array(
+                                    'type' => 'button',
+                                    'class' => 'btn btn-outline-danger btn-sm',
+                                    'id' => 'remove-option-row',
+                                    'attributes' => array(
+                                        'data-role' => 'remove-option-row',
+                                    ),
+                                )
+                            ); ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
+        return (string) ob_get_clean();
+    }
+    /**
+     * Handle a tag save request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function save_tags(): void {
+        if ( ! current_user_can( 'modpress_manager_tags_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress tags.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_tags' );
+        $this->redirect_mod_action_result( 'groups', __( 'Tags saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a file save request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function save_files(): void {
+        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress files.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_files' );
+        $this->redirect_mod_action_result( 'files', __( 'Files saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a file type save request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function save_file_type(): void {
+        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress file types.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_file_type' );
+        $this->redirect_mod_action_result( 'files', __( 'File type saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a changelog save request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function save_changelog(): void {
+        if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress changelogs.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_changelog' );
+        $this->redirect_mod_action_result( 'changelog', __( 'Changelog saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a changelog category save request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function save_changelog_category(): void {
+        if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress changelog categories.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_changelog_category' );
+        $this->redirect_mod_action_result( 'changelog', __( 'Changelog category saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Redirect back to the Mod manager screen with a notice.
+     *
+     * @param string $tab Page tab to return to.
+     * @param string $message Notice text.
+     * @param bool   $success Whether the save succeeded.
+     * @return void
+     * @since 1.0.0
+     */
+    public static function set_admin_notice_flash( string $message, bool $success = true ): void {
+        $key = 'modpress_admin_notice_' . get_current_user_id();
+        $notice = array(
+            'message' => '' !== trim( $message ) ? trim( $message ) : ( $success ? __( 'The ModPress action was completed successfully.', 'modpress' ) : __( 'The ModPress action could not be completed.', 'modpress' ) ),
+            'type' => $success ? 'success' : 'error',
+        );
+
+        set_transient( $key, $notice, 60 );
+    }
+    /**
+     * Consume and return the admin notice flash.
+     *
+     * @return array Notice data with 'message' and 'type'.
+     * @since 1.0.0
+     */
+    public static function consume_admin_notice_flash(): array {
+        $key = 'modpress_admin_notice_' . get_current_user_id();
+        $notice = get_transient( $key );
+
+        delete_transient( $key );
+
+        if ( ! is_array( $notice ) ) {
+            return array(
+                'message' => '',
+                'type' => 'info',
+            );
+        }
+
+        $message = isset( $notice['message'] ) ? (string) $notice['message'] : '';
+        $type = isset( $notice['type'] ) ? (string) $notice['type'] : 'info';
+
+        if ( ! in_array( $type, array( 'success', 'error', 'warning', 'info' ), true ) ) {
+            $type = 'info';
+        }
+
+        return array(
+            'message' => $message,
+            'type' => $type,
+        );
+    }
+    /**
+     * Redirect back to the Mod action result with a notice.
+     *
+     * @param string $tab Page tab to return to.
+     * @param string $message Notice text.
+     * @param bool   $success Whether the save succeeded.
+     * @return void
+     * @since 1.0.0
+     */
+    private function redirect_mod_action_result( string $tab, string $message = '', bool $success = true ): void {
+        $query = array(
+            'page' => 'modpress',
+            'group' => 'mods',
+            'tab' => $tab,
+        );
+
+        if ( '' !== trim( $message ) ) {
+            self::set_admin_notice_flash( $message, $success );
+        }
+
+        wp_safe_redirect( admin_url( 'admin.php?' . build_query( $query ) ) );
+        exit;
     }
 }

@@ -341,6 +341,7 @@ namespace ModPress\Tests\Unit {
     use ModPress\Includes\Functions\Helpers\DBHelper;
     use ModPress\Includes\Functions\Helpers\FAHelper;
     use ModPress\Includes\Functions\Helpers\FormFieldHelper;
+    use ModPress\Includes\ModManagement\GroupsManager;
     use ModPress\Includes\Settings\SettingsManager;
     use PHPUnit\Framework\TestCase;
 
@@ -453,6 +454,45 @@ namespace ModPress\Tests\Unit {
 
             $this->assertStringContainsString( 'Color', $html );
             $this->assertStringContainsString( 'entry_custom_field_field_1', $html );
+        }
+
+        public function testGroupsManagerProvidesGroupAndEntryLookupContracts(): void {
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_games' => array(
+                    15 => (object) array(
+                        'term_id' => 15,
+                        'name' => 'Skyrim',
+                        'slug' => 'skyrim',
+                        'taxonomy' => 'modpress_games',
+                    ),
+                ),
+            );
+            $GLOBALS['modpress_test_term_meta'] = array(
+                15 => array(
+                    'color' => array( 'red' ),
+                ),
+            );
+            $GLOBALS['modpress_test_db_groups'] = array(
+                array(
+                    'id' => 7,
+                    'group_key' => 'modpress_games',
+                    'group_slug' => 'games',
+                    'group_name' => 'Games',
+                    'group_fields' => json_encode( array(
+                        array(
+                            'id' => 'field_1',
+                            'name' => 'Color',
+                            'slug' => 'color',
+                            'type' => 'color',
+                        ),
+                    ) ),
+                ),
+            );
+
+            $this->assertSame( 'modpress_games', GroupsManager::get_group_taxonomy_key( 'games' ) );
+            $this->assertSame( 'modpress_games', GroupsManager::get_group_taxonomy_key( 'modpress_games' ) );
+            $this->assertSame( 'red', GroupsManager::get_group_entry( 15, 'modpress_games', 'color' ) );
+            $this->assertSame( 7, (int) GroupsManager::get_group( 'games' )['id'] );
         }
 
         public function testValidSubmissionIsSanitizedAndInserted(): void {
