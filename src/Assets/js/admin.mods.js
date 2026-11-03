@@ -438,6 +438,91 @@
         }
     };
 
+    const normalizeEntryMetaValue = (value) => {
+        if (Array.isArray(value)) {
+            return value.map((item) => String(item ?? '')).filter((item) => item !== '');
+        }
+
+        if (value === null || typeof value === 'undefined') {
+            return '';
+        }
+
+        return String(value);
+    };
+
+    const setCustomFieldInputValue = (input, value) => {
+        if (!input) {
+            return;
+        }
+
+        const normalizedValue = normalizeEntryMetaValue(value);
+
+        if (input.type === 'checkbox' || input.type === 'radio') {
+            const candidates = Array.isArray(value) ? value : [value];
+            const checkedValues = candidates
+                .map((item) => String(item ?? '').trim().toLowerCase())
+                .filter((item) => item !== '');
+            const optionValue = String(input.value || '').trim().toLowerCase();
+            const isChecked = checkedValues.includes(optionValue)
+                || checkedValues.includes('1')
+                || checkedValues.includes('true')
+                || checkedValues.includes('on')
+                || checkedValues.includes('yes');
+            input.checked = isChecked;
+            return;
+        }
+
+        if (input.matches('select')) {
+            const values = Array.isArray(normalizedValue) ? normalizedValue : [normalizedValue];
+            const selectedValue = values.find((item) => item !== '') || '';
+            if (selectedValue !== '') {
+                input.value = selectedValue;
+            }
+            return;
+        }
+
+        if (input.matches('textarea, input') && !input.matches('[type="hidden"]')) {
+            const rawValue = Array.isArray(normalizedValue) ? (normalizedValue[0] ?? '') : normalizedValue;
+            input.value = rawValue;
+        }
+    };
+
+    const populateCustomFieldValues = (modalElement, data = {}) => {
+        const container = modalElement.querySelector('.modpress-entry-custom-fields-container');
+        if (!container) {
+            return;
+        }
+
+        const inputs = container.querySelectorAll('input, select, textarea');
+        inputs.forEach((input) => {
+            const name = input.name || '';
+            if (!name) {
+                return;
+            }
+
+            const lookupNames = new Set([
+                name,
+                name.replace(/\[\]$/, ''),
+                name.replace(/^entry_custom_field_/, ''),
+                name.replace(/^entry_custom_field_/, '').replace(/_mode$/, ''),
+            ]);
+
+            for (const [key, value] of Object.entries(data)) {
+                if (!lookupNames.has(key)) {
+                    const keyName = String(key || '').replace(/\[\]$/, '');
+                    if (keyName && (name === 'entry_custom_field_' + keyName || name === 'entry_custom_field_' + keyName.replace(/[^a-zA-Z0-9_-]/g, '')) ) {
+                        setCustomFieldInputValue(input, value);
+                        return;
+                    }
+                    continue;
+                }
+
+                setCustomFieldInputValue(input, value);
+                return;
+            }
+        });
+    };
+
     const populateEntryModalFields = (modalElement, entryData = {}, taxonomyKey = '') => {
         const data = entryData || {};
         const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
@@ -481,6 +566,7 @@
             iconField.value = data.icon || '';
         }
 
+        populateCustomFieldValues(modalElement, data);
     };
 
     const fetchEntryModalData = async (trigger) => {
