@@ -987,25 +987,6 @@ final class FunctionsMod {
         return __( 'The database update failed while saving the group record.', 'modpress' );
     }
     /**
-     * Retrieve a single group record based on the provided ID or key.
-     *
-     * @return array<string, mixed>
-     * @since 1.0.0
-     */
-    public function get_group( string $group_id = '' ): array {
-		GroupsManager::load_group();
-		return array();
-	}
-    /**
-     * Load a group entry for editing.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-	public function get_group_entry(): void {
-		GroupsManager::load_group_entry();
-	}
-    /**
      * Save a group entry.
      *
      * @return void

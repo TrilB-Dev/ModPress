@@ -442,6 +442,12 @@ final class GroupsManager {
 			}
 		}
 
+		error_log( 'ModPress load_group_entry debug: ' . print_r( array(
+			'term'      => $term,
+			'term_meta' => $term_meta,
+			'payload'   => $payload,
+		), true ) );
+
 		wp_send_json_success( $payload );
 	}
 	/**

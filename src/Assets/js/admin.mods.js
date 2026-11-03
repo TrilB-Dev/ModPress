@@ -604,6 +604,12 @@
             nonce: getGroupEntryNonce || '',
         });
 
+        console.log('ModPress group entry AJAX request:', {
+            taxonomyKey,
+            entryId,
+            formData: Object.fromEntries(formData.entries()),
+        });
+
         const response = await fetch(ajaxUrl, {
             method: 'POST',
             credentials: 'same-origin',
@@ -614,6 +620,8 @@
         });
 
         const payload = await response.json();
+        console.log('ModPress group entry AJAX response:', payload);
+
         if (!response.ok || !payload || !payload.success || !payload.data) {
             throw new Error(payload && payload.data && payload.data.message ? payload.data.message : 'Unable to load this entry.');
         }
