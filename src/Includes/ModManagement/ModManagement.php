@@ -50,7 +50,7 @@ final class ModManagement {
 				Taxonomy::register_taxonomies( $dynamic_taxonomies );
 			}
 
-			$group_taxonomies = ( new GroupsManager() )->get_database_group_definitions();
+			$group_taxonomies = ( new GroupsManager() )->get_group_definitions();
 			if ( ! empty( $group_taxonomies ) ) {
 				Taxonomy::register_taxonomies( $group_taxonomies );
 			}
