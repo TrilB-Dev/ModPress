@@ -1101,7 +1101,7 @@ final class ModGroups extends ModManager {
 
 		foreach ( $taxonomy_tabs as $taxonomy ) {
 			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
-			if ( '' === $taxonomy_key || ! taxonomy_exists( $taxonomy_key ) ) {
+			if ( '' === $taxonomy_key ) {
 				continue;
 			}
 
@@ -1112,12 +1112,10 @@ final class ModGroups extends ModManager {
 				)
 			);
 
-			if ( is_wp_error( $terms ) || empty( $terms ) ) {
-				continue;
-			}
-
-			foreach ( $terms as $term ) {
-				$entry_parent_options[ (string) $term->term_id ] = $term->name;
+			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+				foreach ( $terms as $term ) {
+					$entry_parent_options[ (string) $term->term_id ] = $term->name;
+				}
 			}
 
 			$group_fields = $taxonomy['group_fields'] ?? null;

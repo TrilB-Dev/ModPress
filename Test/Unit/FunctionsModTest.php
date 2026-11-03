@@ -347,6 +347,9 @@ namespace ModPress\Tests\Unit {
     final class FunctionsModTest extends TestCase {
         protected function setUp(): void {
             parent::setUp();
+            if ( ! defined( 'MODPRESS_ASSETS_URL' ) ) {
+                define( 'MODPRESS_ASSETS_URL', 'http://example.com/wp-content/plugins/modpress/assets' );
+            }
             $_SERVER['REQUEST_METHOD'] = 'POST';
             $_POST = [];
             $GLOBALS['modpress_test_can_create'] = true;
@@ -417,6 +420,39 @@ namespace ModPress\Tests\Unit {
 
             $this->assertStringContainsString( '<i class="fa fa-trash"></i>', $markup );
             $this->assertStringNotContainsString( '&lt;i class=&quot;fa fa-trash&quot;&gt;', $markup );
+        }
+
+        public function testEntryModalIncludesGroupCustomFieldsBeforeTaxonomyRegistration(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array();
+            $manager = new \ModPress\Admin\Manager\Mods\ModGroups();
+            $method = new \ReflectionMethod( $manager, 'render_entry_modal' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke(
+                $manager,
+                array(
+                    array(
+                        'taxonomy' => 'modpress_new_group',
+                        'key' => 'modpress_new_group',
+                        'group_fields' => json_encode(
+                            array(
+                                array(
+                                    'id' => 'field_1',
+                                    'name' => 'Color',
+                                    'slug' => 'color',
+                                    'type' => 'color',
+                                ),
+                            )
+                        ),
+                    ),
+                ),
+                'modpress_new_group'
+            );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'Color', $html );
+            $this->assertStringContainsString( 'entry_custom_field_field_1', $html );
         }
 
         public function testValidSubmissionIsSanitizedAndInserted(): void {
