@@ -1086,8 +1086,20 @@ final class FunctionsMod {
                 $field_keys = array(
                     'entry_custom_field_' . sanitize_key( $field_id ),
                     'entry_custom_field_' . sanitize_key( $field_slug ),
+                    $field_id,
+                    sanitize_key( $field_id ),
                     $field_slug,
                     sanitize_key( $field_slug ),
+                );
+                $field_keys = array_values(
+                    array_unique(
+                        array_filter(
+                            $field_keys,
+                            static function ( $field_key ) {
+                                return '' !== trim( (string) $field_key );
+                            }
+                        )
+                    )
                 );
 
                 $field_value = null;
@@ -1121,17 +1133,30 @@ final class FunctionsMod {
                 }
 
                 if ( is_array( $field_value ) ) {
-                    $field_value = array_filter( $field_value, static fn( $value ) => '' !== trim( (string) $value ) );
+                    $field_value = array_values(
+                        array_filter(
+                            $field_value,
+                            static function ( $value ) {
+                                return '' !== trim( (string) $value );
+                            }
+                        )
+                    );
                     if ( empty( $field_value ) ) {
-                        delete_term_meta( $saved_term_id, $field_slug );
+                        foreach ( $field_keys as $meta_key ) {
+                            delete_term_meta( $saved_term_id, $meta_key );
+                        }
                         continue;
                     }
                 } elseif ( '' === trim( (string) $field_value ) ) {
-                    delete_term_meta( $saved_term_id, $field_slug );
+                    foreach ( $field_keys as $meta_key ) {
+                        delete_term_meta( $saved_term_id, $meta_key );
+                    }
                     continue;
                 }
 
-                update_term_meta( $saved_term_id, $field_slug, $field_value );
+                foreach ( $field_keys as $meta_key ) {
+                    update_term_meta( $saved_term_id, $meta_key, $field_value );
+                }
             }
 
             if ( '' !== $icon ) {
@@ -1144,6 +1169,7 @@ final class FunctionsMod {
         LoggerHelper::write_log( 'ModPress group entry saved successfully for taxonomy ' . $taxonomy );
         $this->redirect_mod_group_result( true, __( 'Entry saved successfully.', 'modpress' ) );
     }
+
     /**
      * Delete a taxonomy term from the entry modal.
      *

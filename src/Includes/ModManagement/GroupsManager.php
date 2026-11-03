@@ -167,7 +167,6 @@ final class GroupsManager {
 
 		return is_array( $group ) ? $group : array();
 	}
-
 	/**
 	 * Normalize a database group slug into a taxonomy key.
 	 *
@@ -191,6 +190,16 @@ final class GroupsManager {
 		return 0 === strpos( $slug, 'modpress_' ) ? $slug : 'modpress_' . $slug;
 	}
 
+	/**
+	 * Back-compat alias used by the group save path.
+	 *
+	 * @param string $group_slug Raw group slug.
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function get_group_taxonomy_key( string $group_slug ): string {
+		return self::get_group_key( $group_slug );
+	}
 	/**
 	 * Load a group record for AJAX requests.
 	 *
@@ -258,7 +267,6 @@ final class GroupsManager {
 			)
 		);
 	}
-
 	/**
 	 * Retrieve a specific term meta value for a group entry.
 	 *
@@ -294,6 +302,31 @@ final class GroupsManager {
 		if ( '' === $meta_key ) {
 			$term_meta = get_term_meta( $term_id );
 			return is_array( $term_meta ) ? $term_meta : array();
+		}
+
+		$term_meta = get_term_meta( $term_id );
+		$lookup_keys = array_unique(
+			array_filter(
+				array(
+					$meta_key,
+					sanitize_key( $meta_key ),
+					'entry_custom_field_' . sanitize_key( $meta_key ),
+					'field_' . sanitize_key( $meta_key ),
+				),
+				static function ( $key ) {
+					return '' !== trim( (string) $key );
+				}
+			)
+		);
+
+		foreach ( $lookup_keys as $lookup_key ) {
+			if ( is_array( $term_meta ) && array_key_exists( $lookup_key, $term_meta ) ) {
+				$meta_value = $term_meta[ $lookup_key ];
+				if ( is_array( $meta_value ) ) {
+					return array_values( $meta_value );
+				}
+				return $meta_value;
+			}
 		}
 
 		$meta_value = get_term_meta( $term_id, $meta_key, true );
