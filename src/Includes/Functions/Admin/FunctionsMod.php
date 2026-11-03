@@ -1589,7 +1589,7 @@ final class FunctionsMod {
 
         return '';
     }
-      /**
+    /**
      * Redirect back to the Mod Groups screen with a notice.
      *
      * @param bool   $success Whether the save succeeded.
