@@ -29,6 +29,13 @@ namespace {
         }
     }
 
+    if ( ! function_exists( 'absint' ) ) {
+        function absint( $value ): int {
+            $value = (int) $value;
+            return $value < 0 ? abs( $value ) : $value;
+        }
+    }
+
     if ( ! function_exists( '__' ) ) {
         function __( $text, $domain = null ): string {
             return (string) $text;
@@ -208,7 +215,12 @@ namespace {
 
     if ( ! function_exists( 'get_term_meta' ) ) {
         function get_term_meta( $term_id, $key = '', $single = false ) {
-            $values = $GLOBALS['modpress_test_term_meta'][ (int) $term_id ][ $key ] ?? [];
+            $meta = $GLOBALS['modpress_test_term_meta'][ (int) $term_id ] ?? array();
+            if ( '' === $key ) {
+                return $meta;
+            }
+
+            $values = $meta[ $key ] ?? [];
             if ( $single ) {
                 return $values[0] ?? '';
             }
@@ -269,6 +281,19 @@ namespace {
                 echo $output;
             }
             return $output;
+        }
+    }
+
+    if ( ! function_exists( 'check_ajax_referer' ) ) {
+        function check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
+            return true;
+        }
+    }
+
+    if ( ! function_exists( 'wp_send_json_success' ) ) {
+        function wp_send_json_success( $data = null, $status_code = 200 ) {
+            $GLOBALS['modpress_last_json_success'] = $data;
+            return $data;
         }
     }
 }
@@ -1088,6 +1113,59 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'name="entry_custom_field_field_3_mode"', $output );
             $this->assertStringContainsString( 'name="entry_custom_field_field_3"', $output );
             $this->assertStringNotContainsString( 'name="entry_custom_field_image_mode"', $output );
+        }
+
+        public function testGroupEntryAjaxPayloadIncludesFieldIdAliasesForHydration(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array(
+                'modpress_games' => array(
+                    'args' => array( 'hierarchical' => true ),
+                ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_games' => array(
+                    88 => (object) array(
+                        'term_id' => 88,
+                        'name' => 'Skyrim',
+                        'slug' => 'skyrim',
+                        'taxonomy' => 'modpress_games',
+                    ),
+                ),
+            );
+            $GLOBALS['modpress_test_term_meta'] = array(
+                88 => array(
+                    'priority' => array( 'high' ),
+                    'entry_icon' => array( 'dashicons-admin-site-alt3' ),
+                ),
+            );
+            $GLOBALS['modpress_test_db_groups'] = array(
+                array(
+                    'id' => 7,
+                    'group_key' => 'modpress_games',
+                    'group_slug' => 'games',
+                    'group_name' => 'Games',
+                    'group_fields' => json_encode( array(
+                        array(
+                            'id' => 'field_7',
+                            'name' => 'Priority',
+                            'slug' => 'priority',
+                            'type' => 'radio',
+                        ),
+                    ) ),
+                ),
+            );
+
+            $_POST = array(
+                'group_slug' => 'modpress_games',
+                'group_entry_id' => '88',
+                'nonce' => 'valid',
+            );
+            $GLOBALS['modpress_last_json_success'] = null;
+
+            \ModPress\Includes\ModManagement\GroupsManager::load_group_entry();
+
+            $this->assertNotNull( $GLOBALS['modpress_last_json_success'] );
+            $this->assertSame( 'high', $GLOBALS['modpress_last_json_success']['priority'] );
+            $this->assertSame( 'high', $GLOBALS['modpress_last_json_success']['entry_custom_field_field_7'] );
         }
 
         public function testRenderGroupCustomFieldRestoresNestedSavedOptionValues(): void {

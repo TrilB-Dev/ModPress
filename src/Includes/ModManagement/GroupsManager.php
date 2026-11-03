@@ -352,6 +352,63 @@ final class GroupsManager {
 			}
 		}
 
+		$group_row = self::get_group( $taxonomy );
+		$group_fields = array();
+		if ( ! empty( $group_row['group_fields'] ) ) {
+			$decoded_fields = json_decode( (string) $group_row['group_fields'], true );
+			if ( is_array( $decoded_fields ) ) {
+				$group_fields = $decoded_fields;
+			}
+		}
+
+		foreach ( $group_fields as $field ) {
+			if ( ! is_array( $field ) ) {
+				continue;
+			}
+
+			$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+			if ( '' === $field_slug ) {
+				continue;
+			}
+
+			$field_id = trim( (string) ( $field['id'] ?? '' ) );
+			if ( '' === $field_id ) {
+				$field_id = 'field_' . sanitize_key( $field_slug );
+			}
+
+			$meta_value = null;
+			foreach ( array( $field_slug, sanitize_key( $field_slug ), $field_id, sanitize_key( $field_id ) ) as $lookup_key ) {
+				if ( array_key_exists( $lookup_key, $term_meta ) ) {
+					$meta_value = $term_meta[ $lookup_key ];
+					break;
+				}
+			}
+
+			if ( null === $meta_value ) {
+				continue;
+			}
+
+			if ( is_array( $meta_value ) && 1 === count( $meta_value ) ) {
+				$meta_value = $meta_value[0];
+			}
+
+			$aliases = array(
+				$field_slug,
+				sanitize_key( $field_slug ),
+				$field_id,
+				sanitize_key( $field_id ),
+				'entry_custom_field_' . sanitize_key( $field_slug ),
+				'entry_custom_field_' . sanitize_key( $field_id ),
+			);
+
+			foreach ( $aliases as $alias_key ) {
+				if ( '' === trim( (string) $alias_key ) ) {
+					continue;
+				}
+				$payload[ $alias_key ] = $meta_value;
+			}
+		}
+
 		wp_send_json_success( $payload );
 	}
 	/**

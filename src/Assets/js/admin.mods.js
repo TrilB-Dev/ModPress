@@ -500,6 +500,9 @@
                 return;
             }
 
+            const fieldRow = input.closest('.modpress-custom-field-row');
+            const rowFieldId = fieldRow ? (fieldRow.dataset.fieldId || fieldRow.querySelector('[name^="custom_field_id"]')?.value || '') : '';
+            const rowFieldSlug = fieldRow ? (fieldRow.querySelector('[name^="custom_field_slug"]')?.value || '') : '';
             const lookupNames = new Set([
                 name,
                 name.replace(/\[\]$/, ''),
@@ -507,14 +510,26 @@
                 name.replace(/^entry_custom_field_/, '').replace(/_mode$/, ''),
             ]);
 
+            if (rowFieldId) {
+                lookupNames.add(rowFieldId);
+                lookupNames.add(String(rowFieldId).replace(/\[\]$/, ''));
+                lookupNames.add('entry_custom_field_' + String(rowFieldId).replace(/\[\]$/, ''));
+            }
+
+            if (rowFieldSlug) {
+                lookupNames.add(rowFieldSlug);
+                lookupNames.add(String(rowFieldSlug).replace(/\[\]$/, ''));
+                lookupNames.add('entry_custom_field_' + String(rowFieldSlug).replace(/\[\]$/, ''));
+                lookupNames.add(String(rowFieldSlug).replace(/[^a-zA-Z0-9_-]/g, ''));
+            }
+
             for (const [key, value] of Object.entries(data)) {
-                if (!lookupNames.has(key)) {
-                    const keyName = String(key || '').replace(/\[\]$/, '');
-                    if (keyName && (name === 'entry_custom_field_' + keyName || name === 'entry_custom_field_' + keyName.replace(/[^a-zA-Z0-9_-]/g, '')) ) {
-                        setCustomFieldInputValue(input, value);
-                        return;
+                const normalizedKey = String(key || '').replace(/\[\]$/, '');
+                if (!lookupNames.has(key) && !lookupNames.has(normalizedKey)) {
+                    const directNameMatch = name === 'entry_custom_field_' + normalizedKey || name === 'entry_custom_field_' + normalizedKey.replace(/[^a-zA-Z0-9_-]/g, '');
+                    if (!directNameMatch) {
+                        continue;
                     }
-                    continue;
                 }
 
                 setCustomFieldInputValue(input, value);
