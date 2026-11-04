@@ -114,10 +114,27 @@ final class ModGroups extends ModManager {
 				}
 			}
 		}
+		$ajax_request = ( new AjaxHelper() )->create(
+			'GET',
+			'groups',
+			array(
+				'group_entries' => array_keys( $group_entries ),
+			),
+			array(
+				'context' => 'modpress_group_manager',
+			),
+			array(),
+			array(
+				'status' => 'success',
+				'message' => '',
+			)
+		);
 		?>
 		<script>
 		window.modpressManager = window.modpressManager || {};
+		Object.assign( window.modpressManager, <?php echo wp_json_encode( AjaxHelper::script_config() ); ?> );
 		window.modpressManager.groupEntries = <?php echo wp_json_encode( $group_entries ); ?>;
+		window.modpressManager.requestFactory = <?php echo wp_json_encode( $ajax_request ); ?>;
 		</script>
 
 		<div class="modpress-groups-page">

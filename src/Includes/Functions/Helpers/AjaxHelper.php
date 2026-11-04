@@ -7,6 +7,9 @@
  * @since 1.0.0
  */
 namespace ModPress\Includes\Functions\Helpers;
+use ModPress\Includes\Functions\Helpers\LoggerHelper;
+use ModPress\Includes\Functions\Helpers\AlertHelper;
+use ModPress\Includes\Functions\Helpers\LoaderHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

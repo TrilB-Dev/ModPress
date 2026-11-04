@@ -3,12 +3,14 @@
 
     const getConfig = () => {
         const config = window.modpressManager || {};
-        const restUrl = config.restUrl || config.apiRoot || config.requestUrl || (typeof window.wpApiSettings !== 'undefined' ? window.wpApiSettings.root : '/wp-json/');
+        const factory = config.requestFactory || {};
+        const restUrl = config.restUrl || factory.base_url || factory.url || config.apiRoot || config.requestUrl || (typeof window.wpApiSettings !== 'undefined' ? window.wpApiSettings.root : '/wp-json/');
+        const nonce = config.restNonce || config.nonce || factory.nonce || '';
 
         return {
             restUrl: String(restUrl || '/wp-json/').replace(/\/+$/, '') + '/',
-            restNonce: config.restNonce || config.nonce || '',
-            nonce: config.restNonce || config.nonce || '',
+            restNonce: nonce,
+            nonce,
             ...config,
         };
     };
