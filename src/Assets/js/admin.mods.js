@@ -515,23 +515,45 @@
         return lookupNames;
     };
 
+    const flattenEntryDataMap = (source = {}, target = {}) => {
+        if (!source || typeof source !== 'object') {
+            return target;
+        }
+
+        Object.entries(source).forEach(([key, value]) => {
+            if (value && typeof value === 'object' && !Array.isArray(value)) {
+                if (['term', 'custom_fields', 'data', 'meta'].includes(key)) {
+                    flattenEntryDataMap(value, target);
+                    return;
+                }
+            }
+
+            if (value && typeof value === 'object' && !Array.isArray(value) && key.startsWith('entry_custom_field_')) {
+                target[key] = value;
+                target[key.replace(/^entry_custom_field_/, '')] = value;
+                return;
+            }
+
+            if (value && typeof value === 'object' && !Array.isArray(value) && /^field_[a-zA-Z0-9_-]+$/.test(key)) {
+                target[key] = value;
+                target['entry_custom_field_' + key] = value;
+                return;
+            }
+
+            target[key] = value;
+            target[String(key).replace(/\[\]$/, '')] = value;
+        });
+
+        return target;
+    };
+
     const populateCustomFieldValues = (modalElement, data = {}) => {
         const container = modalElement.querySelector('.modpress-entry-custom-fields-container');
         if (!container) {
             return;
         }
 
-        const fieldMap = {};
-        Object.entries(data || {}).forEach(([key, value]) => {
-            const normalizedKey = String(key || '').replace(/\[\]$/, '');
-            fieldMap[key] = value;
-            fieldMap[normalizedKey] = value;
-
-            if (String(key || '').startsWith('entry_custom_field_')) {
-                fieldMap[String(key).replace(/^entry_custom_field_/, '')] = value;
-            }
-        });
-
+        const fieldMap = flattenEntryDataMap(data || {}, {});
         const inputs = container.querySelectorAll('input, select, textarea');
         inputs.forEach((input) => {
             const name = input.name || '';
@@ -544,18 +566,17 @@
             const rowFieldSlug = fieldRow ? (fieldRow.querySelector('[name^="custom_field_slug"]')?.value || '') : '';
             const lookupNames = getCustomFieldLookupNames(name, rowFieldId, rowFieldSlug);
 
-            for (const [key, value] of Object.entries(fieldMap)) {
+            const matchedKey = Object.keys(fieldMap).find((key) => {
                 const normalizedKey = String(key || '').replace(/\[\]$/, '');
-                if (!lookupNames.has(key) && !lookupNames.has(normalizedKey)) {
-                    const directNameMatch = name === 'entry_custom_field_' + normalizedKey || name === 'entry_custom_field_' + normalizedKey.replace(/[^a-zA-Z0-9_-]/g, '');
-                    if (!directNameMatch) {
-                        continue;
-                    }
-                }
+                const candidateNames = getCustomFieldLookupNames(key, rowFieldId, rowFieldSlug);
+                return Array.from(lookupNames).some((lookupName) => candidateNames.has(lookupName) || lookupName === normalizedKey || lookupName === key);
+            });
 
-                setCustomFieldInputValue(input, value);
+            if (!matchedKey) {
                 return;
             }
+
+            setCustomFieldInputValue(input, fieldMap[matchedKey]);
         });
     };
 

@@ -113,14 +113,26 @@
         }
 
         Object.entries(source).forEach(([key, value]) => {
-            if (value && typeof value === 'object' && !Array.isArray(value) && ['term', 'custom_fields', 'data', 'meta'].includes(key)) {
-                flattenEntryPayload(value, target);
-                return;
+            if (value && typeof value === 'object' && !Array.isArray(value)) {
+                if (['term', 'custom_fields', 'data', 'meta'].includes(key)) {
+                    flattenEntryPayload(value, target);
+                    return;
+                }
+
+                if (key.startsWith('entry_custom_field_') || /^field_[a-zA-Z0-9_-]+$/.test(key)) {
+                    target[key] = value;
+                    return;
+                }
             }
 
-            if (value && typeof value === 'object' && !Array.isArray(value) && key === 'custom_fields') {
-                Object.entries(value).forEach(([customKey, customValue]) => {
-                    target[customKey] = customValue;
+            if (Array.isArray(value) && value.length && value.every((item) => item && typeof item === 'object' && !Array.isArray(item))) {
+                value.forEach((item, index) => {
+                    flattenEntryPayload(item, target);
+                    if (typeof item === 'object' && item !== null) {
+                        Object.entries(item).forEach(([itemKey, itemValue]) => {
+                            target[`${key}_${index}_${itemKey}`] = itemValue;
+                        });
+                    }
                 });
                 return;
             }
@@ -137,11 +149,20 @@
         const term = source.term && typeof source.term === 'object' ? source.term : (source && Object.prototype.hasOwnProperty.call(source, 'term_id') ? source : {});
         const customFields = source.custom_fields && typeof source.custom_fields === 'object' ? source.custom_fields : {};
 
-        return {
+        const normalized = {
             ...flattened,
             ...(term && typeof term === 'object' ? term : {}),
             ...(customFields && typeof customFields === 'object' ? customFields : {}),
         };
+
+        Object.entries(customFields).forEach(([key, value]) => {
+            if (key) {
+                normalized[key] = value;
+                normalized[key.replace(/\[\]$/, '')] = value;
+            }
+        });
+
+        return normalized;
     };
 
     window.ModPressAjax = Object.assign(window.ModPressAjax || {}, {
