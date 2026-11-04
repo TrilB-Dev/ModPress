@@ -142,12 +142,97 @@ final class SettingsManager extends Manager {
      * @return void
      */
     private function register_actions(): void {
+        add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
         add_action( 'admin_post_modpress_save_settings', array( $this->settings_functions, 'save_settings' ) );
         add_action( 'admin_post_modpress_save_general_settings', array( $this->settings_functions, 'general_save' ) );
         add_action( 'admin_post_modpress_save_access_settings', array( $this->settings_functions, 'access_save' ) );
         add_action( 'admin_post_modpress_save_layout_settings', array( $this->settings_functions, 'layout_save' ) );
-        add_action( 'wp_ajax_modpress_toggle_plugin', array( $this->plugin_functions, 'toggle_plugin' ) );
-        add_action( 'wp_ajax_modpress_save_plugin_settings', array( $this->plugin_functions, 'save_plugin_settings' ) );
+    }
+
+    /**
+     * Register the REST routes used by the settings manager.
+     *
+     * @return void
+     */
+    public function register_rest_routes(): void {
+        \register_rest_route(
+            'modpress/v1',
+            '/settings/tab/(?P<tab>[a-z0-9_\-]+)',
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array( $this, 'rest_get_tab' ),
+                'permission_callback' => function () {
+                    return current_user_can( 'manage_options' )
+                        || current_user_can( 'modpress_settings_general_view' )
+                        || current_user_can( 'modpress_settings_layout_view' )
+                        || current_user_can( 'modpress_settings_access_view' )
+                        || current_user_can( 'modpress_settings_plugins_view' );
+                },
+                'args' => array(
+                    'tab' => array(
+                        'required' => true,
+                        'sanitize_callback' => 'sanitize_key',
+                    ),
+                    'layout_section' => array(
+                        'required' => false,
+                        'sanitize_callback' => 'sanitize_key',
+                    ),
+                ),
+            )
+        );
+
+        \register_rest_route(
+            'modpress/v1',
+            '/plugins/toggle',
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array( $this->plugin_functions, 'rest_toggle_plugin' ),
+                'permission_callback' => function () {
+                    return current_user_can( 'manage_options' )
+                        || current_user_can( 'modpress_settings_plugins_int_edit' )
+                        || current_user_can( 'modpress_settings_plugins_ext_edit' );
+                },
+            )
+        );
+
+        \register_rest_route(
+            'modpress/v1',
+            '/plugins/settings',
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array( $this->plugin_functions, 'rest_save_plugin_settings' ),
+                'permission_callback' => function () {
+                    return current_user_can( 'manage_options' )
+                        || current_user_can( 'modpress_settings_plugins_int_edit' )
+                        || current_user_can( 'modpress_settings_plugins_ext_edit' );
+                },
+            )
+        );
+    }
+
+    /**
+     * Render a settings tab via REST.
+     *
+     * @param \WP_REST_Request $request Request instance.
+     * @return \WP_REST_Response
+     */
+    public function rest_get_tab( \WP_REST_Request $request ) {
+        $tab = $this->normalize_tab( (string) $request->get_param( 'tab' ) );
+        $layout_section = in_array( (string) ( $request->get_param( 'layout_section' ) ?: 'general' ), array( 'general', 'search', 'sidebar', 'page' ), true )
+            ? (string) $request->get_param( 'layout_section' )
+            : 'general';
+
+        ob_start();
+        $this->render_tab_content( $tab, $layout_section );
+        $html = ob_get_clean();
+
+        return \rest_ensure_response(
+            array(
+                'tab' => $tab,
+                'layout_section' => $layout_section,
+                'html' => $html,
+            )
+        );
     }
     /**
      * Register the settings page asset bundles.

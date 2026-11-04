@@ -96,22 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const enabled = toggle.checked;
         toggle.disabled = true;
 
-        const body = new URLSearchParams({
-            action: 'modpress_toggle_plugin',
+        window.ModPressAjax.request({
+            route: 'plugins/toggle',
             nonce: config.pluginNonce,
             slug: toggle.dataset.pluginSlug || '',
-            enabled: enabled ? '1' : '0'
-        });
-
-        fetch(config.ajaxUrl, {
+            enabled: enabled ? '1' : '0',
             method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-            body
-        })
-        .then((response) => response.json())
-        .then((response) => {
-            if (!response.success) throw new Error('Unable to save plugin state');
         })
         .catch(() => {
             toggle.checked = !enabled;
@@ -177,28 +167,21 @@ document.addEventListener('DOMContentLoaded', () => {
         body.set('plugin_settings', JSON.stringify(settings));
 
         debugLog('savePluginSettings: sending request', {
-            url: config.ajaxUrl,
+            route: 'plugins/settings',
             slug: form.dataset.pluginSlug || '',
             settings
         });
 
-        fetch(config.ajaxUrl, {
+        window.ModPressAjax.request({
+            route: 'plugins/settings',
+            nonce: config.pluginSettingsNonce || '',
+            slug: form.dataset.pluginSlug || '',
+            settings,
+            plugin_settings: settings,
             method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-            body
         })
-        .then((response) => {
-            debugLog('savePluginSettings: response received', { status: response.status, ok: response.ok });
-            return response.json();
-        })
-        .then((response) => {
-            debugLog('savePluginSettings: response payload', response);
-            if (!response.success) {
-                const error = new Error(response.data?.message || 'Unable to save plugin settings');
-                error.alert = response.data?.alert;
-                throw error;
-            }
+        .then(() => {
+            debugLog('savePluginSettings: response received');
             return closePluginModal(modal).then(() => {
                 window.location.reload();
             });
@@ -208,7 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (saveButton) {
                 resetSavingButton(saveButton);
             }
-            showPluginNotice(error.alert);
+            if (error && error.message) {
+                showPluginNotice(error.message);
+            }
         })
         .finally(() => {
             if (saveButton) {

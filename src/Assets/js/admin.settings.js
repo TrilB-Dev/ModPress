@@ -102,16 +102,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentContent = panel.querySelector('.modpress-settings-tab-content');
     if (currentContent) currentContent.classList.add('is-loading');
     panel.setAttribute('aria-busy', 'true');
-    const body = new URLSearchParams({ action: 'modpress_load_settings_tab', nonce: config.nonce, tab, layout_section: section });
-    fetch(config.ajaxUrl, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }, body })
-      .then((response) => response.json())
+    window.ModPressAjax.request({
+      route: `settings/tab/${encodeURIComponent(tab)}`,
+      nonce: config.nonce,
+      tab,
+      layout_section: section,
+      method: 'GET',
+    })
       .then((response) => {
-        if (!response.success || !response.data.html) throw new Error('Unable to load settings tab');
-        panel.innerHTML = response.data.html;
-        panel.dataset.currentTab = response.data.tab;
-        panel.dataset.currentSection = response.data.layout_section;
-        setActive(response.data.tab, response.data.layout_section);
-        if (updateHash) window.history.pushState({}, '', `${window.location.pathname}${window.location.search}#${response.data.tab === 'layout' ? `layout-${response.data.layout_section}` : response.data.tab}`);
+        if (!response || !response.html) throw new Error('Unable to load settings tab');
+        panel.innerHTML = response.html;
+        panel.dataset.currentTab = response.tab;
+        panel.dataset.currentSection = response.layout_section;
+        setActive(response.tab, response.layout_section);
+        if (updateHash) window.history.pushState({}, '', `${window.location.pathname}${window.location.search}#${response.tab === 'layout' ? `layout-${response.layout_section}` : response.tab}`);
         bindForms();
         const nextContent = panel.querySelector('.modpress-settings-tab-content');
         if (nextContent) requestAnimationFrame(() => nextContent.classList.remove('is-loading'));

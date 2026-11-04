@@ -50,6 +50,46 @@ final class FunctionsPlugins {
     }
 
     /**
+     * REST toggle endpoint for plugin activation state.
+     *
+     * @param \WP_REST_Request $request Request object.
+     * @return \WP_REST_Response
+     */
+    public function rest_toggle_plugin( \WP_REST_Request $request ) {
+        $slug = $this->resolve_plugin_slug( (string) ( $request->get_param( 'slug' ) ?? '' ) );
+        $enabled = ! empty( $request->get_param( 'enabled' ) );
+        $plugin = Plugins::get_instance()->get_registered_plugins()[ $slug ] ?? null;
+
+        if ( ! $plugin instanceof PluginInterface ) {
+            return new \WP_REST_Response(
+                array( 'message' => __( 'The requested ModPress plugin was not found.', 'modpress' ) ),
+                404
+            );
+        }
+
+        if ( ! $this->is_internal_plugin( $plugin ) ) {
+            return new \WP_REST_Response(
+                array( 'message' => __( 'You are not authorized to manage external ModPress plugins.', 'modpress' ) ),
+                403
+            );
+        }
+
+        if ( ! Plugins::get_instance()->set_plugin_enabled( $slug, $enabled ) ) {
+            return new \WP_REST_Response(
+                array( 'message' => __( 'The ModPress plugin state could not be saved.', 'modpress' ) ),
+                500
+            );
+        }
+
+        return rest_ensure_response(
+            array(
+                'slug' => $slug,
+                'enabled' => $enabled,
+            )
+        );
+    }
+
+    /**
      * Save settings submitted from a ModPress plugin modal.
      *
      * @return void
@@ -143,6 +183,61 @@ final class FunctionsPlugins {
                     'alert' => AlertHelper::get_admin_notice( $message, 'error' ),
                     'details' => $exception->getMessage(),
                 ],
+                500
+            );
+        }
+    }
+
+    /**
+     * REST save endpoint for plugin settings.
+     *
+     * @param \WP_REST_Request $request Request object.
+     * @return \WP_REST_Response
+     */
+    public function rest_save_plugin_settings( \WP_REST_Request $request ) {
+        try {
+            $slug = $this->resolve_plugin_slug( (string) ( $request->get_param( 'slug' ) ?? $request->get_param( 'plugin_slug' ) ?? '' ) );
+            if ( '' === $slug ) {
+                return new \WP_REST_Response( array( 'message' => __( 'The ModPress plugin slug is missing.', 'modpress' ) ), 400 );
+            }
+
+            $plugin = Plugins::get_instance()->get_registered_plugins()[ $slug ] ?? null;
+            if ( ! $plugin instanceof PluginInterface || ! $plugin instanceof SettingsPageProviderInterface ) {
+                return new \WP_REST_Response( array( 'message' => __( 'The requested ModPress plugin settings were not found.', 'modpress' ) ), 404 );
+            }
+
+            $input = $request->get_param( 'settings' );
+            if ( ! is_array( $input ) ) {
+                $input = $request->get_json_params();
+            }
+            if ( ! is_array( $input ) ) {
+                $input = array();
+            }
+
+            $settings = $plugin->sanitize_settings( $this->normalize_plugin_settings_input( $input ) );
+            $page = $plugin->get_settings_page();
+            $group = sanitize_key( $page['slug'] ?? $slug );
+            if ( '' === $group ) {
+                return new \WP_REST_Response( array( 'message' => __( 'The ModPress plugin settings group could not be resolved.', 'modpress' ) ), 400 );
+            }
+
+            if ( ! Settings::set_group( $group, $settings ) ) {
+                return new \WP_REST_Response( array( 'message' => __( 'The ModPress plugin settings could not be saved.', 'modpress' ) ), 500 );
+            }
+
+            return rest_ensure_response(
+                array(
+                    'slug' => $slug,
+                    'settings' => $settings,
+                    'message' => __( 'Plugin settings saved successfully.', 'modpress' ),
+                )
+            );
+        } catch ( \Throwable $exception ) {
+            return new \WP_REST_Response(
+                array(
+                    'message' => __( 'The ModPress plugin settings save failed unexpectedly.', 'modpress' ),
+                    'details' => $exception->getMessage(),
+                ),
                 500
             );
         }

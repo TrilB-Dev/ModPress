@@ -250,7 +250,7 @@ class Assets {
 						array(
 							'handle'    => 'modpress-admin-ui',
 							'src'       => MODPRESS_ASSETS_URL . '/dist/js/admin.ui.js',
-							'deps'      => array( 'modpress-bootstrap' ),
+							'deps'      => array( 'modpress-bootstrap', 'modpress-admin-ajax' ),
 							'in_footer' => true,
 						),
 					),
@@ -310,51 +310,6 @@ class Assets {
 			}
 		}
 
-		if ( wp_script_is( 'modpress-admin-ui', 'enqueued' ) ) {
-			LoaderHelper::localize_script(
-				'modpress-admin-ui',
-				'modpressOnboarding',
-				array(
-					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => wp_create_nonce( 'modpress_dismiss_onboarding' ),
-				)
-			);
-		}
-
-		$route = $this->current_admin_route();
-		$settings_page = 'modpress' === $route['page'] && 'settings' === $route['group'];
-		$plugin_tab = in_array( $route['tab'], array( 'plugins', 'third-party' ), true );
-
-		if ( $settings_page && $plugin_tab ) {
-			$settings_config = array(
-				'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
-				'nonce'               => wp_create_nonce( 'modpress_settings_tabs' ),
-				'pluginNonce'         => wp_create_nonce( 'modpress_plugin_toggle' ),
-				'pluginSettingsNonce' => wp_create_nonce( 'modpress_save_plugin_settings' ),
-			);
-			foreach ( array( 'modpress-admin-settings', 'modpress-admin-plugins' ) as $handle ) {
-				if ( wp_script_is( $handle, 'enqueued' ) ) {
-					LoaderHelper::localize_script( $handle, 'modpressSettingsTabs', $settings_config );
-				}
-			}
-		}
-		$mod_manager_handles = array( 'modpress-admin-mods', 'modpress-admin' );
-		if ( 'modpress' === $route['page'] && in_array( $route['group'], array( 'manage-mod', 'mods' ), true ) ) {
-			foreach ( $mod_manager_handles as $handle ) {
-				if ( wp_script_is( $handle, 'enqueued' ) ) {
-					LoaderHelper::localize_script(
-						$handle,
-						'modpressManager',
-						array(
-							'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
-							'nonce'              => wp_create_nonce( 'modpress_manage' ),
-							'getGroupNonce'      => wp_create_nonce( 'modpress_get_group' ),
-							'getGroupEntryNonce' => wp_create_nonce( 'modpress_get_group_entry' ),
-						)
-					);
-				}
-			}
-		}
 	}
 
 	/**

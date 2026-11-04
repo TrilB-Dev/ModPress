@@ -386,17 +386,6 @@
         }
     };
 
-    const getModpressAjaxConfig = () => {
-        const config = window.modpressManager || {};
-        const ajaxUrl = config.ajaxUrl || (typeof window.ajaxurl !== 'undefined' ? window.ajaxurl : '/wp-admin/admin-ajax.php');
-
-        return {
-            ajaxUrl,
-            getGroupNonce: config.getGroupNonce || config.nonce || '',
-            getGroupEntryNonce: config.getGroupEntryNonce || config.nonce || '',
-        };
-    };
-
     const loadGroupEntriesPage = async (link) => {
         if (!link) {
             return false;
@@ -596,37 +585,17 @@
             return null;
         }
 
-        const { ajaxUrl, getGroupEntryNonce } = getModpressAjaxConfig();
-        const formData = new URLSearchParams({
-            action: 'modpress_get_group_entry',
-            group_slug: taxonomyKey,
-            group_entry_id: String(entryId),
-            nonce: getGroupEntryNonce || '',
-        });
-
-        console.log('ModPress group entry AJAX request:', {
-            taxonomyKey,
-            entryId,
-            formData: Object.fromEntries(formData.entries()),
-        });
-
-        const response = await fetch(ajaxUrl, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            },
-            body: formData.toString(),
-        });
-
-        const payload = await response.json();
-        console.log('ModPress group entry AJAX response:', payload);
-
-        if (!response.ok || !payload || !payload.success || !payload.data) {
-            throw new Error(payload && payload.data && payload.data.message ? payload.data.message : 'Unable to load this entry.');
+        if (!window.ModPressAjax || typeof window.ModPressAjax.request !== 'function') {
+            throw new Error('The ModPress AJAX helper is unavailable.');
         }
 
-        return payload.data;
+        const payload = await window.ModPressAjax.request({
+            route: 'groups/' + encodeURIComponent(String(taxonomyKey || '')) + '/entries/' + encodeURIComponent(String(entryId)),
+            method: 'GET',
+            nonce: (window.modpressManager && (window.modpressManager.restNonce || window.modpressManager.nonce)) || '',
+        });
+
+        return window.ModPressAjax.normalizeEntryPayload(payload);
     };
 
     const populateParentEntryOptions = (entries, selectedValues = [], modal = document.getElementById('modpress-group-modal')) => {
@@ -1125,29 +1094,18 @@
             return null;
         }
 
-        const { ajaxUrl, getGroupNonce } = getModpressAjaxConfig();
-        const formData = new URLSearchParams({
-            action: 'modpress_get_group',
-            group_id: String(groupId || ''),
-            group_key: String(groupKey || ''),
-            nonce: getGroupNonce || '',
-        });
-
-        const response = await fetch(ajaxUrl, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            },
-            body: formData.toString(),
-        });
-
-        const payload = await response.json();
-        if (!response.ok || !payload || !payload.success || !payload.data) {
-            throw new Error(payload && payload.data && payload.data.message ? payload.data.message : 'Unable to load this group.');
+        if (!window.ModPressAjax || typeof window.ModPressAjax.request !== 'function') {
+            throw new Error('The ModPress AJAX helper is unavailable.');
         }
 
-        return payload.data;
+        const query = String(groupKey || groupId || '').trim();
+        return window.ModPressAjax.request({
+            route: query ? 'groups/' + encodeURIComponent(query) : 'groups',
+            method: 'GET',
+            group_id: groupId ? String(groupId) : '',
+            group_key: groupKey ? String(groupKey) : '',
+            nonce: (window.modpressManager && (window.modpressManager.restNonce || window.modpressManager.nonce)) || '',
+        });
     };
 
     const populateGroupModalFields = (modalElement, groupData = {}) => {

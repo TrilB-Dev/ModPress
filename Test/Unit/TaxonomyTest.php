@@ -56,8 +56,10 @@ namespace {
         }
     }
 
-    function absint( $maybeint ): int {
-        return abs( (int) $maybeint );
+    if ( ! function_exists( 'absint' ) ) {
+        function absint( $maybeint ): int {
+            return abs( (int) $maybeint );
+        }
     }
 
     if ( ! function_exists( '__' ) ) {
@@ -103,21 +105,25 @@ namespace {
         }
     }
 
-    function register_taxonomy( $taxonomy, $post_type, $args = [] ) {
-        $GLOBALS['modpress_test_taxonomies'][ $taxonomy ] = [
-            'post_type' => $post_type,
-            'args' => $args,
-        ];
-        return (object) [ 'name' => $taxonomy ];
+    if ( ! function_exists( 'register_taxonomy' ) ) {
+        function register_taxonomy( $taxonomy, $post_type, $args = [] ) {
+            $GLOBALS['modpress_test_taxonomies'][ $taxonomy ] = [
+                'post_type' => $post_type,
+                'args' => $args,
+            ];
+            return (object) [ 'name' => $taxonomy ];
+        }
     }
 
-    function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ): bool {
-        $GLOBALS['modpress_test_filters'][ $hook_name ][] = [
-            'callback' => $callback,
-            'priority' => $priority,
-            'accepted_args' => $accepted_args,
-        ];
-        return true;
+    if ( ! function_exists( 'add_filter' ) ) {
+        function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ): bool {
+            $GLOBALS['modpress_test_filters'][ $hook_name ][] = [
+                'callback' => $callback,
+                'priority' => $priority,
+                'accepted_args' => $accepted_args,
+            ];
+            return true;
+        }
     }
 
     if ( ! function_exists( 'apply_filters' ) ) {
@@ -131,51 +137,59 @@ namespace {
         }
     }
 
-    function term_exists( $term, $taxonomy = '', $parent_term = null ) {
-        foreach ( $GLOBALS['modpress_test_terms'][ $taxonomy ] ?? [] as $stored_term ) {
-            if ( (string) $stored_term->slug === (string) $term || (int) $stored_term->term_id === (int) $term ) {
-                if ( null === $parent_term || (int) $stored_term->parent === (int) $parent_term ) {
-                    return [ 'term_id' => $stored_term->term_id ];
+    if ( ! function_exists( 'term_exists' ) ) {
+        function term_exists( $term, $taxonomy = '', $parent_term = null ) {
+            foreach ( $GLOBALS['modpress_test_terms'][ $taxonomy ] ?? [] as $stored_term ) {
+                if ( (string) $stored_term->slug === (string) $term || (int) $stored_term->term_id === (int) $term ) {
+                    if ( null === $parent_term || (int) $stored_term->parent === (int) $parent_term ) {
+                        return [ 'term_id' => $stored_term->term_id ];
+                    }
                 }
             }
-        }
 
-        return 0;
+            return 0;
+        }
     }
 
-    function wp_insert_term( $term, $taxonomy, $args = [] ) {
-        $slug = $args['slug'] ?? sanitize_title( $term );
-        $existing = term_exists( $slug, $taxonomy );
-        if ( $existing ) {
-            return $existing;
-        }
-
-        $term_id = $GLOBALS['modpress_test_next_term_id']++;
-        $GLOBALS['modpress_test_terms'][ $taxonomy ][] = (object) [
-            'term_id' => $term_id,
-            'slug' => $slug,
-            'name' => $term,
-            'parent' => (int) ( $args['parent'] ?? 0 ),
-        ];
-
-        return [ 'term_id' => $term_id ];
-    }
-
-    function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
-        foreach ( $GLOBALS['modpress_test_terms'][ $taxonomy ] ?? [] as $stored_term ) {
-            if ( (int) $stored_term->term_id === (int) $term ) {
-                return $stored_term;
+    if ( ! function_exists( 'wp_insert_term' ) ) {
+        function wp_insert_term( $term, $taxonomy, $args = [] ) {
+            $slug = $args['slug'] ?? sanitize_title( $term );
+            $existing = term_exists( $slug, $taxonomy );
+            if ( $existing ) {
+                return $existing;
             }
-        }
 
-        return null;
+            $term_id = $GLOBALS['modpress_test_next_term_id']++;
+            $GLOBALS['modpress_test_terms'][ $taxonomy ][] = (object) [
+                'term_id' => $term_id,
+                'slug' => $slug,
+                'name' => $term,
+                'parent' => (int) ( $args['parent'] ?? 0 ),
+            ];
+
+            return [ 'term_id' => $term_id ];
+        }
     }
 
-    function wp_get_object_terms( $object_ids, $taxonomies, $args = [] ) {
-        $object_id = (int) $object_ids;
-        $taxonomy = (string) $taxonomies;
-        $term_ids = $GLOBALS['modpress_test_object_terms'][ $object_id ][ $taxonomy ] ?? [];
-        return 'ids' === ( $args['fields'] ?? '' ) ? $term_ids : [];
+    if ( ! function_exists( 'get_term' ) ) {
+        function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
+            foreach ( $GLOBALS['modpress_test_terms'][ $taxonomy ] ?? [] as $stored_term ) {
+                if ( (int) $stored_term->term_id === (int) $term ) {
+                    return $stored_term;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    if ( ! function_exists( 'wp_get_object_terms' ) ) {
+        function wp_get_object_terms( $object_ids, $taxonomies, $args = [] ) {
+            $object_id = (int) $object_ids;
+            $taxonomy = (string) $taxonomies;
+            $term_ids = $GLOBALS['modpress_test_object_terms'][ $object_id ][ $taxonomy ] ?? [];
+            return 'ids' === ( $args['fields'] ?? '' ) ? $term_ids : [];
+        }
     }
 }
 

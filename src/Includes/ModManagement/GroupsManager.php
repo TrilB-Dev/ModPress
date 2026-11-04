@@ -201,33 +201,26 @@ final class GroupsManager {
 		return self::get_group_key( $group_slug );
 	}
 	/**
-	 * Load a group record for AJAX requests.
+	 * Load a group record over the WordPress REST API.
 	 *
-	 * @return void
+	 * @param \WP_REST_Request $request Request payload.
+	 * @return \WP_REST_Response|\WP_Error
 	 * @since 1.0.0
 	 */
-	public static function load_group(): void {
+	public static function rest_get_group( \WP_REST_Request $request ) {
 		if ( ! current_user_can( 'modpress_manager_groups_view' ) && ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress groups.', 'modpress' ) ), 403 );
+			return new \WP_Error( 'modpress_rest_forbidden', __( 'You are not allowed to view ModPress groups.', 'modpress' ), array( 'status' => 403 ) );
 		}
 
-		if ( ! empty( $_POST['nonce'] ) ) {
-			check_ajax_referer( 'modpress_get_group', 'nonce' );
-		} elseif ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 
-				array( 
-					'message' => __( 'The selected group could not be loaded.', 'modpress' ) 
-				), 
-				403 
-			);
+		$group_key = sanitize_key( (string) ( $request->get_param( 'group_key' ) ?? '' ) );
+		$group_id  = absint( $request->get_param( 'group_id' ) ?? 0 );
+		if ( '' === $group_key && $group_id <= 0 ) {
+			return new \WP_Error( 'modpress_group_not_found', __( 'The selected group could not be found.', 'modpress' ), array( 'status' => 404 ) );
 		}
 
-		$group_id  = RequestHelper::integer( $_POST, 'group_id', 0 );
-		$group_key = RequestHelper::key( $_POST, 'group_key', '' );
 		$group_row = self::get_group( $group_id > 0 ? $group_id : $group_key );
-
 		if ( empty( $group_row ) ) {
-			wp_send_json_error( array( 'message' => __( 'The selected group could not be found.', 'modpress' ) ), 404 );
+			return new \WP_Error( 'modpress_group_not_found', __( 'The selected group could not be found.', 'modpress' ), array( 'status' => 404 ) );
 		}
 
 		$serialized_parent_ids = is_string( $group_row['group_parent'] ?? '' ) ? @unserialize( (string) ( $group_row['group_parent'] ?? '' ) ) : null;
@@ -252,7 +245,7 @@ final class GroupsManager {
 			}
 		}
 
-		wp_send_json_success(
+		return rest_ensure_response(
 			array(
 				'group_id'            => abs( (int) ( $group_row['id'] ?? 0 ) ),
 				'group_key'           => (string) ( $group_row['group_key'] ?? $group_key ),
@@ -338,51 +331,26 @@ final class GroupsManager {
 	}
 
 	/**
-	 * Load a specific group entry for AJAX requests.
+	 * Load a specific group entry through the WordPress REST API.
 	 *
-	 * @return void
+	 * @param \WP_REST_Request $request Request payload.
+	 * @return \WP_REST_Response|\WP_Error
 	 * @since 1.0.0
 	 */
-	public static function load_group_entry(): void {
+	public static function rest_get_group_entry( \WP_REST_Request $request ) {
 		if ( ! current_user_can( 'modpress_manager_groups_view' ) && ! current_user_can( 'modpress_manager_groups_edit' ) && ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to view ModPress group entries.', 'modpress' ) ), 403 );
+			return new \WP_Error( 'modpress_rest_forbidden', __( 'You are not allowed to view ModPress group entries.', 'modpress' ), array( 'status' => 403 ) );
 		}
 
-		if ( ! empty( $_POST['nonce'] ) ) {
-			check_ajax_referer( 'modpress_get_group_entry', 'nonce' );
-		} elseif ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'The selected entry could not be loaded.', 'modpress' ) ), 403 );
-		}
-
-		$taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
-		$term_id  = RequestHelper::integer( $_POST, 'group_entry_id', 0 );
+		$taxonomy = sanitize_key( (string) ( $request->get_param( 'group_key' ) ?? '' ) );
+		$term_id  = absint( $request->get_param( 'group_entry_id' ) ?? 0 );
 		if ( '' === $taxonomy || $term_id <= 0 ) {
-			wp_send_json_error( array( 'message' => __( 'The selected entry could not be found.', 'modpress' ) ), 400 );
+			return new \WP_Error( 'modpress_group_entry_not_found', __( 'The selected entry could not be found.', 'modpress' ), array( 'status' => 400 ) );
 		}
 
 		$term = get_term( $term_id, $taxonomy );
 		if ( ! $term || is_wp_error( $term ) ) {
-			wp_send_json_error( array( 'message' => __( 'The selected entry could not be found.', 'modpress' ) ), 404 );
-		}
-
-		$term_meta = get_term_meta( $term_id );
-		$payload   = array(
-			'term_id'    => $term_id,
-			'name'       => $term->name ?? '',
-			'slug'       => $term->slug ?? '',
-			'description'=> $term->description ?? '',
-			'parent'     => (int) ( $term->parent ?? 0 ),
-			'icon'       => is_array( $term_meta['entry_icon'] ?? null ) ? (string) ( $term_meta['entry_icon'][0] ?? '' ) : (string) ( $term_meta['entry_icon'] ?? '' ),
-		);
-
-		if ( is_array( $term_meta ) ) {
-			foreach ( $term_meta as $meta_key => $meta_value ) {
-				if ( is_array( $meta_value ) && 1 === count( $meta_value ) ) {
-					$payload[ $meta_key ] = $meta_value[0];
-					continue;
-				}
-				$payload[ $meta_key ] = $meta_value;
-			}
+			return new \WP_Error( 'modpress_group_entry_not_found', __( 'The selected entry could not be found.', 'modpress' ), array( 'status' => 404 ) );
 		}
 
 		$group_row = self::get_group( $taxonomy );
@@ -394,6 +362,7 @@ final class GroupsManager {
 			}
 		}
 
+		$custom_field_values = array();
 		foreach ( $group_fields as $field ) {
 			if ( ! is_array( $field ) ) {
 				continue;
@@ -409,46 +378,46 @@ final class GroupsManager {
 				$field_id = 'field_' . sanitize_key( $field_slug );
 			}
 
-			$meta_value = null;
-			foreach ( array( $field_slug, sanitize_key( $field_slug ), $field_id, sanitize_key( $field_id ) ) as $lookup_key ) {
-				if ( array_key_exists( $lookup_key, $term_meta ) ) {
-					$meta_value = $term_meta[ $lookup_key ];
-					break;
-				}
-			}
-
-			if ( null === $meta_value ) {
+			$meta_value = self::get_group_entry( $term_id, $taxonomy, $field_slug );
+			if ( null === $meta_value || ( '' === $meta_value && ! in_array( $field_slug, array_keys( $custom_field_values ), true ) ) ) {
 				continue;
 			}
 
-			if ( is_array( $meta_value ) && 1 === count( $meta_value ) ) {
-				$meta_value = $meta_value[0];
-			}
-
-			$aliases = array(
-				$field_slug,
-				sanitize_key( $field_slug ),
-				$field_id,
-				sanitize_key( $field_id ),
-				'entry_custom_field_' . sanitize_key( $field_slug ),
-				'entry_custom_field_' . sanitize_key( $field_id ),
+			$canonical_keys = array_unique(
+				array_filter(
+					array(
+						$field_slug,
+						sanitize_key( $field_slug ),
+						$field_id,
+						sanitize_key( $field_id ),
+						'entry_custom_field_' . sanitize_key( $field_slug ),
+						'entry_custom_field_' . sanitize_key( $field_id ),
+					),
+					static function ( $key ) {
+						return '' !== trim( (string) $key );
+					}
+				)
 			);
 
-			foreach ( $aliases as $alias_key ) {
-				if ( '' === trim( (string) $alias_key ) ) {
-					continue;
-				}
-				$payload[ $alias_key ] = $meta_value;
+			foreach ( $canonical_keys as $canonical_key ) {
+				$custom_field_values[ $canonical_key ] = $meta_value;
 			}
 		}
 
-		error_log( 'ModPress load_group_entry debug: ' . print_r( array(
-			'term'      => $term,
-			'term_meta' => $term_meta,
-			'payload'   => $payload,
-		), true ) );
-
-		wp_send_json_success( $payload );
+		return rest_ensure_response(
+			array(
+				'term'          => array(
+					'term_id'     => $term_id,
+					'name'        => $term->name ?? '',
+					'slug'        => $term->slug ?? '',
+					'description' => $term->description ?? '',
+					'parent'      => (int) ( $term->parent ?? 0 ),
+					'icon'        => is_array( get_term_meta( $term_id, 'entry_icon', true ) ) ? '' : (string) ( get_term_meta( $term_id, 'entry_icon', true ) ?? '' ),
+					'taxonomy'    => $taxonomy,
+				),
+				'custom_fields' => $custom_field_values,
+			)
+		);
 	}
 	/**
 	 * Get a grouped view of the registered taxonomy structure.

@@ -11,6 +11,7 @@
 namespace ModPress\Admin\Manager\Mods;
 
 use ModPress\Includes\Functions\Admin\FunctionsMod;
+use ModPress\Includes\Functions\Helpers\AjaxHelper;
 use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Functions\Helpers\DBHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
@@ -30,6 +31,7 @@ final class ModGroups extends ModManager {
 	 * @return void
 	 */
 	public function render_page_content(): void {
+		$ajax = new AjaxHelper();
 		$flash_notice = FunctionsMod::consume_admin_notice_flash();
 		if ( ! empty( $flash_notice['message'] ) ) {
 			AlertHelper::render_admin_notice( $flash_notice['message'], $flash_notice['type'] );
@@ -1134,29 +1136,9 @@ final class ModGroups extends ModManager {
 		}
 		$modal_title = (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ? __( 'Edit Entry', 'modpress' ) : __( 'Add Entry', 'modpress' );
 		$selected_group_fields = $group_field_config[ $selected_group_key ] ?? array();
-		$selected_group_values = array();
-		if ( '' !== $selected_group_key && (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ) {
-			foreach ( $selected_group_fields as $field ) {
-				if ( ! is_array( $field ) ) {
-					continue;
-				}
-				$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
-				if ( '' === $field_slug ) {
-					continue;
-				}
-				$field_id = trim( (string) ( $field['id'] ?? '' ) );
-				if ( '' === $field_id ) {
-					$field_id = 'field_' . sanitize_key( $field_slug );
-				}
-				$field_name_key = 'entry_custom_field_' . sanitize_key( $field_id );
-				$meta_value = GroupsManager::get_group_entry( (int) $selected_entry['term_id'], $selected_group_key, $field_slug );
-				$selected_group_values[ $field_slug ] = $meta_value;
-				$selected_group_values[ $field_name_key ] = $meta_value;
-			}
-		}
 		?>
 		<?php $modal_id = 'modpress-entry-modal-' . sanitize_html_class( (string) ( $selected_group_key ?: ( $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'default' ) ) ); ?>
-		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-field-config='<?php echo esc_attr( wp_json_encode( $group_field_config ) ); ?>'>
+		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content" style="overflow-y: scroll;">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -1246,7 +1228,7 @@ final class ModGroups extends ModManager {
 									<td>
 										<div class="modpress-entry-custom-fields-container">
 											<?php foreach ( $selected_group_fields as $field ) : ?>
-											<?php echo FunctionsMod::render_group_custom_field( $field, $selected_group_values ); ?>
+											<?php echo FunctionsMod::render_group_custom_field( $field, array() ); ?>
 											<?php endforeach; ?>
 										</div>
 									</td>
