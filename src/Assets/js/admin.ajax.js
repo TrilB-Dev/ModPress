@@ -1,4 +1,4 @@
-(function () {
+(() => {
     'use strict';
 
     const getConfig = () => {
@@ -106,13 +106,13 @@
     };
 
     const normalizeEntryPayload = (data = {}) => {
-        const source = data && typeof data === 'object' ? data : {};
-        const term = source.term && typeof source.term === 'object' ? source.term : {};
+        const source = data && typeof data === 'object' && data.data && typeof data.data === 'object' ? data.data : (data && typeof data === 'object' ? data : {});
+        const term = source.term && typeof source.term === 'object' ? source.term : (source && Object.prototype.hasOwnProperty.call(source, 'term_id') ? source : {});
         const customFields = source.custom_fields && typeof source.custom_fields === 'object' ? source.custom_fields : {};
 
         return {
-            ...term,
-            ...customFields,
+            ...(term && typeof term === 'object' ? term : {}),
+            ...(customFields && typeof customFields === 'object' ? customFields : {}),
         };
     };
 

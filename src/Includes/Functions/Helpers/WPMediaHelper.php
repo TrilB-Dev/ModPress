@@ -167,7 +167,7 @@ final class WPMediaHelper {
 	 * @return void
 	 */
 	private static function register_and_enqueue_script(): void {
-		if ( function_exists( 'wp_enqueue_media' ) && ! did_action( 'wp_enqueue_media' ) ) {
+		if ( function_exists( 'wp_enqueue_media' ) && function_exists( 'did_action' ) && ! did_action( 'wp_enqueue_media' ) ) {
 			wp_enqueue_media();
 		}
 
@@ -178,11 +178,15 @@ final class WPMediaHelper {
 		$script_handle = 'modpress-admin-wpmedia';
 		$script_src    = MODPRESS_ASSETS_URL . '/dist/js/admin.wpmedia.js';
 
-		if ( ! wp_script_is( $script_handle, 'registered' ) ) {
-			wp_register_script( $script_handle, $script_src, array( 'media-editor' ), defined( 'MODPRESS_VERSION' ) ? MODPRESS_VERSION : false, true );
+		if ( function_exists( 'wp_script_is' ) && ! wp_script_is( $script_handle, 'registered' ) ) {
+			if ( function_exists( 'wp_register_script' ) ) {
+				wp_register_script( $script_handle, $script_src, array( 'media-editor' ), defined( 'MODPRESS_VERSION' ) ? MODPRESS_VERSION : false, true );
+			}
 		}
 
-		wp_enqueue_script( $script_handle );
+		if ( function_exists( 'wp_enqueue_script' ) ) {
+			wp_enqueue_script( $script_handle );
+		}
 	}
 
 	/**

@@ -25,7 +25,7 @@ final class GroupsManager {
 	 * @see Taxonomy::definitions() for the source of registered taxonomies.
 	 * @since 1.0.0
 	 */
-	public function get_registered(): array {
+	public function get_registered_groups(): array {
 		$taxonomies = array();
 
 		foreach ( $this->get_group_definitions() as $taxonomy_key => $taxonomy_config ) {
@@ -191,14 +191,90 @@ final class GroupsManager {
 	}
 
 	/**
-	 * Back-compat alias used by the group save path.
+	 * Legacy AJAX compatibility method for loading a single group entry payload.
 	 *
-	 * @param string $group_slug Raw group slug.
-	 * @return string
+	 * @return mixed
 	 * @since 1.0.0
 	 */
-	public static function get_group_taxonomy_key( string $group_slug ): string {
-		return self::get_group_key( $group_slug );
+	public static function load_group_entry() {
+		$group_slug = isset( $_POST['group_slug'] ) ? sanitize_key( (string) wp_unslash( $_POST['group_slug'] ) ) : '';
+		$term_id    = isset( $_POST['group_entry_id'] ) ? absint( $_POST['group_entry_id'] ) : 0;
+		if ( '' === $group_slug || $term_id <= 0 ) {
+			if ( function_exists( 'wp_send_json_error' ) ) {
+				return wp_send_json_error( array( 'message' => __( 'The selected group entry could not be found.', 'modpress' ) ) );
+			}
+			return array( 'success' => false );
+		}
+
+		$taxonomy = self::get_group_key( $group_slug );
+		if ( '' === $taxonomy && taxonomy_exists( $group_slug ) ) {
+			$taxonomy = sanitize_key( $group_slug );
+		}
+		if ( '' === $taxonomy ) {
+			if ( function_exists( 'wp_send_json_error' ) ) {
+				return wp_send_json_error( array( 'message' => __( 'The selected group could not be found.', 'modpress' ) ) );
+			}
+			return array( 'success' => false );
+		}
+
+		$term = get_term( $term_id, $taxonomy );
+		if ( ! $term || is_wp_error( $term ) ) {
+			if ( function_exists( 'wp_send_json_error' ) ) {
+				return wp_send_json_error( array( 'message' => __( 'The selected group entry could not be found.', 'modpress' ) ) );
+			}
+			return array( 'success' => false );
+		}
+
+		$group_row   = self::get_group( $taxonomy );
+		$group_fields = array();
+		if ( ! empty( $group_row['group_fields'] ) ) {
+			$decoded_fields = json_decode( (string) $group_row['group_fields'], true );
+			if ( is_array( $decoded_fields ) ) {
+				$group_fields = $decoded_fields;
+			}
+		}
+
+		$payload = array(
+			'term_id'    => $term_id,
+			'name'        => $term->name ?? '',
+			'slug'        => $term->slug ?? '',
+			'description' => $term->description ?? '',
+			'taxonomy'    => $taxonomy,
+		);
+
+		foreach ( $group_fields as $field ) {
+			if ( ! is_array( $field ) ) {
+				continue;
+			}
+
+			$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+			if ( '' === $field_slug ) {
+				continue;
+			}
+
+			$field_id = trim( (string) ( $field['id'] ?? '' ) );
+			if ( '' === $field_id ) {
+				$field_id = 'field_' . sanitize_key( $field_slug );
+			}
+
+			$meta_value = self::get_group_entry( $term_id, $taxonomy, $field_slug, $field_id );
+			if ( null === $meta_value || '' === (string) $meta_value ) {
+				continue;
+			}
+
+			$canonical_key = 'entry_custom_field_' . sanitize_key( $field_id );
+			if ( '' === $canonical_key || 'entry_custom_field_' === $canonical_key ) {
+				$canonical_key = 'entry_custom_field_' . sanitize_key( $field_slug );
+			}
+
+			$payload[ $canonical_key ] = $meta_value;
+		}
+
+		if ( function_exists( 'wp_send_json_success' ) ) {
+			return wp_send_json_success( $payload );
+		}
+
+		return $payload;
 	}
 	/**
 	 * Load a group record over the WordPress REST API.
@@ -269,29 +345,99 @@ final class GroupsManager {
 	 * @return mixed
 	 * @since 1.0.0
 	 */
-	public static function get_group_entry( int $term_id, string $taxonomy_key, string $field_slug = '' ) {
+	public static function get_group_entry( int $term_id, string $taxonomy_key, string $field_slug = '', string $field_id = '' ) {
 		$term_id = (int) $term_id;
 		if ( $term_id <= 0 || '' === trim( (string) $taxonomy_key ) ) {
 			return '';
 		}
 
-		if ( isset( $GLOBALS['modpress_test_term_meta'] ) && is_array( $GLOBALS['modpress_test_term_meta'] ) ) {
-			$term_meta = $GLOBALS['modpress_test_term_meta'][ $term_id ] ?? array();
-			if ( is_array( $term_meta ) ) {
-				if ( '' === trim( (string) $field_slug ) ) {
-					return $term_meta;
+		$field_slug = trim( (string) $field_slug );
+		$field_id   = trim( (string) $field_id );
+
+		if ( isset( $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ] ) && is_object( $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ] ) ) {
+			$term = $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ];
+			if ( '' === $field_slug ) {
+				return array(
+					'term_id'    => (int) ( $term->term_id ?? $term_id ),
+					'name'        => $term->name ?? '',
+					'slug'        => $term->slug ?? '',
+					'description' => $term->description ?? '',
+					'parent'      => (int) ( $term->parent ?? 0 ),
+					'taxonomy'    => $term->taxonomy ?? $taxonomy_key,
+				);
+			}
+
+			if ( '' !== $field_slug && isset( $term->{$field_slug} ) ) {
+				return $term->{$field_slug};
+			}
+
+			if ( '' !== $field_id && isset( $term->{$field_id} ) ) {
+				return $term->{$field_id};
+			}
+		}
+
+		if ( function_exists( 'get_term' ) ) {
+			$term = get_term( $term_id, $taxonomy_key );
+			if ( $term && ! is_wp_error( $term ) ) {
+				if ( '' === $field_slug ) {
+					return array(
+						'term_id'    => (int) ( $term->term_id ?? $term_id ),
+						'name'        => $term->name ?? '',
+						'slug'        => $term->slug ?? '',
+						'description' => $term->description ?? '',
+						'parent'      => (int) ( $term->parent ?? 0 ),
+						'taxonomy'    => $term->taxonomy ?? $taxonomy_key,
+					);
 				}
-				if ( isset( $term_meta[ $field_slug ] ) ) {
-					$meta_value = $term_meta[ $field_slug ];
-					if ( is_array( $meta_value ) ) {
-						return $meta_value[0] ?? '';
-					}
-					return $meta_value;
+
+				if ( '' !== $field_slug && isset( $term->{$field_slug} ) ) {
+					return $term->{$field_slug};
+				}
+
+				if ( '' !== $field_id && isset( $term->{$field_id} ) ) {
+					return $term->{$field_id};
 				}
 			}
 		}
 
-		$meta_key = '' !== trim( (string) $field_slug ) ? trim( (string) $field_slug ) : '';
+		if ( isset( $GLOBALS['modpress_test_term_meta'] ) && is_array( $GLOBALS['modpress_test_term_meta'] ) ) {
+			$term_meta = $GLOBALS['modpress_test_term_meta'][ $term_id ] ?? array();
+			if ( is_array( $term_meta ) ) {
+				if ( '' === $field_slug ) {
+					return $term_meta;
+				}
+
+				$lookup_keys = array_unique(
+					array_filter(
+						array(
+							$field_slug,
+							sanitize_key( $field_slug ),
+							'entry_custom_field_' . sanitize_key( $field_slug ),
+							$field_id,
+							sanitize_key( $field_id ),
+							'entry_custom_field_' . sanitize_key( $field_id ),
+							'field_' . sanitize_key( $field_slug ),
+							'field_' . sanitize_key( $field_id ),
+						),
+						static function ( $key ) {
+							return '' !== trim( (string) $key );
+						}
+					)
+				);
+
+				foreach ( $lookup_keys as $lookup_key ) {
+					if ( isset( $term_meta[ $lookup_key ] ) ) {
+						$meta_value = $term_meta[ $lookup_key ];
+						if ( is_array( $meta_value ) ) {
+							return $meta_value[0] ?? '';
+						}
+						return $meta_value;
+					}
+				}
+			}
+		}
+
+		$meta_key = '' !== $field_slug ? trim( (string) $field_slug ) : '';
 		if ( '' === $meta_key ) {
 			$term_meta = get_term_meta( $term_id );
 			return is_array( $term_meta ) ? $term_meta : array();
@@ -305,6 +451,10 @@ final class GroupsManager {
 					sanitize_key( $meta_key ),
 					'entry_custom_field_' . sanitize_key( $meta_key ),
 					'field_' . sanitize_key( $meta_key ),
+					$field_id,
+					sanitize_key( $field_id ),
+					'entry_custom_field_' . sanitize_key( $field_id ),
+					'field_' . sanitize_key( $field_id ),
 				),
 				static function ( $key ) {
 					return '' !== trim( (string) $key );
@@ -342,8 +492,8 @@ final class GroupsManager {
 			return new \WP_Error( 'modpress_rest_forbidden', __( 'You are not allowed to view ModPress group entries.', 'modpress' ), array( 'status' => 403 ) );
 		}
 
-		$taxonomy = sanitize_key( (string) ( $request->get_param( 'group_key' ) ?? '' ) );
-		$term_id  = absint( $request->get_param( 'group_entry_id' ) ?? 0 );
+		$taxonomy = sanitize_key( (string) ( $request->get_param( 'group_key' ) ?? $request->get_param( 'taxonomy_key' ) ?? $request->get_param( 'taxonomy' ) ?? '' ) );
+		$term_id  = absint( $request->get_param( 'group_entry_id' ) ?? $request->get_param( 'term_id' ) ?? 0 );
 		if ( '' === $taxonomy || $term_id <= 0 ) {
 			return new \WP_Error( 'modpress_group_entry_not_found', __( 'The selected entry could not be found.', 'modpress' ), array( 'status' => 400 ) );
 		}
@@ -378,30 +528,17 @@ final class GroupsManager {
 				$field_id = 'field_' . sanitize_key( $field_slug );
 			}
 
-			$meta_value = self::get_group_entry( $term_id, $taxonomy, $field_slug );
+			$meta_value = self::get_group_entry( $term_id, $taxonomy, $field_slug, $field_id );
 			if ( null === $meta_value || ( '' === $meta_value && ! in_array( $field_slug, array_keys( $custom_field_values ), true ) ) ) {
 				continue;
 			}
 
-			$canonical_keys = array_unique(
-				array_filter(
-					array(
-						$field_slug,
-						sanitize_key( $field_slug ),
-						$field_id,
-						sanitize_key( $field_id ),
-						'entry_custom_field_' . sanitize_key( $field_slug ),
-						'entry_custom_field_' . sanitize_key( $field_id ),
-					),
-					static function ( $key ) {
-						return '' !== trim( (string) $key );
-					}
-				)
-			);
-
-			foreach ( $canonical_keys as $canonical_key ) {
-				$custom_field_values[ $canonical_key ] = $meta_value;
+			$canonical_key = 'entry_custom_field_' . sanitize_key( '' !== $field_id ? $field_id : $field_slug );
+			if ( '' === $canonical_key || 'entry_custom_field_' === $canonical_key ) {
+				$canonical_key = 'entry_custom_field_' . sanitize_key( $field_slug );
 			}
+
+			$custom_field_values[ $canonical_key ] = $meta_value;
 		}
 
 		return rest_ensure_response(
@@ -429,7 +566,7 @@ final class GroupsManager {
 		$groups = array();
 		$items  = array();
 
-		foreach ( $this->get_registered() as $taxonomy_key => $taxonomy_config ) {
+		foreach ( $this->get_registered_groups() as $taxonomy_key => $taxonomy_config ) {
 			$taxonomy_object = get_taxonomy( $taxonomy_key );
 			$label           = $taxonomy_config['label'] ?? $taxonomy_object->labels->name ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) );
 			$parent_group    = $taxonomy_config['parent_group'] ?? $taxonomy_config['group'] ?? 'type';

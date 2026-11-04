@@ -213,7 +213,7 @@ final class FunctionsMod {
 
         $group_name = RequestHelper::text( $_POST, 'group_name', '' );
         $taxonomy   = RequestHelper::key( $_POST, 'group_slug', SanitizationHelper::slug( $group_name, '' ) );
-        $group_key  = GroupsManager::get_group_taxonomy_key( $taxonomy );
+        $group_key  = GroupsManager::get_group_key( $taxonomy );
 
         if ( '' === $group_name ) {
             LoggerHelper::write_log( 'ModPress group save rejected: missing group name.' );
@@ -304,8 +304,8 @@ final class FunctionsMod {
         }
 
         $group_slug = trim( (string) ( $group_row['group_slug'] ?? '' ) );
-        $group_key  = trim( (string) ( $group_row['group_key'] ?? GroupsManager::get_group_taxonomy_key( $group_slug ) ) );
-        if ( 'modpress_type' === $group_key || 'type' === $group_slug || 'modpress_type' === GroupsManager::get_group_taxonomy_key( $group_slug ) ) {
+        $group_key  = trim( (string) ( $group_row['group_key'] ?? GroupsManager::get_group_key( $group_slug ) ) );
+        if ( 'modpress_type' === $group_key || 'type' === $group_slug || 'modpress_type' === GroupsManager::get_group_key( $group_slug ) ) {
             $this->redirect_mod_group_result( false, __( 'The Mod Type group cannot be deleted.', 'modpress' ) );
         }
 

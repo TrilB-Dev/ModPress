@@ -30,6 +30,47 @@ if ( ! function_exists( '__' ) ) {
 	}
 }
 
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+	class WP_REST_Request {
+		protected array $params = array();
+
+		public function __construct() {}
+
+		public function set_param( string $key, $value ): self {
+			$this->params[ $key ] = $value;
+			return $this;
+		}
+
+		public function get_param( string $key ) {
+			return $this->params[ $key ] ?? null;
+		}
+	}
+}
+
+if ( ! class_exists( 'WP_REST_Response' ) ) {
+	class WP_REST_Response {
+		protected $data;
+
+		public function __construct( $data = null ) {
+			$this->data = $data;
+		}
+
+		public function get_data() {
+			return $this->data;
+		}
+	}
+}
+
+if ( ! function_exists( 'rest_ensure_response' ) ) {
+	function rest_ensure_response( $response ) {
+		if ( $response instanceof \WP_REST_Response ) {
+			return $response;
+		}
+
+		return new \WP_REST_Response( $response );
+	}
+}
+
 if ( ! function_exists( 'sanitize_title' ) ) {
 	function sanitize_title( $title, $fallback_title = '', $context = 'save' ): string {
 		$slug = strtolower( trim( preg_replace( '/[^a-z0-9]+/', '-', (string) $title ), '-' ) );

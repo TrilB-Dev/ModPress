@@ -51,6 +51,10 @@ if ( is_readable( $modpress_autoloader ) ) {
 	require_once $modpress_autoloader;
 }
 
+if ( ! class_exists( 'FAHelper', false ) && class_exists( '\ModPress\Includes\Plugins\FontAwesome\Includes\Functions\Helpers\FAHelper' ) ) {
+	class_alias( '\ModPress\Includes\Plugins\FontAwesome\Includes\Functions\Helpers\FAHelper', 'FAHelper' );
+}
+
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-accesspress-activator.php

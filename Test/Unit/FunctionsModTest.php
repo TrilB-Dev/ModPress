@@ -514,10 +514,112 @@ namespace ModPress\Tests\Unit {
                 ),
             );
 
-            $this->assertSame( 'modpress_games', GroupsManager::get_group_taxonomy_key( 'games' ) );
-            $this->assertSame( 'modpress_games', GroupsManager::get_group_taxonomy_key( 'modpress_games' ) );
+            $this->assertSame( 'modpress_games', GroupsManager::get_group_key( 'games' ) );
+            $this->assertSame( 'modpress_games', GroupsManager::get_group_key( 'modpress_games' ) );
             $this->assertSame( 'red', GroupsManager::get_group_entry( 15, 'modpress_games', 'color' ) );
             $this->assertSame( 7, (int) GroupsManager::get_group( 'games' )['id'] );
+        }
+
+        public function testRestGetGroupEntryReturnsSingleCanonicalCustomFieldValue(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array(
+                'modpress_games' => array(
+                    'args' => array( 'hierarchical' => true ),
+                ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_games' => array(
+                    88 => (object) array(
+                        'term_id' => 88,
+                        'name' => 'Skyrim',
+                        'slug' => 'skyrim',
+                        'taxonomy' => 'modpress_games',
+                    ),
+                ),
+            );
+            $GLOBALS['modpress_test_term_meta'] = array(
+                88 => array(
+                    'priority' => array( 'high' ),
+                    'entry_icon' => array( 'dashicons-admin-site-alt3' ),
+                ),
+            );
+            $GLOBALS['modpress_test_db_groups'] = array(
+                array(
+                    'id' => 7,
+                    'group_key' => 'modpress_games',
+                    'group_slug' => 'games',
+                    'group_name' => 'Games',
+                    'group_fields' => json_encode( array(
+                        array(
+                            'id' => 'field_7',
+                            'name' => 'Priority',
+                            'slug' => 'priority',
+                            'type' => 'radio',
+                        ),
+                    ) ),
+                ),
+            );
+
+            $request = new \WP_REST_Request( 'GET', '/modpress/v1/groups/modpress_games/entries/88' );
+            $request->set_param( 'group_key', 'modpress_games' );
+            $request->set_param( 'group_entry_id', 88 );
+
+            $response = \ModPress\Includes\ModManagement\GroupsManager::rest_get_group_entry( $request );
+            $this->assertInstanceOf( '\\WP_REST_Response', $response );
+
+            $data = $response->get_data();
+            $this->assertArrayHasKey( 'entry_custom_field_field_7', $data['custom_fields'] );
+            $this->assertSame( 'high', $data['custom_fields']['entry_custom_field_field_7'] );
+            $this->assertCount( 1, $data['custom_fields'] );
+        }
+
+        public function testRestGetGroupEntryUsesStableFieldIdAliases(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array(
+                'modpress_games' => array(
+                    'args' => array( 'hierarchical' => true ),
+                ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_games' => array(
+                    99 => (object) array(
+                        'term_id' => 99,
+                        'name' => 'The Elder Scrolls',
+                        'slug' => 'the-elder-scrolls',
+                        'taxonomy' => 'modpress_games',
+                    ),
+                ),
+            );
+            $GLOBALS['modpress_test_term_meta'] = array(
+                99 => array(
+                    'field_7' => array( 'low' ),
+                    'entry_icon' => array( 'dashicons-admin-site-alt3' ),
+                ),
+            );
+            $GLOBALS['modpress_test_db_groups'] = array(
+                array(
+                    'id' => 7,
+                    'group_key' => 'modpress_games',
+                    'group_slug' => 'games',
+                    'group_name' => 'Games',
+                    'group_fields' => json_encode( array(
+                        array(
+                            'id' => 'field_7',
+                            'name' => 'Priority',
+                            'slug' => 'priority',
+                            'type' => 'radio',
+                        ),
+                    ) ),
+                ),
+            );
+
+            $request = new \WP_REST_Request( 'GET', '/modpress/v1/groups/modpress_games/entries/99' );
+            $request->set_param( 'group_key', 'modpress_games' );
+            $request->set_param( 'group_entry_id', 99 );
+
+            $response = \ModPress\Includes\ModManagement\GroupsManager::rest_get_group_entry( $request );
+            $this->assertInstanceOf( '\\WP_REST_Response', $response );
+
+            $data = $response->get_data();
+            $this->assertSame( 'low', $data['custom_fields']['entry_custom_field_field_7'] );
         }
 
         public function testValidSubmissionIsSanitizedAndInserted(): void {

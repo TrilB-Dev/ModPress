@@ -580,7 +580,7 @@
             return null;
         }
 
-        const taxonomyKey = trigger.dataset.taxonomyKey || '';
+        const taxonomyKey = String(trigger.dataset.taxonomyKey || '').trim();
         const entryId = Number(datasetEntryId);
         if (!taxonomyKey || !entryId) {
             return null;
@@ -590,13 +590,18 @@
             throw new Error('The ModPress AJAX helper is unavailable.');
         }
 
+        const route = 'groups/' + encodeURIComponent(taxonomyKey) + '/entries/' + encodeURIComponent(String(entryId));
         const payload = await window.ModPressAjax.request({
-            route: 'groups/' + encodeURIComponent(String(taxonomyKey || '')) + '/entries/' + encodeURIComponent(String(entryId)),
+            route,
             method: 'GET',
             nonce: (window.modpressManager && (window.modpressManager.restNonce || window.modpressManager.nonce)) || '',
         });
 
-        return window.ModPressAjax.normalizeEntryPayload(payload);
+        const normalizedPayload = typeof window.ModPressAjax.normalizeEntryPayload === 'function'
+            ? window.ModPressAjax.normalizeEntryPayload(payload)
+            : payload;
+
+        return normalizedPayload && typeof normalizedPayload === 'object' ? normalizedPayload : null;
     };
 
     const populateParentEntryOptions = (entries, selectedValues = [], modal = document.getElementById('modpress-group-modal')) => {
@@ -1655,6 +1660,21 @@
                 return;
             }
             loadGroupModalData(trigger, modalElement);
+        });
+    });
+
+    document.querySelectorAll('[data-taxonomy-key][data-group-entry-id]').forEach((trigger) => {
+        trigger.addEventListener('click', () => {
+            const entryId = trigger.dataset.groupEntryId || trigger.dataset.entryId || '';
+            if (!entryId || entryId === '0') {
+                return;
+            }
+
+            try {
+                loadEntryModalData(trigger);
+            } catch (error) {
+                console.error('[ModPress] Failed to load entry modal data from trigger.', error);
+            }
         });
     });
 

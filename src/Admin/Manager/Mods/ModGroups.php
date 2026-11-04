@@ -315,7 +315,9 @@ final class ModGroups extends ModManager {
 													<?php $column_label = (string) ( $column_field['name'] ?? $column_field['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', (string) ( $column_field['slug'] ?? '' ) ) ) ); ?>
 													<th><?php echo esc_html( $column_label ); ?></th>
 												<?php endforeach; ?>
-												<th class="text-end"><?php esc_html_e( 'Actions', 'modpress' ); ?></th>
+												<th class="text-end">
+													<?php esc_html_e( 'Actions', 'modpress' ); ?>
+												</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -395,7 +397,7 @@ final class ModGroups extends ModManager {
 															</td>
 														<?php endforeach; ?>
 														<td class="text-end">
-															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
+															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Actions', 'modpress' ); ?>">
 																<?php echo FormFieldHelper::button(
 																	FAHelper::faicon( 'pen-to-square' ),
 																	array(
@@ -405,7 +407,6 @@ final class ModGroups extends ModManager {
 																			'data-bs-toggle' => 'modal',
 																			'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ),
 																			'data-taxonomy-key' => $taxonomy_key,
-																			'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
 																			'data-group-entry-id' => (int) $term->term_id,
 																		),
 																	)
