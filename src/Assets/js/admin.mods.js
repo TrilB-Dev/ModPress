@@ -477,11 +477,60 @@
         }
     };
 
+    const getCustomFieldLookupNames = (inputName = '', rowFieldId = '', rowFieldSlug = '') => {
+        const lookupNames = new Set();
+        const addKey = (value) => {
+            if (value === null || typeof value === 'undefined') {
+                return;
+            }
+
+            const candidate = String(value).trim();
+            if (candidate === '') {
+                return;
+            }
+
+            const withoutBrackets = candidate.replace(/\[\]$/, '');
+            const sanitized = withoutBrackets.replace(/[^a-zA-Z0-9_-]/g, '');
+
+            lookupNames.add(candidate);
+            lookupNames.add(withoutBrackets);
+            lookupNames.add(sanitized);
+
+            if (candidate.startsWith('entry_custom_field_')) {
+                const rawKey = candidate.replace(/^entry_custom_field_/, '');
+                lookupNames.add(rawKey);
+                lookupNames.add(rawKey.replace(/[^a-zA-Z0-9_-]/g, ''));
+            }
+        };
+
+        addKey(inputName);
+        addKey(inputName.replace(/\[\]$/, ''));
+        addKey(inputName.replace(/^entry_custom_field_/, ''));
+        addKey(inputName.replace(/^entry_custom_field_/, '').replace(/_mode$/, ''));
+        addKey(rowFieldId);
+        addKey(rowFieldSlug);
+        addKey(rowFieldId ? 'entry_custom_field_' + String(rowFieldId).replace(/\[\]$/, '') : '');
+        addKey(rowFieldSlug ? 'entry_custom_field_' + String(rowFieldSlug).replace(/\[\]$/, '') : '');
+
+        return lookupNames;
+    };
+
     const populateCustomFieldValues = (modalElement, data = {}) => {
         const container = modalElement.querySelector('.modpress-entry-custom-fields-container');
         if (!container) {
             return;
         }
+
+        const fieldMap = {};
+        Object.entries(data || {}).forEach(([key, value]) => {
+            const normalizedKey = String(key || '').replace(/\[\]$/, '');
+            fieldMap[key] = value;
+            fieldMap[normalizedKey] = value;
+
+            if (String(key || '').startsWith('entry_custom_field_')) {
+                fieldMap[String(key).replace(/^entry_custom_field_/, '')] = value;
+            }
+        });
 
         const inputs = container.querySelectorAll('input, select, textarea');
         inputs.forEach((input) => {
@@ -493,27 +542,9 @@
             const fieldRow = input.closest('.modpress-custom-field-row');
             const rowFieldId = fieldRow ? (fieldRow.dataset.fieldId || fieldRow.querySelector('[name^="custom_field_id"]')?.value || '') : '';
             const rowFieldSlug = fieldRow ? (fieldRow.querySelector('[name^="custom_field_slug"]')?.value || '') : '';
-            const lookupNames = new Set([
-                name,
-                name.replace(/\[\]$/, ''),
-                name.replace(/^entry_custom_field_/, ''),
-                name.replace(/^entry_custom_field_/, '').replace(/_mode$/, ''),
-            ]);
+            const lookupNames = getCustomFieldLookupNames(name, rowFieldId, rowFieldSlug);
 
-            if (rowFieldId) {
-                lookupNames.add(rowFieldId);
-                lookupNames.add(String(rowFieldId).replace(/\[\]$/, ''));
-                lookupNames.add('entry_custom_field_' + String(rowFieldId).replace(/\[\]$/, ''));
-            }
-
-            if (rowFieldSlug) {
-                lookupNames.add(rowFieldSlug);
-                lookupNames.add(String(rowFieldSlug).replace(/\[\]$/, ''));
-                lookupNames.add('entry_custom_field_' + String(rowFieldSlug).replace(/\[\]$/, ''));
-                lookupNames.add(String(rowFieldSlug).replace(/[^a-zA-Z0-9_-]/g, ''));
-            }
-
-            for (const [key, value] of Object.entries(data)) {
+            for (const [key, value] of Object.entries(fieldMap)) {
                 const normalizedKey = String(key || '').replace(/\[\]$/, '');
                 if (!lookupNames.has(key) && !lookupNames.has(normalizedKey)) {
                     const directNameMatch = name === 'entry_custom_field_' + normalizedKey || name === 'entry_custom_field_' + normalizedKey.replace(/[^a-zA-Z0-9_-]/g, '');

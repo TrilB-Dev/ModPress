@@ -107,12 +107,38 @@
         return fetchJson(url, method, headers, undefined);
     };
 
+    const flattenEntryPayload = (source = {}, target = {}) => {
+        if (!source || typeof source !== 'object') {
+            return target;
+        }
+
+        Object.entries(source).forEach(([key, value]) => {
+            if (value && typeof value === 'object' && !Array.isArray(value) && ['term', 'custom_fields', 'data', 'meta'].includes(key)) {
+                flattenEntryPayload(value, target);
+                return;
+            }
+
+            if (value && typeof value === 'object' && !Array.isArray(value) && key === 'custom_fields') {
+                Object.entries(value).forEach(([customKey, customValue]) => {
+                    target[customKey] = customValue;
+                });
+                return;
+            }
+
+            target[key] = value;
+        });
+
+        return target;
+    };
+
     const normalizeEntryPayload = (data = {}) => {
         const source = data && typeof data === 'object' && data.data && typeof data.data === 'object' ? data.data : (data && typeof data === 'object' ? data : {});
+        const flattened = flattenEntryPayload(source, {});
         const term = source.term && typeof source.term === 'object' ? source.term : (source && Object.prototype.hasOwnProperty.call(source, 'term_id') ? source : {});
         const customFields = source.custom_fields && typeof source.custom_fields === 'object' ? source.custom_fields : {};
 
         return {
+            ...flattened,
             ...(term && typeof term === 'object' ? term : {}),
             ...(customFields && typeof customFields === 'object' ? customFields : {}),
         };
