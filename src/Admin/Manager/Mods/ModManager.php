@@ -82,9 +82,15 @@ class ModManager extends Manager {
         /**
          * Register the assets for the Mod Manager.
          *
+         * When the plugin bootstrap has not yet defined the asset URL constant,
+         * we still want unit tests to exercise the REST registration without
+         * tripping a fatal asset bootstrap error.
+         *
          * @since 1.0.0
          */
-        $this->register_assets( new Assets() );
+        if ( defined( 'MODPRESS_ASSETS_URL' ) ) {
+            $this->register_assets( new Assets() );
+        }
     }
     /**
      * Register the mod manager admin-post handlers used by taxonomy forms.

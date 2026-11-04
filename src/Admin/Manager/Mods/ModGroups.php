@@ -92,7 +92,33 @@ final class ModGroups extends ModManager {
                 return strcmp( $a_name, $b_name );
             }
         );
+
+		$group_entries = array();
+		foreach ( $taxonomy_tabs as $taxonomy ) {
+			$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
+			if ( '' === $taxonomy_key ) {
+				continue;
+			}
+
+			$terms = taxonomy_exists( $taxonomy_key ) ? get_terms(
+				array(
+					'taxonomy'   => $taxonomy_key,
+					'hide_empty' => false,
+				)
+			) : array();
+
+			if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+				$group_entries[ $taxonomy_key ] = array();
+				foreach ( $terms as $term ) {
+					$group_entries[ $taxonomy_key ][ (string) $term->term_id ] = $term->name;
+				}
+			}
+		}
 		?>
+		<script>
+		window.modpressManager = window.modpressManager || {};
+		window.modpressManager.groupEntries = <?php echo wp_json_encode( $group_entries ); ?>;
+		</script>
 
 		<div class="modpress-groups-page">
 			<div class="card border-0 shadow-sm mb-4">
@@ -590,7 +616,7 @@ final class ModGroups extends ModManager {
 		$delete_form_id = 'modpress-group-delete-form-' . ( '' === $selected_group_key ? 'new' : sanitize_html_class( $selected_group_key ) );
 		$modal_title = '' === $selected_group_key ? __( 'Add Group', 'modpress' ) : __( 'Edit Group', 'modpress' );
 		?>
-		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-entries='<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>'>
+		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content" style="overflow-y: scroll;">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="<?php echo esc_attr( $save_form_id ); ?>" data-role="group-save-form">

@@ -90,6 +90,13 @@ abstract class Manager {
 	 * @since 1.0.0
 	 */
 	protected function assets( string $bundle ): array {
+		if ( ! defined( 'MODPRESS_ASSETS_URL' ) ) {
+			return array(
+				'styles'  => array(),
+				'scripts' => array(),
+			);
+		}
+
 		$bundle_name = $this->resolve_bundle_name( $bundle );
 		$style_name  = $this->resolve_style_bundle_name( $bundle );
 

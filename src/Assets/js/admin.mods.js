@@ -350,17 +350,18 @@
     };
 
     const getGroupParentEntries = (parentKey = '', modal = document.getElementById('modpress-group-modal')) => {
-        if (!modal) {
-            return {};
-        }
-
-        try {
-            const groups = JSON.parse(modal.dataset.groupEntries || '{}');
-            if (parentKey && groups[parentKey]) {
-                return groups[parentKey];
+        const globalEntries = (window.modpressManager && window.modpressManager.groupEntries) || {};
+        const modalEntries = modal && modal.dataset && modal.dataset.groupEntries ? (() => {
+            try {
+                return JSON.parse(modal.dataset.groupEntries || '{}');
+            } catch (error) {
+                return {};
             }
-        } catch (error) {
-            return {};
+        })() : {};
+        const groups = Object.keys(modalEntries).length ? modalEntries : globalEntries;
+
+        if (parentKey && groups[parentKey]) {
+            return groups[parentKey];
         }
 
         return {};

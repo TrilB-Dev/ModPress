@@ -29,14 +29,27 @@
         });
 
         const responseText = await response.text();
-        const data = responseText ? JSON.parse(responseText) : {};
+        let data = {};
 
-        if (!response.ok || !data || !data.success) {
+        try {
+            data = responseText ? JSON.parse(responseText) : {};
+        } catch (error) {
+            if (!response.ok) {
+                throw new Error('The request could not be completed.');
+            }
+            return {};
+        }
+
+        const isLegacyAjaxResponse = data && Object.prototype.hasOwnProperty.call(data, 'success');
+        const success = isLegacyAjaxResponse ? Boolean(data.success) : response.ok;
+        const payload = isLegacyAjaxResponse ? (data.data || data) : data;
+
+        if (!response.ok || !success) {
             const message = data && data.message ? data.message : (data && data.data && data.data.message ? data.data.message : 'The request could not be completed.');
             throw new Error(message);
         }
 
-        return data.data || {};
+        return payload || {};
     };
 
     const request = async (payload = {}, options = {}) => {
