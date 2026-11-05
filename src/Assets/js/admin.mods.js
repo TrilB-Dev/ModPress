@@ -495,13 +495,17 @@
             const selectedValue = values.find((item) => item !== '') || '';
             if (selectedValue !== '') {
                 input.value = selectedValue;
+                input.setAttribute('value', selectedValue);
             }
             return;
         }
 
-        if (input.matches('textarea, input') && !input.matches('[type="hidden"]')) {
+        if (input.matches('textarea, input')) {
             const rawValue = Array.isArray(normalizedValue) ? (normalizedValue[0] ?? '') : normalizedValue;
             input.value = rawValue;
+            if (input.type === 'hidden') {
+                input.setAttribute('value', rawValue);
+            }
         }
     };
 
