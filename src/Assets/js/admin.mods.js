@@ -368,12 +368,26 @@
             }
         })() : {};
         const groups = Object.keys(modalEntries).length ? modalEntries : globalEntries;
+        const lookupKey = String(parentKey || '').trim();
 
-        if (parentKey && groups[parentKey]) {
-            return groups[parentKey];
+        if (!lookupKey) {
+            return {};
         }
 
-        return {};
+        if (groups && groups[lookupKey] && typeof groups[lookupKey] === 'object') {
+            return groups[lookupKey];
+        }
+
+        const matchedGroup = Object.entries(groups || {}).find(([groupKey, entries]) => {
+            if (!entries || typeof entries !== 'object') {
+                return false;
+            }
+
+            const normalizedGroupKey = String(groupKey || '').trim();
+            return normalizedGroupKey === lookupKey || String(lookupKey).replace(/^modpress_/, '') === String(normalizedGroupKey).replace(/^modpress_/, '');
+        });
+
+        return matchedGroup ? matchedGroup[1] : {};
     };
 
     const refreshBootstrapSelect = (select) => {
