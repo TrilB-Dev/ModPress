@@ -31,27 +31,30 @@
         });
 
         const responseText = await response.text();
-        let data = {};
+        if (!response.ok) {
+            let message = 'The request could not be completed.';
 
-        try {
-            data = responseText ? JSON.parse(responseText) : {};
-        } catch (error) {
-            if (!response.ok) {
-                throw new Error('The request could not be completed.');
+            try {
+                const data = responseText ? JSON.parse(responseText) : {};
+                if (data && data.message) {
+                    message = data.message;
+                }
+            } catch (error) {
+                // Ignore malformed error payloads and fall back to the default message.
             }
-            return {};
-        }
 
-        const isLegacyAjaxResponse = data && Object.prototype.hasOwnProperty.call(data, 'success');
-        const success = isLegacyAjaxResponse ? Boolean(data.success) : response.ok;
-        const payload = isLegacyAjaxResponse ? (data.data || data) : data;
-
-        if (!response.ok || !success) {
-            const message = data && data.message ? data.message : (data && data.data && data.data.message ? data.data.message : 'The request could not be completed.');
             throw new Error(message);
         }
 
-        return payload || {};
+        if (!responseText) {
+            return {};
+        }
+
+        try {
+            return JSON.parse(responseText);
+        } catch (error) {
+            return {};
+        }
     };
 
     const request = async (payload = {}, options = {}) => {
@@ -61,10 +64,6 @@
 
         if (!route) {
             throw new Error('ModPress REST requests require a route value.');
-        }
-
-        if (typeof requestOptions.action !== 'undefined') {
-            throw new Error('Legacy admin-ajax actions are no longer supported. Use a REST route instead.');
         }
 
         const method = String(requestOptions.method || 'GET').toUpperCase();
@@ -107,76 +106,9 @@
         return fetchJson(url, method, headers, undefined);
     };
 
-    const flattenEntryPayload = (source = {}, target = {}) => {
-        if (!source || typeof source !== 'object') {
-            return target;
-        }
-
-        Object.entries(source).forEach(([key, value]) => {
-            if (value && typeof value === 'object' && !Array.isArray(value)) {
-                if (['term', 'custom_fields', 'custom_field_values', 'data', 'meta'].includes(key)) {
-                    flattenEntryPayload(value, target);
-                    return;
-                }
-            }
-
-            if (Array.isArray(value) && value.length && value.every((item) => item && typeof item === 'object' && !Array.isArray(item))) {
-                value.forEach((item, index) => {
-                    flattenEntryPayload(item, target);
-                    if (typeof item === 'object' && item !== null) {
-                        Object.entries(item).forEach(([itemKey, itemValue]) => {
-                            target[`${key}_${index}_${itemKey}`] = itemValue;
-                        });
-                    }
-                });
-                return;
-            }
-
-            target[key] = value;
-            target[String(key).replace(/\[\]$/, '')] = value;
-        });
-
-        return target;
-    };
-
-    const normalizeEntryPayload = (data = {}) => {
-        const source = data && typeof data === 'object' && data.data && typeof data.data === 'object' ? data.data : (data && typeof data === 'object' ? data : {});
-        const flattened = flattenEntryPayload(source, {});
-        const term = source.term && typeof source.term === 'object' ? source.term : (source && Object.prototype.hasOwnProperty.call(source, 'term_id') ? source : {});
-        const customFields = source.custom_fields && typeof source.custom_fields === 'object'
-            ? source.custom_fields
-            : (source.custom_field_values && typeof source.custom_field_values === 'object'
-                ? source.custom_field_values
-                : {});
-
-        const normalized = {
-            ...flattened,
-            ...(term && typeof term === 'object' ? term : {}),
-            ...(customFields && typeof customFields === 'object' ? customFields : {}),
-        };
-
-        Object.entries(customFields).forEach(([key, value]) => {
-            if (!key) {
-                return;
-            }
-
-            const normalizedKey = String(key).trim();
-            if (!normalizedKey) {
-                return;
-            }
-
-            normalized[normalizedKey] = value;
-            normalized[normalizedKey.replace(/\[\]$/, '')] = value;
-            normalized[`${normalizedKey}[]`] = value;
-        });
-
-        return normalized;
-    };
-
     window.ModPressAjax = Object.assign(window.ModPressAjax || {}, {
         getConfig,
         request,
         dispatch: request,
-        normalizeEntryPayload,
     });
 })();

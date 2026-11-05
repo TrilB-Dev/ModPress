@@ -122,19 +122,14 @@ final class FunctionsMod {
 		}
 	}
 	/**
-	 * Validate a save nonce against the standard WordPress field and the legacy plugin-specific field.
+	 * Validate a save nonce for the current request.
 	 *
 	 * @param string $action Nonce action.
 	 * @return void
      * @since 1.0.0
 	 */
 	private function validate_save_nonce( string $action ): void {
-		if ( isset( $_REQUEST['_wpnonce'] ) ) {
-			check_admin_referer( $action, '_wpnonce' );
-			return;
-		}
-
-		check_admin_referer( $action );
+		check_admin_referer( $action, '_wpnonce' );
 	}
 	/**
 	 * Save a Mod submitted through the native admin form.
@@ -497,7 +492,6 @@ final class FunctionsMod {
                 }
 
                 if ( 'image' === $field_type ) {
-                    $legacy_image_config = is_array( $image_types ) ? ( $image_types[ $field_index ] ?? array() ) : array();
                     $image_config = array();
 
                     $flatten_selected_values = static function ( $values ) {
@@ -524,10 +518,6 @@ final class FunctionsMod {
                             )
                         );
                     };
-
-                    if ( is_array( $legacy_image_config ) ) {
-                        $image_config = array_merge( $image_config, $flatten_selected_values( $legacy_image_config ) );
-                    }
 
                     foreach ( array(
                         'image' => $image_type_image,
@@ -1002,8 +992,6 @@ final class FunctionsMod {
         $taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
         $name     = RequestHelper::text( $_POST, 'entry_name', '' );
 
-        LoggerHelper::write_log( '[ModPress][FunctionsMod] save_group_entry start: taxonomy=' . $taxonomy . ' name=' . $name . ' term_id=' . RequestHelper::integer( $_POST, 'group_entry_id', 0 ) . ' post_keys=' . wp_json_encode( array_keys( $_POST ) ) );
-
         if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
             LoggerHelper::write_log( 'ModPress group entry save rejected: invalid taxonomy ' . $taxonomy );
             $this->redirect_mod_group_result( false, __( 'The selected taxonomy is invalid.', 'modpress' ) );
@@ -1114,7 +1102,6 @@ final class FunctionsMod {
             }
         }
 
-        LoggerHelper::write_log( 'ModPress group entry saved successfully for taxonomy ' . $taxonomy );
         $this->redirect_mod_group_result( true, __( 'Entry saved successfully.', 'modpress' ) );
     }
 

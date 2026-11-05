@@ -139,27 +139,6 @@ class ModManager extends Manager {
             )
         );
 
-        \register_rest_route(
-            'modpress/v1',
-            '/groups/(?P<group_key>[^/]+)/entries/(?P<group_entry_id>\d+)',
-            array(
-                'methods'             => \WP_REST_Server::READABLE,
-                'callback'            => array( '\ModPress\Includes\ModManagement\GroupsManager', 'rest_get_group_entry' ),
-                'permission_callback' => function () {
-                    return current_user_can( 'modpress_manager_groups_view' ) || current_user_can( 'modpress_manager_groups_edit' ) || current_user_can( 'manage_options' );
-                },
-                'args'                => array(
-                    'group_key'     => array(
-                        'required'          => true,
-                        'sanitize_callback' => 'sanitize_key',
-                    ),
-                    'group_entry_id' => array(
-                        'required'          => true,
-                        'sanitize_callback' => 'absint',
-                    ),
-                ),
-            )
-        );
     }
     /**
      * Register the assets for the mod manager.

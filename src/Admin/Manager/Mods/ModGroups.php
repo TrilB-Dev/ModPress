@@ -11,7 +11,6 @@
 namespace ModPress\Admin\Manager\Mods;
 
 use ModPress\Includes\Functions\Admin\FunctionsMod;
-use ModPress\Includes\Functions\Helpers\AjaxHelper;
 use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Functions\Helpers\DBHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
@@ -31,7 +30,6 @@ final class ModGroups extends ModManager {
 	 * @return void
 	 */
 	public function render_page_content(): void {
-		$ajax = new AjaxHelper();
 		$flash_notice = FunctionsMod::consume_admin_notice_flash();
 		if ( ! empty( $flash_notice['message'] ) ) {
 			AlertHelper::render_admin_notice( $flash_notice['message'], $flash_notice['type'] );
@@ -114,29 +112,7 @@ final class ModGroups extends ModManager {
 				}
 			}
 		}
-		$ajax_request = ( new AjaxHelper() )->create(
-			'GET',
-			'groups',
-			array(
-				'group_entries' => array_keys( $group_entries ),
-			),
-			array(
-				'context' => 'modpress_group_manager',
-			),
-			array(),
-			array(
-				'status' => 'success',
-				'message' => '',
-			)
-		);
 		?>
-		<script>
-			window.modpressManager = window.modpressManager || {};
-			Object.assign( window.modpressManager, <?php echo wp_json_encode( AjaxHelper::script_config() ); ?> );
-			window.modpressManager.groupEntries = <?php echo wp_json_encode( $group_entries ); ?>;
-			window.modpressManager.requestFactory = <?php echo wp_json_encode( $ajax_request ); ?>;
-		</script>
-
 		<div class="modpress-groups-page">
 			<div class="card border-0 shadow-sm mb-4">
 				<div class="card-body p-4">
@@ -1326,10 +1302,7 @@ final class ModGroups extends ModManager {
 									<td>
 										<div class="modpress-entry-custom-fields-container">
 											<?php
-											error_log( '[ModPress][ModGroups] rendering custom field rows: taxonomy=' . $selected_group_key . ' count=' . count( $selected_group_fields ) );
 											foreach ( $selected_group_fields as $field ) {
-												$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
-												error_log( '[ModPress][ModGroups] custom field row slug=' . $field_slug . ' type=' . (string) ( $field['type'] ?? 'text' ) );
 												echo FunctionsMod::render_group_custom_field( $field, $entry_field_values, $selected_group_fields );
 											}
 											?>
