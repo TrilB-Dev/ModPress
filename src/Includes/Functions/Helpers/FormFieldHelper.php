@@ -16,6 +16,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class FormFieldHelper {
 	/**
+	 * Generate a unique fallback DOM id for repeated fields.
+	 *
+	 * @param string $base Base string used to derive the id.
+	 * @return string
+	 */
+	private static function unique_field_id( string $base = 'modpress-field' ): string {
+		$prefix = '' !== trim( (string) $base ) ? (string) $base : 'modpress-field';
+		$prefix = sanitize_key( $prefix );
+
+		if ( function_exists( 'wp_unique_id' ) ) {
+			return wp_unique_id( $prefix . '-' );
+		}
+
+		static $id_counter = 0;
+		$id_counter++;
+
+		return $prefix . '-' . $id_counter;
+	}
+
+	/**
 	 * Render a text input.
 	 *
 	 * @param string $name       The name attribute for the input.
@@ -217,7 +237,7 @@ final class FormFieldHelper {
 
 		$type             = in_array( $options['type'] ?? 'radio', array( 'button', 'checkbox', 'radio' ), true ) ? $options['type'] : 'radio';
 		$size             = in_array( $options['size'] ?? '', array( 'sm', 'lg' ), true ) ? $options['size'] : '';
-		$group_id         = (string) ( $options['id'] ?? sanitize_title( $name . '-group' ) );
+		$group_id         = (string) ( $options['id'] ?? self::unique_field_id( $name . '-group' ) );
 		$group_attributes = array_merge( $options['attributes'] ?? array(), $options );
 		unset( $group_attributes['attributes'], $group_attributes['id'], $group_attributes['class'], $group_attributes['type'], $group_attributes['size'], $group_attributes['vertical'], $group_attributes['variant'], $group_attributes['button_class'], $group_attributes['aria_label'], $group_attributes['append_array'] );
 		$group_attributes['id']   = $group_id;
@@ -239,7 +259,7 @@ final class FormFieldHelper {
 			$definition   = is_array( $button ) ? $button : array();
 			$value        = (string) ( $definition['value'] ?? ( is_array( $button ) ? $key : $key ) );
 			$label        = (string) ( $definition['label'] ?? ( is_array( $button ) ? $value : $button ) );
-			$id           = (string) ( $definition['id'] ?? sanitize_title( $group_id . '-' . $value ) );
+			$id           = (string) ( $definition['id'] ?? self::unique_field_id( $group_id . '-' . $value ) );
 			$variant      = (string) ( $definition['variant'] ?? $options['variant'] ?? 'outline-primary' );
 			$button_class = self::classes( array( 'btn', 'btn-' . sanitize_html_class( $variant ), $definition['class'] ?? $options['button_class'] ?? '' ) );
 			$disabled     = ! empty( $definition['disabled'] );
@@ -457,7 +477,7 @@ final class FormFieldHelper {
 
 		$type       = in_array( $type, array( 'checkbox', 'radio' ), true ) ? $type : 'checkbox';
 		$value      = is_bool( $value ) ? '1' : (string) $value;
-		$id         = (string) ( $options['id'] ?? sanitize_title( $name . '-' . $value ) );
+		$id         = (string) ( $options['id'] ?? self::unique_field_id( $name . '-' . $value ) );
 		$wrapper    = self::classes( array( 'form-check', ! empty( $options['inline'] ) ? 'form-check-inline' : '', ! empty( $options['switch'] ) ? 'form-switch' : '', ! empty( $options['reverse'] ) ? 'form-check-reverse' : '', $options['wrapper_class'] ?? '' ) );
 		$attributes = array_merge( $options['attributes'] ?? array(), $options );
 		unset( $attributes['attributes'], $attributes['class'], $attributes['wrapper_class'], $attributes['inline'], $attributes['switch'], $attributes['reverse'], $attributes['checked'], $attributes['id'], $attributes['type'], $attributes['value'], $attributes['validation'] );

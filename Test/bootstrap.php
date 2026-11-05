@@ -84,6 +84,14 @@ if ( ! function_exists( 'sanitize_title' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_unique_id' ) ) {
+	function wp_unique_id( $prefix = '' ): string {
+		static $counter = 0;
+		$counter++;
+		return $prefix . $counter;
+	}
+}
+
 if ( ! function_exists( 'wp_parse_args' ) ) {
 	function wp_parse_args( $args, $defaults = array() ) {
 		if ( is_object( $args ) ) {

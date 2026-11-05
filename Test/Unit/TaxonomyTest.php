@@ -195,6 +195,7 @@ namespace {
 
 namespace ModPress\Tests\Unit {
     use ModPress\Includes\Core\Taxonomy;
+    use ModPress\Includes\Functions\Helpers\FormFieldHelper;
     use PHPUnit\Framework\TestCase;
 
     final class TaxonomyTest extends TestCase {
@@ -250,6 +251,32 @@ namespace ModPress\Tests\Unit {
                 )
             ) );
             $this->assertTrue( taxonomy_exists( 'modpress_type' ) );
+        }
+
+        public function testButtonGroupCreatesUniqueIdsAcrossRepeatedGroups(): void {
+            $first = FormFieldHelper::button_group(
+                'field_slug',
+                array(
+                    'is_enabled' => 'Enabled',
+                    'is_disabled' => 'Disabled',
+                ),
+                'is_enabled',
+                array( 'type' => 'radio' )
+            );
+
+            $second = FormFieldHelper::button_group(
+                'field_slug',
+                array(
+                    'is_enabled' => 'Enabled',
+                    'is_disabled' => 'Disabled',
+                ),
+                'is_enabled',
+                array( 'type' => 'radio' )
+            );
+
+            preg_match_all( '/id="([^"]+)"/', $first . $second, $matches );
+
+            $this->assertCount( 6, array_unique( $matches[1] ) );
         }
     }
 }
