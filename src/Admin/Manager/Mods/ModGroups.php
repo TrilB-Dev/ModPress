@@ -1151,19 +1151,6 @@ final class ModGroups extends ModManager {
 				continue;
 			}
 
-			$terms = get_terms(
-				array(
-					'taxonomy'   => $taxonomy_key,
-					'hide_empty' => false,
-				)
-			);
-
-			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-				foreach ( $terms as $term ) {
-					$entry_parent_options[ (string) $term->term_id ] = $term->name;
-				}
-			}
-
 			$group_fields = $taxonomy['group_fields'] ?? null;
 			if ( is_string( $group_fields ) && '' !== trim( $group_fields ) ) {
 				$decoded = json_decode( $group_fields, true );
@@ -1178,6 +1165,25 @@ final class ModGroups extends ModManager {
 		if ( '' === $selected_group_key && '' !== $default_group_key ) {
 			$selected_group_key = $default_group_key;
 		}
+
+		if ( '' !== $selected_group_key && taxonomy_exists( $selected_group_key ) ) {
+			$parent_terms = get_terms(
+				array(
+					'taxonomy'   => $selected_group_key,
+					'hide_empty' => false,
+				)
+			);
+
+			if ( ! is_wp_error( $parent_terms ) && ! empty( $parent_terms ) ) {
+				foreach ( $parent_terms as $parent_term ) {
+					if ( (int) ( $selected_entry['term_id'] ?? 0 ) > 0 && (int) $parent_term->term_id === (int) ( $selected_entry['term_id'] ?? 0 ) ) {
+						continue;
+					}
+					$entry_parent_options[ (string) $parent_term->term_id ] = $parent_term->name;
+				}
+			}
+		}
+
 		$modal_title = (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ? __( 'Edit Entry', 'modpress' ) : __( 'Add Entry', 'modpress' );
 		$selected_group_fields = $group_field_config[ $selected_group_key ] ?? array();
 		?>
