@@ -478,8 +478,8 @@ namespace ModPress\Tests\Unit {
             $html = ob_get_clean();
 
             $this->assertStringContainsString( 'Color', $html );
-            $this->assertStringContainsString( 'entry_custom_field_color', $html );
-            $this->assertStringNotContainsString( 'entry_custom_field_field_1', $html );
+            $this->assertStringContainsString( 'name="color"', $html );
+            $this->assertStringNotContainsString( 'name="entry_custom_field_color"', $html );
         }
 
         public function testGroupsManagerProvidesGroupAndEntryLookupContracts(): void {
@@ -568,8 +568,8 @@ namespace ModPress\Tests\Unit {
             $this->assertInstanceOf( '\\WP_REST_Response', $response );
 
             $data = $response->get_data();
-            $this->assertArrayHasKey( 'entry_custom_field_field_7', $data['custom_fields'] );
-            $this->assertSame( 'high', $data['custom_fields']['entry_custom_field_field_7'] );
+            $this->assertArrayHasKey( 'priority', $data['custom_fields'] );
+            $this->assertSame( 'high', $data['custom_fields']['priority'] );
             $this->assertCount( 1, $data['custom_fields'] );
         }
 
@@ -620,7 +620,7 @@ namespace ModPress\Tests\Unit {
             $this->assertInstanceOf( '\\WP_REST_Response', $response );
 
             $data = $response->get_data();
-            $this->assertSame( 'low', $data['custom_fields']['entry_custom_field_field_7'] );
+            $this->assertSame( 'low', $data['custom_fields']['priority'] );
         }
 
         public function testRenderGroupCustomFieldUnwrapsTermMetaArrayValues(): void {
@@ -634,7 +634,7 @@ namespace ModPress\Tests\Unit {
             $html = FunctionsMod::render_group_custom_field(
                 $field,
                 array(
-                    'entry_custom_field_field_7' => array( 'high' ),
+                    'priority' => array( 'high' ),
                     'priority' => array( 'high' ),
                 )
             );
@@ -1266,9 +1266,9 @@ namespace ModPress\Tests\Unit {
                 array()
             );
 
-            $this->assertStringContainsString( 'name="entry_custom_field_image_mode"', $output );
-            $this->assertStringContainsString( 'name="entry_custom_field_image"', $output );
-            $this->assertStringNotContainsString( 'name="entry_custom_field_field_3_mode"', $output );
+            $this->assertStringContainsString( 'name="image_mode"', $output );
+            $this->assertStringContainsString( 'name="image"', $output );
+            $this->assertStringNotContainsString( 'name="entry_custom_field_image_mode"', $output );
         }
 
         public function testGroupEntryAjaxPayloadIncludesFieldIdAliasesForHydration(): void {
@@ -1321,7 +1321,7 @@ namespace ModPress\Tests\Unit {
 
             $this->assertNotNull( $GLOBALS['modpress_last_json_success'] );
             $this->assertSame( 'high', $GLOBALS['modpress_last_json_success']['priority'] );
-            $this->assertSame( 'high', $GLOBALS['modpress_last_json_success']['entry_custom_field_field_7'] );
+            $this->assertSame( 'high', $GLOBALS['modpress_last_json_success']['priority'] );
         }
 
         public function testRenderGroupCustomFieldRestoresNestedSavedOptionValues(): void {

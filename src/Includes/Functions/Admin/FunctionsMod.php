@@ -1059,41 +1059,11 @@ final class FunctionsMod {
                     continue;
                 }
 
-                $field_id = trim( (string) ( $field['id'] ?? '' ) );
-                if ( '' === $field_id ) {
-                    $field_id = 'field_' . sanitize_key( $field_slug );
-                }
-
-                $field_keys = array(
-                    'entry_custom_field_' . sanitize_key( $field_id ),
-                    'entry_custom_field_' . sanitize_key( $field_slug ),
-                    $field_id,
-                    sanitize_key( $field_id ),
-                    $field_slug,
-                    sanitize_key( $field_slug ),
-                );
-                $field_keys = array_values(
-                    array_unique(
-                        array_filter(
-                            $field_keys,
-                            static function ( $field_key ) {
-                                return '' !== trim( (string) $field_key );
-                            }
-                        )
-                    )
-                );
-
                 $field_value = null;
-                foreach ( $field_keys as $field_key ) {
-                    if ( array_key_exists( $field_key, $_POST ) ) {
-                        $field_value = RequestHelper::value( $_POST, $field_key, null );
-                        break;
-                    }
-
-                    if ( array_key_exists( $field_key . '[]', $_POST ) ) {
-                        $field_value = RequestHelper::value( $_POST, $field_key . '[]', null );
-                        break;
-                    }
+                if ( array_key_exists( $field_slug, $_POST ) ) {
+                    $field_value = RequestHelper::value( $_POST, $field_slug, null );
+                } elseif ( array_key_exists( $field_slug . '[]', $_POST ) ) {
+                    $field_value = RequestHelper::value( $_POST, $field_slug . '[]', null );
                 }
 
                 if ( null === $field_value ) {
@@ -1123,21 +1093,16 @@ final class FunctionsMod {
                         )
                     );
                     if ( empty( $field_value ) ) {
-                        foreach ( $field_keys as $meta_key ) {
-                            delete_term_meta( $saved_term_id, $meta_key );
-                        }
+                        delete_term_meta( $saved_term_id, $field_slug );
                         continue;
                     }
                 } elseif ( '' === trim( (string) $field_value ) ) {
-                    foreach ( $field_keys as $meta_key ) {
-                        delete_term_meta( $saved_term_id, $meta_key );
-                    }
+                    delete_term_meta( $saved_term_id, $field_slug );
                     continue;
                 }
 
-                foreach ( $field_keys as $meta_key ) {
-                    update_term_meta( $saved_term_id, $meta_key, $field_value );
-                }
+                delete_term_meta( $saved_term_id, $field_slug );
+                update_term_meta( $saved_term_id, $field_slug, $field_value );
             }
 
             if ( '' !== $icon ) {
@@ -1222,95 +1187,33 @@ final class FunctionsMod {
             return '';
         }
 
-        if ( ! empty( $group_fields ) && is_array( $value ) ) {
-            $resolve_group_field = static function ( string $meta_key ) use ( $group_fields, $custom_field ) {
-                $meta_key = trim( (string) $meta_key );
-                if ( '' === $meta_key ) {
-                    return $custom_field;
-                }
-
-                $meta_key_aliases = array_unique(
-                    array_filter(
-                        array(
-                            $meta_key,
-                            str_replace( '[]', '', $meta_key ),
-                            preg_replace( '/^entry_custom_field_/', '', $meta_key ),
-                            sanitize_key( $meta_key ),
-                            sanitize_key( str_replace( '[]', '', $meta_key ) ),
-                            sanitize_key( preg_replace( '/^entry_custom_field_/', '', $meta_key ) ),
-                            str_replace( '_mode', '', $meta_key ),
-                            sanitize_key( str_replace( '_mode', '', $meta_key ) ),
-                        ),
-                        static function ( $candidate ) {
-                            return '' !== trim( (string) $candidate );
-                        }
-                    )
-                );
-
-                foreach ( $group_fields as $group_field ) {
-                    if ( ! is_array( $group_field ) ) {
-                        continue;
-                    }
-
-                    $group_slug = trim( (string) ( $group_field['slug'] ?? $group_field['name'] ?? '' ) );
-                    $group_id   = trim( (string) ( $group_field['id'] ?? '' ) );
-                    if ( '' === $group_slug && '' === $group_id ) {
-                        continue;
-                    }
-
-                    $group_aliases = array_unique(
-                        array_filter(
-                            array(
-                                $group_slug,
-                                sanitize_key( $group_slug ),
-                                $group_id,
-                                sanitize_key( $group_id ),
-                                'entry_custom_field_' . sanitize_key( $group_id ),
-                                'entry_custom_field_' . sanitize_key( $group_slug ),
-                                'field_' . sanitize_key( $group_id ),
-                                'field_' . sanitize_key( $group_slug ),
-                            ),
-                            static function ( $candidate ) {
-                                return '' !== trim( (string) $candidate );
-                            }
-                        )
-                    );
-
-                    foreach ( $meta_key_aliases as $meta_key_alias ) {
-                        foreach ( $group_aliases as $group_alias ) {
-                            if ( strtolower( (string) $meta_key_alias ) === strtolower( (string) $group_alias ) ) {
-                                return $group_field;
-                            }
-                        }
-                    }
-                }
-
-                return $custom_field;
-            };
-
-            foreach ( array_keys( $value ) as $meta_key ) {
-                $matched_field = $resolve_group_field( (string) $meta_key );
-                if ( ! empty( $matched_field ) ) {
-                    $custom_field = $matched_field;
-                    break;
-                }
-            }
-        }
-
         $field_slug = trim( (string) ( $custom_field['slug'] ?? $custom_field['name'] ?? '' ) );
         if ( '' === $field_slug ) {
             return '';
         }
 
-        $field_id = trim( (string) ( $custom_field['id'] ?? '' ) );
-        if ( '' === $field_id ) {
-            $field_id = 'field_' . sanitize_key( $field_slug );
+        if ( ! empty( $group_fields ) ) {
+            foreach ( $group_fields as $candidate_field ) {
+                if ( ! is_array( $candidate_field ) ) {
+                    continue;
+                }
+
+                $candidate_slug = trim( (string) ( $candidate_field['slug'] ?? $candidate_field['name'] ?? '' ) );
+                $candidate_id = trim( (string) ( $candidate_field['id'] ?? '' ) );
+                $current_id = trim( (string) ( $custom_field['id'] ?? '' ) );
+
+                if ( '' !== $candidate_slug && $candidate_slug === $field_slug ) {
+                    $custom_field = array_merge( $custom_field, $candidate_field );
+                    break;
+                }
+
+                if ( '' !== $current_id && '' !== $candidate_id && $candidate_id === $current_id ) {
+                    $custom_field = array_merge( $custom_field, $candidate_field );
+                    break;
+                }
+            }
         }
 
-        $field_name = 'entry_custom_field_' . sanitize_key( $field_slug );
-        if ( '' === $field_name || 'entry_custom_field_' === $field_name ) {
-            $field_name = 'entry_custom_field_' . sanitize_key( $field_id );
-        }
         $field_type = strtolower( (string) ( $custom_field['type'] ?? 'text' ) );
         $value = is_array( $value ) ? $value : array();
 
@@ -1353,19 +1256,14 @@ final class FunctionsMod {
             return is_scalar( $raw ) ? trim( (string) $raw ) : '';
         };
 
-        $resolve_field_value = static function ( string $field_name_key ) use ( $value, $field_slug, $field_id, $normalize_saved_value ) {
+        $resolve_field_value = static function ( string $field_name_key ) use ( $value, $field_slug, $normalize_saved_value ) {
             $keys = array(
                 $field_name_key,
                 $field_name_key . '[]',
                 $field_name_key . '[0]',
                 $field_slug,
                 $field_slug . '[]',
-                sanitize_key( $field_slug ),
-                sanitize_key( $field_slug ) . '[]',
-                $field_id,
-                $field_id . '[]',
-                sanitize_key( $field_id ),
-                sanitize_key( $field_id ) . '[]',
+                $field_slug . '[0]',
             );
 
             foreach ( $keys as $key ) {
@@ -1389,7 +1287,7 @@ final class FunctionsMod {
             return '';
         };
 
-        $field_value = $resolve_field_value( $field_name );
+        $field_value = $resolve_field_value( $field_slug );
         $unwrap_single_meta_value = static function ( $raw_value ) {
             if ( ! is_array( $raw_value ) ) {
                 return $raw_value;
@@ -1447,7 +1345,7 @@ final class FunctionsMod {
         };
 
         $field_label = FormFieldHelper::label(
-            $field_name,
+            $field_slug,
             $custom_field['name'] ?? $field_slug,
             array(
                 'class' => 'form-label',
@@ -1462,7 +1360,7 @@ final class FunctionsMod {
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::text_input(
-                    $field_name,
+                    $field_slug,
                     $scalar_field_value,
                     array(
                         'class' => 'form-control w-100',
@@ -1477,7 +1375,7 @@ final class FunctionsMod {
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::textarea(
-                    $field_name,
+                    $field_slug,
                     $scalar_field_value,
                     array(
                         'class' => 'form-control w-100',
@@ -1493,7 +1391,7 @@ final class FunctionsMod {
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::input(
-                    $field_name,
+                    $field_slug,
                     $scalar_field_value,
                     array(
                         'type' => 'number',
@@ -1509,7 +1407,7 @@ final class FunctionsMod {
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::input(
-                    $field_name,
+                    $field_slug,
                     $scalar_field_value,
                     array(
                         'type' => 'color',
@@ -1525,7 +1423,7 @@ final class FunctionsMod {
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::switch(
-                    $field_name,
+                    $field_slug,
                     true,
                     '',
                     array(
@@ -1542,7 +1440,7 @@ final class FunctionsMod {
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::button_group(
-                    $field_name,
+                    $field_slug,
                     $option_rows,
                     $selected_values,
                     array(
@@ -1559,7 +1457,7 @@ final class FunctionsMod {
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::bootstrap_select(
-                    $field_name,
+                    $field_slug,
                     array(
                         'data' => $option_rows,
                         'selected' => $selected_value,
@@ -1607,13 +1505,13 @@ final class FunctionsMod {
                         'value' => $mode,
                         'label' => 'image' === $mode ? __( 'Image', 'modpress' ) : ( 'icon' === $mode ? __( 'Icon', 'modpress' ) : __( 'URL', 'modpress' ) ),
                         'input_attributes' => array(
-                            'data-input-name' => $field_name,
+                            'data-input-name' => $field_slug,
                         ),
                     );
                 }
 
                 $mode_html = FormFieldHelper::button_group(
-                    $field_name . '_mode',
+                    $field_slug . '_mode',
                     $mode_choices,
                     $selected_mode,
                     array(
@@ -1632,8 +1530,8 @@ final class FunctionsMod {
                     WPMediaHelper::create(
                         $image_value,
                         array(
-                            'name' => $field_name,
-                            'id' => sanitize_key( $field_name . '_image' ),
+                            'name' => $field_slug,
+                            'id' => sanitize_key( $field_slug . '_image' ),
                             'button_text' => __( 'Select Image', 'modpress' ),
                             'class' => 'btn btn-secondary modpress-image-select',
                             'show_remove' => true,
@@ -1656,10 +1554,10 @@ final class FunctionsMod {
                     '<div class="modpress-image-entry-mode modpress-image-entry-mode-icon" data-image-mode="icon"%1$s>%2$s</div>',
                     'icon' === $selected_mode ? '' : ' style="display:none;"',
                     IconPicker::get_instance()->render_picker(
-                        $field_name,
+                        $field_slug,
                         $image_value,
                         array(
-                            'id' => sanitize_key( $field_name . '-picker' ),
+                            'id' => sanitize_key( $field_slug . '-picker' ),
                             'button_text' => __( 'Choose Icon', 'modpress' ),
                         )
                     )
@@ -1669,7 +1567,7 @@ final class FunctionsMod {
             if ( in_array( 'url', $allowed_modes, true ) ) {
                 $url_mode_display = 'url' === $selected_mode ? '' : ' style="display:none;"';
                 $url_field = FormFieldHelper::input(
-                    $field_name,
+                    $field_slug,
                     $image_value,
                     array(
                         'type' => 'url',

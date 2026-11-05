@@ -1,23 +1,28 @@
 (() => {
-    const normalizeFieldName = (name = '', fieldId = '') => {
+    const normalizeFieldName = (name = '', fieldKey = '') => {
         if (!name) {
             return name;
         }
 
         const trimmedName = String(name).trim();
-        if (!trimmedName || !fieldId) {
+        if (!trimmedName || !fieldKey) {
+            return trimmedName;
+        }
+
+        const sanitizedFieldKey = String(fieldKey).trim();
+        if (!sanitizedFieldKey) {
             return trimmedName;
         }
 
         if (trimmedName.endsWith('[]')) {
-            return trimmedName.slice(0, -2) + '[' + String(fieldId) + ']';
+            return trimmedName.slice(0, -2) + '[' + sanitizedFieldKey + ']';
         }
 
         if (trimmedName.endsWith(']')) {
-            return trimmedName.replace(/\]$/, '[' + String(fieldId) + ']');
+            return trimmedName.replace(/\]$/, '[' + sanitizedFieldKey + ']');
         }
 
-        return trimmedName + '[' + String(fieldId) + ']';
+        return trimmedName + '[' + sanitizedFieldKey + ']';
     };
 
     const syncCustomFieldRowNames = (row) => {
@@ -25,10 +30,14 @@
             return;
         }
 
-        const fieldId = String(row.dataset.fieldId || row.querySelector('[name^="custom_field_id"]').value || '').trim();
-        if (!fieldId) {
+        const fieldId = String(row.dataset.fieldId || row.querySelector('[name^="custom_field_id"]')?.value || '').trim();
+        const slugInput = row.querySelector('[name^="custom_field_slug"]');
+        const fieldKey = String(slugInput?.value || row.dataset.fieldSlug || fieldId || '').trim();
+        if (!fieldKey) {
             return;
         }
+
+        row.dataset.fieldSlug = fieldKey;
 
         const keyedNames = [
             'custom_field_id',
@@ -60,7 +69,7 @@
                 return;
             }
 
-            const nextName = normalizeFieldName(matchedName + '[]', fieldId);
+            const nextName = normalizeFieldName(matchedName + '[]', fieldKey);
             if (nextName !== currentName) {
                 element.setAttribute('name', nextName);
             }
@@ -490,27 +499,15 @@
             }
 
             const withoutBrackets = candidate.replace(/\[\]$/, '');
-            const sanitized = withoutBrackets.replace(/[^a-zA-Z0-9_-]/g, '');
-
             lookupNames.add(candidate);
             lookupNames.add(withoutBrackets);
-            lookupNames.add(sanitized);
-
-            if (candidate.startsWith('entry_custom_field_')) {
-                const rawKey = candidate.replace(/^entry_custom_field_/, '');
-                lookupNames.add(rawKey);
-                lookupNames.add(rawKey.replace(/[^a-zA-Z0-9_-]/g, ''));
-            }
+            lookupNames.add(withoutBrackets.replace(/_mode$/, ''));
         };
 
         addKey(inputName);
-        addKey(inputName.replace(/\[\]$/, ''));
-        addKey(inputName.replace(/^entry_custom_field_/, ''));
-        addKey(inputName.replace(/^entry_custom_field_/, '').replace(/_mode$/, ''));
-        addKey(rowFieldId);
         addKey(rowFieldSlug);
-        addKey(rowFieldId ? 'entry_custom_field_' + String(rowFieldId).replace(/\[\]$/, '') : '');
-        addKey(rowFieldSlug ? 'entry_custom_field_' + String(rowFieldSlug).replace(/\[\]$/, '') : '');
+        addKey(rowFieldId);
+        addKey(String(rowFieldSlug || '').replace(/\[\]$/, ''));
 
         return lookupNames;
     };
@@ -526,18 +523,6 @@
                     flattenEntryDataMap(value, target);
                     return;
                 }
-            }
-
-            if (value && typeof value === 'object' && !Array.isArray(value) && key.startsWith('entry_custom_field_')) {
-                target[key] = value;
-                target[key.replace(/^entry_custom_field_/, '')] = value;
-                return;
-            }
-
-            if (value && typeof value === 'object' && !Array.isArray(value) && /^field_[a-zA-Z0-9_-]+$/.test(key)) {
-                target[key] = value;
-                target['entry_custom_field_' + key] = value;
-                return;
             }
 
             target[key] = value;
@@ -562,13 +547,12 @@
             }
 
             const fieldRow = input.closest('.modpress-custom-field-row');
-            const rowFieldId = fieldRow ? (fieldRow.dataset.fieldId || fieldRow.querySelector('[name^="custom_field_id"]')?.value || '') : '';
             const rowFieldSlug = fieldRow ? (fieldRow.querySelector('[name^="custom_field_slug"]')?.value || '') : '';
-            const lookupNames = getCustomFieldLookupNames(name, rowFieldId, rowFieldSlug);
+            const lookupNames = getCustomFieldLookupNames(name, '', rowFieldSlug);
 
             const matchedKey = Object.keys(fieldMap).find((key) => {
                 const normalizedKey = String(key || '').replace(/\[\]$/, '');
-                const candidateNames = getCustomFieldLookupNames(key, rowFieldId, rowFieldSlug);
+                const candidateNames = getCustomFieldLookupNames(key, '', rowFieldSlug);
                 return Array.from(lookupNames).some((lookupName) => candidateNames.has(lookupName) || lookupName === normalizedKey || lookupName === key);
             });
 
@@ -1106,22 +1090,23 @@
     };
 
     const syncOptionRepeaterNames = (repeater, fieldIndex) => {
-        if (!repeater || fieldIndex === undefined || fieldIndex === null || Number.isNaN(Number(fieldIndex))) {
+        if (!repeater) {
             return;
         }
 
+        const row = repeater.closest('.modpress-custom-field-row');
+        const rowFieldKey = row ? (String(row.dataset.fieldSlug || row.querySelector('[name^="custom_field_slug"]')?.value || row.dataset.fieldId || fieldIndex || '').trim()) : String(fieldIndex || '').trim();
         const type = repeater.dataset.optionType || 'radio';
-        const rowFieldId = String(repeater.closest('.modpress-custom-field-row')?.dataset.fieldId || fieldIndex || '').trim();
         const optionRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((optionRow) => !optionRow.closest('.modpress-option-row-template'));
         optionRows.forEach((optionRow, optionIndex) => {
             const labelInput = optionRow.querySelector('[data-option-role="label"]');
             const valueInput = optionRow.querySelector('[data-option-role="value"]');
-            const keyedFieldId = rowFieldId || String(fieldIndex || '');
+            const keyedFieldKey = rowFieldKey || String(fieldIndex || '');
             if (labelInput) {
-                labelInput.name = 'custom_field_type_' + type + '[' + keyedFieldId + '][' + optionIndex + '][label]';
+                labelInput.name = 'custom_field_type_' + type + '[' + keyedFieldKey + '][' + optionIndex + '][label]';
             }
             if (valueInput) {
-                valueInput.name = 'custom_field_type_' + type + '[' + keyedFieldId + '][' + optionIndex + '][option]';
+                valueInput.name = 'custom_field_type_' + type + '[' + keyedFieldKey + '][' + optionIndex + '][option]';
             }
         });
     };
@@ -1452,6 +1437,14 @@
         if (target.matches('[name^="custom_field_label"]')) {
             syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
         }
+
+        if (target.matches('[name^="custom_field_slug"]')) {
+            const row = target.closest('.modpress-custom-field-row');
+            if (row) {
+                syncCustomFieldRowNames(row);
+                syncCustomFieldRepeaterNames(row);
+            }
+        }
     });
 
     document.addEventListener('change', (event) => {
@@ -1472,6 +1465,14 @@
 
         if (target.matches('[name^="custom_field_label"]')) {
             syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
+        }
+
+        if (target.matches('[name^="custom_field_slug"]')) {
+            const fieldRow = target.closest('.modpress-custom-field-row');
+            if (fieldRow) {
+                syncCustomFieldRowNames(fieldRow);
+                syncCustomFieldRepeaterNames(fieldRow);
+            }
         }
 
         if (target.matches('[name^="custom_field_type"]')) {

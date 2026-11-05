@@ -118,11 +118,6 @@
                     flattenEntryPayload(value, target);
                     return;
                 }
-
-                if (key.startsWith('entry_custom_field_') || /^field_[a-zA-Z0-9_-]+$/.test(key)) {
-                    target[key] = value;
-                    return;
-                }
             }
 
             if (Array.isArray(value) && value.length && value.every((item) => item && typeof item === 'object' && !Array.isArray(item))) {

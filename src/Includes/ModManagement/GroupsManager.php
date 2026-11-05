@@ -262,25 +262,7 @@ final class GroupsManager {
 				continue;
 			}
 
-			$payload_keys = array_unique(
-				array_filter(
-					array(
-						$field_slug,
-						sanitize_key( $field_slug ),
-						$field_id,
-						sanitize_key( $field_id ),
-						'entry_custom_field_' . sanitize_key( $field_id ),
-						'entry_custom_field_' . sanitize_key( $field_slug ),
-					),
-					static function ( $key ) {
-						return '' !== trim( (string) $key );
-					}
-				)
-			);
-
-			foreach ( $payload_keys as $payload_key ) {
-				$payload[ $payload_key ] = $meta_value;
-			}
+			$payload[ $field_slug ] = $meta_value;
 		}
 
 		if ( function_exists( 'wp_send_json_success' ) ) {
@@ -365,7 +347,6 @@ final class GroupsManager {
 		}
 
 		$field_slug = trim( (string) $field_slug );
-		$field_id   = trim( (string) $field_id );
 
 		if ( isset( $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ] ) && is_object( $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ] ) ) {
 			$term = $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ];
@@ -380,12 +361,8 @@ final class GroupsManager {
 				);
 			}
 
-			if ( '' !== $field_slug && isset( $term->{$field_slug} ) ) {
+			if ( isset( $term->{$field_slug} ) ) {
 				return $term->{$field_slug};
-			}
-
-			if ( '' !== $field_id && isset( $term->{$field_id} ) ) {
-				return $term->{$field_id};
 			}
 		}
 
@@ -403,12 +380,8 @@ final class GroupsManager {
 					);
 				}
 
-				if ( '' !== $field_slug && isset( $term->{$field_slug} ) ) {
+				if ( isset( $term->{$field_slug} ) ) {
 					return $term->{$field_slug};
-				}
-
-				if ( '' !== $field_id && isset( $term->{$field_id} ) ) {
-					return $term->{$field_id};
 				}
 			}
 		}
@@ -420,38 +393,26 @@ final class GroupsManager {
 					return $term_meta;
 				}
 
-				$lookup_keys = array_unique(
-					array_filter(
-						array(
-							$field_slug,
-							sanitize_key( $field_slug ),
-							'entry_custom_field_' . sanitize_key( $field_slug ),
-							$field_id,
-							sanitize_key( $field_id ),
-							'entry_custom_field_' . sanitize_key( $field_id ),
-							'field_' . sanitize_key( $field_slug ),
-							'field_' . sanitize_key( $field_id ),
-						),
-						static function ( $key ) {
-							return '' !== trim( (string) $key );
-						}
-					)
-				);
-
-				foreach ( $lookup_keys as $lookup_key ) {
-					if ( isset( $term_meta[ $lookup_key ] ) ) {
-						$meta_value = $term_meta[ $lookup_key ];
-						if ( is_array( $meta_value ) ) {
-							return $meta_value[0] ?? '';
-						}
-						return $meta_value;
+				if ( isset( $term_meta[ $field_slug ] ) ) {
+					$meta_value = $term_meta[ $field_slug ];
+					if ( is_array( $meta_value ) ) {
+						return $meta_value[0] ?? '';
 					}
+					return $meta_value;
 				}
 			}
 		}
 
-		$meta_key = '' !== $field_slug ? trim( (string) $field_slug ) : '';
-		if ( '' === $meta_key ) {
+		$meta_key_candidates = array();
+		if ( '' !== $field_slug ) {
+			$meta_key_candidates[] = trim( (string) $field_slug );
+		}
+		$field_id = trim( (string) $field_id );
+		if ( '' !== $field_id ) {
+			$meta_key_candidates[] = $field_id;
+		}
+		$meta_key_candidates = array_values( array_unique( array_filter( array_map( 'trim', $meta_key_candidates ), static fn ( $candidate ) => '' !== $candidate ) ) );
+		if ( empty( $meta_key_candidates ) ) {
 			$term_meta = get_term_meta( $term_id );
 			return is_array( $term_meta ) ? $term_meta : array();
 		}
@@ -487,27 +448,19 @@ final class GroupsManager {
 		};
 
 		$term_meta = get_term_meta( $term_id );
-		$lookup_keys = array_unique(
-			array_filter(
-				array(
-					$meta_key,
-					sanitize_key( $meta_key ),
-					'entry_custom_field_' . sanitize_key( $meta_key ),
-					'field_' . sanitize_key( $meta_key ),
-					$field_id,
-					sanitize_key( $field_id ),
-					'entry_custom_field_' . sanitize_key( $field_id ),
-					'field_' . sanitize_key( $field_id ),
-				),
-				static function ( $key ) {
-					return '' !== trim( (string) $key );
+		foreach ( $meta_key_candidates as $meta_key ) {
+			if ( is_array( $term_meta ) && array_key_exists( $meta_key, $term_meta ) ) {
+				$meta_value = $normalize_meta_value( $term_meta[ $meta_key ] );
+				if ( is_array( $meta_value ) && 1 === count( $meta_value ) ) {
+					return $meta_value[0];
 				}
-			)
-		);
+				if ( '' !== (string) $meta_value || is_array( $meta_value ) ) {
+					return $meta_value;
+				}
+			}
 
-		foreach ( $lookup_keys as $lookup_key ) {
-			if ( is_array( $term_meta ) && array_key_exists( $lookup_key, $term_meta ) ) {
-				$meta_value = $normalize_meta_value( $term_meta[ $lookup_key ] );
+			$meta_value = $normalize_meta_value( get_term_meta( $term_id, $meta_key, true ) );
+			if ( '' !== (string) $meta_value || is_array( $meta_value ) ) {
 				if ( is_array( $meta_value ) && 1 === count( $meta_value ) ) {
 					return $meta_value[0];
 				}
@@ -515,12 +468,7 @@ final class GroupsManager {
 			}
 		}
 
-		$meta_value = $normalize_meta_value( get_term_meta( $term_id, $meta_key, true ) );
-		if ( is_array( $meta_value ) && 1 === count( $meta_value ) ) {
-			return $meta_value[0];
-		}
-
-		return $meta_value;
+		return '';
 	}
 
 	/**
@@ -579,12 +527,13 @@ final class GroupsManager {
 				continue;
 			}
 
-			$canonical_key = 'entry_custom_field_' . sanitize_key( '' !== $field_id ? $field_id : $field_slug );
-			if ( '' === $canonical_key || 'entry_custom_field_' === $canonical_key ) {
-				$canonical_key = 'entry_custom_field_' . sanitize_key( $field_slug );
+			$canonical_key = $field_slug;
+			if ( '' === trim( (string) $canonical_key ) ) {
+				$canonical_key = sanitize_key( $field_id );
 			}
-
-			$custom_field_values[ $canonical_key ] = $meta_value;
+			if ( '' !== trim( (string) $canonical_key ) ) {
+				$custom_field_values[ $canonical_key ] = $meta_value;
+			}
 		}
 
 		return rest_ensure_response(
