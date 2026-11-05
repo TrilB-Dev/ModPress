@@ -642,6 +642,39 @@ namespace ModPress\Tests\Unit {
             $this->assertStringNotContainsString( 'Array', $html );
         }
 
+        public function testRenderGroupCustomFieldUsesStoredMetaKeyToResolveFieldType(): void {
+            $field = array(
+                'id' => 'field_7',
+                'name' => 'Priority',
+                'slug' => 'priority',
+                'type' => 'text',
+            );
+
+            $group_fields = array(
+                array(
+                    'id' => 'field_7',
+                    'name' => 'Priority',
+                    'slug' => 'priority',
+                    'type' => 'radio',
+                    'options' => array(
+                        array( 'label' => 'Low', 'value' => 'low' ),
+                        array( 'label' => 'High', 'value' => 'high' ),
+                    ),
+                ),
+            );
+
+            $html = FunctionsMod::render_group_custom_field(
+                $field,
+                array(
+                    'priority' => array( 'high' ),
+                ),
+                $group_fields
+            );
+
+            $this->assertStringContainsString( 'checked', $html );
+            $this->assertStringContainsString( 'value="high"', $html );
+        }
+
         public function testValidSubmissionIsSanitizedAndInserted(): void {
             $_POST = [
                 'modpress_action' => 'save_mod',

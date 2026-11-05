@@ -1217,9 +1217,84 @@ final class FunctionsMod {
      * @return string HTML output.
      * @since 1.0.0
      */
-    public static function render_group_custom_field( array $custom_field, $value = array() ) {
+    public static function render_group_custom_field( array $custom_field, $value = array(), array $group_fields = array() ) {
         if ( ! is_array( $custom_field ) ) {
             return '';
+        }
+
+        if ( ! empty( $group_fields ) && is_array( $value ) ) {
+            $resolve_group_field = static function ( string $meta_key ) use ( $group_fields, $custom_field ) {
+                $meta_key = trim( (string) $meta_key );
+                if ( '' === $meta_key ) {
+                    return $custom_field;
+                }
+
+                $meta_key_aliases = array_unique(
+                    array_filter(
+                        array(
+                            $meta_key,
+                            str_replace( '[]', '', $meta_key ),
+                            preg_replace( '/^entry_custom_field_/', '', $meta_key ),
+                            sanitize_key( $meta_key ),
+                            sanitize_key( str_replace( '[]', '', $meta_key ) ),
+                            sanitize_key( preg_replace( '/^entry_custom_field_/', '', $meta_key ) ),
+                            str_replace( '_mode', '', $meta_key ),
+                            sanitize_key( str_replace( '_mode', '', $meta_key ) ),
+                        ),
+                        static function ( $candidate ) {
+                            return '' !== trim( (string) $candidate );
+                        }
+                    )
+                );
+
+                foreach ( $group_fields as $group_field ) {
+                    if ( ! is_array( $group_field ) ) {
+                        continue;
+                    }
+
+                    $group_slug = trim( (string) ( $group_field['slug'] ?? $group_field['name'] ?? '' ) );
+                    $group_id   = trim( (string) ( $group_field['id'] ?? '' ) );
+                    if ( '' === $group_slug && '' === $group_id ) {
+                        continue;
+                    }
+
+                    $group_aliases = array_unique(
+                        array_filter(
+                            array(
+                                $group_slug,
+                                sanitize_key( $group_slug ),
+                                $group_id,
+                                sanitize_key( $group_id ),
+                                'entry_custom_field_' . sanitize_key( $group_id ),
+                                'entry_custom_field_' . sanitize_key( $group_slug ),
+                                'field_' . sanitize_key( $group_id ),
+                                'field_' . sanitize_key( $group_slug ),
+                            ),
+                            static function ( $candidate ) {
+                                return '' !== trim( (string) $candidate );
+                            }
+                        )
+                    );
+
+                    foreach ( $meta_key_aliases as $meta_key_alias ) {
+                        foreach ( $group_aliases as $group_alias ) {
+                            if ( strtolower( (string) $meta_key_alias ) === strtolower( (string) $group_alias ) ) {
+                                return $group_field;
+                            }
+                        }
+                    }
+                }
+
+                return $custom_field;
+            };
+
+            foreach ( array_keys( $value ) as $meta_key ) {
+                $matched_field = $resolve_group_field( (string) $meta_key );
+                if ( ! empty( $matched_field ) ) {
+                    $custom_field = $matched_field;
+                    break;
+                }
+            }
         }
 
         $field_slug = trim( (string) ( $custom_field['slug'] ?? $custom_field['name'] ?? '' ) );
