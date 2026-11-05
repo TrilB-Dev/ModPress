@@ -479,7 +479,6 @@ final class ModGroups extends ModManager {
 
 		<?php
 	}
-
 	/**
 	 * Render a single table row for a helper-driven form field.
 	 *
