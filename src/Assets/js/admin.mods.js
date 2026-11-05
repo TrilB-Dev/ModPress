@@ -633,6 +633,37 @@
         return aliases;
     };
 
+    const getFieldValueCandidates = (candidateName = '') => {
+        const names = [];
+        const addName = (value) => {
+            if (value === null || typeof value === 'undefined') {
+                return;
+            }
+
+            const normalized = String(value).trim();
+            if (!normalized) {
+                return;
+            }
+
+            const variants = [
+                normalized,
+                normalized.replace(/\[\]$/, ''),
+                normalized.replace(/\[[^\]]*\]$/, ''),
+                normalized.replace(/\[\d+\]$/, ''),
+                normalized.replace(/_mode$/, ''),
+            ];
+
+            variants.forEach((variant) => {
+                if (variant && !names.includes(variant)) {
+                    names.push(variant);
+                }
+            });
+        };
+
+        addName(candidateName);
+        return names;
+    };
+
     const populateCustomFieldValues = (modalElement, data = {}) => {
         const container = modalElement.querySelector('.modpress-entry-custom-fields-container');
         if (!container) {
@@ -640,36 +671,34 @@
         }
 
         const fieldMap = buildFieldValueLookup(data || {});
-        const inputs = container.querySelectorAll('input, select, textarea');
+        const inputs = Array.from(container.querySelectorAll('input, select, textarea'));
+
+        console.log('[ModPress][admin.mods] hydrate custom field inputs', {
+            count: inputs.length,
+            fieldMap,
+        });
 
         inputs.forEach((input) => {
-            const name = String(input.name || input.dataset.inputName || input.dataset.fieldName || input.getAttribute('data-media-field-name') || '').trim();
-            if (!name) {
-                return;
+            const directFieldKey = String(input.dataset.modpressFieldKey || input.dataset.fieldKey || input.name || input.getAttribute('name') || '').trim();
+            const fieldRow = input.closest('.modpress-custom-field-row');
+            const rowFieldSlug = fieldRow ? (fieldRow.querySelector('[name^="custom_field_slug"]')?.value || '') : '';
+            const candidates = getFieldValueCandidates(directFieldKey);
+            if (rowFieldSlug) {
+                getFieldValueCandidates(rowFieldSlug).forEach((candidate) => {
+                    if (!candidates.includes(candidate)) {
+                        candidates.push(candidate);
+                    }
+                });
             }
 
-            const aliases = getFieldValueAliases(name);
             let matchedKey = null;
             let matchedValue = undefined;
 
-            for (const alias of aliases) {
-                if (Object.prototype.hasOwnProperty.call(fieldMap, alias)) {
-                    matchedKey = alias;
-                    matchedValue = fieldMap[alias];
+            for (const candidate of candidates) {
+                if (Object.prototype.hasOwnProperty.call(fieldMap, candidate)) {
+                    matchedKey = candidate;
+                    matchedValue = fieldMap[candidate];
                     break;
-                }
-            }
-
-            const fieldRow = input.closest('.modpress-custom-field-row');
-            const rowFieldSlug = fieldRow ? (fieldRow.querySelector('[name^="custom_field_slug"]')?.value || '') : '';
-            if (matchedValue === undefined && rowFieldSlug) {
-                const rowAliases = getFieldValueAliases(rowFieldSlug);
-                for (const alias of rowAliases) {
-                    if (Object.prototype.hasOwnProperty.call(fieldMap, alias)) {
-                        matchedKey = alias;
-                        matchedValue = fieldMap[alias];
-                        break;
-                    }
                 }
             }
 
@@ -678,7 +707,7 @@
             }
 
             console.log('[ModPress][admin.mods] bind custom field input', {
-                inputName: name,
+                inputName: directFieldKey || input.name || '',
                 matchedKey,
                 matchedValue,
             });

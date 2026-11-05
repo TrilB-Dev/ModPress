@@ -1367,6 +1367,9 @@ final class FunctionsMod {
                     array(
                         'class' => 'form-control w-100',
                         'placeholder' => $custom_field['name'] ?? $field_slug,
+                        'attributes' => array(
+                            'data-modpress-field-key' => $field_slug,
+                        ),
                     )
                 )
             );
@@ -1383,6 +1386,9 @@ final class FunctionsMod {
                         'class' => 'form-control w-100',
                         'rows' => absint( $custom_field['rows'] ?? 4 ),
                         'placeholder' => $custom_field['name'] ?? $field_slug,
+                        'attributes' => array(
+                            'data-modpress-field-key' => $field_slug,
+                        ),
                     )
                 )
             );
@@ -1399,6 +1405,9 @@ final class FunctionsMod {
                         'type' => 'number',
                         'class' => 'form-control w-100',
                         'placeholder' => $custom_field['name'] ?? $field_slug,
+                        'attributes' => array(
+                            'data-modpress-field-key' => $field_slug,
+                        ),
                     )
                 )
             );
@@ -1414,6 +1423,9 @@ final class FunctionsMod {
                     array(
                         'type' => 'color',
                         'class' => 'form-control form-control-color w-100',
+                        'attributes' => array(
+                            'data-modpress-field-key' => $field_slug,
+                        ),
                     )
                 )
             );
@@ -1430,6 +1442,9 @@ final class FunctionsMod {
                     '',
                     array(
                         'checked' => ! empty( $switch_value ) && ( true === (string) $switch_value || true === $switch_value || 'true' === strtolower( (string) $switch_value ) || 'on' === strtolower( (string) $switch_value ) || 'yes' === strtolower( (string) $switch_value ) ),
+                        'attributes' => array(
+                            'data-modpress-field-key' => $field_slug,
+                        ),
                     )
                 )
             );
@@ -1447,6 +1462,9 @@ final class FunctionsMod {
                     $selected_values,
                     array(
                         'type' => 'radio',
+                        'attributes' => array(
+                            'data-modpress-field-key' => $field_slug,
+                        ),
                     )
                 )
             );
@@ -1464,6 +1482,9 @@ final class FunctionsMod {
                         'data' => $option_rows,
                         'selected' => $selected_value,
                         'class' => 'w-100',
+                        'attributes' => array(
+                            'data-modpress-field-key' => $field_slug,
+                        ),
                     )
                 )
             );
