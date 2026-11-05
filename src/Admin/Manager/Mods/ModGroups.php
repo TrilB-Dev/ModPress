@@ -240,9 +240,9 @@ final class ModGroups extends ModManager {
                                             'class' => 'btn btn-outline-primary',
                                             'attributes' => array(
                                                 'data-bs-toggle' => 'modal',
-                                                'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ),
-												'data-group-entry-id' => '',
-                                                'data-taxonomy-key' => $taxonomy_key,
+                                                'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ) . '-new',
+                                                'data-group-entry-id' => '',
+																																																																							'data-taxonomy-key' => $taxonomy_key,
                                                 'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
                                             ),
                                         ) ); ?>
@@ -422,9 +422,9 @@ final class ModGroups extends ModManager {
 																		'class' => 'btn btn-outline-secondary',
 																		'attributes' => array(
 																			'data-bs-toggle' => 'modal',
-																			'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ),
-																			'data-taxonomy-key' => $taxonomy_key,
-																			'data-group-entry-id' => (int) $term->term_id,
+																			'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ) . '-' . (int) $term->term_id,
+																																																																							'data-taxonomy-key' => $taxonomy_key,
+																																																																							'data-group-entry-id' => (int) $term->term_id,
 																		),
 																	)
 																); ?>
@@ -481,7 +481,24 @@ final class ModGroups extends ModManager {
 		<?php endforeach; ?>
 		<?php $this->render_group_modal( $taxonomy_tabs ); ?>
 		<?php foreach ( $taxonomy_tabs as $taxonomy ) : ?>
-			<?php $this->render_entry_modal( $taxonomy_tabs, (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' ) ); ?>
+			<?php
+				$taxonomy_key = (string) ( $taxonomy['taxonomy'] ?? $taxonomy['key'] ?? '' );
+				if ( '' === $taxonomy_key ) {
+					continue;
+				}
+				$this->render_entry_modal( $taxonomy_tabs, $taxonomy_key, array() );
+				$terms = taxonomy_exists( $taxonomy_key ) ? get_terms(
+					array(
+						'taxonomy'   => $taxonomy_key,
+						'hide_empty' => false,
+					)
+				) : array();
+				if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+					foreach ( $terms as $term ) {
+						$this->render_entry_modal( $taxonomy_tabs, $taxonomy_key, $term );
+					}
+				}
+			?>
 		<?php endforeach; ?>
 
 		<?php
@@ -1126,9 +1143,21 @@ final class ModGroups extends ModManager {
 	 * @param array<int, array<string, mixed>> $taxonomy_tabs Taxonomy tabs for the page.
 	 * @return void
 	 */
-	private function render_entry_modal( array $taxonomy_tabs, string $selected_group_key = '', array $selected_entry = array() ): void {
+	private function render_entry_modal( array $taxonomy_tabs, string $selected_group_key = '', $selected_entry = array() ): void {
 		$selected_group_key = sanitize_key( (string) $selected_group_key );
-		$selected_entry     = array_merge(
+
+		if ( is_object( $selected_entry ) && isset( $selected_entry->term_id ) ) {
+			$selected_entry = array(
+				'term_id'    => (int) ( $selected_entry->term_id ?? 0 ),
+				'name'       => (string) ( $selected_entry->name ?? '' ),
+				'slug'       => (string) ( $selected_entry->slug ?? '' ),
+				'description'=> (string) ( $selected_entry->description ?? '' ),
+				'parent'     => (int) ( $selected_entry->parent ?? 0 ),
+				'taxonomy'   => (string) ( $selected_entry->taxonomy ?? $selected_group_key ),
+			);
+		}
+
+		$selected_entry = array_merge(
 			array(
 				'term_id'    => 0,
 				'name'       => '',
@@ -1137,7 +1166,7 @@ final class ModGroups extends ModManager {
 				'parent'     => 0,
 				'taxonomy'   => $selected_group_key,
 			),
-			$selected_entry
+			is_array( $selected_entry ) ? $selected_entry : array()
 		);
 		$entry_parent_options = array(
 			'0' => __( 'None', 'modpress' ),
@@ -1186,11 +1215,28 @@ final class ModGroups extends ModManager {
 
 		$modal_title = (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ? __( 'Edit Entry', 'modpress' ) : __( 'Add Entry', 'modpress' );
 		$selected_group_fields = $group_field_config[ $selected_group_key ] ?? array();
-		error_log( '[ModPress][ModGroups] render_entry_modal: selected_group_key=' . $selected_group_key . ' selected_entry_term_id=' . ( (int) ( $selected_entry['term_id'] ?? 0 ) ) . ' custom_field_count=' . count( $selected_group_fields ) );
-		error_log( '[ModPress][ModGroups] render_entry_modal: field_slugs=' . wp_json_encode( array_values( array_map( static fn ( $field ) => is_array( $field ) ? trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) ) : '', $selected_group_fields ) ) ) );
+		$entry_field_values = array();
+		if ( '' !== $selected_group_key && (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ) {
+			foreach ( $selected_group_fields as $field ) {
+				if ( ! is_array( $field ) ) {
+					continue;
+				}
+				$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+				if ( '' === $field_slug ) {
+					continue;
+				}
+				$entry_field_values[ $field_slug ] = GroupsManager::get_group_entry(
+					(int) ( $selected_entry['term_id'] ?? 0 ),
+					$selected_group_key,
+					$field_slug,
+					trim( (string) ( $field['id'] ?? '' ) )
+				);
+			}
+		}
 		?>
-		<?php $modal_id = 'modpress-entry-modal-' . sanitize_html_class( (string) ( $selected_group_key ?: ( $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'default' ) ) ); ?>
-		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true">
+		<?php $modal_suffix = (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ? '-' . (int) ( $selected_entry['term_id'] ?? 0 ) : '-new'; ?>
+		<?php $modal_id = 'modpress-entry-modal-' . sanitize_html_class( (string) ( $selected_group_key ?: ( $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'default' ) ) ) . $modal_suffix; ?>
+		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-modpress-static-modal="true">
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content" style="overflow-y: scroll;">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -1284,7 +1330,7 @@ final class ModGroups extends ModManager {
 											foreach ( $selected_group_fields as $field ) {
 												$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
 												error_log( '[ModPress][ModGroups] custom field row slug=' . $field_slug . ' type=' . (string) ( $field['type'] ?? 'text' ) );
-												echo FunctionsMod::render_group_custom_field( $field, array(), $selected_group_fields );
+												echo FunctionsMod::render_group_custom_field( $field, $entry_field_values, $selected_group_fields );
 											}
 											?>
 										</div>

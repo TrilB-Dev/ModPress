@@ -1821,6 +1821,10 @@
             return;
         }
 
+        if (modalElement.dataset.modpressStaticModal === 'true') {
+            return;
+        }
+
         const taxonomyLabel = trigger.dataset.taxonomyLabel || 'Group';
         const title = modalElement.querySelector('.modal-title');
         const entryIdValue = trigger.dataset.groupEntryId || trigger.dataset.entryId || '';
@@ -1895,6 +1899,10 @@
     });
 
     document.querySelectorAll('[id^="modpress-entry-modal-"]').forEach((modalElement) => {
+        if (modalElement.dataset.modpressStaticModal === 'true') {
+            return;
+        }
+
         modalElement.addEventListener('show.bs.modal', (event) => {
             const trigger = event.relatedTarget;
             if (!trigger) {
