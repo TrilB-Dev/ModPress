@@ -1307,7 +1307,10 @@ final class FunctionsMod {
             $field_id = 'field_' . sanitize_key( $field_slug );
         }
 
-        $field_name = 'entry_custom_field_' . sanitize_key( $field_id );
+        $field_name = 'entry_custom_field_' . sanitize_key( $field_slug );
+        if ( '' === $field_name || 'entry_custom_field_' === $field_name ) {
+            $field_name = 'entry_custom_field_' . sanitize_key( $field_id );
+        }
         $field_type = strtolower( (string) ( $custom_field['type'] ?? 'text' ) );
         $value = is_array( $value ) ? $value : array();
 

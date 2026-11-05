@@ -478,7 +478,8 @@ namespace ModPress\Tests\Unit {
             $html = ob_get_clean();
 
             $this->assertStringContainsString( 'Color', $html );
-            $this->assertStringContainsString( 'entry_custom_field_field_1', $html );
+            $this->assertStringContainsString( 'entry_custom_field_color', $html );
+            $this->assertStringNotContainsString( 'entry_custom_field_field_1', $html );
         }
 
         public function testGroupsManagerProvidesGroupAndEntryLookupContracts(): void {
@@ -1265,9 +1266,9 @@ namespace ModPress\Tests\Unit {
                 array()
             );
 
-            $this->assertStringContainsString( 'name="entry_custom_field_field_3_mode"', $output );
-            $this->assertStringContainsString( 'name="entry_custom_field_field_3"', $output );
-            $this->assertStringNotContainsString( 'name="entry_custom_field_image_mode"', $output );
+            $this->assertStringContainsString( 'name="entry_custom_field_image_mode"', $output );
+            $this->assertStringContainsString( 'name="entry_custom_field_image"', $output );
+            $this->assertStringNotContainsString( 'name="entry_custom_field_field_3_mode"', $output );
         }
 
         public function testGroupEntryAjaxPayloadIncludesFieldIdAliasesForHydration(): void {

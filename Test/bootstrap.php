@@ -30,6 +30,12 @@ if ( ! function_exists( '__' ) ) {
 	}
 }
 
+if ( ! function_exists( '_e' ) ) {
+	function _e( $text, $domain = null ) {
+		echo (string) $text;
+	}
+}
+
 if ( ! class_exists( 'WP_REST_Request' ) ) {
 	class WP_REST_Request {
 		protected array $params = array();
@@ -75,6 +81,20 @@ if ( ! function_exists( 'sanitize_title' ) ) {
 	function sanitize_title( $title, $fallback_title = '', $context = 'save' ): string {
 		$slug = strtolower( trim( preg_replace( '/[^a-z0-9]+/', '-', (string) $title ), '-' ) );
 		return '' !== $slug ? $slug : (string) $fallback_title;
+	}
+}
+
+if ( ! function_exists( 'wp_parse_args' ) ) {
+	function wp_parse_args( $args, $defaults = array() ) {
+		if ( is_object( $args ) ) {
+			$args = get_object_vars( $args );
+		}
+
+		if ( is_array( $args ) && is_array( $defaults ) ) {
+			return array_merge( $defaults, $args );
+		}
+
+		return $defaults;
 	}
 }
 
