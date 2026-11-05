@@ -540,14 +540,18 @@
             return target;
         }
 
-        console.log('[ModPress][admin.mods] flattenEntryDataMap source keys', Object.keys(source));
-
         Object.entries(source).forEach(([key, value]) => {
             if (value && typeof value === 'object' && !Array.isArray(value)) {
-                if (['term', 'custom_fields', 'data', 'meta'].includes(key)) {
+                if (['term', 'custom_fields', 'custom_field_values', 'data', 'meta'].includes(key)) {
                     flattenEntryDataMap(value, target);
                     return;
                 }
+            }
+
+            if (Array.isArray(value)) {
+                target[key] = value;
+                target[String(key).replace(/\[\]$/, '')] = value;
+                return;
             }
 
             target[key] = value;
@@ -563,14 +567,20 @@
             return;
         }
 
-        console.log('[ModPress][admin.mods] populateCustomFieldValues data', data);
-
         const fieldMap = flattenEntryDataMap(data || {}, {});
-        console.log('[ModPress][admin.mods] populateCustomFieldValues fieldMap keys', Object.keys(fieldMap));
+        const availableKeys = Object.keys(fieldMap);
+
         const inputs = container.querySelectorAll('input, select, textarea');
         inputs.forEach((input) => {
             const name = input.name || '';
             if (!name) {
+                return;
+            }
+
+            const normalizedName = String(name).trim().replace(/\[\]$/, '');
+            const directMatch = fieldMap[name] !== undefined ? fieldMap[name] : fieldMap[normalizedName];
+            if (directMatch !== undefined) {
+                setCustomFieldInputValue(input, directMatch);
                 return;
             }
 
@@ -579,27 +589,24 @@
             const lookupNames = getCustomFieldLookupNames(name, '', rowFieldSlug);
 
             const matchedKey = Object.keys(fieldMap).find((key) => {
-                const normalizedKey = String(key || '').replace(/\[\]$/, '');
+                const normalizedKey = String(key || '').trim().replace(/\[\]$/, '');
                 const candidateNames = getCustomFieldLookupNames(key, '', rowFieldSlug);
-                return Array.from(lookupNames).some((lookupName) => candidateNames.has(lookupName) || lookupName === normalizedKey || lookupName === key);
+                return Array.from(lookupNames).some((lookupName) => {
+                    const candidate = String(lookupName || '').trim();
+                    return candidate !== '' && (
+                        candidateNames.has(candidate)
+                        || lookupName === normalizedKey
+                        || lookupName === key
+                        || candidate === normalizedKey
+                        || candidate === String(key || '').trim()
+                    );
+                });
             });
 
             if (!matchedKey) {
-                console.log('[ModPress][admin.mods] no custom field match for input', {
-                    inputName: name,
-                    rowFieldSlug,
-                    lookupNames: Array.from(lookupNames),
-                    availableKeys: Object.keys(fieldMap),
-                });
                 return;
             }
 
-            console.log('[ModPress][admin.mods] matched custom field value', {
-                inputName: name,
-                rowFieldSlug,
-                matchedKey,
-                value: fieldMap[matchedKey],
-            });
             setCustomFieldInputValue(input, fieldMap[matchedKey]);
         });
     };

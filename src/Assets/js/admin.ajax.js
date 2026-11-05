@@ -114,7 +114,7 @@
 
         Object.entries(source).forEach(([key, value]) => {
             if (value && typeof value === 'object' && !Array.isArray(value)) {
-                if (['term', 'custom_fields', 'data', 'meta'].includes(key)) {
+                if (['term', 'custom_fields', 'custom_field_values', 'data', 'meta'].includes(key)) {
                     flattenEntryPayload(value, target);
                     return;
                 }
@@ -133,6 +133,7 @@
             }
 
             target[key] = value;
+            target[String(key).replace(/\[\]$/, '')] = value;
         });
 
         return target;
@@ -142,7 +143,11 @@
         const source = data && typeof data === 'object' && data.data && typeof data.data === 'object' ? data.data : (data && typeof data === 'object' ? data : {});
         const flattened = flattenEntryPayload(source, {});
         const term = source.term && typeof source.term === 'object' ? source.term : (source && Object.prototype.hasOwnProperty.call(source, 'term_id') ? source : {});
-        const customFields = source.custom_fields && typeof source.custom_fields === 'object' ? source.custom_fields : {};
+        const customFields = source.custom_fields && typeof source.custom_fields === 'object'
+            ? source.custom_fields
+            : (source.custom_field_values && typeof source.custom_field_values === 'object'
+                ? source.custom_field_values
+                : {});
 
         const normalized = {
             ...flattened,
@@ -151,10 +156,18 @@
         };
 
         Object.entries(customFields).forEach(([key, value]) => {
-            if (key) {
-                normalized[key] = value;
-                normalized[key.replace(/\[\]$/, '')] = value;
+            if (!key) {
+                return;
             }
+
+            const normalizedKey = String(key).trim();
+            if (!normalizedKey) {
+                return;
+            }
+
+            normalized[normalizedKey] = value;
+            normalized[normalizedKey.replace(/\[\]$/, '')] = value;
+            normalized[`${normalizedKey}[]`] = value;
         });
 
         return normalized;
