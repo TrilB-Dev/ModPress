@@ -1002,6 +1002,8 @@ final class FunctionsMod {
         $taxonomy = RequestHelper::key( $_POST, 'group_slug', '' );
         $name     = RequestHelper::text( $_POST, 'entry_name', '' );
 
+        LoggerHelper::write_log( '[ModPress][FunctionsMod] save_group_entry start: taxonomy=' . $taxonomy . ' name=' . $name . ' term_id=' . RequestHelper::integer( $_POST, 'group_entry_id', 0 ) . ' post_keys=' . wp_json_encode( array_keys( $_POST ) ) );
+
         if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
             LoggerHelper::write_log( 'ModPress group entry save rejected: invalid taxonomy ' . $taxonomy );
             $this->redirect_mod_group_result( false, __( 'The selected taxonomy is invalid.', 'modpress' ) );

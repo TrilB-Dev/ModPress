@@ -468,6 +468,11 @@
             return;
         }
 
+        console.log('[ModPress][admin.mods] setting custom field value', {
+            inputName: input.name || '',
+            value,
+        });
+
         const normalizedValue = normalizeEntryMetaValue(value);
 
         if (input.type === 'checkbox' || input.type === 'radio') {
@@ -531,6 +536,8 @@
             return target;
         }
 
+        console.log('[ModPress][admin.mods] flattenEntryDataMap source keys', Object.keys(source));
+
         Object.entries(source).forEach(([key, value]) => {
             if (value && typeof value === 'object' && !Array.isArray(value)) {
                 if (['term', 'custom_fields', 'data', 'meta'].includes(key)) {
@@ -552,7 +559,10 @@
             return;
         }
 
+        console.log('[ModPress][admin.mods] populateCustomFieldValues data', data);
+
         const fieldMap = flattenEntryDataMap(data || {}, {});
+        console.log('[ModPress][admin.mods] populateCustomFieldValues fieldMap keys', Object.keys(fieldMap));
         const inputs = container.querySelectorAll('input, select, textarea');
         inputs.forEach((input) => {
             const name = input.name || '';
@@ -571,15 +581,31 @@
             });
 
             if (!matchedKey) {
+                console.log('[ModPress][admin.mods] no custom field match for input', {
+                    inputName: name,
+                    rowFieldSlug,
+                    lookupNames: Array.from(lookupNames),
+                    availableKeys: Object.keys(fieldMap),
+                });
                 return;
             }
 
+            console.log('[ModPress][admin.mods] matched custom field value', {
+                inputName: name,
+                rowFieldSlug,
+                matchedKey,
+                value: fieldMap[matchedKey],
+            });
             setCustomFieldInputValue(input, fieldMap[matchedKey]);
         });
     };
 
     const populateEntryModalFields = (modalElement, entryData = {}, taxonomyKey = '') => {
         const data = entryData || {};
+        console.log('[ModPress][admin.mods] populateEntryModalFields start', {
+            taxonomyKey,
+            entryData: data,
+        });
         const fieldsToReset = ['group_slug', 'group_entry_id', 'entry_group_taxonomy', 'entry_name', 'entry_slug', 'entry_description', 'entry_parent', 'entry_icon'];
         fieldsToReset.forEach((fieldName) => {
             const input = modalElement.querySelector('[name="' + fieldName + '"]');
@@ -641,15 +667,22 @@
         }
 
         const route = 'groups/' + encodeURIComponent(taxonomyKey) + '/entries/' + encodeURIComponent(String(entryId));
+        console.log('[ModPress][admin.mods] fetchEntryModalData request', {
+            route,
+            taxonomyKey,
+            entryId,
+        });
         const payload = await window.ModPressAjax.request({
             route,
             method: 'GET',
             nonce: (window.modpressManager && (window.modpressManager.restNonce || window.modpressManager.nonce)) || '',
         });
+        console.log('[ModPress][admin.mods] fetchEntryModalData raw response', payload);
 
         const normalizedPayload = typeof window.ModPressAjax.normalizeEntryPayload === 'function'
             ? window.ModPressAjax.normalizeEntryPayload(payload)
             : payload;
+        console.log('[ModPress][admin.mods] fetchEntryModalData normalized payload', normalizedPayload);
 
         return normalizedPayload && typeof normalizedPayload === 'object' ? normalizedPayload : null;
     };

@@ -343,10 +343,12 @@ final class GroupsManager {
 	public static function get_group_entry( int $term_id, string $taxonomy_key, string $field_slug = '', string $field_id = '' ) {
 		$term_id = (int) $term_id;
 		if ( $term_id <= 0 || '' === trim( (string) $taxonomy_key ) ) {
+			error_log( '[ModPress][GroupsManager] get_group_entry rejected: term_id=' . $term_id . ' taxonomy=' . $taxonomy_key );
 			return '';
 		}
 
 		$field_slug = trim( (string) $field_slug );
+		error_log( '[ModPress][GroupsManager] get_group_entry: term_id=' . $term_id . ' taxonomy=' . $taxonomy_key . ' field_slug=' . $field_slug . ' field_id=' . $field_id );
 
 		if ( isset( $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ] ) && is_object( $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ] ) ) {
 			$term = $GLOBALS['modpress_test_terms'][ $taxonomy_key ][ $term_id ];
@@ -448,6 +450,7 @@ final class GroupsManager {
 		};
 
 		$term_meta = get_term_meta( $term_id );
+		error_log( '[ModPress][GroupsManager] get_group_entry term_meta_keys=' . wp_json_encode( array_keys( is_array( $term_meta ) ? $term_meta : array() ) ) );
 		foreach ( $meta_key_candidates as $meta_key ) {
 			if ( is_array( $term_meta ) && array_key_exists( $meta_key, $term_meta ) ) {
 				$meta_value = $normalize_meta_value( $term_meta[ $meta_key ] );
@@ -485,6 +488,7 @@ final class GroupsManager {
 
 		$taxonomy = sanitize_key( (string) ( $request->get_param( 'group_key' ) ?? $request->get_param( 'taxonomy_key' ) ?? $request->get_param( 'taxonomy' ) ?? '' ) );
 		$term_id  = absint( $request->get_param( 'group_entry_id' ) ?? $request->get_param( 'term_id' ) ?? 0 );
+		error_log( '[ModPress][GroupsManager] rest_get_group_entry request: taxonomy=' . $taxonomy . ' term_id=' . $term_id );
 		if ( '' === $taxonomy || $term_id <= 0 ) {
 			return new \WP_Error( 'modpress_group_entry_not_found', __( 'The selected entry could not be found.', 'modpress' ), array( 'status' => 400 ) );
 		}
@@ -504,6 +508,7 @@ final class GroupsManager {
 		}
 
 		$custom_field_values = array();
+		error_log( '[ModPress][GroupsManager] rest_get_group_entry group_fields=' . wp_json_encode( array_values( array_map( static fn ( $field ) => is_array( $field ) ? trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) ) : '', $group_fields ) ) ) );
 		foreach ( $group_fields as $field ) {
 			if ( ! is_array( $field ) ) {
 				continue;
@@ -536,6 +541,7 @@ final class GroupsManager {
 			}
 		}
 
+		error_log( '[ModPress][GroupsManager] rest_get_group_entry custom_field_values=' . wp_json_encode( $custom_field_values ) );
 		return rest_ensure_response(
 			array(
 				'term'          => array(

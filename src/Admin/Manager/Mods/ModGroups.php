@@ -1186,6 +1186,8 @@ final class ModGroups extends ModManager {
 
 		$modal_title = (int) ( $selected_entry['term_id'] ?? 0 ) > 0 ? __( 'Edit Entry', 'modpress' ) : __( 'Add Entry', 'modpress' );
 		$selected_group_fields = $group_field_config[ $selected_group_key ] ?? array();
+		error_log( '[ModPress][ModGroups] render_entry_modal: selected_group_key=' . $selected_group_key . ' selected_entry_term_id=' . ( (int) ( $selected_entry['term_id'] ?? 0 ) ) . ' custom_field_count=' . count( $selected_group_fields ) );
+		error_log( '[ModPress][ModGroups] render_entry_modal: field_slugs=' . wp_json_encode( array_values( array_map( static fn ( $field ) => is_array( $field ) ? trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) ) : '', $selected_group_fields ) ) ) );
 		?>
 		<?php $modal_id = 'modpress-entry-modal-' . sanitize_html_class( (string) ( $selected_group_key ?: ( $taxonomy_tabs[0]['taxonomy'] ?? $taxonomy_tabs[0]['key'] ?? 'default' ) ) ); ?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true">
@@ -1277,9 +1279,14 @@ final class ModGroups extends ModManager {
 									</th>
 									<td>
 										<div class="modpress-entry-custom-fields-container">
-											<?php foreach ( $selected_group_fields as $field ) : ?>
-											<?php echo FunctionsMod::render_group_custom_field( $field, array(), $selected_group_fields ); ?>
-											<?php endforeach; ?>
+											<?php
+											error_log( '[ModPress][ModGroups] rendering custom field rows: taxonomy=' . $selected_group_key . ' count=' . count( $selected_group_fields ) );
+											foreach ( $selected_group_fields as $field ) {
+												$field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
+												error_log( '[ModPress][ModGroups] custom field row slug=' . $field_slug . ' type=' . (string) ( $field['type'] ?? 'text' ) );
+												echo FunctionsMod::render_group_custom_field( $field, array(), $selected_group_fields );
+											}
+											?>
 										</div>
 									</td>
 								</tr>
