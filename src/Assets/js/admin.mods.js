@@ -541,24 +541,96 @@
         }
 
         Object.entries(source).forEach(([key, value]) => {
+            const normalizedKey = String(key || '').trim();
+            if (!normalizedKey) {
+                return;
+            }
+
             if (value && typeof value === 'object' && !Array.isArray(value)) {
-                if (['term', 'custom_fields', 'custom_field_values', 'data', 'meta'].includes(key)) {
+                if (['term', 'custom_fields', 'custom_field_values', 'data', 'meta'].includes(normalizedKey)) {
                     flattenEntryDataMap(value, target);
                     return;
                 }
             }
 
-            if (Array.isArray(value)) {
-                target[key] = value;
-                target[String(key).replace(/\[\]$/, '')] = value;
-                return;
-            }
+            const aliases = new Set([
+                normalizedKey,
+                normalizedKey.replace(/\[\]$/, ''),
+                normalizedKey.replace(/\[[^\]]*\]$/, ''),
+                normalizedKey.replace(/\[\d+\]$/, ''),
+            ]);
 
-            target[key] = value;
-            target[String(key).replace(/\[\]$/, '')] = value;
+            aliases.forEach((alias) => {
+                if (alias !== '') {
+                    target[alias] = value;
+                }
+            });
         });
 
         return target;
+    };
+
+    const buildFieldValueLookup = (source = {}) => {
+        const fieldMap = {};
+
+        const walk = (node = {}) => {
+            if (!node || typeof node !== 'object') {
+                return;
+            }
+
+            Object.entries(node).forEach(([key, value]) => {
+                const normalizedKey = String(key || '').trim();
+                if (!normalizedKey) {
+                    return;
+                }
+
+                if (value && typeof value === 'object' && !Array.isArray(value)) {
+                    if (['term', 'custom_fields', 'custom_field_values', 'data', 'meta'].includes(normalizedKey)) {
+                        walk(value);
+                        return;
+                    }
+                }
+
+                const aliases = new Set([
+                    normalizedKey,
+                    normalizedKey.replace(/\[\]$/, ''),
+                    normalizedKey.replace(/\[[^\]]*\]$/, ''),
+                    normalizedKey.replace(/\[\d+\]$/, ''),
+                ]);
+
+                aliases.forEach((alias) => {
+                    if (alias !== '') {
+                        fieldMap[alias] = value;
+                    }
+                });
+            });
+        };
+
+        walk(source);
+        return fieldMap;
+    };
+
+    const getFieldValueAliases = (candidateName = '') => {
+        const aliases = new Set();
+        const rawName = String(candidateName || '').trim();
+
+        if (!rawName) {
+            return aliases;
+        }
+
+        [
+            rawName,
+            rawName.replace(/\[\]$/, ''),
+            rawName.replace(/\[[^\]]*\]$/, ''),
+            rawName.replace(/\[\d+\]$/, ''),
+            rawName.replace(/_mode$/, ''),
+        ].forEach((alias) => {
+            if (alias && alias !== '') {
+                aliases.add(alias);
+            }
+        });
+
+        return aliases;
     };
 
     const populateCustomFieldValues = (modalElement, data = {}) => {
@@ -567,47 +639,51 @@
             return;
         }
 
-        const fieldMap = flattenEntryDataMap(data || {}, {});
-        const availableKeys = Object.keys(fieldMap);
-
+        const fieldMap = buildFieldValueLookup(data || {});
         const inputs = container.querySelectorAll('input, select, textarea');
+
         inputs.forEach((input) => {
-            const name = input.name || '';
+            const name = String(input.name || input.dataset.inputName || input.dataset.fieldName || input.getAttribute('data-media-field-name') || '').trim();
             if (!name) {
                 return;
             }
 
-            const normalizedName = String(name).trim().replace(/\[\]$/, '');
-            const directMatch = fieldMap[name] !== undefined ? fieldMap[name] : fieldMap[normalizedName];
-            if (directMatch !== undefined) {
-                setCustomFieldInputValue(input, directMatch);
-                return;
+            const aliases = getFieldValueAliases(name);
+            let matchedKey = null;
+            let matchedValue = undefined;
+
+            for (const alias of aliases) {
+                if (Object.prototype.hasOwnProperty.call(fieldMap, alias)) {
+                    matchedKey = alias;
+                    matchedValue = fieldMap[alias];
+                    break;
+                }
             }
 
             const fieldRow = input.closest('.modpress-custom-field-row');
             const rowFieldSlug = fieldRow ? (fieldRow.querySelector('[name^="custom_field_slug"]')?.value || '') : '';
-            const lookupNames = getCustomFieldLookupNames(name, '', rowFieldSlug);
+            if (matchedValue === undefined && rowFieldSlug) {
+                const rowAliases = getFieldValueAliases(rowFieldSlug);
+                for (const alias of rowAliases) {
+                    if (Object.prototype.hasOwnProperty.call(fieldMap, alias)) {
+                        matchedKey = alias;
+                        matchedValue = fieldMap[alias];
+                        break;
+                    }
+                }
+            }
 
-            const matchedKey = Object.keys(fieldMap).find((key) => {
-                const normalizedKey = String(key || '').trim().replace(/\[\]$/, '');
-                const candidateNames = getCustomFieldLookupNames(key, '', rowFieldSlug);
-                return Array.from(lookupNames).some((lookupName) => {
-                    const candidate = String(lookupName || '').trim();
-                    return candidate !== '' && (
-                        candidateNames.has(candidate)
-                        || lookupName === normalizedKey
-                        || lookupName === key
-                        || candidate === normalizedKey
-                        || candidate === String(key || '').trim()
-                    );
-                });
-            });
-
-            if (!matchedKey) {
+            if (matchedValue === undefined) {
                 return;
             }
 
-            setCustomFieldInputValue(input, fieldMap[matchedKey]);
+            console.log('[ModPress][admin.mods] bind custom field input', {
+                inputName: name,
+                matchedKey,
+                matchedValue,
+            });
+
+            setCustomFieldInputValue(input, matchedValue);
         });
     };
 
