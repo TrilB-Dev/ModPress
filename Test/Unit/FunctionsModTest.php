@@ -622,6 +622,26 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'low', $data['custom_fields']['entry_custom_field_field_7'] );
         }
 
+        public function testRenderGroupCustomFieldUnwrapsTermMetaArrayValues(): void {
+            $field = array(
+                'id' => 'field_7',
+                'name' => 'Priority',
+                'slug' => 'priority',
+                'type' => 'text',
+            );
+
+            $html = FunctionsMod::render_group_custom_field(
+                $field,
+                array(
+                    'entry_custom_field_field_7' => array( 'high' ),
+                    'priority' => array( 'high' ),
+                )
+            );
+
+            $this->assertStringContainsString( 'value="high"', $html );
+            $this->assertStringNotContainsString( 'Array', $html );
+        }
+
         public function testValidSubmissionIsSanitizedAndInserted(): void {
             $_POST = [
                 'modpress_action' => 'save_mod',

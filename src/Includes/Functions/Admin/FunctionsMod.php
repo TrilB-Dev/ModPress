@@ -1312,6 +1312,36 @@ final class FunctionsMod {
         };
 
         $field_value = $resolve_field_value( $field_name );
+        $unwrap_single_meta_value = static function ( $raw_value ) {
+            if ( ! is_array( $raw_value ) ) {
+                return $raw_value;
+            }
+
+            $flattened = array();
+            foreach ( $raw_value as $item ) {
+                if ( is_array( $item ) ) {
+                    foreach ( (array) $item as $nested_item ) {
+                        $trimmed = trim( (string) $nested_item );
+                        if ( '' !== $trimmed ) {
+                            $flattened[] = $trimmed;
+                        }
+                    }
+                    continue;
+                }
+
+                $trimmed = trim( (string) $item );
+                if ( '' !== $trimmed ) {
+                    $flattened[] = $trimmed;
+                }
+            }
+
+            if ( 1 === count( $flattened ) ) {
+                return $flattened[0];
+            }
+
+            return array_values( array_unique( $flattened ) );
+        };
+        $field_value = $unwrap_single_meta_value( $field_value );
 
         $normalize_options = static function ( $options ) {
             $normalized = array();
@@ -1347,13 +1377,15 @@ final class FunctionsMod {
             )
         );
 
+        $scalar_field_value = is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value;
+
         if ( 'text' === $field_type ) {
             return sprintf(
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
                 FormFieldHelper::text_input(
                     $field_name,
-                    (string) $field_value,
+                    $scalar_field_value,
                     array(
                         'class' => 'form-control w-100',
                         'placeholder' => $custom_field['name'] ?? $field_slug,
@@ -1368,7 +1400,7 @@ final class FunctionsMod {
                 $field_label,
                 FormFieldHelper::textarea(
                     $field_name,
-                    (string) $field_value,
+                    $scalar_field_value,
                     array(
                         'class' => 'form-control w-100',
                         'rows' => absint( $custom_field['rows'] ?? 4 ),
@@ -1384,7 +1416,7 @@ final class FunctionsMod {
                 $field_label,
                 FormFieldHelper::input(
                     $field_name,
-                    (string) $field_value,
+                    $scalar_field_value,
                     array(
                         'type' => 'number',
                         'class' => 'form-control w-100',
@@ -1400,7 +1432,7 @@ final class FunctionsMod {
                 $field_label,
                 FormFieldHelper::input(
                     $field_name,
-                    (string) $field_value,
+                    $scalar_field_value,
                     array(
                         'type' => 'color',
                         'class' => 'form-control form-control-color w-100',
@@ -1410,6 +1442,7 @@ final class FunctionsMod {
         }
 
         if ( 'switch' === $field_type ) {
+            $switch_value = is_array( $field_value ) ? ( $field_value[0] ?? '' ) : $field_value;
             return sprintf(
                 '<tr><th scope="row" class="align-top text-nowrap pe-4">%1$s</th><td>%2$s</td></tr>',
                 $field_label,
@@ -1418,7 +1451,7 @@ final class FunctionsMod {
                     true,
                     '',
                     array(
-                        'checked' => ! empty( $field_value ) && ( true === (string) $field_value || true === $field_value || 'true' === strtolower( (string) $field_value ) || 'on' === strtolower( (string) $field_value ) || 'yes' === strtolower( (string) $field_value ) ),
+                        'checked' => ! empty( $switch_value ) && ( true === (string) $switch_value || true === $switch_value || 'true' === strtolower( (string) $switch_value ) || 'on' === strtolower( (string) $switch_value ) || 'yes' === strtolower( (string) $switch_value ) ),
                     )
                 )
             );
@@ -1710,7 +1743,6 @@ final class FunctionsMod {
         check_admin_referer( 'modpress_save_files' );
         $this->redirect_mod_action_result( 'files', __( 'Files saved successfully.', 'modpress' ), true );
     }
-
     /**
      * Handle a file type save request.
      *
@@ -1725,7 +1757,6 @@ final class FunctionsMod {
         check_admin_referer( 'modpress_save_file_type' );
         $this->redirect_mod_action_result( 'files', __( 'File type saved successfully.', 'modpress' ), true );
     }
-
     /**
      * Handle a changelog save request.
      *
