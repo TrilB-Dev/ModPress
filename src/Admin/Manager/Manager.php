@@ -90,13 +90,6 @@ abstract class Manager {
 	 * @since 1.0.0
 	 */
 	protected function assets( string $bundle ): array {
-		if ( ! defined( 'MODPRESS_ASSETS_URL' ) ) {
-			return array(
-				'styles'  => array(),
-				'scripts' => array(),
-			);
-		}
-
 		$bundle_name = $this->resolve_bundle_name( $bundle );
 		$style_name  = $this->resolve_style_bundle_name( $bundle );
 
@@ -136,12 +129,12 @@ abstract class Manager {
 		}
 
 		$mapping = array(
-			'dashboard' 	=> 'admin.dashboard',
-			'mod-manager'   => 'admin.mods',
-			'settings'  	=> 'admin.settings',
-			'tools'     	=> 'admin.tools',
-			'plugins'   	=> 'admin.plugins',
-			'ui'        	=> 'admin.ui',
+			'dashboard' => 'admin.dashboard',
+			'mods'     	=> 'admin.mods',
+			'settings'  => 'admin.settings',
+			'tools'     => 'admin.tools',
+			'plugins'   => 'admin.plugins',
+			'ui'        => 'admin.ui',
 		);
 
 		return $mapping[ $bundle ] ?? ( 'admin.' . $bundle );
@@ -171,17 +164,18 @@ abstract class Manager {
 	 * @return void
 	 * @since 1.0.0
 	 */
-	protected function header( string $title ): void {?>
-		<div class="wrap modpress-admin">
-			<?php Header::render();?>
-			<main class="modpress-admin-main">
-				<div class="container-fluid modpress-shell px-3 px-lg-4 py-4">
-					<div class="row g-4">
-						<?php Sidebar::render(); ?>
-						<section class="col-12 col-lg flex-grow-1" aria-labelledby="modpress-page-title">
-							<div class="modpress-page-heading d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
-								<h1 class="h1 mb-0" id="modpress-page-title"><?php echo esc_html( $title ); ?></h1>
-							</div>
+	protected function header( string $title ): void {
+		echo '<div class="wrap modpress-admin">';
+		Header::render();
+		?>
+		<main class="modpress-admin-main">
+			<div class="container-fluid modpress-shell px-3 px-lg-4 py-4">
+				<div class="row g-4">
+					<?php Sidebar::render(); ?>
+					<section class="col-12 col-lg flex-grow-1" aria-labelledby="modpress-page-title">
+						<div class="modpress-page-heading d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+							<h1 class="h1 mb-0" id="modpress-page-title"><?php echo esc_html( $title ); ?></h1>
+						</div>
 		<?php
 	}
 
@@ -192,9 +186,8 @@ abstract class Manager {
 	 * @since 1.0.0
 	 */
 	protected function footer(): void {
-			Footer::render();?>
-		</div>
-		<?php
+		Footer::render();
+		echo '</div>';
 	}
 
 	/**
