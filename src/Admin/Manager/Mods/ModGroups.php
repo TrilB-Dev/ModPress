@@ -807,7 +807,8 @@ final class ModGroups extends ModManager {
 													array(
 														'type' => 'button',
 														'class' => 'btn btn-outline-primary btn-sm',
-														'data-role' => 'add-custom-field'
+														'data-role' => 'add-custom-field',
+																																																												'data-custom-field-container' => '#' . esc_attr( $custom_fields_container_id )
 													)
 												); ?>
 											</div>

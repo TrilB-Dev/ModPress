@@ -498,6 +498,26 @@
         return [];
     };
 
+    const getCustomFieldContainer = (button = null, modal = null) => {
+        const explicitSelector = button && button.dataset && button.dataset.customFieldContainer
+            ? String(button.dataset.customFieldContainer || '').trim()
+            : '';
+
+        if (explicitSelector) {
+            const explicitContainer = document.querySelector(explicitSelector);
+            if (explicitContainer) {
+                return explicitContainer;
+            }
+        }
+
+        const modalScope = modal || (button ? button.closest('.modal') : null);
+        if (modalScope) {
+            return modalScope.querySelector('.modpress-custom-fields-container') || modalScope.querySelector('[id$="-custom-fields-container"]');
+        }
+
+        return document.querySelector('.modpress-custom-fields-container') || document.querySelector('[id$="-custom-fields-container"]');
+    };
+
     const getCustomFieldTemplate = (container = null, modal = null) => {
         const modalTemplate = modal ? modal.querySelector('[id$="-custom-field-template"]') : null;
         if (modalTemplate) {
@@ -1007,13 +1027,16 @@
 
     const addCustomFieldRow = (button = null) => {
         const scope = button ? button.closest('.modal') : null;
-        const container = scope ? scope.querySelector('.modpress-custom-fields-container') : document.querySelector('.modpress-custom-fields-container');
+        const container = getCustomFieldContainer(button, scope);
         if (!container) {
-            console.error('[ModPress] Missing custom fields container for Add Custom Field action.');
+            console.error('[ModPress] Missing custom fields container for Add Custom Field action.', {
+                button: button ? button.outerHTML : null,
+                modal: scope ? scope.id : null,
+            });
             return;
         }
 
-        const accordion = container.querySelector('[id$="-custom-fields-accordion"]') || container;
+        const accordion = container.querySelector('[id$="-custom-fields-accordion"], .accordion') || container;
         const placeholder = container.querySelector('.text-muted.small');
         if (placeholder) {
             placeholder.remove();
@@ -1021,7 +1044,10 @@
 
         const template = getCustomFieldTemplate(container, scope);
         if (!template) {
-            console.error('[ModPress] Missing custom field template for Add Custom Field action.');
+            console.error('[ModPress] Missing custom field template for Add Custom Field action.', {
+                containerId: container.id || null,
+                modalId: scope ? scope.id : null,
+            });
             return;
         }
 
@@ -1033,12 +1059,17 @@
                 row = template.firstElementChild.cloneNode(true);
             }
         } catch (error) {
-            console.error('[ModPress] Failed to clone custom field template.', error);
+            console.error('[ModPress] Failed to clone custom field template.', {
+                templateId: template.id || null,
+                error,
+            });
             return;
         }
 
         if (!row) {
-            console.error('[ModPress] Custom field template does not contain a valid row to clone.');
+            console.error('[ModPress] Custom field template does not contain a valid row to clone.', {
+                templateId: template.id || null,
+            });
             return;
         }
 
