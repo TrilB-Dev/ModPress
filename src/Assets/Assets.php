@@ -44,7 +44,6 @@ class Assets {
 	 * Registers the default assets for the plugin.
 	 *
 	 * @return void
-	 * @since 1.0.0
 	 */
 	public function register(): void {
 		( new LoaderHelper() )->register_component(
@@ -76,7 +75,6 @@ class Assets {
 	 * @param string $page The page identifier.
 	 * @param array  $assets The assets to register for the page.
 	 * @return void
-	 * @since 1.0.0
 	 */
 	public function register_page( string $page, array $assets ): void {
 		$page                 = SanitizationHelper::key( $page );
@@ -91,7 +89,6 @@ class Assets {
 	 * @param string $group The group identifier.
 	 * @param array  $assets The assets to register for the group.
 	 * @return void
-	 * @since 1.0.0
 	 */
 	public function register_group( string $group, array $assets ): void {
 		$group = SanitizationHelper::key( $group );
@@ -106,7 +103,6 @@ class Assets {
 	 * @param string $tab The tab identifier.
 	 * @param array  $assets The assets to register for the tab.
 	 * @return void
-	 * @since 1.0.0
 	 */
 	public function register_tab( string $tab, array $assets ): void {
 		$tab = SanitizationHelper::key( $tab );
@@ -121,7 +117,6 @@ class Assets {
 	 * @param array  $assets The current assets.
 	 * @param string $context The context (e.g., 'frontend', 'admin').
 	 * @return array The default assets.
-	 * @since 1.0.0
 	 */
 	public function default_assets( array $assets, string $context ): array {
 		$defaults = array(
@@ -198,6 +193,7 @@ class Assets {
 						array(
 							'handle' => 'modpress-public',
 							'src'    => MODPRESS_ASSETS_URL . '/dist/css/public.css',
+							'version' => MODPRESS_VERSION,
 						),
 					)
 				),
@@ -207,6 +203,7 @@ class Assets {
 						array(
 							'handle'    => 'modpress-public',
 							'src'       => MODPRESS_ASSETS_URL . '/dist/js/public.js',
+							'version'   => MODPRESS_VERSION,
 							'in_footer' => true,
 						),
 					)
@@ -222,20 +219,13 @@ class Assets {
 	 * @since 1.0.0
 	 */
 	public function enqueue_admin( string $hook_suffix ): void {
-		$route = $this->current_admin_route();
-		if ( ! $this->is_modpress_admin_route( $hook_suffix, $route ) ) {
+		if ( false === strpos( $hook_suffix, 'modpress' ) ) {
 			return;
 		}
 
-		$page = '' !== $route['page'] ? $route['page'] : ( '' !== $route['group'] ? $route['group'] : 'modpress' );
-		$registered = array();
-		foreach ( self::resolve_admin_page_aliases( $page ) as $candidate ) {
-			if ( isset( $this->pages[ $candidate ] ) ) {
-				$registered = $this->pages[ $candidate ];
-				break;
-			}
-		}
-		$base = apply_filters( 'modpress_base_assets', array(), 'admin' );
+		$page       = RequestHelper::get_key( 'page', 'modpress' );
+		$registered = $this->pages[ $page ] ?? array();
+		$base       = apply_filters( 'modpress_base_assets', array(), 'admin' );
 		$this->enqueue_registered(
 			'admin',
 			array(
@@ -245,7 +235,7 @@ class Assets {
 						array(
 							'handle'  => 'modpress-admin-ui',
 							'src'     => MODPRESS_ASSETS_URL . '/dist/css/admin.ui.css',
-							'version' => '1.0.0',
+							'version' => MODPRESS_VERSION,
 							'deps'    => array( 'modpress-bootstrap' ),
 						),
 					),
@@ -257,7 +247,8 @@ class Assets {
 						array(
 							'handle'    => 'modpress-admin-ui',
 							'src'       => MODPRESS_ASSETS_URL . '/dist/js/admin.ui.js',
-							'deps'      => array( 'modpress-bootstrap', 'modpress-admin-ajax' ),
+							'version'   => MODPRESS_VERSION,
+							'deps'      => array( 'modpress-bootstrap' ),
 							'in_footer' => true,
 						),
 					),
@@ -317,39 +308,50 @@ class Assets {
 			}
 		}
 
-	}
-
-	/**
-	 * Resolve the canonical admin-page aliases for a ModPress route.
-	 *
-	 * @param string $page The route page key.
-	 * @return array<int, string> The aliases used to resolve the asset registry.
-	 * @since 1.0.0
-	 */
-	public static function resolve_admin_page_aliases( string $page ): array {
-		$page = SanitizationHelper::key( $page );
-		$aliases = array(
-			'modpress'   => array( 'modpress' ),
-			'dashboard'  => array( 'modpress', 'dashboard' ),
-			'mod-manager' => array( 'modpress', 'mod-manager', 'manage-mod', 'mods' ),
-			'manage-mod' => array( 'modpress', 'mod-manager', 'manage-mod', 'mods' ),
-			'mods'       => array( 'modpress', 'mod-manager', 'manage-mod', 'mods' ),
-			'settings'   => array( 'modpress', 'settings' ),
-			'tools'      => array( 'modpress', 'tools' ),
-		);
-
-		if ( '' === $page ) {
-			return $aliases['modpress'];
+		if ( wp_script_is( 'modpress-admin-ui', 'enqueued' ) ) {
+			LoaderHelper::localize_script(
+				'modpress-admin-ui',
+				'modpressOnboarding',
+				array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'modpress_dismiss_onboarding' ),
+				)
+			);
 		}
 
-		return $aliases[ $page ] ?? array( $page, 'modpress' );
+		$route = $this->current_admin_route();
+		$settings_page = 'modpress' === $route['page'] && 'settings' === $route['group'];
+		$plugin_tab = in_array( $route['tab'], array( 'plugins', 'third-party' ), true );
+
+		if ( $settings_page && $plugin_tab ) {
+			$settings_config = array(
+				'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
+				'nonce'               => wp_create_nonce( 'modpress_settings_tabs' ),
+				'pluginNonce'         => wp_create_nonce( 'modpress_plugin_toggle' ),
+				'pluginSettingsNonce' => wp_create_nonce( 'modpress_save_plugin_settings' ),
+			);
+			foreach ( array( 'modpress-admin-settings', 'modpress-admin-plugins' ) as $handle ) {
+				if ( wp_script_is( $handle, 'enqueued' ) ) {
+					LoaderHelper::localize_script( $handle, 'modpressSettingsTabs', $settings_config );
+				}
+			}
+		}
+		if ( 'modpress' === $route['page'] && in_array( $route['group'], array( 'manage-mod', 'mods' ), true ) && wp_script_is( 'modpress-admin', 'enqueued' ) ) {
+			LoaderHelper::localize_script(
+				'modpress-admin',
+				'modpressManager',
+				array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'modpress_manage' ),
+				)
+			);
+		}
 	}
 
 	/**
 	 * Get the current admin route values.
 	 *
 	 * @return array{page:string,group:string,tab:string}
-	 * @since 1.0.0
 	 */
 	private function current_admin_route(): array {
 		return array(
@@ -357,28 +359,6 @@ class Assets {
 			'group' => RequestHelper::get_key( 'group', '' ),
 			'tab'   => RequestHelper::get_key( 'tab', '' ),
 		);
-	}
-
-	/**
-	 * Determine whether the current request targets a ModPress admin screen.
-	 *
-	 * @param string $hook_suffix WordPress admin hook suffix.
-	 * @param array{page:string,group:string,tab:string} $route Current route values.
-	 * @return bool Whether the current screen belongs to ModPress.
-	 * @since 1.0.0
-	 */
-	private function is_modpress_admin_route( string $hook_suffix, array $route ): bool {
-		if ( false !== strpos( $hook_suffix, 'modpress' ) ) {
-			return true;
-		}
-
-		foreach ( $route as $segment ) {
-			if ( is_string( $segment ) && '' !== $segment && false !== strpos( $segment, 'modpress' ) ) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 	/**
 	 * Retrieves the URL of an image asset.

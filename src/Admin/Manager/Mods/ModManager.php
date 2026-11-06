@@ -88,9 +88,8 @@ class ModManager extends Manager {
          *
          * @since 1.0.0
          */
-        if ( defined( 'MODPRESS_ASSETS_URL' ) ) {
-            $this->register_assets( new Assets() );
-        }
+
+        $this->register_assets( new Assets() );
     }
     /**
      * Register the mod manager admin-post handlers used by taxonomy forms.
@@ -113,33 +112,6 @@ class ModManager extends Manager {
         add_action( 'admin_post_modpress_save_changelog_category', array( $this->functions_mod, 'save_changelog_category' ) );
         add_action( 'admin_post_modpress_save_mod', array( $this->functions_mod, 'save_mod' ) );
     }
-
-    /**
-     * Register the ModPress REST routes used by the admin mod manager.
-     *
-     * @return void
-     * @since 1.0.0
-     */
-    public function register_rest_routes(): void {
-        \register_rest_route(
-            'modpress/v1',
-            '/groups/(?P<group_key>[^/]+)',
-            array(
-                'methods'             => \WP_REST_Server::READABLE,
-                'callback'            => array( '\ModPress\Includes\ModManagement\GroupsManager', 'rest_get_group' ),
-                'permission_callback' => function () {
-                    return current_user_can( 'modpress_manager_groups_view' ) || current_user_can( 'modpress_manager_groups_edit' ) || current_user_can( 'manage_options' );
-                },
-                'args'                => array(
-                    'group_key' => array(
-                        'required'          => true,
-                        'sanitize_callback' => 'sanitize_key',
-                    ),
-                ),
-            )
-        );
-
-    }
     /**
      * Register the assets for the mod manager.
      *
@@ -150,7 +122,7 @@ class ModManager extends Manager {
     public function register_assets( Assets $assets ): void {
         $this->register_page_assets(
             $assets,
-            Assets::resolve_admin_page_aliases( 'mod-manager' ),
+            'mod-manager',
             'mods'
         );
     }
