@@ -1139,22 +1139,52 @@
         syncOptionRepeaterType(row);
     };
 
+    const handleAddCustomFieldClick = (button, event = null) => {
+        if (!button || !(button instanceof Element)) {
+            return false;
+        }
+
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        try {
+            addCustomFieldRow(button);
+            return true;
+        } catch (error) {
+            console.error('[ModPress] Failed to add custom field row.', {
+                modalId: button.closest('.modal') ? button.closest('.modal').id : null,
+                button: button.outerHTML || null,
+                error,
+            });
+            return false;
+        }
+    };
+
     const bindCustomFieldButtons = () => {
-        document.querySelectorAll('[data-role="add-custom-field"]').forEach((button) => {
-            if (button.dataset.modpressCustomFieldBound === 'true') {
+        const root = document.body || document.documentElement;
+        if (!root) {
+            return;
+        }
+
+        if (root.dataset.modpressCustomFieldDelegated === 'true') {
+            return;
+        }
+
+        root.dataset.modpressCustomFieldDelegated = 'true';
+
+        document.addEventListener('click', (event) => {
+            const button = event.target && event.target.closest ? event.target.closest('[data-role="add-custom-field"]') : null;
+            if (!button) {
                 return;
             }
 
+            handleAddCustomFieldClick(button, event);
+        }, true);
+
+        document.querySelectorAll('[data-role="add-custom-field"]').forEach((button) => {
             button.dataset.modpressCustomFieldBound = 'true';
-            button.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                try {
-                    addCustomFieldRow(button);
-                } catch (error) {
-                    console.error('[ModPress] Failed to add custom field row.', error);
-                }
-            });
         });
     };
 
@@ -1338,17 +1368,6 @@
                 return;
             }
             form.submit();
-            return;
-        }
-
-        const button = event.target.closest('[data-role="add-custom-field"]');
-        if (button) {
-            event.preventDefault();
-            try {
-                addCustomFieldRow(button);
-            } catch (error) {
-                console.error('[ModPress] Failed to add custom field row.', error);
-            }
             return;
         }
 
