@@ -222,19 +222,20 @@ class Assets {
 	 * @since 1.0.0
 	 */
 	public function enqueue_admin( string $hook_suffix ): void {
-		$page       = RequestHelper::get_key( 'page', '' );
-		$group      = RequestHelper::get_key( 'group', '' );
-		$hook_match = is_string( $hook_suffix ) && false !== strpos( $hook_suffix, 'modpress' );
-		$page_match = '' !== $page && false !== strpos( $page, 'modpress' );
-		$group_match = '' !== $group && false !== strpos( $group, 'modpress' );
-
-		if ( ! $hook_match && ! $page_match && ! $group_match ) {
+		$route = $this->current_admin_route();
+		if ( ! $this->is_modpress_admin_route( $hook_suffix, $route ) ) {
 			return;
 		}
 
-		$resolved_page = '' !== $page ? $page : 'modpress';
-		$registered    = $this->pages[ $resolved_page ] ?? array();
-		$base          = apply_filters( 'modpress_base_assets', array(), 'admin' );
+		$page = '' !== $route['page'] ? $route['page'] : ( '' !== $route['group'] ? $route['group'] : 'modpress' );
+		$registered = array();
+		foreach ( self::resolve_admin_page_aliases( $page ) as $candidate ) {
+			if ( isset( $this->pages[ $candidate ] ) ) {
+				$registered = $this->pages[ $candidate ];
+				break;
+			}
+		}
+		$base = apply_filters( 'modpress_base_assets', array(), 'admin' );
 		$this->enqueue_registered(
 			'admin',
 			array(
@@ -319,6 +320,32 @@ class Assets {
 	}
 
 	/**
+	 * Resolve the canonical admin-page aliases for a ModPress route.
+	 *
+	 * @param string $page The route page key.
+	 * @return array<int, string> The aliases used to resolve the asset registry.
+	 * @since 1.0.0
+	 */
+	public static function resolve_admin_page_aliases( string $page ): array {
+		$page = SanitizationHelper::key( $page );
+		$aliases = array(
+			'modpress'   => array( 'modpress' ),
+			'dashboard'  => array( 'modpress', 'dashboard' ),
+			'mod-manager' => array( 'modpress', 'mod-manager', 'manage-mod', 'mods' ),
+			'manage-mod' => array( 'modpress', 'mod-manager', 'manage-mod', 'mods' ),
+			'mods'       => array( 'modpress', 'mod-manager', 'manage-mod', 'mods' ),
+			'settings'   => array( 'modpress', 'settings' ),
+			'tools'      => array( 'modpress', 'tools' ),
+		);
+
+		if ( '' === $page ) {
+			return $aliases['modpress'];
+		}
+
+		return $aliases[ $page ] ?? array( $page, 'modpress' );
+	}
+
+	/**
 	 * Get the current admin route values.
 	 *
 	 * @return array{page:string,group:string,tab:string}
@@ -330,6 +357,28 @@ class Assets {
 			'group' => RequestHelper::get_key( 'group', '' ),
 			'tab'   => RequestHelper::get_key( 'tab', '' ),
 		);
+	}
+
+	/**
+	 * Determine whether the current request targets a ModPress admin screen.
+	 *
+	 * @param string $hook_suffix WordPress admin hook suffix.
+	 * @param array{page:string,group:string,tab:string} $route Current route values.
+	 * @return bool Whether the current screen belongs to ModPress.
+	 * @since 1.0.0
+	 */
+	private function is_modpress_admin_route( string $hook_suffix, array $route ): bool {
+		if ( false !== strpos( $hook_suffix, 'modpress' ) ) {
+			return true;
+		}
+
+		foreach ( $route as $segment ) {
+			if ( is_string( $segment ) && '' !== $segment && false !== strpos( $segment, 'modpress' ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 	/**
 	 * Retrieves the URL of an image asset.

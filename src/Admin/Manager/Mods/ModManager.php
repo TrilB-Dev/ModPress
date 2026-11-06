@@ -150,7 +150,7 @@ class ModManager extends Manager {
     public function register_assets( Assets $assets ): void {
         $this->register_page_assets(
             $assets,
-            array( 'modpress', 'mod-manager', 'manage-mod', 'mods' ),
+            Assets::resolve_admin_page_aliases( 'mod-manager' ),
             'mods'
         );
     }
