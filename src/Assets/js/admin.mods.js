@@ -503,35 +503,24 @@
             ? String(button.dataset.customFieldContainer || '').trim()
             : '';
 
-        const modalScope = modal || (button ? button.closest('.modal') : null) || document.querySelector('.modal.show');
-
         if (explicitSelector) {
-            const explicitContainer = modalScope
-                ? modalScope.querySelector(explicitSelector)
-                : document.querySelector(explicitSelector);
+            const explicitContainer = document.querySelector(explicitSelector);
             if (explicitContainer) {
                 return explicitContainer;
             }
         }
 
+        const modalScope = modal || (button ? button.closest('.modal') : null);
         if (modalScope) {
-            const modalContainer = modalScope.querySelector('.modpress-custom-fields-container')
-                || modalScope.querySelector('[id$="-custom-fields-container"]');
-            if (modalContainer) {
-                return modalContainer;
-            }
+            return modalScope.querySelector('.modpress-custom-fields-container') || modalScope.querySelector('[id$="-custom-fields-container"]');
         }
 
         return document.querySelector('.modpress-custom-fields-container') || document.querySelector('[id$="-custom-fields-container"]');
     };
 
     const getCustomFieldTemplate = (container = null, modal = null) => {
-        const modalScope = modal || (container ? container.closest('.modal') : null) || document.querySelector('.modal.show');
-        const modalTemplate = modalScope ? modalScope.querySelector('[id$="-custom-field-template"]') : null;
+        const modalTemplate = modal ? modal.querySelector('[id$="-custom-field-template"]') : null;
         if (modalTemplate) {
-            if (container && !container.contains(modalTemplate)) {
-                container.appendChild(modalTemplate);
-            }
             return modalTemplate;
         }
 
@@ -1095,7 +1084,7 @@
         if (hiddenFieldId) {
             hiddenFieldId.value = fieldId;
         }
-
+        row.dataset.fieldId = fieldId;
         syncCustomFieldRowNames(row);
 
         const headingId = 'modpress-custom-field-heading-' + fieldIndex;
@@ -1111,19 +1100,12 @@
             trigger.setAttribute('data-bs-target', '#' + collapseId);
             trigger.setAttribute('aria-controls', collapseId);
             trigger.setAttribute('aria-labelledby', headingId);
-            trigger.setAttribute('aria-expanded', 'false');
-            trigger.classList.add('collapsed');
-            const title = trigger.querySelector('[data-custom-field-title]');
-            if (title) {
-                title.textContent = 'Field';
-            }
+            trigger.querySelector('[data-custom-field-title]')?.setAttribute('data-custom-field-title', '');
         }
         if (collapse) {
             collapse.id = collapseId;
             collapse.setAttribute('aria-labelledby', headingId);
             collapse.setAttribute('data-bs-parent', '#' + accordion.id);
-            collapse.classList.remove('show');
-            collapse.classList.add('collapse');
         }
 
         const repeater = row.querySelector('.modpress-option-repeater');
@@ -1139,52 +1121,22 @@
         syncOptionRepeaterType(row);
     };
 
-    const handleAddCustomFieldClick = (button, event = null) => {
-        if (!button || !(button instanceof Element)) {
-            return false;
-        }
-
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
-        try {
-            addCustomFieldRow(button);
-            return true;
-        } catch (error) {
-            console.error('[ModPress] Failed to add custom field row.', {
-                modalId: button.closest('.modal') ? button.closest('.modal').id : null,
-                button: button.outerHTML || null,
-                error,
-            });
-            return false;
-        }
-    };
-
     const bindCustomFieldButtons = () => {
-        const root = document.body || document.documentElement;
-        if (!root) {
-            return;
-        }
-
-        if (root.dataset.modpressCustomFieldDelegated === 'true') {
-            return;
-        }
-
-        root.dataset.modpressCustomFieldDelegated = 'true';
-
-        document.addEventListener('click', (event) => {
-            const button = event.target && event.target.closest ? event.target.closest('[data-role="add-custom-field"]') : null;
-            if (!button) {
+        document.querySelectorAll('[data-role="add-custom-field"]').forEach((button) => {
+            if (button.dataset.modpressCustomFieldBound === 'true') {
                 return;
             }
 
-            handleAddCustomFieldClick(button, event);
-        }, true);
-
-        document.querySelectorAll('[data-role="add-custom-field"]').forEach((button) => {
             button.dataset.modpressCustomFieldBound = 'true';
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                try {
+                    addCustomFieldRow(button);
+                } catch (error) {
+                    console.error('[ModPress] Failed to add custom field row.', error);
+                }
+            });
         });
     };
 
@@ -1368,6 +1320,17 @@
                 return;
             }
             form.submit();
+            return;
+        }
+
+        const button = event.target.closest('[data-role="add-custom-field"]');
+        if (button) {
+            event.preventDefault();
+            try {
+                addCustomFieldRow(button);
+            } catch (error) {
+                console.error('[ModPress] Failed to add custom field row.', error);
+            }
             return;
         }
 
