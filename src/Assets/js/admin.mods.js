@@ -318,10 +318,10 @@
     };
 
     const syncGroupParentField = (groupKey = '', modal = document.getElementById('modpress-group-modal'), selectedParentEntries = []) => {
-        const row = modal ? modal.querySelector('#modpress-group-parent-row') : document.getElementById('modpress-group-parent-row');
-        const select = modal ? modal.querySelector('[name="group_parent[]"]') : document.getElementById('group_parent');
-        const parentEntryRow = modal ? modal.querySelector('#modpress-group-parent-entry-row') : document.getElementById('modpress-group-parent-entry-row');
-        const parentEntrySelect = modal ? modal.querySelector('[name="group_parent_entry[]"]') : document.getElementById('group_parent_entry');
+        const row = modal ? (modal.querySelector('.modpress-group-parent-row') || modal.querySelector('[id$="-group-parent-row"]')) : document.querySelector('.modpress-group-parent-row');
+        const select = modal ? (modal.querySelector('[name="group_parent[]"]') || modal.querySelector('[name="group_parent"]')) : document.querySelector('[name="group_parent[]"]') || document.querySelector('[name="group_parent"]');
+        const parentEntryRow = modal ? (modal.querySelector('[id$="-group-parent-entry-row"]') || modal.querySelector('.modpress-group-parent-entry-row')) : document.querySelector('[id$="-group-parent-entry-row"]') || document.querySelector('.modpress-group-parent-entry-row');
+        const parentEntrySelect = modal ? (modal.querySelector('[name="group_parent_entry[]"]') || modal.querySelector('[name="group_parent_entry"]')) : document.querySelector('[name="group_parent_entry[]"]') || document.querySelector('[name="group_parent_entry"]');
         if (!row || !select) {
             return;
         }
@@ -452,7 +452,7 @@
     };
 
     const populateParentEntryOptions = (entries, selectedValues = [], modal = document.getElementById('modpress-group-modal')) => {
-        const select = modal ? modal.querySelector('[name="group_parent_entry[]"]') : document.getElementById('group_parent_entry');
+        const select = modal ? (modal.querySelector('[name="group_parent_entry[]"]') || modal.querySelector('[name="group_parent_entry"]')) : document.querySelector('[name="group_parent_entry[]"]') || document.querySelector('[name="group_parent_entry"]');
         if (!select) {
             return;
         }
@@ -499,19 +499,19 @@
     };
 
     const getCustomFieldTemplate = (container = null, modal = null) => {
-        const modalTemplate = modal ? modal.querySelector('#modpress-custom-field-template') : null;
+        const modalTemplate = modal ? modal.querySelector('[id$="-custom-field-template"]') : null;
         if (modalTemplate) {
             return modalTemplate;
         }
 
         if (container) {
-            const containerTemplate = container.querySelector('#modpress-custom-field-template');
+            const containerTemplate = container.querySelector('[id$="-custom-field-template"]');
             if (containerTemplate) {
                 return containerTemplate;
             }
         }
 
-        const globalTemplate = document.getElementById('modpress-custom-field-template');
+        const globalTemplate = document.querySelector('[id$="-custom-field-template"]');
         if (globalTemplate) {
             if (container && !container.contains(globalTemplate)) {
                 container.appendChild(globalTemplate);
@@ -592,7 +592,7 @@
             return;
         }
 
-        const container = modal.querySelector('#modpress-custom-fields-container');
+        const container = modal.querySelector('[id$="-custom-fields-container"]');
         if (!container) {
             return;
         }
@@ -602,7 +602,7 @@
             return;
         }
 
-        const accordion = container.querySelector('#modpress-custom-fields-accordion') || container;
+        const accordion = container.querySelector('[id$="-custom-fields-accordion"]') || container;
         accordion.innerHTML = '';
         if (!accordion.contains(template)) {
             accordion.appendChild(template);
@@ -621,8 +621,8 @@
             row.classList.add('modpress-custom-field-row');
             row.dataset.fieldIndex = String(fieldIndex);
 
-            const headingId = 'modpress-custom-field-heading-' + fieldIndex;
-            const collapseId = 'modpress-custom-field-content-' + fieldIndex;
+            const headingId = 'modpress-custom-field-heading-' + fieldIndex + '-' + Math.random().toString(16).slice(2, 8);
+            const collapseId = 'modpress-custom-field-content-' + fieldIndex + '-' + Math.random().toString(16).slice(2, 8);
             const header = row.querySelector('.accordion-header');
             const trigger = row.querySelector('.accordion-button');
             const collapse = row.querySelector('.accordion-collapse');
@@ -640,7 +640,7 @@
             if (collapse) {
                 collapse.id = collapseId;
                 collapse.setAttribute('aria-labelledby', headingId);
-                collapse.setAttribute('data-bs-parent', '#modpress-custom-fields-accordion');
+                collapse.setAttribute('data-bs-parent', '#' + accordion.id);
                 collapse.classList.remove('show');
                 collapse.classList.add('collapse');
             }
@@ -649,6 +649,10 @@
             const hiddenFieldId = row.querySelector('[name^="custom_field_id"]');
             if (hiddenFieldId) {
                 hiddenFieldId.value = String(fieldId);
+            }
+            const removeButton = row.querySelector('.modpress-remove-custom-field');
+            if (removeButton) {
+                removeButton.removeAttribute('id');
             }
             row.dataset.fieldId = String(fieldId);
             syncCustomFieldRowNames(row);
@@ -835,7 +839,7 @@
             }
         });
 
-        const customFieldsContainer = modal.querySelector('#modpress-custom-fields-container');
+        const customFieldsContainer = modal.querySelector('[id$="-custom-fields-container"]');
         if (customFieldsContainer) {
             const customFieldTemplate = getCustomFieldTemplate(customFieldsContainer, modal);
             customFieldsContainer.innerHTML = '';
@@ -1003,13 +1007,13 @@
 
     const addCustomFieldRow = (button = null) => {
         const scope = button ? button.closest('.modal') : null;
-        const container = scope ? scope.querySelector('.modpress-custom-fields-container') : document.getElementById('modpress-custom-fields-container');
+        const container = scope ? scope.querySelector('.modpress-custom-fields-container') : document.querySelector('.modpress-custom-fields-container');
         if (!container) {
             console.error('[ModPress] Missing custom fields container for Add Custom Field action.');
             return;
         }
 
-        const accordion = container.querySelector('#modpress-custom-fields-accordion') || container;
+        const accordion = container.querySelector('[id$="-custom-fields-accordion"]') || container;
         const placeholder = container.querySelector('.text-muted.small');
         if (placeholder) {
             placeholder.remove();
@@ -1070,7 +1074,7 @@
         if (collapse) {
             collapse.id = collapseId;
             collapse.setAttribute('aria-labelledby', headingId);
-            collapse.setAttribute('data-bs-parent', '#modpress-custom-fields-accordion');
+            collapse.setAttribute('data-bs-parent', '#' + accordion.id);
         }
 
         const repeater = row.querySelector('.modpress-option-repeater');
@@ -1191,7 +1195,7 @@
             const modal = target.closest('.modal');
             const parentValues = getSelectedValues(target);
             const parentValue = parentValues[0] || '';
-            const parentEntryRow = modal ? modal.querySelector('#modpress-group-parent-entry-row') : document.getElementById('modpress-group-parent-entry-row');
+            const parentEntryRow = modal ? modal.querySelector('[id$="-group-parent-entry-row"]') : document.querySelector('[id$="-group-parent-entry-row"]');
             const parentEntrySelect = modal ? modal.querySelector('[name="group_parent_entry[]"]') : document.getElementById('group_parent_entry');
             if (parentEntryRow && parentEntrySelect) {
                 parentEntryRow.classList.toggle('d-none', '' === parentValue);

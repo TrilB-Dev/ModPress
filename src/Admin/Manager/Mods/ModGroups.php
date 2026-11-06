@@ -625,6 +625,15 @@ final class ModGroups extends ModManager {
 		$save_form_id = 'modpress-group-save-form-' . ( '' === $selected_group_key ? 'new' : sanitize_html_class( $selected_group_key ) );
 		$delete_form_id = 'modpress-group-delete-form-' . ( '' === $selected_group_key ? 'new' : sanitize_html_class( $selected_group_key ) );
 		$modal_title = '' === $selected_group_key ? __( 'Add Group', 'modpress' ) : __( 'Edit Group', 'modpress' );
+		$group_accordion_id = $modal_id . '-group-accordion';
+		$group_info_heading_id = $modal_id . '-group-info-heading';
+		$group_info_id = $modal_id . '-group-info';
+		$group_parent_entry_row_id = $modal_id . '-group-parent-entry-row';
+		$group_fields_heading_id = $modal_id . '-group-fields-heading';
+		$group_fields_id = $modal_id . '-group-fields';
+		$custom_fields_container_id = $modal_id . '-custom-fields-container';
+		$custom_fields_accordion_id = $modal_id . '-custom-fields-accordion';
+		$custom_field_template_id = $modal_id . '-custom-field-template';
 		?>
 		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
@@ -639,26 +648,26 @@ final class ModGroups extends ModManager {
 						<div class="modal-body">
 							<input type="hidden" name="group_edit_key" value="<?php echo esc_attr( $selected_group_key ); ?>" />
 							<input type="hidden" name="group_id" value="<?php echo esc_attr( (string) ( $selected_group['id'] ?? 0 ) ); ?>" />
-							<div class="accordion" id="modpress-group-accordion">
+							<div class="accordion" id="<?php echo esc_attr( $group_accordion_id ); ?>">
 								<div class="accordion-item">
-									<h2 class="accordion-header" id="modpress-group-info-heading">
-										<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#modpress-group-info" aria-expanded="true" aria-controls="modpress-group-info">
+									<h2 class="accordion-header" id="<?php echo esc_attr( $group_info_heading_id ); ?>">
+										<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#<?php echo esc_attr( $group_info_id ); ?>" aria-expanded="true" aria-controls="<?php echo esc_attr( $group_info_id ); ?>">
 											<?php esc_html_e( 'Group Info', 'modpress' ); ?>
 										</button>
 									</h2>
-									<div id="modpress-group-info" class="accordion-collapse collapse show" aria-labelledby="modpress-group-info-heading" data-bs-parent="#modpress-group-accordion">
+									<div id="<?php echo esc_attr( $group_info_id ); ?>" class="accordion-collapse collapse show" aria-labelledby="<?php echo esc_attr( $group_info_heading_id ); ?>" data-bs-parent="#<?php echo esc_attr( $group_accordion_id ); ?>">
 										<div class="accordion-body">
 											<table class="table table-borderless mb-0">
 												<tbody>
 													<?php $this->render_form_row(
 														'group_name',
 														__( 'Name', 'modpress' ),
-														function () {
-															return FormFieldHelper::text_input(
-																'group_name',
+														function () use ( $group_options, $modal_id ) {
+																		return FormFieldHelper::text_input(
+																		'group_name',
 																$group_options['group_name']  ?? '',
 																array(
-																	'id' => 'group_name',
+																	'id' => $modal_id . '-group_name',
 																	'class' => 'w-100',
 																)
 															);
@@ -669,12 +678,12 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_singular_name',
 														__( 'Singular Name', 'modpress' ),
-														function () {
-															return FormFieldHelper::text_input(
-																'group_singular_name',
+														function () use ( $group_options, $modal_id ) {
+																		return FormFieldHelper::text_input(
+																		'group_singular_name',
 																$group_options['group_singular_name'] ?? '',
 																array(
-																	'id' => 'group_singular_name',
+																	'id' => $modal_id . '-group_singular_name',
 																	'class' => 'w-100',
 																)
 															);
@@ -685,12 +694,12 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_slug',
 														__( 'Slug', 'modpress' ),
-														function () {
-															return FormFieldHelper::text_input(
-																'group_slug',
+														function () use ( $group_options, $modal_id ) {
+																		return FormFieldHelper::text_input(
+																		'group_slug',
 																$group_options['group_slug'] ?? '',
 																array(
-																	'id' => 'group_slug',
+																	'id' => $modal_id . '-group_slug',
 																	'class' => 'w-100',
 																)
 															);
@@ -701,12 +710,12 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_description',
 														__( 'Description', 'modpress' ),
-														function () {
-															return FormFieldHelper::textarea(
-																'group_description',
+														function () use ( $group_options, $modal_id ) {
+																		return FormFieldHelper::textarea(
+																		'group_description',
 																$group_options['group_description'] ?? '',
 																array(
-																	'id' => 'group_description',
+																	'id' => $modal_id . '-group_description',
 																	'rows' => 4,
 																	'class' => 'w-100',
 																)
@@ -718,13 +727,13 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_hierarchical',
 														__( 'Hierarchical', 'modpress' ),
-														function () {
-															return FormFieldHelper::switch(
-																'group_hierarchical',
+														function () use ( $group_options, $modal_id ) {
+																		return FormFieldHelper::switch(
+																		'group_hierarchical',
 																true,
 																__( 'Enabled', 'modpress' ),
 																array(
-																	'id' => 'group_hierarchical',
+																	'id' => $modal_id . '-group_hierarchical',
 																	'checked' => (bool) ( $group_options['group_hierarchical'] ?? false ),
 																)
 															);
@@ -735,7 +744,7 @@ final class ModGroups extends ModManager {
 													<?php $this->render_form_row(
 														'group_parent',
 														__( 'Parent Group', 'modpress' ),
-														function () use ( $group_parent_options, $group_entries, $selected_group ) { 
+														function () use ( $group_parent_options, $group_entries, $selected_group, $modal_id, $group_parent_entry_row_id ) { 
 															$selected_parent_group_value = $selected_group['group_parent'] ?? array();
 															$selected_parent_group_values = array_values(
 																array_filter(
@@ -747,7 +756,7 @@ final class ModGroups extends ModManager {
 																array(
 																	'data' => $group_parent_options,
 																	'selected' => $selected_parent_group_values,
-																	'id' => 'group_parent',
+																	'id' => $modal_id . '-group_parent',
 																	'placeholder' => __( 'Select a parent group', 'modpress' ),
 																)
 															);
@@ -763,14 +772,14 @@ final class ModGroups extends ModManager {
 																array(
 																	'data' => $parent_entry_data,
 																	'selected' => $selected_parent_entry_values,
-																	'id' => 'group_parent_entry',
+																	'id' => $modal_id . '-group_parent_entry',
 																	'placeholder' => __( 'Select a parent entry', 'modpress' ),
 																)
 															);
 
 															return 	'<div class="d-flex align-items-end flex-wrap gap-3 w-100">' .
 																	'<div class="flex-fill min-width-0">' . $parent_group_select . '</div>' .
-																	'<div id="modpress-group-parent-entry-row" class="' . ( '' === $selected_parent_group ? 'd-none ' : '' ) . 'flex-fill min-width-0">' . $parent_entry_select . '</div>' .
+																	'<div id="' . esc_attr( $group_parent_entry_row_id ) . '" class="' . ( '' === $selected_parent_group ? 'd-none ' : '' ) . 'flex-fill min-width-0">' . $parent_entry_select . '</div>' .
 																	'</div>';
 														},
 														__( 'Choose a parent taxonomy group if needed.', 'modpress' ),
@@ -784,12 +793,12 @@ final class ModGroups extends ModManager {
 									</div>
 								</div>
 								<div class="accordion-item">
-									<h2 class="accordion-header" id="modpress-group-fields-heading">
-										<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#modpress-group-fields" aria-expanded="false" aria-controls="modpress-group-fields">
+									<h2 class="accordion-header" id="<?php echo esc_attr( $group_fields_heading_id ); ?>">
+										<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#<?php echo esc_attr( $group_fields_id ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $group_fields_id ); ?>">
 											<?php esc_html_e( 'Group Fields', 'modpress' ); ?>
 										</button>
 									</h2>
-									<div id="modpress-group-fields" class="accordion-collapse collapse" aria-labelledby="modpress-group-fields-heading" data-bs-parent="#modpress-group-accordion">
+									<div id="<?php echo esc_attr( $group_fields_id ); ?>" class="accordion-collapse collapse" aria-labelledby="<?php echo esc_attr( $group_fields_heading_id ); ?>" data-bs-parent="#<?php echo esc_attr( $group_accordion_id ); ?>">
 										<div class="accordion-body">
 											<div class="d-flex justify-content-end mb-3">
 												<?php echo FormFieldHelper::button(
@@ -801,9 +810,9 @@ final class ModGroups extends ModManager {
 													)
 												); ?>
 											</div>
-											<div id="modpress-custom-fields-container" class="modpress-custom-fields-container">
-												<div class="accordion" id="modpress-custom-fields-accordion">
-													<template id="modpress-custom-field-template">
+											<div id="<?php echo esc_attr( $custom_fields_container_id ); ?>" class="modpress-custom-fields-container">
+												<div class="accordion" id="<?php echo esc_attr( $custom_fields_accordion_id ); ?>">
+													<template id="<?php echo esc_attr( $custom_field_template_id ); ?>">
 														<div class="accordion-item modpress-custom-field-row d-none">
 															<input type="hidden" name="custom_field_id[]" value="" />
 																					<div class="accordion-header d-flex justify-content-between align-items-center gap-2">
@@ -817,12 +826,12 @@ final class ModGroups extends ModManager {
 																		'type' => 'button',
 																		'class' => 'btn btn-outline-danger btn-sm ms-2 modpress-remove-custom-field',
 																		'data-role' => 'remove-custom-field',
-																		'id' => 'remove-custom-field-button',
+																		'id' => $modal_id . '-remove-custom-field-button',
 																		'style' => 'border-radius: 0rem 0.375rem 0.375rem 0rem'
 																	)
 																); ?>
 															</div>
-															<div class="accordion-collapse collapse" data-bs-parent="#modpress-custom-fields-accordion">
+															<div class="accordion-collapse collapse" data-bs-parent="#<?php echo esc_attr( $custom_fields_accordion_id ); ?>">
 																<div class="accordion-body">
 																	<table class="table table-borderless mb-0">
 																		<tbody>
