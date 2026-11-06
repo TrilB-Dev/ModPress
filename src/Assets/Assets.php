@@ -222,13 +222,19 @@ class Assets {
 	 * @since 1.0.0
 	 */
 	public function enqueue_admin( string $hook_suffix ): void {
-		if ( false === strpos( $hook_suffix, 'modpress' ) ) {
+		$page       = RequestHelper::get_key( 'page', '' );
+		$group      = RequestHelper::get_key( 'group', '' );
+		$hook_match = is_string( $hook_suffix ) && false !== strpos( $hook_suffix, 'modpress' );
+		$page_match = '' !== $page && false !== strpos( $page, 'modpress' );
+		$group_match = '' !== $group && false !== strpos( $group, 'modpress' );
+
+		if ( ! $hook_match && ! $page_match && ! $group_match ) {
 			return;
 		}
 
-		$page       = RequestHelper::get_key( 'page', 'modpress' );
-		$registered = $this->pages[ $page ] ?? array();
-		$base       = apply_filters( 'modpress_base_assets', array(), 'admin' );
+		$resolved_page = '' !== $page ? $page : 'modpress';
+		$registered    = $this->pages[ $resolved_page ] ?? array();
+		$base          = apply_filters( 'modpress_base_assets', array(), 'admin' );
 		$this->enqueue_registered(
 			'admin',
 			array(

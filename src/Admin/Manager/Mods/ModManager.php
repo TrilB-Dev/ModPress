@@ -147,9 +147,12 @@ class ModManager extends Manager {
      * @return void
      * @since 1.0.0 
      */
-    public function register_assets(Assets $assets): void {
-
-        $this->register_page_assets( $assets, array( 'modpress' ), 'mods' );
+    public function register_assets( Assets $assets ): void {
+        $this->register_page_assets(
+            $assets,
+            array( 'modpress', 'mod-manager', 'manage-mod', 'mods' ),
+            'mods'
+        );
     }
     /**
      * Render the mod manager shell.
