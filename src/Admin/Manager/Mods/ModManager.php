@@ -122,7 +122,7 @@ class ModManager extends Manager {
     public function register_assets( Assets $assets ): void {
         $this->register_page_assets(
             $assets,
-            'mod-manager',
+            array( 'mod-manager' ),
             'mods'
         );
     }
