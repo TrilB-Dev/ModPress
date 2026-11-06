@@ -562,12 +562,13 @@ final class ModGroups extends ModManager {
 			array_unique(
 				array_filter(
 					array_map(
-						static function ( $value ) use ( $taxonomy_tabs ) {
-							return FunctionsMod::resolve_group_parent_key( $value, $taxonomy_tabs );
+						static function ( $value ) {
+							$resolved_id = FunctionsMod::resolve_group_parent_id( $value );
+							return (string) $resolved_id;
 						},
 						FunctionsMod::normalize_group_parent_values( $selected_group['group_parent'] ?? array() )
 					),
-					static fn ( $value ) => '' !== trim( (string) $value )
+					static fn ( $value ) => '' !== trim( (string) $value ) && '0' !== trim( (string) $value )
 				)
 			)
 		);

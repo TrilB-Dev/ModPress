@@ -1390,6 +1390,68 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'selected', $output );
         }
 
+        public function testRenderGroupModalSelectsSavedParentGroupWhenStoredAsTaxonomyKey(): void {
+            $GLOBALS['wpdb'] = new class {
+                public string $prefix = 'wp_';
+                public array $storage = [
+                    'wp_modpress_groups' => [
+                        2 => [
+                            'id' => 2,
+                            'group_key' => 'modpress_assets',
+                            'group_slug' => 'assets',
+                            'group_name' => 'Assets',
+                            'group_singular_name' => 'Asset',
+                            'group_description' => 'Asset group.',
+                            'group_hierarchical' => 1,
+                        ],
+                    ],
+                ];
+
+                public function prepare( string $query, ...$args ): string {
+                    return $query;
+                }
+
+                public function get_row( string $query, $output = null ) {
+                    foreach ( (array) ( $this->storage['wp_modpress_groups'] ?? array() ) as $row ) {
+                        if ( (string) ( $row['group_key'] ?? '' ) === 'modpress_assets' || (string) ( $row['group_slug'] ?? '' ) === 'assets' ) {
+                            return $row;
+                        }
+                    }
+
+                    return null;
+                }
+            };
+
+            $method = new \ReflectionMethod( \ModPress\Admin\Manager\Mods\ModGroups::class, 'render_group_modal' );
+            $method->setAccessible( true );
+
+            $instance = \ModPress\Admin\Manager\Mods\ModGroups::class;
+            $group_manager = ( new \ReflectionClass( $instance ) )->newInstanceWithoutConstructor();
+
+            ob_start();
+            $method->invoke(
+                $group_manager,
+                array(
+                    array( 'id' => 2, 'taxonomy' => 'modpress_assets', 'label' => 'Assets' ),
+                    array( 'id' => 7, 'taxonomy' => 'modpress_language', 'label' => 'Language' ),
+                ),
+                array(
+                    'id' => 7,
+                    'group_key' => 'modpress_language',
+                    'group_name' => 'Language',
+                    'group_slug' => 'modpress_language',
+                    'group_singular_name' => 'Language',
+                    'group_description' => '',
+                    'group_hierarchical' => false,
+                    'group_parent' => array( 'modpress_assets' ),
+                    'group_parent_entry' => array( '42' ),
+                )
+            );
+            $output = ob_get_clean();
+
+            $this->assertMatchesRegularExpression( '/name="group_parent\\[\\]"[^>]*>.*?value="2"[^>]*selected/s', $output );
+        }
+
         public function testGroupParentSaveUsesNumericGroupIds(): void {
             $GLOBALS['wpdb'] = new class {
                 public string $prefix = 'wp_';
