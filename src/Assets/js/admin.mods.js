@@ -503,24 +503,35 @@
             ? String(button.dataset.customFieldContainer || '').trim()
             : '';
 
+        const modalScope = modal || (button ? button.closest('.modal') : null) || document.querySelector('.modal.show');
+
         if (explicitSelector) {
-            const explicitContainer = document.querySelector(explicitSelector);
+            const explicitContainer = modalScope
+                ? modalScope.querySelector(explicitSelector)
+                : document.querySelector(explicitSelector);
             if (explicitContainer) {
                 return explicitContainer;
             }
         }
 
-        const modalScope = modal || (button ? button.closest('.modal') : null);
         if (modalScope) {
-            return modalScope.querySelector('.modpress-custom-fields-container') || modalScope.querySelector('[id$="-custom-fields-container"]');
+            const modalContainer = modalScope.querySelector('.modpress-custom-fields-container')
+                || modalScope.querySelector('[id$="-custom-fields-container"]');
+            if (modalContainer) {
+                return modalContainer;
+            }
         }
 
         return document.querySelector('.modpress-custom-fields-container') || document.querySelector('[id$="-custom-fields-container"]');
     };
 
     const getCustomFieldTemplate = (container = null, modal = null) => {
-        const modalTemplate = modal ? modal.querySelector('[id$="-custom-field-template"]') : null;
+        const modalScope = modal || (container ? container.closest('.modal') : null) || document.querySelector('.modal.show');
+        const modalTemplate = modalScope ? modalScope.querySelector('[id$="-custom-field-template"]') : null;
         if (modalTemplate) {
+            if (container && !container.contains(modalTemplate)) {
+                container.appendChild(modalTemplate);
+            }
             return modalTemplate;
         }
 
@@ -1084,7 +1095,7 @@
         if (hiddenFieldId) {
             hiddenFieldId.value = fieldId;
         }
-        row.dataset.fieldId = fieldId;
+
         syncCustomFieldRowNames(row);
 
         const headingId = 'modpress-custom-field-heading-' + fieldIndex;
@@ -1100,12 +1111,19 @@
             trigger.setAttribute('data-bs-target', '#' + collapseId);
             trigger.setAttribute('aria-controls', collapseId);
             trigger.setAttribute('aria-labelledby', headingId);
-            trigger.querySelector('[data-custom-field-title]')?.setAttribute('data-custom-field-title', '');
+            trigger.setAttribute('aria-expanded', 'false');
+            trigger.classList.add('collapsed');
+            const title = trigger.querySelector('[data-custom-field-title]');
+            if (title) {
+                title.textContent = 'Field';
+            }
         }
         if (collapse) {
             collapse.id = collapseId;
             collapse.setAttribute('aria-labelledby', headingId);
             collapse.setAttribute('data-bs-parent', '#' + accordion.id);
+            collapse.classList.remove('show');
+            collapse.classList.add('collapse');
         }
 
         const repeater = row.querySelector('.modpress-option-repeater');
