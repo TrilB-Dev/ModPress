@@ -140,6 +140,7 @@ final class ModGroups extends ModManager {
 							array(
 								'type'    => 'button',
 								'class'   => 'btn btn-primary btn-sm',
+								'raw'     => true,
 								'attributes' => array(
 									'data-bs-toggle' => 'modal',
 												'data-bs-target' => '#modpress-group-modal',
@@ -233,6 +234,7 @@ final class ModGroups extends ModManager {
 											array(
 												'type' => 'button',
 												'class' => 'btn btn-outline-primary',
+												'raw' => true,
 												'attributes' => array(
 													'data-bs-toggle' => 'modal',
 													'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ) . '-new',
@@ -1144,6 +1146,7 @@ final class ModGroups extends ModManager {
 									array(
 										'type' => 'submit',
 										'class' => 'btn btn-primary',
+											'raw' => true,
 										'attributes' => array(
 											'form' => $save_form_id,
 										)
