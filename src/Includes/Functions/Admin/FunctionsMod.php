@@ -1706,6 +1706,7 @@ final class FunctionsMod {
                         'type' => 'button',
                         'class' => 'btn btn-outline-secondary btn-sm',
                         'id' => 'add-option-row',
+                        'raw' => true,
                         'attributes' => array(
                             'data-role' => 'add-option-row',
                             'data-option-type' => $type,

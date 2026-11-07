@@ -251,6 +251,7 @@ final class ModGroups extends ModManager {
                                                     'type' => 'submit',
                                                     'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
                                                     'disabled' => true,
+                                                    'raw' => true,
                                                     'attributes' => array(
                                                         'data-role' => 'bulk-delete-group-entry',
                                                         'data-taxonomy-key' => $taxonomy_key,

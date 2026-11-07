@@ -340,13 +340,20 @@ final class FormFieldHelper {
 	 * @return string
 	 */
 	private static function render_button_label( string $label, array $options = array() ): string {
-		if ( ! empty( $options['raw'] ) || preg_match( '/<\s*([a-zA-Z][^>]*)>/', $label ) ) {
-			$sanitized = function_exists( 'wp_kses_post' ) ? wp_kses_post( $label ) : (string) $label;
+		if ( ! empty( $options['raw'] ) ) {
+			return self::sanitize_inline_button_markup( $label );
+		}
+
+		if ( preg_match( '/<\s*([a-zA-Z][^>]*)>/', $label ) ) {
+			$sanitized = self::sanitize_inline_button_markup( $label );
 			if ( '' !== trim( (string) $sanitized ) ) {
 				return $sanitized;
 			}
 
-			return self::sanitize_inline_button_markup( $label );
+			$sanitized = function_exists( 'wp_kses_post' ) ? wp_kses_post( $label ) : (string) $label;
+			if ( '' !== trim( (string) $sanitized ) ) {
+				return $sanitized;
+			}
 		}
 
 		return esc_html( (string) $label );
