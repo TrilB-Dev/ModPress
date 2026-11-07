@@ -676,6 +676,42 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'value="high"', $html );
         }
 
+        public function testRenderGroupCustomFieldHydratesImageFieldVariantMetaKeys(): void {
+            $field = array(
+                'id' => 'field_logo',
+                'name' => 'Logo',
+                'slug' => 'logo',
+                'type' => 'image',
+                'image_types' => array( 'image', 'icon', 'url' ),
+            );
+
+            $html = FunctionsMod::render_group_custom_field(
+                $field,
+                array(
+                    'logo_image' => array( 'https://example.com/logo.png' ),
+                    'logo_icon' => array( 'fa-solid fa-star' ),
+                    'logo_url' => array( 'https://example.com/logo-url.png' ),
+                )
+            );
+
+            $this->assertStringContainsString( 'name="logo_image"', $html );
+            $this->assertStringContainsString( 'value="https://example.com/logo.png"', $html );
+            $this->assertStringContainsString( 'data-image-mode="image"', $html );
+        }
+
+        public function testGroupsManagerResolvesImageFieldVariantMetaKeys(): void {
+            $GLOBALS['modpress_test_term_meta'] = array(
+                77 => array(
+                    'logo_image' => array( 'https://example.com/logo.png' ),
+                    'logo_icon' => array( 'fa-solid fa-star' ),
+                    'logo_url' => array( 'https://example.com/logo-url.png' ),
+                ),
+            );
+
+            $this->assertSame( 'https://example.com/logo.png', GroupsManager::get_group_entry( 77, 'modpress_games', 'logo' ) );
+            $this->assertSame( 'fa-solid fa-star', GroupsManager::get_group_entry( 77, 'modpress_games', 'logo_icon' ) );
+        }
+
         public function testValidSubmissionIsSanitizedAndInserted(): void {
             $_POST = [
                 'modpress_action' => 'save_mod',

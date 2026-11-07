@@ -1006,7 +1006,6 @@ final class FunctionsMod {
         $slug       = RequestHelper::slug( $_POST, 'entry_slug', $name );
         $description = SanitizationHelper::textarea( RequestHelper::value( $_POST, 'entry_description', '' ), '' );
         $parent     = RequestHelper::integer( $_POST, 'entry_parent', 0 );
-        $icon       = RequestHelper::text( $_POST, 'entry_icon', '' );
         $args       = array(
             'name'        => $name,
             'description' => $description,
@@ -1046,6 +1045,43 @@ final class FunctionsMod {
             foreach ( $group_fields as $field ) {
                 $field_slug = trim( (string) ( $field['slug'] ?? $field['name'] ?? '' ) );
                 if ( '' === $field_slug ) {
+                    continue;
+                }
+
+                $field_type = strtolower( trim( (string) ( $field['type'] ?? 'text' ) ) );
+                if ( 'image' === $field_type ) {
+                    delete_term_meta( $saved_term_id, $field_slug );
+
+                    $image_meta_keys = array(
+                        'image' => $field_slug . '_image',
+                        'icon'  => $field_slug . '_icon',
+                        'url'   => $field_slug . '_url',
+                    );
+
+                    foreach ( $image_meta_keys as $meta_key ) {
+                        $meta_value = RequestHelper::value( $_POST, $meta_key, '' );
+                        if ( is_array( $meta_value ) ) {
+                            $meta_value = array_values(
+                                array_map(
+                                    static function ( $item ) {
+                                        return is_scalar( $item ) ? sanitize_text_field( wp_unslash( (string) $item ) ) : '';
+                                    },
+                                    wp_unslash( $meta_value )
+                                )
+                            );
+                            $meta_value = $meta_value[0] ?? '';
+                        } else {
+                            $meta_value = sanitize_text_field( wp_unslash( (string) $meta_value ) );
+                        }
+
+                        if ( '' === trim( (string) $meta_value ) ) {
+                            delete_term_meta( $saved_term_id, $meta_key );
+                            continue;
+                        }
+
+                        update_term_meta( $saved_term_id, $meta_key, $meta_value );
+                    }
+
                     continue;
                 }
 
@@ -1093,12 +1129,6 @@ final class FunctionsMod {
 
                 delete_term_meta( $saved_term_id, $field_slug );
                 update_term_meta( $saved_term_id, $field_slug, $field_value );
-            }
-
-            if ( '' !== $icon ) {
-                update_term_meta( $saved_term_id, 'entry_icon', $icon );
-            } else {
-                delete_term_meta( $saved_term_id, 'entry_icon' );
             }
         }
 
@@ -1494,16 +1524,37 @@ final class FunctionsMod {
                 return '';
             }
 
-            $image_value = is_array( $field_value ) ? (string) ( $field_value[0] ?? '' ) : (string) $field_value;
-            $selected_mode = $allowed_modes[0];
+            $image_values = array(
+                'image' => $resolve_field_value( $field_slug . '_image' ),
+                'icon'  => $resolve_field_value( $field_slug . '_icon' ),
+                'url'   => $resolve_field_value( $field_slug . '_url' ),
+            );
 
-            if ( '' !== trim( $image_value ) ) {
-                if ( filter_var( $image_value, FILTER_VALIDATE_URL ) ) {
-                    $selected_mode = in_array( 'url', $allowed_modes, true ) ? 'url' : $selected_mode;
-                } elseif ( false !== stripos( $image_value, 'fa-' ) ) {
-                    $selected_mode = in_array( 'icon', $allowed_modes, true ) ? 'icon' : $selected_mode;
-                } elseif ( in_array( 'image', $allowed_modes, true ) ) {
-                    $selected_mode = 'image';
+            $image_value_string = static function ( $value ) {
+                if ( is_array( $value ) ) {
+                    $flattened = array();
+                    foreach ( $value as $item ) {
+                        $normalized = is_array( $item ) ? $item : array( $item );
+                        foreach ( $normalized as $nested_item ) {
+                            $trimmed = trim( (string) $nested_item );
+                            if ( '' !== $trimmed ) {
+                                $flattened[] = $trimmed;
+                            }
+                        }
+                    }
+
+                    return $flattened[0] ?? '';
+                }
+
+                return trim( (string) $value );
+            };
+
+            $selected_mode = $allowed_modes[0];
+            foreach ( $allowed_modes as $mode ) {
+                $variant_value = $image_value_string( $image_values[ $mode ] ?? '' );
+                if ( '' !== $variant_value ) {
+                    $selected_mode = $mode;
+                    break;
                 }
             }
 
@@ -1534,13 +1585,14 @@ final class FunctionsMod {
 
             $image_block = '';
             if ( in_array( 'image', $allowed_modes, true ) ) {
+                $image_value = is_array( $image_values['image'] ) ? (string) ( $image_values['image'][0] ?? '' ) : (string) ( $image_values['image'] ?? '' );
                 $image_block .= sprintf(
                     '<div class="modpress-image-entry-mode modpress-image-entry-mode-image" data-image-mode="image"%1$s>%2$s</div>',
                     'image' === $selected_mode ? '' : ' style="display:none;"',
                     WPMediaHelper::create(
                         $image_value,
                         array(
-                            'name' => $field_slug,
+                            'name' => sanitize_key( $field_slug . '_image' ),
                             'id' => sanitize_key( $field_slug . '_image' ),
                             'button_text' => __( 'Select Image', 'modpress' ),
                             'class' => 'btn btn-secondary modpress-image-select',
@@ -1560,12 +1612,13 @@ final class FunctionsMod {
             }
 
             if ( in_array( 'icon', $allowed_modes, true ) ) {
+                $icon_value = is_array( $image_values['icon'] ) ? (string) ( $image_values['icon'][0] ?? '' ) : (string) ( $image_values['icon'] ?? '' );
                 $image_block .= sprintf(
                     '<div class="modpress-image-entry-mode modpress-image-entry-mode-icon" data-image-mode="icon"%1$s>%2$s</div>',
                     'icon' === $selected_mode ? '' : ' style="display:none;"',
                     IconPicker::get_instance()->render_picker(
-                        $field_slug,
-                        $image_value,
+                        sanitize_key( $field_slug . '_icon' ),
+                        $icon_value,
                         array(
                             'id' => sanitize_key( $field_slug . '-picker' ),
                             'button_text' => __( 'Choose Icon', 'modpress' ),
@@ -1575,10 +1628,11 @@ final class FunctionsMod {
             }
 
             if ( in_array( 'url', $allowed_modes, true ) ) {
+                $url_value = is_array( $image_values['url'] ) ? (string) ( $image_values['url'][0] ?? '' ) : (string) ( $image_values['url'] ?? '' );
                 $url_mode_display = 'url' === $selected_mode ? '' : ' style="display:none;"';
                 $url_field = FormFieldHelper::input(
-                    $field_slug,
-                    $image_value,
+                    sanitize_key( $field_slug . '_url' ),
+                    $url_value,
                     array(
                         'type' => 'url',
                         'class' => 'form-control modpress-image-url-input w-100',
@@ -1587,8 +1641,8 @@ final class FunctionsMod {
                 );
                 $url_preview = sprintf(
                     '<div class="modpress-image-preview%1$s"><img src="%2$s" alt="%3$s" class="img-fluid rounded" style="max-height:120px;" /></div>',
-                    empty( $image_value ) || ! filter_var( $image_value, FILTER_VALIDATE_URL ) ? ' d-none' : '',
-                    esc_url( $image_value ),
+                    empty( $url_value ) || ! filter_var( $url_value, FILTER_VALIDATE_URL ) ? ' d-none' : '',
+                    esc_url( $url_value ),
                     esc_attr( $custom_field['name'] ?? $field_slug )
                 );
 

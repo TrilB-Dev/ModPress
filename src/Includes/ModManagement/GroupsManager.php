@@ -275,6 +275,9 @@ final class GroupsManager {
 		$meta_key_candidates = array();
 		if ( '' !== $field_slug ) {
 			$meta_key_candidates[] = trim( (string) $field_slug );
+			$meta_key_candidates[] = trim( (string) $field_slug ) . '_image';
+			$meta_key_candidates[] = trim( (string) $field_slug ) . '_icon';
+			$meta_key_candidates[] = trim( (string) $field_slug ) . '_url';
 		}
 		$field_id = trim( (string) $field_id );
 		if ( '' !== $field_id ) {
