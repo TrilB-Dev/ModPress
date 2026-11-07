@@ -1889,7 +1889,7 @@ final class FunctionsMod {
     private function redirect_mod_action_result( string $tab, string $message = '', bool $success = true ): void {
         $query = array(
             'page' => 'modpress',
-            'group' => 'mods',
+            'group' => 'mod-manager',
             'tab' => $tab,
         );
 
