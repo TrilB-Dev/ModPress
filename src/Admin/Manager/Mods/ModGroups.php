@@ -326,7 +326,7 @@ final class ModGroups extends ModManager {
 														</td>
 														<?php if ( $show_in_table_image_field ) : ?>
 															<td>
-																<?php $image_meta_key = (string) ( $show_in_table_image_field['slug'] ?? $show_in_table_image_field['name'] ?? 'image' ); ?>
+																<?php $image_meta_key = (string) ( $show_in_table_image_field['slug'] . '_image' ); ?>
 																		<?php $image_url = get_term_meta( $term->term_id, $image_meta_key, true ); ?>
 																<?php if ( $image_url ) : ?>
 																	<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $term->name ); ?>" style="max-width: 30px; max-height: 30px; object-fit: cover;" />
@@ -335,7 +335,7 @@ final class ModGroups extends ModManager {
 														<?php endif; ?>
 														<?php if ( $show_in_table_icon_field ) : ?>
 															<td>
-																<?php $icon_meta_key = (string) ( $show_in_table_icon_field['slug'] ?? $show_in_table_icon_field['name'] ?? 'icon' ); ?>
+																<?php $icon_meta_key = (string) ( $show_in_table_icon_field['slug'] . '_icon' ); ?>
 																		<?php $icon_value = get_term_meta( $term->term_id, $icon_meta_key, true ); ?>
 																<?php if ( $icon_value ) : ?>
 																	<?php echo FAHelper::faicon( $icon_value, [ 'style' => 'solid' ] ); ?>
@@ -344,7 +344,7 @@ final class ModGroups extends ModManager {
 														<?php endif; ?>
 														<?php if ( $show_in_table_url_field ) : ?>
 															<td>
-																<?php $image_meta_key = (string) ( $show_in_table_image_field['slug'] ?? $show_in_table_image_field['name'] ?? 'url' ); ?>
+																<?php $image_meta_key = (string) ( $show_in_table_image_field['slug'] . '_url' ); ?>
 																		<?php $image_url = get_term_meta( $term->term_id, $image_meta_key, true ); ?>
 																<?php if ( $image_url ) : ?>
 																	<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $term->name ); ?>" style="max-width: 30px; max-height: 30px; object-fit: cover;" />
