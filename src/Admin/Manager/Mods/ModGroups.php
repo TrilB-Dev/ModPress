@@ -224,17 +224,21 @@ final class ModGroups extends ModManager {
 												),
 											) 
 										); ?>
-                                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete selected entries', 'modpress' ); ?>">
+                                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="modpress-bulk-delete-form btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete selected entries', 'modpress' ); ?>">
                                             <input type="hidden" name="action" value="modpress_delete_group_entry" />
                                             <input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
                                             <?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
-                                            <?php echo FormFieldHelper::button( 
-                                                __( 'Delete', 'modpress' ), 
+                                            <?php echo FormFieldHelper::button(
+                                                __( 'Delete', 'modpress' ),
                                                 array(
                                                     'type' => 'submit',
                                                     'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
                                                     'disabled' => true,
-                                                ) 
+                                                    'attributes' => array(
+                                                        'data-role' => 'bulk-delete-group-entry',
+                                                        'data-taxonomy-key' => $taxonomy_key,
+                                                    ),
+                                                )
                                             ); ?>
                                         </form>
 									</div>

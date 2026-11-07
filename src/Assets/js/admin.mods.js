@@ -109,13 +109,18 @@
     };
 
     const syncDeleteButtons = () => {
-        const buttons = document.querySelectorAll('.btn-delete-selected');
+        const buttons = document.querySelectorAll('[data-role="bulk-delete-group-entry"], .btn-delete-selected');
         buttons.forEach((button) => {
             const form = button.form || button.closest('form');
             const panel = button.closest('.tab-pane') || form?.closest('.tab-pane');
-            const rows = form ? form.querySelectorAll('.modpress-row-checkbox') : (panel ? panel.querySelectorAll('.modpress-row-checkbox') : document.querySelectorAll('.modpress-row-checkbox'));
+            const scope = panel || form || document;
+            const rows = scope.querySelectorAll ? scope.querySelectorAll('.modpress-row-checkbox') : [];
             const hasSelection = Array.from(rows).some((checkbox) => checkbox.checked);
+
             button.disabled = !hasSelection;
+            if (button instanceof HTMLElement) {
+                button.setAttribute('aria-disabled', String(button.disabled));
+            }
         });
     };
 
@@ -1369,7 +1374,7 @@
             return;
         }
 
-        const bulkDeleteButton = event.target.closest('.btn-delete-selected');
+        const bulkDeleteButton = event.target.closest('[data-role="bulk-delete-group-entry"], .btn-delete-selected');
         if (bulkDeleteButton) {
             event.preventDefault();
             const form = bulkDeleteButton.form || bulkDeleteButton.closest('form');
@@ -1406,7 +1411,7 @@
             });
 
             console.info('[ModPress] Submitting bulk delete for selected entries.', checkedRows);
-            form.submit();
+            form.requestSubmit ? form.requestSubmit() : form.submit();
             return;
         }
 
