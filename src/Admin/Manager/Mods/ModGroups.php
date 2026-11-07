@@ -211,17 +211,19 @@ final class ModGroups extends ModManager {
 								<div class="d-flex justify-content-between align-items-center gap-3 mb-3">
 									<div></div>
 									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
-                                        <?php echo FormFieldHelper::button( __( 'Add New Entry', 'modpress' ), array(
-                                            'type' => 'button',
-                                            'class' => 'btn btn-outline-primary',
-                                            'attributes' => array(
-                                                'data-bs-toggle' => 'modal',
-                                                'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ) . '-new',
-                                                'data-group-entry-id' => '',
-																																																																							'data-taxonomy-key' => $taxonomy_key,
-                                                'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
-                                            ),
-                                        ) ); ?>
+                                        <?php echo FormFieldHelper::button( 
+											__( 'Add New Entry', 'modpress' ), 
+											array(
+												'type' => 'button',
+												'class' => 'btn btn-outline-primary',
+												'attributes' => array(
+													'data-bs-toggle' => 'modal',
+													'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ) . '-new',
+													'data-group-entry-id' => '',																																																								'data-taxonomy-key' => $taxonomy_key,
+													'data-taxonomy-label' => $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ),
+												),
+											) 
+										); ?>
                                         <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete selected entries', 'modpress' ); ?>">
                                             <input type="hidden" name="action" value="modpress_delete_group_entry" />
                                             <input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />

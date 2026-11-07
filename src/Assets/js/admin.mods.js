@@ -118,6 +118,16 @@
         });
     };
 
+    const collectBulkDeleteSelection = (button) => {
+        const form = button.closest('form');
+        const panel = button.closest('.tab-pane') || form?.closest('.tab-pane');
+        const scope = panel || form || document;
+
+        return Array.from(scope.querySelectorAll('.modpress-row-checkbox:checked'))
+            .map((checkbox) => String(checkbox.value || '').trim())
+            .filter((value) => value !== '');
+    };
+
     const syncModManagerTabs = () => {
         const managerRoot = document.querySelector('.modpress-mod-manager-tab-content');
         if (!managerRoot) {
@@ -1365,13 +1375,28 @@
             if (!form) {
                 return;
             }
-            const checkedRows = form.querySelectorAll('.modpress-row-checkbox:checked');
+
+            const checkedRows = collectBulkDeleteSelection(bulkDeleteButton);
             if (!checkedRows.length) {
                 return;
             }
+
             if (!window.confirm('Delete the selected entries?')) {
                 return;
             }
+
+            form.querySelectorAll('input[name="group_entry_ids[]"]').forEach((existingInput) => {
+                existingInput.remove();
+            });
+
+            checkedRows.forEach((entryId) => {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'group_entry_ids[]';
+                hiddenInput.value = entryId;
+                form.appendChild(hiddenInput);
+            });
+
             form.submit();
             return;
         }
