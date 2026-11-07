@@ -229,7 +229,7 @@ final class ModGroups extends ModManager {
 									<div></div>
 									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
                                         <?php echo FormFieldHelper::button( 
-											__( 'Add New Entry', 'modpress' ), 
+											FAHelper::symbol_use( 'modpress-add', array( 'class' => 'fa-svg-symbol' ) ).' '.__( 'Add New Entry', 'modpress' ), 
 											array(
 												'type' => 'button',
 												'class' => 'btn btn-outline-primary',
