@@ -61,7 +61,41 @@ final class FAHelper {
 		}
 		self::$registered_symbols[ $symbol_key ] = true;
 
-		return '';
+		$icon_name = self::$symbol_icons[ $symbol_key ];
+		if ( '' === $icon_name ) {
+			return '';
+		}
+
+		$style = self::normalize_style( self::normalize_family( $options['family'] ?? 'classic' ), $options['style'] ?? 'solid' );
+		$classes = array( 'fa-' . $style, $icon_name );
+		if ( ! empty( $options['class'] ) ) {
+			$custom_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
+			foreach ( (array) $custom_classes as $custom_class ) {
+				$trimmed = trim( (string) $custom_class );
+				if ( '' !== $trimmed ) {
+					$classes[] = $trimmed;
+				}
+			}
+		}
+
+		$attributes = self::build_attributes( $options );
+		$attributes['data-fa-symbol'] = $symbol_name;
+		$attributes['class'] = implode( ' ', array_values( array_unique( $classes ) ) );
+
+		$style_string = self::build_inline_style( $options );
+		$tag          = '<i';
+		foreach ( $attributes as $name => $value ) {
+			if ( '' === (string) $value ) {
+				continue;
+			}
+			$tag .= ' ' . esc_attr( $name ) . '="' . esc_attr( (string) $value ) . '"';
+		}
+		if ( '' !== $style_string ) {
+			$tag .= ' style="' . esc_attr( $style_string ) . '"';
+		}
+		$tag .= '></i>';
+
+		return $tag;
 	}
 
 	/**
@@ -83,7 +117,7 @@ final class FAHelper {
 			return '';
 		}
 
-		$classes = array( 'fa-svg-symbol', $icon_name );
+		$classes = array( 'fa-svg-symbol' );
 		if ( ! empty( $options['class'] ) ) {
 			$custom_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
 			foreach ( (array) $custom_classes as $custom_class ) {
@@ -108,7 +142,7 @@ final class FAHelper {
 		if ( '' !== $style_string ) {
 			$tag .= ' style="' . esc_attr( $style_string ) . '"';
 		}
-		$tag .= '><use href="#' . esc_attr( $symbol_name ) . '" xlink:href="#' . esc_attr( $symbol_name ) . '"></use></svg>';
+		$tag .= '><use href="#' . esc_attr( $symbol_name ) . '"></use></svg>';
 
 		return $tag;
 	}
@@ -342,6 +376,7 @@ final class FAHelper {
 			'beat-fade',
 			'flash',
 			'shake',
+			'hidden',
 			'class',
 			'classes',
 			'transform',
