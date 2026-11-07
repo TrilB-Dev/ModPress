@@ -336,9 +336,9 @@ class Assets {
 				}
 			}
 		}
-		if ( 'modpress' === $route['page'] && in_array( $route['group'], array( 'manage-mod', 'mods' ), true ) && wp_script_is( 'modpress-admin', 'enqueued' ) ) {
+		if ( 'modpress' === $route['page'] && in_array( $route['group'], array( 'manage-mod', 'mods', 'mod-manager' ), true ) && wp_script_is( 'modpress-admin-mods', 'enqueued' ) ) {
 			LoaderHelper::localize_script(
-				'modpress-admin',
+				'modpress-admin-mods',
 				'modpressManager',
 				array(
 					'ajaxUrl' => admin_url( 'admin-ajax.php' ),

@@ -111,15 +111,16 @@
     const syncDeleteButtons = () => {
         const buttons = document.querySelectorAll('.btn-delete-selected');
         buttons.forEach((button) => {
-            const panel = button.closest('.tab-pane');
-            const rows = panel ? panel.querySelectorAll('.modpress-row-checkbox') : document.querySelectorAll('.modpress-row-checkbox');
+            const form = button.form || button.closest('form');
+            const panel = button.closest('.tab-pane') || form?.closest('.tab-pane');
+            const rows = form ? form.querySelectorAll('.modpress-row-checkbox') : (panel ? panel.querySelectorAll('.modpress-row-checkbox') : document.querySelectorAll('.modpress-row-checkbox'));
             const hasSelection = Array.from(rows).some((checkbox) => checkbox.checked);
             button.disabled = !hasSelection;
         });
     };
 
     const collectBulkDeleteSelection = (button) => {
-        const form = button.closest('form');
+        const form = button.form || button.closest('form');
         const panel = button.closest('.tab-pane') || form?.closest('.tab-pane');
         const scope = panel || form || document;
 
@@ -1371,13 +1372,20 @@
         const bulkDeleteButton = event.target.closest('.btn-delete-selected');
         if (bulkDeleteButton) {
             event.preventDefault();
-            const form = bulkDeleteButton.closest('form');
+            const form = bulkDeleteButton.form || bulkDeleteButton.closest('form');
             if (!form) {
+                console.error('[ModPress] Bulk delete button missing its parent form.', {
+                    button: bulkDeleteButton.outerHTML,
+                });
                 return;
             }
 
             const checkedRows = collectBulkDeleteSelection(bulkDeleteButton);
             if (!checkedRows.length) {
+                console.error('[ModPress] Bulk delete attempted without selected rows.', {
+                    formAction: form.getAttribute('action') || null,
+                    button: bulkDeleteButton.outerHTML,
+                });
                 return;
             }
 
@@ -1397,6 +1405,7 @@
                 form.appendChild(hiddenInput);
             });
 
+            console.info('[ModPress] Submitting bulk delete for selected entries.', checkedRows);
             form.submit();
             return;
         }
