@@ -15,6 +15,14 @@ final class FAHelper {
 	private static array $registered_symbols = array();
 
 	/**
+	 * Keep track of the real icon name associated with each symbol name so repeated
+	 * icon calls render the actual Font Awesome markup instead of a broken SVG reference.
+	 *
+	 * @var array<string, string>
+	 */
+	private static array $symbol_icons = array();
+
+	/**
 	 * Alias for render_icon.
 	 *
 	 * @param string $icon_name The icon name.
@@ -44,20 +52,16 @@ final class FAHelper {
 		}
 
 		$symbol_key = strtolower( $symbol_name );
+		if ( ! isset( self::$symbol_icons[ $symbol_key ] ) ) {
+			self::$symbol_icons[ $symbol_key ] = self::normalize_icon_name( $icon_name );
+		}
+
 		if ( isset( self::$registered_symbols[ $symbol_key ] ) ) {
 			return '';
 		}
 		self::$registered_symbols[ $symbol_key ] = true;
 
-		$options['data_fa_symbol'] = $symbol_name;
-		$options['aria_hidden']    = true;
-		$options['title']          = $options['title'] ?? ucfirst( $symbol_name );
-
-		if ( ! empty( $options['hidden'] ) ) {
-			$options['inline_style'] = (string) ( $options['inline_style'] ?? '' ) . 'display: none;';
-		}
-
-		return self::render_icon( $icon_name, $options );
+		return '';
 	}
 
 	/**
@@ -73,6 +77,12 @@ final class FAHelper {
 			return '';
 		}
 
+		$symbol_key = strtolower( $symbol_name );
+		$icon_name  = self::$symbol_icons[ $symbol_key ] ?? self::normalize_icon_name( $symbol_name );
+		if ( '' === $icon_name ) {
+			return '';
+		}
+
 		$classes = array( 'fa-svg-symbol' );
 		if ( ! empty( $options['class'] ) ) {
 			$custom_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
@@ -83,37 +93,9 @@ final class FAHelper {
 				}
 			}
 		}
+		$options['class'] = implode( ' ', array_values( array_unique( $classes ) ) );
 
-		$attributes = array(
-			'class'           => implode( ' ', array_values( array_unique( $classes ) ) ),
-			'aria-hidden'     => 'true',
-			'focusable'       => 'false',
-			'viewBox'         => $options['viewBox'] ?? '0 0 24 24',
-			'preserveAspectRatio' => $options['preserve_aspect_ratio'] ?? 'xMidYMid meet',
-		);
-
-		if ( ! empty( $options['width'] ) ) {
-			$attributes['width'] = (string) $options['width'];
-		}
-		if ( ! empty( $options['height'] ) ) {
-			$attributes['height'] = (string) $options['height'];
-		}
-		if ( ! empty( $options['style'] ) ) {
-			$attributes['style'] = is_array( $options['style'] ) ? implode( '; ', array_map( static function ( $key, $value ) {
-				return $key . ': ' . $value;
-			}, array_keys( $options['style'] ), array_values( $options['style'] ) ) ) . ';' : (string) $options['style'];
-		}
-
-		$tag = '<svg';
-		foreach ( $attributes as $name => $value ) {
-			if ( '' === (string) $value ) {
-				continue;
-			}
-			$tag .= ' ' . esc_attr( $name ) . '="' . esc_attr( (string) $value ) . '"';
-		}
-		$tag .= '><use href="#' . esc_attr( $symbol_name ) . '"></use></svg>';
-
-		return $tag;
+		return self::render_icon( $icon_name, $options );
 	}
 	/**
 	 * Render a Font Awesome icon element.
