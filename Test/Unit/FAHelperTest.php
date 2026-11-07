@@ -33,7 +33,16 @@ namespace {
 
 			$this->assertStringContainsString( 'fa-trash', $html );
 			$this->assertStringContainsString( 'Delete', $html );
+			$this->assertStringContainsString( 'fa-svg-symbol', $html );
 			$this->assertStringNotContainsString( '<svg', $html );
+		}
+
+		public function test_faicon_keeps_icon_name_when_extra_svg_class_is_passed(): void {
+			$html = FAHelper::faicon( 'trash', array( 'class' => 'fa-svg-symbol' ) );
+
+			$this->assertStringContainsString( 'fa-trash', $html );
+			$this->assertStringContainsString( 'fa-svg-symbol', $html );
+			$this->assertSame( 1, substr_count( $html, 'fa-trash' ) );
 		}
 	}
 }

@@ -34,6 +34,9 @@ final class FAHelper {
 			return '';
 		}
 
+		$options_without_classes = $options;
+		unset( $options_without_classes['class'] );
+
 		$family = self::normalize_family( $options['family'] ?? 'classic' );
 		$style = self::normalize_style( $family, $options['style'] ?? 'solid' );
 		$classes = [];
@@ -51,10 +54,11 @@ final class FAHelper {
 			$classes = array_merge( $classes, (array) $size );
 		}
 
-		$classes = array_merge( $classes, self::build_modifier_classes( $options ) );
+		$classes = array_merge( $classes, self::build_modifier_classes( $options_without_classes ) );
+		$classes = array_merge( $classes, self::extract_custom_classes( $options ) );
 		$classes = array_values( array_unique( array_filter( $classes, 'strlen' ) ) );
 
-		$attributes = self::build_attributes( $options );
+		$attributes = self::build_attributes( $options_without_classes );
 		$attributes['class'] = implode( ' ', $classes );
 
 		$style_string = self::build_inline_style( $options );
@@ -162,6 +166,24 @@ final class FAHelper {
 	 * @internal This method is used internally by the FAHelper class to generate modifier classes.
 	 * @since 1.0.0
 	 */
+	private static function extract_custom_classes( array $options ): array {
+		if ( empty( $options['class'] ) ) {
+			return [];
+		}
+
+		$raw_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
+		$classes = [];
+
+		foreach ( (array) $raw_classes as $class ) {
+			$trimmed = trim( (string) $class );
+			if ( '' !== $trimmed ) {
+				$classes[] = $trimmed;
+			}
+		}
+
+		return array_values( array_unique( $classes ) );
+	}
+
 	private static function build_modifier_classes( array $options ): array {
 		$classes = [];
 
@@ -201,16 +223,6 @@ final class FAHelper {
 		foreach ( [ 'spin', 'pulse', 'beat', 'bounce', 'fade', 'beat_fade', 'beat-fade', 'flash', 'shake' ] as $key ) {
 			if ( ! empty( $options[ $key ] ) ) {
 				$classes[] = 'fa-' . str_replace( '_', '-', $key );
-			}
-		}
-
-		if ( ! empty( $options['class'] ) ) {
-			$custom_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
-			foreach ( (array) $custom_classes as $custom_class ) {
-				$trimmed = trim( (string) $custom_class );
-				if ( '' !== $trimmed ) {
-					$classes[] = $trimmed;
-				}
 			}
 		}
 
