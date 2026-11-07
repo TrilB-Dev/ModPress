@@ -136,7 +136,7 @@ final class ModGroups extends ModManager {
 					<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
 						<h2 class="h5 mb-0"><?php esc_html_e( 'Mod Groups', 'modpress' ); ?></h2>
 						<?php echo FormFieldHelper::button( 
-							__( 'Add New Group', 'modpress' ), 
+							FAHelper::symbol_use( 'modpress-plus', array( 'class' => 'fa-svg-symbol' ) ).' '.__( 'Add New Group', 'modpress' ), 
 							array(
 								'type'    => 'button',
 								'class'   => 'btn btn-primary btn-sm',
@@ -229,7 +229,7 @@ final class ModGroups extends ModManager {
 									<div></div>
 									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
                                         <?php echo FormFieldHelper::button( 
-											FAHelper::symbol_use( 'modpress-add', array( 'class' => 'fa-svg-symbol' ) ).' '.__( 'Add New Entry', 'modpress' ), 
+											FAHelper::symbol_use( 'modpress-plus', array( 'class' => 'fa-svg-symbol' ) ).' '.__( 'Add New Entry', 'modpress' ), 
 											array(
 												'type' => 'button',
 												'class' => 'btn btn-outline-primary',
