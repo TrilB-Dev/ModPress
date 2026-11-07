@@ -498,6 +498,48 @@
         return [];
     };
 
+    const getModalGroupFields = (modal = document.getElementById('modpress-group-modal')) => {
+        if (!modal || !modal.dataset) {
+            return [];
+        }
+
+        const rawValue = String(modal.dataset.groupFields || '').trim();
+        if (!rawValue) {
+            return [];
+        }
+
+        try {
+            const parsedValue = JSON.parse(rawValue);
+            return Array.isArray(parsedValue) ? parsedValue : [];
+        } catch (error) {
+            console.error('[ModPress] Failed to parse saved group fields for modal hydration.', {
+                modalId: modal.id || null,
+                rawValue,
+                error,
+            });
+            return [];
+        }
+    };
+
+    const hydrateGroupModalCustomFields = (modal = document.getElementById('modpress-group-modal')) => {
+        if (!modal) {
+            return;
+        }
+
+        const container = modal.querySelector('[id$="-custom-fields-container"]');
+        if (!container) {
+            return;
+        }
+
+        const template = getCustomFieldTemplate(container, modal);
+        if (template && !container.contains(template)) {
+            container.appendChild(template);
+        }
+
+        populateCustomFieldRows({ group_fields: getModalGroupFields(modal) }, modal);
+        syncGroupDeleteState(modal);
+    };
+
     const getCustomFieldContainer = (button = null, modal = null) => {
         const explicitSelector = button && button.dataset && button.dataset.customFieldContainer
             ? String(button.dataset.customFieldContainer || '').trim()
@@ -630,7 +672,18 @@
         const fields = getGroupFields(groupData);
 
         if (!fields.length) {
-            container.innerHTML = '<div class="text-muted small">No custom fields configured for this group.</div>';
+            accordion.innerHTML = '';
+            if (template && !accordion.contains(template)) {
+                accordion.appendChild(template);
+            }
+
+            const emptyState = container.querySelector('.modpress-custom-fields-empty');
+            if (!emptyState) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'text-muted small modpress-custom-fields-empty';
+                placeholder.textContent = 'No custom fields configured for this group.';
+                container.appendChild(placeholder);
+            }
             return;
         }
 
@@ -1379,6 +1432,21 @@
         if (groupEditButton) {
             return;
         }
+    });
+
+    document.addEventListener('shown.bs.modal', (event) => {
+        const modal = event && event.target && event.target.closest ? event.target.closest('.modal') : null;
+        if (!modal) {
+            return;
+        }
+
+        hydrateGroupModalCustomFields(modal);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.modal[data-group-fields]').forEach((modal) => {
+            hydrateGroupModalCustomFields(modal);
+        });
     });
 
     bindCustomFieldButtons();

@@ -1347,6 +1347,59 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'checked', $output );
         }
 
+        public function testRenderGroupModalIncludesSavedCustomFieldDataForHydration(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array(
+                'modpress_language' => array( 'args' => array( 'hierarchical' => true ) ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_language' => array(
+                    42 => (object) array( 'term_id' => 42, 'name' => 'English' ),
+                ),
+            );
+
+            $method = new \ReflectionMethod( \ModPress\Admin\Manager\Mods\ModGroups::class, 'render_group_modal' );
+            $method->setAccessible( true );
+
+            $instance = \ModPress\Admin\Manager\Mods\ModGroups::class;
+            $group_manager = ( new \ReflectionClass( $instance ) )->newInstanceWithoutConstructor();
+
+            ob_start();
+            $method->invoke(
+                $group_manager,
+                array(
+                    array( 'id' => 2, 'taxonomy' => 'modpress_language', 'label' => 'Language' ),
+                ),
+                array(
+                    'id' => 7,
+                    'group_key' => 'modpress_language',
+                    'group_name' => 'Language',
+                    'group_slug' => 'modpress_language',
+                    'group_singular_name' => 'Language',
+                    'group_description' => '',
+                    'group_hierarchical' => false,
+                    'group_parent' => array(),
+                    'group_parent_entry' => array(),
+                    'group_fields' => json_encode( array(
+                        array(
+                            'id' => 'field_7',
+                            'name' => 'Priority',
+                            'slug' => 'priority',
+                            'type' => 'radio',
+                            'options' => array(
+                                array( 'label' => 'Low', 'value' => 'low' ),
+                                array( 'label' => 'High', 'value' => 'high' ),
+                            ),
+                        ),
+                    ) ),
+                )
+            );
+            $output = ob_get_clean();
+
+            $this->assertStringContainsString( 'data-group-fields=', $output );
+            $this->assertStringContainsString( 'field_7', $output );
+            $this->assertStringContainsString( 'priority', strtolower( $output ) );
+        }
+
         public function testRenderGroupModalKeepsSavedParentSelectionValues(): void {
             $GLOBALS['modpress_test_taxonomies'] = array(
                 'modpress_assets' => array( 'args' => array( 'hierarchical' => true ) ),

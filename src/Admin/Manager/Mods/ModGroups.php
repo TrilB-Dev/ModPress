@@ -622,6 +622,17 @@ final class ModGroups extends ModManager {
 		}
 		$selected_group_key = (string) ( $selected_group['group_key'] ?? $selected_group['taxonomy'] ?? $selected_group['key'] ?? '' );
 		$selected_group_key = '' !== $selected_group_key ? $selected_group_key : (string) ( $selected_group['group_slug'] ?? '' );
+		$selected_group_fields = array();
+		if ( isset( $selected_group['group_fields'] ) ) {
+			if ( is_string( $selected_group['group_fields'] ) && '' !== trim( $selected_group['group_fields'] ) ) {
+				$decoded_group_fields = json_decode( $selected_group['group_fields'], true );
+				if ( is_array( $decoded_group_fields ) ) {
+					$selected_group_fields = $decoded_group_fields;
+				}
+			} elseif ( is_array( $selected_group['group_fields'] ) ) {
+				$selected_group_fields = $selected_group['group_fields'];
+			}
+		}
 		$modal_id = '' === $selected_group_key ? 'modpress-group-modal' : 'modpress-group-modal-' . sanitize_html_class( $selected_group_key );
 		$save_form_id = 'modpress-group-save-form-' . ( '' === $selected_group_key ? 'new' : sanitize_html_class( $selected_group_key ) );
 		$delete_form_id = 'modpress-group-delete-form-' . ( '' === $selected_group_key ? 'new' : sanitize_html_class( $selected_group_key ) );
@@ -636,7 +647,7 @@ final class ModGroups extends ModManager {
 		$custom_fields_accordion_id = $modal_id . '-custom-fields-accordion';
 		$custom_field_template_id = $modal_id . '-custom-field-template';
 		?>
-		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true">
+		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-key="<?php echo esc_attr( $selected_group_key ); ?>" data-group-fields="<?php echo esc_attr( wp_json_encode( $selected_group_fields ) ); ?>">
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content" style="overflow-y: scroll;">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="<?php echo esc_attr( $save_form_id ); ?>" data-role="group-save-form">
