@@ -83,7 +83,7 @@ final class FAHelper {
 			return '';
 		}
 
-		$classes = array( 'fa-svg-symbol' );
+		$classes = array( 'fa-svg-symbol', $icon_name );
 		if ( ! empty( $options['class'] ) ) {
 			$custom_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
 			foreach ( (array) $custom_classes as $custom_class ) {
@@ -93,9 +93,24 @@ final class FAHelper {
 				}
 			}
 		}
-		$options['class'] = implode( ' ', array_values( array_unique( $classes ) ) );
 
-		return self::render_icon( $icon_name, $options );
+		$attributes = self::build_attributes( $options );
+		$attributes['class'] = implode( ' ', array_values( array_unique( $classes ) ) );
+
+		$style_string = self::build_inline_style( $options );
+		$tag          = '<svg';
+		foreach ( $attributes as $name => $value ) {
+			if ( '' === (string) $value ) {
+				continue;
+			}
+			$tag .= ' ' . esc_attr( $name ) . '="' . esc_attr( (string) $value ) . '"';
+		}
+		if ( '' !== $style_string ) {
+			$tag .= ' style="' . esc_attr( $style_string ) . '"';
+		}
+		$tag .= '><use href="#' . esc_attr( $symbol_name ) . '" xlink:href="#' . esc_attr( $symbol_name ) . '"></use></svg>';
+
+		return $tag;
 	}
 	/**
 	 * Render a Font Awesome icon element.

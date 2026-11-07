@@ -8,15 +8,15 @@ namespace {
 	use PHPUnit\Framework\TestCase;
 
 	final class FAHelperTest extends TestCase {
-		public function test_symbol_use_renders_a_visible_font_awesome_icon_for_registered_symbols(): void {
+		public function test_symbol_use_renders_svg_use_markup_for_registered_symbols(): void {
 			FAHelper::symbol( 'modpress-trash', 'trash' );
 
 			$html = FAHelper::symbol_use( 'modpress-trash', array( 'class' => 'btn-icon' ) );
 
-			$this->assertStringContainsString( 'fa-solid', $html );
-			$this->assertStringContainsString( 'fa-trash', $html );
+			$this->assertStringContainsString( '<svg', $html );
+			$this->assertStringContainsString( 'href="#modpress-trash"', $html );
 			$this->assertStringContainsString( 'btn-icon', $html );
-			$this->assertStringNotContainsString( '<use href="#modpress-trash"', $html );
+			$this->assertStringNotContainsString( '<i class=', $html );
 		}
 
 		public function test_button_keeps_inline_icon_markup_when_label_has_text(): void {
