@@ -101,7 +101,7 @@ final class PostTypes {
 				'label'           => __( 'Files', 'modpress' ),
 				'description'     => __( 'File entries managed by ModPress.', 'modpress' ),
 				'supports'        => array( 'title', 'editor', 'thumbnail', 'comments', 'trackbacks', 'revisions', 'custom-fields', 'page-attributes', 'post-formats' ),
-				'taxonomies'      => array( 'modpress_file_type', 'modpress_file_links' ),
+				'taxonomies'      => array( 'modpress_file_type', 'modpress_file_hosts' ),
 				'public'          => true,
 				'show_ui'         => true,
 				'show_in_menu'    => false,

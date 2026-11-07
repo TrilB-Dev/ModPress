@@ -23,7 +23,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class ModGroups extends ModManager {
-	
 	/**
 	 * Render the taxonomy manager screen with horizontal tabs, modal forms, and entry tables.
 	 *
@@ -542,7 +541,6 @@ final class ModGroups extends ModManager {
 		</tr>
 		<?php
 	}
-
 	/**
 	 * Render the taxonomy group modal.
 	 *
@@ -1142,8 +1140,6 @@ final class ModGroups extends ModManager {
 		</div>
 		<?php
 	}
-
-
 	/**
 	 * Render the entry modal used to add or edit a taxonomy item.
 	 *

@@ -26,7 +26,7 @@ final class Taxonomies {
 		self::tag_taxonomy();
 		self::changelog_category_taxonomy();
 		self::file_type_taxonomy();
-		self::file_links_taxonomy();
+		self::file_hosts_taxonomy();
 	}
 
 	/**
@@ -101,16 +101,16 @@ final class Taxonomies {
 		);
 	}
 
-	public static function file_links_taxonomy(): bool {
-		if ( taxonomy_exists( 'modpress_file_links' ) ) {
+	public static function file_hosts_taxonomy(): bool {
+		if ( taxonomy_exists( 'modpress_file_hosts' ) ) {
 			return false;
 		}
 
 		return Taxonomy::create(
-			'modpress_file_links',
+			'modpress_file_hosts',
 			array(
-				'label'             => __( 'File Links', 'modpress' ),
-				'description'       => __( 'Links where files may be found.', 'modpress' ),
+				'label'             => __( 'File Hosts', 'modpress' ),
+				'description'       => __( 'Hosts where files may be found.', 'modpress' ),
 				'post_type'       	=> array( 'modpress_file' ),
 				'hierarchical'      => false,
 				'public'            => true,
@@ -118,7 +118,7 @@ final class Taxonomies {
 				'show_in_menu'      => false,
 				'show_admin_column' => true,
 				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => 'file-links' ),
+				'rewrite'           => array( 'slug' => 'file-hosts' ),
 			)
 		);
 	}
