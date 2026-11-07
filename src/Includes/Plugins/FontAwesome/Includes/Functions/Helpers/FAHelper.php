@@ -8,6 +8,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class FAHelper {
 	/**
+	 * Track symbol definitions so the same icon is not rendered repeatedly on one page.
+	 *
+	 * @var array<string, bool>
+	 */
+	private static array $registered_symbols = array();
+
+	/**
 	 * Alias for render_icon.
 	 *
 	 * @param string $icon_name The icon name.
@@ -17,6 +24,96 @@ final class FAHelper {
 	public static function faicon( string $icon_name, array $options = [] ): string {
 		
 		return self::render_icon( $icon_name, $options );
+	}
+
+	/**
+	 * Render a Font Awesome symbol definition for use with SVG <use> references.
+	 *
+	 * Example:
+	 * <code>FAHelper::symbol( 'edit', 'fa-pencil' );</code>
+	 *
+	 * @param string $symbol_name The symbol name referenced later as #edit.
+	 * @param string $icon_name   The icon to define.
+	 * @param array  $options     Rendering options.
+	 * @return string
+	 */
+	public static function symbol( string $symbol_name, string $icon_name, array $options = [] ): string {
+		$symbol_name = trim( (string) $symbol_name );
+		if ( '' === $symbol_name ) {
+			return '';
+		}
+
+		$symbol_key = strtolower( $symbol_name );
+		if ( isset( self::$registered_symbols[ $symbol_key ] ) ) {
+			return '';
+		}
+		self::$registered_symbols[ $symbol_key ] = true;
+
+		$options['data_fa_symbol'] = $symbol_name;
+		$options['aria_hidden']    = true;
+		$options['title']          = $options['title'] ?? ucfirst( $symbol_name );
+
+		if ( ! empty( $options['hidden'] ) ) {
+			$options['inline_style'] = (string) ( $options['inline_style'] ?? '' ) . 'display: none;';
+		}
+
+		return self::render_icon( $icon_name, $options );
+	}
+
+	/**
+	 * Render a symbol reference that loads the icon via <use href="#symbol-name">.
+	 *
+	 * @param string $symbol_name The symbol name defined with FAHelper::symbol().
+	 * @param array  $options     SVG attributes.
+	 * @return string
+	 */
+	public static function symbol_use( string $symbol_name, array $options = [] ): string {
+		$symbol_name = trim( (string) $symbol_name );
+		if ( '' === $symbol_name ) {
+			return '';
+		}
+
+		$classes = array( 'fa-svg-symbol' );
+		if ( ! empty( $options['class'] ) ) {
+			$custom_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
+			foreach ( (array) $custom_classes as $custom_class ) {
+				$trimmed = trim( (string) $custom_class );
+				if ( '' !== $trimmed ) {
+					$classes[] = $trimmed;
+				}
+			}
+		}
+
+		$attributes = array(
+			'class'           => implode( ' ', array_values( array_unique( $classes ) ) ),
+			'aria-hidden'     => 'true',
+			'focusable'       => 'false',
+			'viewBox'         => $options['viewBox'] ?? '0 0 24 24',
+			'preserveAspectRatio' => $options['preserve_aspect_ratio'] ?? 'xMidYMid meet',
+		);
+
+		if ( ! empty( $options['width'] ) ) {
+			$attributes['width'] = (string) $options['width'];
+		}
+		if ( ! empty( $options['height'] ) ) {
+			$attributes['height'] = (string) $options['height'];
+		}
+		if ( ! empty( $options['style'] ) ) {
+			$attributes['style'] = is_array( $options['style'] ) ? implode( '; ', array_map( static function ( $key, $value ) {
+				return $key . ': ' . $value;
+			}, array_keys( $options['style'] ), array_values( $options['style'] ) ) ) . ';' : (string) $options['style'];
+		}
+
+		$tag = '<svg';
+		foreach ( $attributes as $name => $value ) {
+			if ( '' === (string) $value ) {
+				continue;
+			}
+			$tag .= ' ' . esc_attr( $name ) . '="' . esc_attr( (string) $value ) . '"';
+		}
+		$tag .= '><use href="#' . esc_attr( $symbol_name ) . '"></use></svg>';
+
+		return $tag;
 	}
 	/**
 	 * Render a Font Awesome icon element.

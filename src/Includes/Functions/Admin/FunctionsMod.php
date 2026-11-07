@@ -1691,9 +1691,17 @@ final class FunctionsMod {
         ob_start();
         ?>
         <div class="modpress-option-repeater" data-option-type="<?php echo esc_attr( $type ); ?>">
+            <?php echo FAHelper::symbol( 'modpress-plus', 'plus', array(
+                'hidden' => true,
+                'inline_style' => 'display: none;',
+            ) ); ?>
+            <?php echo FAHelper::symbol( 'modpress-trash', 'trash', array(
+                'hidden' => true,
+                'inline_style' => 'display: none;',
+            ) ); ?>
             <div class="d-flex justify-content-end mb-2">
                 <?php echo FormFieldHelper::button(
-                    FAHelper::faicon( 'plus' ).' '.esc_html__( 'Add Option', 'modpress' ),
+                    FAHelper::symbol_use( 'modpress-plus', array( 'class' => 'fa-svg-symbol' ) ).' '.esc_html__( 'Add Option', 'modpress' ),
                     array(
                         'type' => 'button',
                         'class' => 'btn btn-outline-secondary btn-sm',
@@ -1736,7 +1744,7 @@ final class FunctionsMod {
                         </div>
                         <div class="col-md-2">
                             <?php echo FormFieldHelper::button(
-                                FAHelper::faicon( 'trash' ),
+                                FAHelper::symbol_use( 'modpress-trash', array( 'class' => 'fa-svg-symbol' ) ),
                                 array(
                                     'type' => 'button',
                                     'class' => 'btn btn-outline-danger btn-sm',

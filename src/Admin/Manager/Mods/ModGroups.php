@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * ModGroups class file.
  * Handles the rendering and management of ModPress groups within the admin interface.
@@ -34,6 +34,23 @@ final class ModGroups extends ModManager {
 		if ( ! empty( $flash_notice['message'] ) ) {
 			AlertHelper::render_admin_notice( $flash_notice['message'], $flash_notice['type'] );
 		}
+
+		echo FAHelper::symbol( 'modpress-edit', 'pen-to-square', array(
+			'hidden' => true,
+			'inline_style' => 'display: none;',
+		) );
+		echo FAHelper::symbol( 'modpress-trash', 'trash', array(
+			'hidden' => true,
+			'inline_style' => 'display: none;',
+		) );
+		echo FAHelper::symbol( 'modpress-save', 'floppy-disk', array(
+			'hidden' => true,
+			'inline_style' => 'display: none;',
+		) );
+		echo FAHelper::symbol( 'modpress-plus', 'plus', array(
+			'hidden' => true,
+			'inline_style' => 'display: none;',
+		) );
 
 		$taxonomy_tabs = array();
 		$group_rows    = DBHelper::table_exists( 'groups' ) ? DBHelper::get_all( 'groups', array(), '*', 'group_name ASC' ) : array();
@@ -149,7 +166,7 @@ final class ModGroups extends ModManager {
 									<?php echo esc_html( $taxonomy['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ); ?>
 								</button>
 								<?php echo FormFieldHelper::button(
-									FAHelper::faicon( 'pen-to-square' ),
+									FAHelper::symbol_use( 'modpress-edit', array( 'class' => 'fa-svg-symbol' ) ),
 									array(
 										'type' => 'button',
 										'class' => 'btn btn-link btn-sm text-secondary modpress-tab-edit-btn',
@@ -229,7 +246,7 @@ final class ModGroups extends ModManager {
                                             <input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy_key ); ?>" />
                                             <?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
                                             <?php echo FormFieldHelper::button(
-                                                __( 'Delete', 'modpress' ),
+                                                FAHelper::symbol_use( 'modpress-trash', array( 'class' => 'fa-svg-symbol' ) ).' '.__( 'Delete', 'modpress' ),
                                                 array(
                                                     'type' => 'submit',
                                                     'class' => 'btn btn-outline-danger btn-sm btn-delete-selected',
@@ -398,7 +415,7 @@ final class ModGroups extends ModManager {
 														<td class="text-end">
 															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Actions', 'modpress' ); ?>">
 																<?php echo FormFieldHelper::button(
-																	FAHelper::faicon( 'pen-to-square' ),
+																	FAHelper::symbol_use( 'modpress-edit', array( 'class' => 'fa-svg-symbol' ) ),
 																	array(
 																		'type' => 'button',
 																		'class' => 'btn btn-outline-secondary',
@@ -416,7 +433,7 @@ final class ModGroups extends ModManager {
 																	<input type="hidden" name="group_entry_id" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
 																	<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
 																	<?php echo FormFieldHelper::button(
-																		FAHelper::faicon( 'trash' ),
+																		FAHelper::symbol_use( 'modpress-trash', array( 'class' => 'fa-svg-symbol' ) ),
 																		array(
 																			'type' => 'submit',
 																			'class' => 'btn btn-outline-danger',
@@ -840,7 +857,7 @@ final class ModGroups extends ModManager {
 																	<span class="ms-1" data-custom-field-title><?php esc_html_e( 'Field', 'modpress' ); ?></span>
 																</button>
 																<?php echo FormFieldHelper::button(
-																	FAHelper::faicon( 'trash' ),
+																	FAHelper::symbol_use( 'modpress-trash', array( 'class' => 'fa-svg-symbol' ) ),
 																	array(
 																		'type' => 'button',
 																		'class' => 'btn btn-outline-danger btn-sm ms-2 modpress-remove-custom-field',
@@ -1122,7 +1139,7 @@ final class ModGroups extends ModManager {
 									)
 								); ?>
 								<?php echo FormFieldHelper::button(
-									FAHelper::faicon( 'floppy-disk' ).' '.__( 'Save', 'modpress' ),
+									FAHelper::symbol_use( 'modpress-save', array( 'class' => 'fa-svg-symbol' ) ).' '.__( 'Save', 'modpress' ),
 									array(
 										'type' => 'submit',
 										'class' => 'btn btn-primary',
