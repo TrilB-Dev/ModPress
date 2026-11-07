@@ -8,21 +8,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class FAHelper {
 	/**
-	 * Track symbol definitions so the same icon is not rendered repeatedly on one page.
-	 *
-	 * @var array<string, bool>
-	 */
-	private static array $registered_symbols = array();
-
-	/**
-	 * Keep track of the real icon name associated with each symbol name so repeated
-	 * icon calls render the actual Font Awesome markup instead of a broken SVG reference.
-	 *
-	 * @var array<string, string>
-	 */
-	private static array $symbol_icons = array();
-
-	/**
 	 * Alias for render_icon.
 	 *
 	 * @param string $icon_name The icon name.
@@ -30,122 +15,9 @@ final class FAHelper {
 	 * @return string The output markup.
 	 */
 	public static function faicon( string $icon_name, array $options = [] ): string {
-		
 		return self::render_icon( $icon_name, $options );
 	}
 
-	/**
-	 * Render a Font Awesome symbol definition for use with SVG <use> references.
-	 *
-	 * Example:
-	 * <code>FAHelper::symbol( 'edit', 'fa-pencil' );</code>
-	 *
-	 * @param string $symbol_name The symbol name referenced later as #edit.
-	 * @param string $icon_name   The icon to define.
-	 * @param array  $options     Rendering options.
-	 * @return string
-	 */
-	public static function symbol( string $symbol_name, string $icon_name, array $options = [] ): string {
-		$symbol_name = trim( (string) $symbol_name );
-		if ( '' === $symbol_name ) {
-			return '';
-		}
-
-		$symbol_key = strtolower( $symbol_name );
-		if ( ! isset( self::$symbol_icons[ $symbol_key ] ) ) {
-			self::$symbol_icons[ $symbol_key ] = self::normalize_icon_name( $icon_name );
-		}
-
-		if ( isset( self::$registered_symbols[ $symbol_key ] ) ) {
-			return '';
-		}
-		self::$registered_symbols[ $symbol_key ] = true;
-
-		$icon_name = self::$symbol_icons[ $symbol_key ];
-		if ( '' === $icon_name ) {
-			return '';
-		}
-
-		$style = self::normalize_style( self::normalize_family( $options['family'] ?? 'classic' ), $options['style'] ?? 'solid' );
-		$classes = array( 'fa-' . $style, $icon_name );
-		if ( ! empty( $options['class'] ) ) {
-			$custom_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
-			foreach ( (array) $custom_classes as $custom_class ) {
-				$trimmed = trim( (string) $custom_class );
-				if ( '' !== $trimmed ) {
-					$classes[] = $trimmed;
-				}
-			}
-		}
-
-		$attributes = self::build_attributes( $options );
-		$attributes['data-fa-symbol'] = $symbol_name;
-		$attributes['class'] = implode( ' ', array_values( array_unique( $classes ) ) );
-
-		$style_string = self::build_inline_style( $options );
-		$tag          = '<i';
-		foreach ( $attributes as $name => $value ) {
-			if ( '' === (string) $value ) {
-				continue;
-			}
-			$tag .= ' ' . esc_attr( $name ) . '="' . esc_attr( (string) $value ) . '"';
-		}
-		if ( '' !== $style_string ) {
-			$tag .= ' style="' . esc_attr( $style_string ) . '"';
-		}
-		$tag .= '></i>';
-
-		return $tag;
-	}
-
-	/**
-	 * Render a symbol reference that loads the icon via <use href="#symbol-name">.
-	 *
-	 * @param string $symbol_name The symbol name defined with FAHelper::symbol().
-	 * @param array  $options     SVG attributes.
-	 * @return string
-	 */
-	public static function symbol_use( string $symbol_name, array $options = [] ): string {
-		$symbol_name = trim( (string) $symbol_name );
-		if ( '' === $symbol_name ) {
-			return '';
-		}
-
-		$symbol_key = strtolower( $symbol_name );
-		$icon_name  = self::$symbol_icons[ $symbol_key ] ?? self::normalize_icon_name( $symbol_name );
-		if ( '' === $icon_name ) {
-			return '';
-		}
-
-		$classes = array( 'fa-svg-symbol' );
-		if ( ! empty( $options['class'] ) ) {
-			$custom_classes = is_array( $options['class'] ) ? $options['class'] : preg_split( '/\s+/', (string) $options['class'] );
-			foreach ( (array) $custom_classes as $custom_class ) {
-				$trimmed = trim( (string) $custom_class );
-				if ( '' !== $trimmed ) {
-					$classes[] = $trimmed;
-				}
-			}
-		}
-
-		$attributes = self::build_attributes( $options );
-		$attributes['class'] = implode( ' ', array_values( array_unique( $classes ) ) );
-
-		$style_string = self::build_inline_style( $options );
-		$tag          = '<svg';
-		foreach ( $attributes as $name => $value ) {
-			if ( '' === (string) $value ) {
-				continue;
-			}
-			$tag .= ' ' . esc_attr( $name ) . '="' . esc_attr( (string) $value ) . '"';
-		}
-		if ( '' !== $style_string ) {
-			$tag .= ' style="' . esc_attr( $style_string ) . '"';
-		}
-		$tag .= '><use href="#' . esc_attr( $symbol_name ) . '"></use></svg>';
-
-		return $tag;
-	}
 	/**
 	 * Render a Font Awesome icon element.
 	 *
