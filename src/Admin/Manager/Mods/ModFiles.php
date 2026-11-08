@@ -99,8 +99,10 @@ final class ModFiles extends ModManager {
 							>
 								<?php if ( 'files' === $tab_key ) : ?>
 									<?php $this->render_files_tab( (string) ( $tab['post_type'] ?? 'modpress_file' ) ); ?>
-								<?php else : ?>
-									<?php $this->render_taxonomy_tab( (string) ( $tab['taxonomy'] ?? '' ), $tab_key ); ?>
+								<?php elseif ( 'file-types' === $tab_key ) : ?>
+									<?php $this->render_file_types_tab( (string) ( $tab['taxonomy'] ?? '' ) ); ?>
+								<?php elseif ( 'file-hosts' === $tab_key ) : ?>
+									<?php $this->render_file_hosts_tab( (string) ( $tab['taxonomy'] ?? '' ) ); ?>
 								<?php endif; ?>
 							</div>
 						<?php endforeach; ?>
@@ -239,13 +241,12 @@ final class ModFiles extends ModManager {
 	}
 
 	/**
-	 * Render a taxonomy tab for file type or file host entries.
+	 * Render the file type taxonomy tab.
 	 *
 	 * @param string $taxonomy Taxonomy slug.
-	 * @param string $tab_key Tab key.
 	 * @return void
 	 */
-	private function render_taxonomy_tab( string $taxonomy, string $tab_key ): void {
+	private function render_file_types_tab( string $taxonomy ): void {
 		if ( '' === $taxonomy ) {
 			return;
 		}
@@ -261,22 +262,19 @@ final class ModFiles extends ModManager {
 		if ( is_wp_error( $terms ) ) {
 			$terms = array();
 		}
-
-		$is_host_tab = 'file-hosts' === $tab_key;
-		$button_label = $is_host_tab ? __( 'Add New Host', 'modpress' ) : __( 'Add New Type', 'modpress' );
 		?>
 		<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
 			<div class="text-muted small"><?php echo esc_html( sprintf( _n( '%s entry', '%s entries', count( $terms ), 'modpress' ), number_format_i18n( count( $terms ) ) ) ); ?></div>
 			<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Taxonomy actions', 'modpress' ); ?>">
 				<?php echo FormFieldHelper::button(
-					FAHelper::faicon( 'plus' ) . ' ' . $button_label,
+					FAHelper::faicon( 'plus' ) . ' ' . __( 'Add New Type', 'modpress' ),
 					array(
 						'type' => 'button',
 						'class' => 'btn btn-outline-primary',
 						'raw' => true,
 						'attributes' => array(
 							'data-bs-toggle' => 'modal',
-							'data-bs-target' => '#modpress-' . esc_attr( $tab_key ) . '-modal',
+							'data-bs-target' => '#modpress-file-types-modal',
 						),
 					)
 				); ?>
@@ -293,21 +291,17 @@ final class ModFiles extends ModManager {
 						<th><?php esc_html_e( 'Image', 'modpress' ); ?></th>
 						<th><?php esc_html_e( 'Name', 'modpress' ); ?></th>
 						<th><?php esc_html_e( 'Slug', 'modpress' ); ?></th>
-						<?php if ( $is_host_tab ) : ?>
-							<th><?php esc_html_e( 'URL', 'modpress' ); ?></th>
-						<?php endif; ?>
 						<th class="text-end"><?php esc_html_e( 'Actions', 'modpress' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php if ( empty( $terms ) ) : ?>
 						<tr>
-							<td colspan="<?php echo $is_host_tab ? 6 : 5; ?>" class="text-center text-muted py-4"><?php esc_html_e( 'No items found for this taxonomy yet.', 'modpress' ); ?></td>
+							<td colspan="5" class="text-center text-muted py-4"><?php esc_html_e( 'No items found for this taxonomy yet.', 'modpress' ); ?></td>
 						</tr>
 					<?php else : ?>
 						<?php foreach ( $terms as $term ) : ?>
 							<?php $image_url = get_term_meta( (int) $term->term_id, 'image', true ); ?>
-							<?php $term_url = $is_host_tab ? get_term_meta( (int) $term->term_id, 'url', true ) : ''; ?>
 							<tr>
 								<td>
 									<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select %s', 'modpress' ), $term->name ) ); ?>" />
@@ -321,15 +315,6 @@ final class ModFiles extends ModManager {
 								</td>
 								<td><?php echo esc_html( $term->name ); ?></td>
 								<td><?php echo esc_html( $term->slug ); ?></td>
-								<?php if ( $is_host_tab ) : ?>
-									<td>
-										<?php if ( ! empty( $term_url ) ) : ?>
-											<a href="<?php echo esc_url( $term_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( wp_parse_url( $term_url, PHP_URL_HOST ) ?: $term_url ); ?></a>
-										<?php else : ?>
-											<span class="text-muted"><?php esc_html_e( 'No URL', 'modpress' ); ?></span>
-										<?php endif; ?>
-									</td>
-								<?php endif; ?>
 								<td class="text-end">
 									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
 										<?php echo FormFieldHelper::button(
@@ -340,7 +325,7 @@ final class ModFiles extends ModManager {
 												'raw' => true,
 												'attributes' => array(
 													'data-bs-toggle' => 'modal',
-													'data-bs-target' => '#modpress-' . esc_attr( $tab_key ) . '-modal',
+													'data-bs-target' => '#modpress-file-types-modal',
 												),
 											)
 										); ?>
@@ -371,58 +356,425 @@ final class ModFiles extends ModManager {
 			</table>
 		</div>
 
-		<div class="modal fade" id="modpress-<?php echo esc_attr( $tab_key ); ?>-modal" tabindex="-1" aria-hidden="true">
+		<div class="modal fade" id="modpress-file-types-modal" tabindex="-1" aria-hidden="true">
 			<div class="modal-dialog modal-lg modal-dialog-centered">
 				<div class="modal-content">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<input type="hidden" name="action" value="modpress_save_group_entry" />
-						<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
-						<?php wp_nonce_field( 'modpress_save_group_entry', 'modpress_group_entry_nonce' ); ?>
+						<input type="hidden" name="action" value="modpress_save_file_type" />
+						<input type="hidden" name="file_type_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
+						<?php wp_nonce_field( 'modpress_save_file_type', 'modpress_file_type_nonce' ); ?>
 						<div class="modal-header">
-							<h3 class="modal-title h5"><?php echo esc_html( $is_host_tab ? __( 'Add File Host', 'modpress' ) : __( 'Add File Type', 'modpress' ) ); ?></h3>
+							<h3 class="modal-title h5"><?php esc_html_e( 'Add File Type', 'modpress' ); ?></h3>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?php esc_attr_e( 'Close', 'modpress' ); ?>"></button>
 						</div>
 						<div class="modal-body">
-							<div class="row g-3">
-								<div class="col-md-6">
-									<label class="form-label" for="modpress-<?php echo esc_attr( $tab_key ); ?>-name"><?php esc_html_e( 'Name', 'modpress' ); ?></label>
-									<?php echo FormFieldHelper::text_input( 'entry_name', '', array( 'id' => 'modpress-' . esc_attr( $tab_key ) . '-name', 'placeholder' => __( 'Entry name', 'modpress' ) ) ); ?>
-								</div>
-								<div class="col-md-6">
-									<label class="form-label" for="modpress-<?php echo esc_attr( $tab_key ); ?>-slug"><?php esc_html_e( 'Slug', 'modpress' ); ?></label>
-									<?php echo FormFieldHelper::text_input( 'entry_slug', '', array( 'id' => 'modpress-' . esc_attr( $tab_key ) . '-slug', 'placeholder' => __( 'entry-slug', 'modpress' ) ) ); ?>
-								</div>
-								<div class="col-12">
-									<label class="form-label" for="modpress-<?php echo esc_attr( $tab_key ); ?>-description"><?php esc_html_e( 'Description', 'modpress' ); ?></label>
-									<?php echo FormFieldHelper::textarea( 'entry_description', '', array( 'id' => 'modpress-' . esc_attr( $tab_key ) . '-description', 'rows' => 4, 'placeholder' => __( 'Optional description', 'modpress' ) ) ); ?>
-								</div>
-								<?php if ( $is_host_tab ) : ?>
-									<div class="col-12">
-										<label class="form-label" for="modpress-<?php echo esc_attr( $tab_key ); ?>-url"><?php esc_html_e( 'URL', 'modpress' ); ?></label>
-										<?php echo FormFieldHelper::text_input( 'entry_url', '', array( 'type' => 'url', 'id' => 'modpress-' . esc_attr( $tab_key ) . '-url', 'placeholder' => 'https://' ) ); ?>
-									</div>
-								<?php endif; ?>
-								<div class="col-12">
-									<label class="form-label"><?php esc_html_e( 'Image', 'modpress' ); ?></label>
-									<?php echo WPMediaHelper::create(
-										'',
-										array(
-											'name' => 'entry_image',
-											'id' => 'modpress-' . esc_attr( $tab_key ) . '-image',
-											'button_text' => __( 'Choose Image', 'modpress' ),
-											'show_remove' => true,
-										),
-										array(
-											'alt' => __( 'Entry image', 'modpress' ),
-										)
-									); ?>
-								</div>
-							</div>
+							<table class="table table-bordered">
+								<tbody>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-types-name',
+												__( 'File Type Uppercase', 'modpress' ),
+												array(
+													'description' => __( 'Enter the file type extension. e.g., "jpg", "png".', 'modpress' ),
+													'tooltip'     => __( 'File type names are can be an uppercase version of file extensions.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::text_input( 
+												'modpress-file-types-name', 
+												'', 
+												array( 
+													'id' => 'modpress-file-types-name', 
+													'placeholder' => __( 'PNG', 'modpress' ),
+													'class' => 'text-uppercase w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-types-slug',
+												__( 'File Type Lowercase', 'modpress' ),
+												array(
+													'description' => __( 'Enter the lowercase file type extension. e.g., "jpg", "png".', 'modpress' ),
+													'tooltip'     => __( 'File type slugs are generally lowercase versions of file extensions.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::text_input( 
+												'modpress-file-types-slug', 
+												'', 
+												array( 
+													'id' => 'modpress-file-types-slug', 
+													'placeholder' => __( 'png', 'modpress' ),
+													'class' => 'text-lowercase w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-types-description',
+												__( 'Description', 'modpress' ),
+												array(
+													'description' => __( 'Provide a description for the file type.', 'modpress' ),
+													'tooltip'     => __( 'Provide a brief description for the file type, explaining which programs or contexts it is used in.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::textarea( 
+												'modpress-file-types-description', 
+												'', 
+												array( 
+													'id' => 'modpress-file-types-description', 
+													'rows' => 4, 
+													'placeholder' => __( 'Optional description', 'modpress' ),
+													'class' => 'w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-types-image',
+												__( 'Image', 'modpress' ),
+												array(
+													'description' => __( 'Please provide an image to represent the file type.', 'modpress' ),
+													'tooltip'     => __( 'By providing an image, you help visually identify the file type.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo WPMediaHelper::create(
+												'',
+												array(
+													'name' => 'modpress-file-types-image',
+													'id' => 'modpress-file-types-image',
+													'button_text' => __( 'Choose Image', 'modpress' ),
+													'show_remove' => true,
+												),
+												array(
+													'alt' => __( 'File type image', 'modpress' ),
+												)
+											); ?>
+										</td>
+									</tr>
+								</tbody>
+							</table>
 						</div>
 						<div class="modal-footer">
-							<?php echo FormFieldHelper::button( __( 'Save', 'modpress' ), array( 'type' => 'submit', 'class' => 'btn btn-primary' ) ); ?>
-							<?php echo FormFieldHelper::button( __( 'Cancel', 'modpress' ), array( 'type' => 'button', 'class' => 'btn btn-outline-secondary', 'attributes' => array( 'data-bs-dismiss' => 'modal' ) ) ); ?>
+							<?php echo FormFieldHelper::button( 
+								__( 'Save', 'modpress' ), 
+								array( 
+									'type' => 'submit', 
+									'class' => 'btn btn-primary' 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::button( 
+								__( 'Cancel', 'modpress' ), 
+								array( 
+									'type' => 'button', 
+									'class' => 'btn btn-outline-secondary', 
+									'attributes' => array( 
+										'data-bs-dismiss' => 'modal' 
+									) 
+								) 
+							); ?>
 						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the file host taxonomy tab.
+	 *
+	 * @param string $taxonomy Taxonomy slug.
+	 * @return void
+	 */
+	private function render_file_hosts_tab( string $taxonomy ): void {
+		if ( '' === $taxonomy ) {
+			return;
+		}
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+			)
+		);
+		if ( is_wp_error( $terms ) ) {
+			$terms = array();
+		}
+		?>
+		<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+			<div class="text-muted small"><?php echo esc_html( sprintf( _n( '%s entry', '%s entries', count( $terms ), 'modpress' ), number_format_i18n( count( $terms ) ) ) ); ?></div>
+			<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Taxonomy actions', 'modpress' ); ?>">
+				<?php echo FormFieldHelper::button(
+					FAHelper::faicon( 'plus' ) . ' ' . __( 'Add New Host', 'modpress' ),
+					array(
+						'type' => 'button',
+						'class' => 'btn btn-outline-primary',
+						'raw' => true,
+						'attributes' => array(
+							'data-bs-toggle' => 'modal',
+							'data-bs-target' => '#modpress-file-hosts-modal',
+						),
+					)
+				); ?>
+			</div>
+		</div>
+
+		<div class="table-responsive">
+			<table class="table align-middle mb-0">
+				<thead>
+					<tr>
+						<th style="width: 42px;">
+							<input type="checkbox" class="form-check-input modpress-select-all" data-taxonomy="<?php echo esc_attr( $taxonomy ); ?>" aria-label="<?php esc_attr_e( 'Select all entries', 'modpress' ); ?>" />
+						</th>
+						<th><?php esc_html_e( 'Image', 'modpress' ); ?></th>
+						<th><?php esc_html_e( 'Name', 'modpress' ); ?></th>
+						<th><?php esc_html_e( 'Slug', 'modpress' ); ?></th>
+						<th><?php esc_html_e( 'URL', 'modpress' ); ?></th>
+						<th class="text-end"><?php esc_html_e( 'Actions', 'modpress' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php if ( empty( $terms ) ) : ?>
+						<tr>
+							<td colspan="6" class="text-center text-muted py-4"><?php esc_html_e( 'No items found for this taxonomy yet.', 'modpress' ); ?></td>
+						</tr>
+					<?php else : ?>
+						<?php foreach ( $terms as $term ) : ?>
+							<?php $image_url = get_term_meta( (int) $term->term_id, 'image', true ); ?>
+							<?php $term_url = get_term_meta( (int) $term->term_id, 'url', true ); ?>
+							<tr>
+								<td>
+									<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select %s', 'modpress' ), $term->name ) ); ?>" />
+								</td>
+								<td>
+									<?php if ( ! empty( $image_url ) ) : ?>
+										<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $term->name ); ?>" style="max-width: 32px; max-height: 32px; object-fit: cover; border-radius: 4px;" />
+									<?php else : ?>
+										<span class="text-muted"><?php esc_html_e( 'None', 'modpress' ); ?></span>
+									<?php endif; ?>
+								</td>
+								<td><?php echo esc_html( $term->name ); ?></td>
+								<td><?php echo esc_html( $term->slug ); ?></td>
+								<td>
+									<?php if ( ! empty( $term_url ) ) : ?>
+										<a href="<?php echo esc_url( $term_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( wp_parse_url( $term_url, PHP_URL_HOST ) ?: $term_url ); ?></a>
+									<?php else : ?>
+										<span class="text-muted"><?php esc_html_e( 'No URL', 'modpress' ); ?></span>
+									<?php endif; ?>
+								</td>
+								<td class="text-end">
+									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
+										<?php echo FormFieldHelper::button(
+											FAHelper::faicon( 'pen-to-square' ),
+											array(
+												'type' => 'button',
+												'class' => 'btn btn-outline-secondary',
+												'raw' => true,
+												'attributes' => array(
+													'data-bs-toggle' => 'modal',
+													'data-bs-target' => '#modpress-file-hosts-modal',
+												),
+											)
+										); ?>
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block">
+											<input type="hidden" name="action" value="modpress_delete_file_host" />
+											<input type="hidden" name="file_host_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
+											<input type="hidden" name="file_host_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
+											<?php wp_nonce_field( 'modpress_delete_file_host', 'modpress_file_host_nonce' ); ?>
+											<?php echo FormFieldHelper::button(
+												FAHelper::faicon( 'trash' ),
+												array(
+													'type' => 'submit',
+													'class' => 'btn btn-outline-danger',
+													'raw' => true,
+													'attributes' => array(
+														'aria-label' => sprintf( __( 'Delete %s', 'modpress' ), $term->name ),
+														'onclick' => 'return window.confirm(\'Delete this entry?\');',
+													),
+												)
+										); ?>
+										</form>
+									</div>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					<?php endif; ?>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="modal fade" id="modpress-file-hosts-modal" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-lg modal-dialog-centered">
+				<div class="modal-content">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<input type="hidden" name="action" value="modpress_save_file_host" />
+						<input type="hidden" name="file_host_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
+						<?php wp_nonce_field( 'modpress_save_file_host', 'modpress_file_host_nonce' ); ?>
+						<div class="modal-header">
+							<h3 class="modal-title h5"><?php esc_html_e( 'Add File Host', 'modpress' ); ?></h3>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?php esc_attr_e( 'Close', 'modpress' ); ?>"></button>
+						</div>
+						<div class="modal-body">
+							<table class="table table-bordered">
+								<tbody>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-hosts-name',
+												__( 'Host Name', 'modpress' ),
+												array(
+													'description' => __( 'Enter the name of the host you want to add.', 'modpress' ),
+													'tooltip'     => __( 'The name will be used to identify the host.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::text_input( 
+												'modpress-file-hosts-name', 
+												'', 
+												array( 
+													'id' => 'modpress-file-hosts-name', 
+													'placeholder' => __( 'Entry name', 'modpress' ),
+													'class' => 'w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-hosts-slug',
+												__( 'Slug', 'modpress' ),
+												array(
+													'description' => __( 'Enter a unique slug for the host.', 'modpress' ),
+													'tooltip'     => __( 'The slug is a unique identifier for the host.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::text_input( 
+												'modpress-file-hosts-slug', 
+												'', 
+												array( 
+													'id' => 'modpress-file-hosts-slug', 
+													'placeholder' => __( 'entry-slug', 'modpress' ),
+													'class' => 'text-lowercase w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-hosts-description',
+												__( 'Host Description', 'modpress' ),
+												array(
+													'description' => __( 'Please provide a short description about the host.', 'modpress' ),
+													'tooltip'     => __( 'This description will be used internally.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::textarea( 
+												'modpress-file-hosts-description', 
+												'', 
+												array( 
+													'id' => 'modpress-file-hosts-description', 
+													'rows' => 4, 
+													'placeholder' => __( 'Optional description', 'modpress' ),
+													'class' => 'w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-hosts-url',
+												__( 'Host URL', 'modpress' ),
+												array(
+													'description' => __( 'Please provide the first part of the host URL.', 'modpress' ),
+													'tooltip'     => __( 'By providing the first part of the host URL, you ensure consistency when constructing full URLs for the files attached to your mods.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::input( 
+												'modpress-file-hosts-url', 
+												'', 
+												array( 
+													'type' => 'url', 
+													'id' => 'modpress-file-hosts-url', 
+													'placeholder' => 'https://domain.com/base/path/url/',
+													'class' => 'w-100' 
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php FormFieldHelper::label(
+												'modpress-file-hosts-logo',
+												__( 'Host Logo', 'modpress' ),
+												array(
+													'description' => __( 'Please provide a logo for the host.', 'modpress' ),
+													'tooltip'     => __( 'This logo will be used to visually represent the host to users and will be a link to your file.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo WPMediaHelper::create(
+												'',
+												array(
+													'name' => 'modpress-file-hosts-logo',
+													'id' => 'modpress-file-hosts-logo',
+													'button_text' => __( 'Choose Image', 'modpress' ),
+													'show_remove' => true,
+												),
+												array(
+													'alt' => __( 'Host Logo', 'modpress' ),
+												)
+											); ?>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="modal-footer">
+							<?php echo FormFieldHelper::button( 
+								__( 'Save', 'modpress' ), 
+								array( 
+									'type' => 'submit', 
+									'class' => 'btn btn-primary' 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::button( 
+								__( 'Cancel', 'modpress' ), 
+								array( 
+									'type' => 'button', 
+									'class' => 'btn btn-outline-secondary', 
+									'attributes' => array( 
+										'data-bs-dismiss' => 'modal' 
+									) 
+								) 
+							); ?>
 					</form>
 				</div>
 			</div>

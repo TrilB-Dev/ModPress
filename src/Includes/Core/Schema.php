@@ -131,4 +131,5 @@ final class Schema {
 
         return 'groups';
     }
+
 }

@@ -23,6 +23,8 @@ final class PostTypes {
 	 */
 	public static function register(): void {
 		self::mods_posttype();
+		self::changelog_posttype();
+		self::file_posttype();
 	}
 
 	/**
@@ -110,6 +112,31 @@ final class PostTypes {
 				'has_archive'     => true,
 				'show_in_rest'    => true,
 				'rewrite'         => array( 'slug' => 'files' ),
+				'capability_type' => 'post',
+				'map_meta_cap'    => true,
+			)
+		);
+	}
+
+	public static function licence_posttype(): bool {
+		if ( post_type_exists( 'modpress_licence' ) ) {
+			return false;
+		}
+		return PostType::create(
+			'modpress_licence',
+			array(
+				'label'           => __( 'Licences', 'modpress' ),
+				'description'     => __( 'Digital licences managed by ModPress.', 'modpress' ),
+				'supports'        => array( 'title', 'editor', 'thumbnail', 'comments', 'trackbacks', 'revisions', 'custom-fields', 'page-attributes', 'post-formats' ),
+				'taxonomies'      => '',
+				'public'          => true,
+				'show_ui'         => true,
+				'show_in_menu'    => false,
+				'menu_position'   => 23,
+				'menu_icon'       => 'dashicons-archive',
+				'has_archive'     => true,
+				'show_in_rest'    => true,
+				'rewrite'         => array( 'slug' => 'licence' ),
 				'capability_type' => 'post',
 				'map_meta_cap'    => true,
 			)
