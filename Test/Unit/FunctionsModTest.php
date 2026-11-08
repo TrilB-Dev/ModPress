@@ -687,6 +687,11 @@ namespace ModPress\Tests\Unit {
                     ),
                 ),
             );
+            $GLOBALS['modpress_test_term_meta'] = array(
+                301 => array(
+                    'category_color' => array( '#ff9900' ),
+                ),
+            );
             $GLOBALS['modpress_test_posts'] = array(
                 'modpress_changelog' => array(
                     401 => (object) array(
@@ -708,6 +713,10 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'modpress_save_changelog', $html );
             $this->assertStringContainsString( 'modpress_save_changelog_category', $html );
             $this->assertStringContainsString( 'modpress_changelog_category', $html );
+            $this->assertStringContainsString( 'background-color: #ff9900', $html );
+            $this->assertStringContainsString( 'data-term-color="#ff9900"', $html );
+            $this->assertStringContainsString( 'name="modpress-changelog-category-name"', $html );
+            $this->assertStringContainsString( 'name="modpress-changelog-category-color"', $html );
         }
 
         public function testEntryModalIncludesGroupCustomFieldsBeforeTaxonomyRegistration(): void {

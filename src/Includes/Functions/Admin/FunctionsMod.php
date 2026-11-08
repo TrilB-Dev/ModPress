@@ -1828,7 +1828,7 @@ final class FunctionsMod {
             return trim( strip_tags( $clean_value ) );
         };
 
-        foreach ( array( 'image', 'icon', 'url' ) as $meta_key ) {
+        foreach ( array( 'image', 'icon', 'url', 'category_color' ) as $meta_key ) {
             $raw_value = isset( $payload[ $meta_key ] ) ? $payload[ $meta_key ] : '';
 
             if ( is_array( $raw_value ) ) {
@@ -1851,7 +1851,16 @@ final class FunctionsMod {
                 $raw_value = $raw_value[0] ?? '';
             }
 
-            $value = $sanitize_taxonomy_meta_value( $raw_value, $meta_key );
+            if ( 'category_color' === $meta_key ) {
+                $clean_value = function_exists( 'wp_unslash' ) ? wp_unslash( (string) $raw_value ) : (string) $raw_value;
+                $clean_value = preg_replace( '/[^#a-fA-F0-9]/', '', $clean_value );
+                $value = '' !== trim( $clean_value ) ? '#' . ltrim( $clean_value, '#' ) : '';
+                if ( ! preg_match( '/^#[0-9a-fA-F]{3,8}$/', $value ) ) {
+                    $value = '';
+                }
+            } else {
+                $value = $sanitize_taxonomy_meta_value( $raw_value, $meta_key );
+            }
 
             if ( '' === trim( (string) $value ) ) {
                 delete_term_meta( $saved_term_id, $meta_key );
@@ -2220,10 +2229,11 @@ final class FunctionsMod {
         }
 
         $payload = array(
-            'term_id'     => absint( RequestHelper::value( $_POST, 'modpress-changelog-category-term-id', 0 ) ),
-            'name'        => RequestHelper::text( $_POST, 'modpress-changelog-category-name', '' ),
-            'slug'        => RequestHelper::slug( $_POST, 'modpress-changelog-category-slug', '' ),
-            'description' => RequestHelper::text( $_POST, 'modpress-changelog-category-description', '' ),
+            'term_id'        => absint( RequestHelper::value( $_POST, 'modpress-changelog-category-term-id', 0 ) ),
+            'name'           => RequestHelper::text( $_POST, 'modpress-changelog-category-name', '' ),
+            'slug'           => RequestHelper::slug( $_POST, 'modpress-changelog-category-slug', '' ),
+            'description'    => RequestHelper::text( $_POST, 'modpress-changelog-category-description', '' ),
+            'category_color' => RequestHelper::text( $_POST, 'modpress-changelog-category-color', '#ffffff' ),
         );
 
         $saved_term_id = $this->persist_taxonomy_term( $taxonomy, $payload );

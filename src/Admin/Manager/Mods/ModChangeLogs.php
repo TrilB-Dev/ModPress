@@ -12,6 +12,7 @@ use ModPress\Includes\Functions\Admin\FunctionsMod;
 use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\ModManagement\ChangeLogManager;
+use ModPress\Includes\Plugins\FontAwesome\Includes\Functions\Helpers\FAHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -127,7 +128,7 @@ final class ModChangeLogs extends ModManager {
 			</div>
 			<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Changelog actions', 'modpress' ); ?>">
 				<?php echo FormFieldHelper::button(
-					'+' . ' ' . __( 'Add New Changelog', 'modpress' ),
+					FAHelper::faicon( 'plus' ) . ' ' .__( 'Add New Changelog', 'modpress' ),
 					array(
 						'type' => 'button',
 						'class' => 'btn btn-outline-primary',
@@ -183,7 +184,7 @@ final class ModChangeLogs extends ModManager {
 								<td class="text-end">
 									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Changelog actions', 'modpress' ); ?>">
 										<?php echo FormFieldHelper::button(
-											'✎',
+											FAHelper::faicon( 'pen-to-square' ),
 											array(
 												'type' => 'button',
 												'class' => 'btn btn-outline-secondary',
@@ -199,12 +200,12 @@ final class ModChangeLogs extends ModManager {
 												),
 											)
 										); ?>
-										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline" aria-label="<?php esc_attr_e( 'Delete changelog entry', 'modpress' ); ?>">
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete Changelog', 'modpress' ); ?>">
 											<input type="hidden" name="action" value="modpress_delete_changelog" />
 											<input type="hidden" name="changelog_ids[]" value="<?php echo esc_attr( (string) $entry->ID ); ?>" />
 											<?php wp_nonce_field( 'modpress_delete_changelog', 'modpress_changelog_nonce' ); ?>
 											<?php echo FormFieldHelper::button(
-												'🗑',
+												FAHelper::faicon( 'trash' ),
 												array(
 													'type' => 'submit',
 													'class' => 'btn btn-outline-danger btn-sm',
@@ -311,7 +312,7 @@ final class ModChangeLogs extends ModManager {
 			<div class="text-muted small"><?php echo esc_html( sprintf( _n( '%s category', '%s categories', count( $terms ), 'modpress' ), number_format_i18n( count( $terms ) ) ) ); ?></div>
 			<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Category actions', 'modpress' ); ?>">
 				<?php echo FormFieldHelper::button(
-					'+' . ' ' . __( 'Add New Category', 'modpress' ),
+					FAHelper::faicon( 'plus' ) . ' ' . __( 'Add New Category', 'modpress' ),
 					array(
 						'type' => 'button',
 						'class' => 'btn btn-outline-primary',
@@ -346,17 +347,21 @@ final class ModChangeLogs extends ModManager {
 						</tr>
 					<?php else : ?>
 						<?php foreach ( $terms as $term ) : ?>
+							<?php
+								$term_color = function_exists( 'get_term_meta' ) ? get_term_meta( (int) $term->term_id, 'category_color', true ) : '';
+								$term_color = is_string( $term_color ) && '' !== trim( $term_color ) ? trim( $term_color ) : '#0d6efd';
+							?>
 							<tr>
 								<td>
 									<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy ); ?>" name="changelog_category_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select %s', 'modpress' ), $term->name ) ); ?>" />
 								</td>
-								<td><?php echo esc_html( $term->name ); ?></td>
+								<td><span style="background-color: <?php echo esc_attr( $term_color ); ?>; color: #fff; padding: 2px 8px; border-radius: 4px; display: inline-block; line-height: 1.6;"><?php echo esc_html( $term->name ); ?></span></td>
 								<td><?php echo esc_html( $term->slug ); ?></td>
 								<td><?php echo esc_html( $term->description ?: __( 'No description', 'modpress' ) ); ?></td>
 								<td class="text-end">
 									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Category actions', 'modpress' ); ?>">
 										<?php echo FormFieldHelper::button(
-											'✎',
+											FAHelper::faicon( 'pen-to-square' ),
 											array(
 												'type' => 'button',
 												'class' => 'btn btn-outline-secondary',
@@ -369,6 +374,7 @@ final class ModChangeLogs extends ModManager {
 													'data-term-name' => $term->name,
 													'data-term-slug' => $term->slug,
 													'data-term-description' => $term->description,
+													'data-term-color' => $term_color,
 												),
 											)
 										); ?>
@@ -378,7 +384,7 @@ final class ModChangeLogs extends ModManager {
 											<input type="hidden" name="changelog_category_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
 											<?php wp_nonce_field( 'modpress_delete_changelog_category', 'modpress_changelog_category_nonce' ); ?>
 											<?php echo FormFieldHelper::button(
-												'🗑',
+												FAHelper::faicon( 'trash' ),
 												array(
 													'type' => 'submit',
 													'class' => 'btn btn-outline-danger btn-sm',
@@ -412,24 +418,121 @@ final class ModChangeLogs extends ModManager {
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?php esc_attr_e( 'Close', 'modpress' ); ?>"></button>
 						</div>
 						<div class="modal-body">
-							<div class="row g-3">
-								<div class="col-md-6">
-									<label class="form-label" for="modpress-changelog-category-name"><?php esc_html_e( 'Name', 'modpress' ); ?></label>
-									<?php echo FormFieldHelper::text_input( 'modpress-changelog-category-name', '', array( 'id' => 'modpress-changelog-category-name', 'placeholder' => __( 'Bug Fixes', 'modpress' ) ) ); ?>
-								</div>
-								<div class="col-md-6">
-									<label class="form-label" for="modpress-changelog-category-slug"><?php esc_html_e( 'Slug', 'modpress' ); ?></label>
-									<?php echo FormFieldHelper::text_input( 'modpress-changelog-category-slug', '', array( 'id' => 'modpress-changelog-category-slug', 'placeholder' => __( 'bug-fixes', 'modpress' ) ) ); ?>
-								</div>
-								<div class="col-12">
-									<label class="form-label" for="modpress-changelog-category-description"><?php esc_html_e( 'Description', 'modpress' ); ?></label>
-									<?php echo FormFieldHelper::textarea( 'modpress-changelog-category-description', '', array( 'id' => 'modpress-changelog-category-description', 'rows' => 4, 'placeholder' => __( 'Optional category description', 'modpress' ) ) ); ?>
-								</div>
-							</div>
+							<table class="table table-borderless mb-0">
+								<tbody>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php echo FormFieldHelper::label(
+												'modpress-changelog-category-name',
+												__( 'Category Name', 'modpress' ),
+												array(
+													'description' => __( 'Enter the category name. e.g., "Removed", "Fixed".', 'modpress' ),
+													'tooltip'     => __( 'Category names are generally capitalized and used to identify the category.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::text_input( 
+												'modpress-changelog-category-name', 
+												'', 
+												array( 
+													'id' => 'modpress-changelog-category-name', 
+													'placeholder' => __( 'PNG', 'modpress' ),
+													'class' => 'w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php echo FormFieldHelper::label(
+												'modpress-changelog-category-slug',
+												__( 'Category Slug', 'modpress' ),
+												array(
+													'description' => __( 'Enter the category slug.', 'modpress' ),
+													'tooltip'     => __( 'Category slugs are generally lowercase and used to identify the category.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::text_input( 
+												'modpress-changelog-category-slug', 
+												'', 
+												array( 
+													'id' => 'modpress-changelog-category-slug', 
+													'placeholder' => __( 'png', 'modpress' ),
+													'class' => 'text-lowercase w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php echo FormFieldHelper::label(
+												'modpress-changelog-category-description',
+												__( 'Description', 'modpress' ),
+												array(
+													'description' => __( 'Provide a description for the category.', 'modpress' ),
+													'tooltip'     => __( 'Provide a brief description for the category, explaining what it can be used for.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::textarea( 
+												'modpress-changelog-category-description', 
+												'', 
+												array( 
+													'id' => 'modpress-changelog-category-description', 
+													'rows' => 4, 
+													'placeholder' => __( 'Optional description', 'modpress' ),
+													'class' => 'w-100'
+												) 
+											); ?>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row" class="align-top text-nowrap pe-4">
+											<?php echo FormFieldHelper::label(
+												'modpress-changelog-category-color',
+												__( 'Colour', 'modpress' ),
+												array(
+													'description' => __( 'Please select a colour to represent the category.', 'modpress' ),
+													'tooltip'     => __( 'By selecting a colour, you help visually identify the category.', 'modpress' ),
+												)
+										); ?>
+										</th>
+										<td>
+											<?php echo FormFieldHelper::input(
+												'modpress-changelog-category-color',
+												'#ffffff',
+												array(
+													'type' => 'color',
+													'id' => 'modpress-changelog-category-color',
+												)
+											); ?>
+										</td>
+									</tr>
+								</tbody>
+							</table>
 						</div>
 						<div class="modal-footer">
-							<?php echo FormFieldHelper::button( __( 'Cancel', 'modpress' ), array( 'type' => 'button', 'class' => 'btn btn-outline-secondary', 'attributes' => array( 'data-bs-dismiss' => 'modal' ) ) ); ?>
-							<?php echo FormFieldHelper::button( __( 'Save Category', 'modpress' ), array( 'type' => 'submit', 'class' => 'btn btn-primary' ) ); ?>
+							<?php echo FormFieldHelper::button( 
+								__( 'Cancel', 'modpress' ), 
+								array( 
+									'type' => 'button', 
+									'class' => 'btn btn-outline-secondary', 
+									'attributes' => array( 
+										'data-bs-dismiss' => 'modal' 
+									) 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::button( 
+								__( 'Save Category', 'modpress' ), 
+								array( 
+									'type' => 'submit', 
+									'class' => 'btn btn-primary' 
+								) 
+							); ?>
 						</div>
 					</form>
 				</div>

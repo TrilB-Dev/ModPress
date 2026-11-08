@@ -332,7 +332,8 @@ final class ModFiles extends ModManager {
 													'data-term-name' => $term->name,
 													'data-term-slug' => $term->slug,
 													'data-term-description' => $term->description ?? '',
-													'data-term-image' => $image_url,														'value' => $term->name,												),
+													'data-term-image' => $image_url,
+													'value' => $term->name,												),
 											)
 										); ?>
 										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete File Type', 'modpress' ); ?>">

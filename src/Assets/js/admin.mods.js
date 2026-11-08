@@ -1284,7 +1284,7 @@
                 title: 'Add File Host',
             },
             changelog_category: {
-                fields: ['modpress-changelog-category-term-id', 'modpress-changelog-category-name', 'modpress-changelog-category-slug', 'modpress-changelog-category-description'],
+                fields: ['modpress-changelog-category-term-id', 'modpress-changelog-category-name', 'modpress-changelog-category-slug', 'modpress-changelog-category-description', 'modpress-changelog-category-color'],
                 media: [],
                 title: 'Add Changelog Category',
             },
@@ -1356,6 +1356,7 @@
             setModalFieldValue(modal, 'modpress-changelog-category-name', button.dataset.termName || '');
             setModalFieldValue(modal, 'modpress-changelog-category-slug', button.dataset.termSlug || '');
             setModalFieldValue(modal, 'modpress-changelog-category-description', button.dataset.termDescription || '');
+            setModalFieldValue(modal, 'modpress-changelog-category-color', button.dataset.termColor || '#ffffff');
             const title = modal.querySelector('.modal-title');
             if (title) {
                 title.textContent = button.dataset.termId ? 'Edit Changelog Category' : 'Add Changelog Category';
