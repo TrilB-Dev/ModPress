@@ -1283,6 +1283,11 @@
                 media: ['modpress-file-hosts-logo'],
                 title: 'Add File Host',
             },
+            changelog_category: {
+                fields: ['modpress-changelog-category-term-id', 'modpress-changelog-category-name', 'modpress-changelog-category-slug', 'modpress-changelog-category-description'],
+                media: [],
+                title: 'Add Changelog Category',
+            },
         };
 
         const config = modalMap[type] || null;
@@ -1342,6 +1347,18 @@
             const title = modal.querySelector('.modal-title');
             if (title) {
                 title.textContent = button.dataset.termId ? 'Edit File Host' : 'Add File Host';
+            }
+            return;
+        }
+
+        if ('changelog_category' === type) {
+            setModalFieldValue(modal, 'modpress-changelog-category-term-id', button.dataset.termId || '0');
+            setModalFieldValue(modal, 'modpress-changelog-category-name', button.dataset.termName || '');
+            setModalFieldValue(modal, 'modpress-changelog-category-slug', button.dataset.termSlug || '');
+            setModalFieldValue(modal, 'modpress-changelog-category-description', button.dataset.termDescription || '');
+            const title = modal.querySelector('.modal-title');
+            if (title) {
+                title.textContent = button.dataset.termId ? 'Edit Changelog Category' : 'Add Changelog Category';
             }
         }
     };

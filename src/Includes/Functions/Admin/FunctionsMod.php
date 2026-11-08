@@ -2095,8 +2095,110 @@ final class FunctionsMod {
             wp_die( esc_html__( 'You are not allowed to manage ModPress changelogs.', 'modpress' ) );
         }
 
-        check_admin_referer( 'modpress_save_changelog' );
+        check_admin_referer( 'modpress_save_changelog', 'modpress_changelog_nonce' );
+
+        $post_id = absint( RequestHelper::value( $_POST, 'modpress-changelog-id', 0 ) );
+        $version  = RequestHelper::text( $_POST, 'modpress-changelog-version', '' );
+        if ( '' === $version ) {
+            $version = __( 'Untitled changelog', 'modpress' );
+        }
+
+        $date = RequestHelper::text( $_POST, 'modpress-changelog-date', '' );
+        $notes = RequestHelper::text( $_POST, 'modpress-changelog-notes', '' );
+
+        $post_data = array(
+            'post_type'    => 'modpress_changelog',
+            'post_status'  => 'publish',
+            'post_title'   => $version,
+            'post_content' => $notes,
+        );
+
+        if ( $post_id > 0 ) {
+            $post_data['ID'] = $post_id;
+        }
+
+        if ( '' !== $date ) {
+            $post_data['post_date'] = $date . ' 00:00:00';
+            $post_data['post_date_gmt'] = gmdate( 'Y-m-d H:i:s', strtotime( $date . ' 00:00:00' ) );
+        }
+
+        if ( $post_id > 0 && function_exists( 'wp_update_post' ) ) {
+            $saved_post_id = wp_update_post( $post_data, true );
+        } elseif ( function_exists( 'wp_insert_post' ) ) {
+            $saved_post_id = wp_insert_post( $post_data, true );
+        } else {
+            $saved_post_id = $post_id > 0 ? $post_id : 1;
+        }
+
+        if ( is_wp_error( $saved_post_id ) || 0 === absint( $saved_post_id ) ) {
+            $this->redirect_mod_action_result( 'changelog', __( 'Unable to save the selected changelog entry.', 'modpress' ), false );
+        }
+
+        $category_ids = RequestHelper::value( $_POST, 'modpress-changelog-category', array() );
+        if ( ! is_array( $category_ids ) ) {
+            $category_ids = array( $category_ids );
+        }
+
+        $category_ids = array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        static fn ( $value ) => absint( $value ),
+                        $category_ids
+                    ),
+                    static fn ( $value ) => $value > 0
+                )
+            )
+        );
+
+        if ( taxonomy_exists( 'modpress_changelog_category' ) && function_exists( 'wp_set_object_terms' ) ) {
+            wp_set_object_terms( (int) $saved_post_id, $category_ids, 'modpress_changelog_category', false );
+        }
+
         $this->redirect_mod_action_result( 'changelog', __( 'Changelog saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a changelog delete request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function delete_changelog(): void {
+        if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress changelogs.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_delete_changelog', 'modpress_changelog_nonce' );
+
+        $requested_ids = RequestHelper::value( $_POST, 'changelog_ids', array() );
+        if ( ! is_array( $requested_ids ) ) {
+            $requested_ids = array( $requested_ids );
+        }
+
+        $post_ids = array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        static fn ( $value ) => absint( $value ),
+                        $requested_ids
+                    ),
+                    static fn ( $value ) => $value > 0
+                )
+            )
+        );
+
+        if ( empty( $post_ids ) ) {
+            $this->redirect_mod_action_result( 'changelog', __( 'No changelog entry was selected to delete.', 'modpress' ), false );
+        }
+
+        foreach ( $post_ids as $post_id ) {
+            if ( function_exists( 'wp_delete_post' ) ) {
+                wp_delete_post( $post_id, true );
+            }
+        }
+
+        $this->redirect_mod_action_result( 'changelog', __( 'Changelog deleted successfully.', 'modpress' ), true );
     }
 
     /**
@@ -2110,8 +2212,68 @@ final class FunctionsMod {
             wp_die( esc_html__( 'You are not allowed to manage ModPress changelog categories.', 'modpress' ) );
         }
 
-        check_admin_referer( 'modpress_save_changelog_category' );
+        check_admin_referer( 'modpress_save_changelog_category', 'modpress_changelog_category_nonce' );
+
+        $taxonomy = RequestHelper::key( $_POST, 'changelog_category_slug', 'modpress_changelog_category' );
+        if ( '' === $taxonomy ) {
+            $taxonomy = 'modpress_changelog_category';
+        }
+
+        $payload = array(
+            'term_id'     => absint( RequestHelper::value( $_POST, 'modpress-changelog-category-term-id', 0 ) ),
+            'name'        => RequestHelper::text( $_POST, 'modpress-changelog-category-name', '' ),
+            'slug'        => RequestHelper::slug( $_POST, 'modpress-changelog-category-slug', '' ),
+            'description' => RequestHelper::text( $_POST, 'modpress-changelog-category-description', '' ),
+        );
+
+        $saved_term_id = $this->persist_taxonomy_term( $taxonomy, $payload );
+        if ( $saved_term_id <= 0 ) {
+            $this->redirect_mod_action_result( 'changelog', __( 'Unable to save the selected changelog category.', 'modpress' ), false );
+        }
+
         $this->redirect_mod_action_result( 'changelog', __( 'Changelog category saved successfully.', 'modpress' ), true );
+    }
+
+    /**
+     * Handle a changelog category delete request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function delete_changelog_category(): void {
+        if ( ! current_user_can( 'modpress_manager_changelog_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress changelog categories.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_delete_changelog_category', 'modpress_changelog_category_nonce' );
+
+        $taxonomy = RequestHelper::key( $_POST, 'changelog_category_slug', 'modpress_changelog_category' );
+        $requested_ids = RequestHelper::value( $_POST, 'changelog_category_ids', array() );
+        if ( ! is_array( $requested_ids ) ) {
+            $requested_ids = array( $requested_ids );
+        }
+
+        $term_ids = array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        static fn ( $value ) => absint( $value ),
+                        $requested_ids
+                    ),
+                    static fn ( $value ) => $value > 0
+                )
+            )
+        );
+
+        if ( empty( $term_ids ) ) {
+            $this->redirect_mod_action_result( 'changelog', __( 'No changelog category was selected to delete.', 'modpress' ), false );
+        }
+
+        foreach ( $term_ids as $term_id ) {
+            wp_delete_term( $term_id, $taxonomy );
+        }
+
+        $this->redirect_mod_action_result( 'changelog', __( 'Changelog category deleted successfully.', 'modpress' ), true );
     }
 
     /**

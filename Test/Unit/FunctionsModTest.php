@@ -132,6 +132,37 @@ namespace {
         }
     }
 
+    if ( ! function_exists( 'get_posts' ) ) {
+        function get_posts( $args = array() ) {
+            $post_type = isset( $args['post_type'] ) ? (string) $args['post_type'] : '';
+            $posts = $GLOBALS['modpress_test_posts'][ $post_type ] ?? array();
+            return array_values( $posts );
+        }
+    }
+
+    if ( ! function_exists( 'get_post_meta' ) ) {
+        function get_post_meta( $post_id, $key = '', $single = false ) {
+            $meta = $GLOBALS['modpress_test_post_meta'][ (int) $post_id ] ?? array();
+            if ( '' === $key ) {
+                return $meta;
+            }
+
+            $values = $meta[ $key ] ?? array();
+            if ( $single ) {
+                return $values[0] ?? '';
+            }
+
+            return $values;
+        }
+    }
+
+    if ( ! function_exists( 'update_post_meta' ) ) {
+        function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
+            $GLOBALS['modpress_test_post_meta'][ (int) $post_id ][ $meta_key ] = array( $meta_value );
+            return true;
+        }
+    }
+
     if ( ! function_exists( 'get_current_user_id' ) ) {
         function get_current_user_id(): int {
             return 42;
@@ -638,6 +669,45 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'data-term-id="202"', $host_html );
             $this->assertStringContainsString( 'value="MegaHost"', $host_html );
             $this->assertStringNotContainsString( 'modpress_delete_group_entry', $host_html );
+        }
+
+        public function testChangelogPageRendersEntryAndCategoryTabs(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array(
+                'modpress_changelog_category' => array(
+                    'args' => array( 'hierarchical' => true ),
+                ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_changelog_category' => array(
+                    301 => (object) array(
+                        'term_id' => 301,
+                        'name' => 'Bug Fixes',
+                        'slug' => 'bug-fixes',
+                        'description' => 'Fixes and stability improvements',
+                    ),
+                ),
+            );
+            $GLOBALS['modpress_test_posts'] = array(
+                'modpress_changelog' => array(
+                    401 => (object) array(
+                        'ID' => 401,
+                        'post_title' => '1.4.0',
+                        'post_status' => 'publish',
+                        'post_type' => 'modpress_changelog',
+                    ),
+                ),
+            );
+
+            $manager = new \ModPress\Admin\Manager\Mods\ModChangeLogs();
+            ob_start();
+            $manager->render_page_content();
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'modpress-changelog-pane-changelogs', $html );
+            $this->assertStringContainsString( 'modpress-changelog-pane-categories', $html );
+            $this->assertStringContainsString( 'modpress_save_changelog', $html );
+            $this->assertStringContainsString( 'modpress_save_changelog_category', $html );
+            $this->assertStringContainsString( 'modpress_changelog_category', $html );
         }
 
         public function testEntryModalIncludesGroupCustomFieldsBeforeTaxonomyRegistration(): void {
