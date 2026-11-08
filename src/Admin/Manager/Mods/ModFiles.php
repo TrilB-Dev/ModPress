@@ -368,11 +368,11 @@ final class ModFiles extends ModManager {
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?php esc_attr_e( 'Close', 'modpress' ); ?>"></button>
 						</div>
 						<div class="modal-body">
-							<table class="table table-bordered">
+							<table class="table table-borderless mb-0">
 								<tbody>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-types-name',
 												__( 'File Type Uppercase', 'modpress' ),
 												array(
@@ -395,7 +395,7 @@ final class ModFiles extends ModManager {
 									</tr>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-types-slug',
 												__( 'File Type Lowercase', 'modpress' ),
 												array(
@@ -418,7 +418,7 @@ final class ModFiles extends ModManager {
 									</tr>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-types-description',
 												__( 'Description', 'modpress' ),
 												array(
@@ -442,7 +442,7 @@ final class ModFiles extends ModManager {
 									</tr>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-types-image',
 												__( 'Image', 'modpress' ),
 												array(
@@ -636,7 +636,7 @@ final class ModFiles extends ModManager {
 								<tbody>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-hosts-name',
 												__( 'Host Name', 'modpress' ),
 												array(
@@ -659,7 +659,7 @@ final class ModFiles extends ModManager {
 									</tr>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-hosts-slug',
 												__( 'Slug', 'modpress' ),
 												array(
@@ -682,7 +682,7 @@ final class ModFiles extends ModManager {
 									</tr>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-hosts-description',
 												__( 'Host Description', 'modpress' ),
 												array(
@@ -706,7 +706,7 @@ final class ModFiles extends ModManager {
 									</tr>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-hosts-url',
 												__( 'Host URL', 'modpress' ),
 												array(
@@ -730,7 +730,7 @@ final class ModFiles extends ModManager {
 									</tr>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
-											<?php FormFieldHelper::label(
+											<?php echo FormFieldHelper::label(
 												'modpress-file-hosts-logo',
 												__( 'Host Logo', 'modpress' ),
 												array(
