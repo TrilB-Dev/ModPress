@@ -359,7 +359,7 @@ final class ModChangeLogs extends ModManager {
 								<td><?php echo esc_html( $term->slug ); ?></td>
 								<td><?php echo esc_html( $term->description ?: __( 'No description', 'modpress' ) ); ?></td>
 								<td class="text-end">
-									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Category actions', 'modpress' ); ?>">
+									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Changelog Category actions', 'modpress' ); ?>">
 										<?php echo FormFieldHelper::button(
 											FAHelper::faicon( 'pen-to-square' ),
 											array(
@@ -378,7 +378,7 @@ final class ModChangeLogs extends ModManager {
 												),
 											)
 										); ?>
-										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline" aria-label="<?php esc_attr_e( 'Delete changelog category', 'modpress' ); ?>">
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete Changelog Category', 'modpress' ); ?>">
 											<input type="hidden" name="action" value="modpress_delete_changelog_category" />
 											<input type="hidden" name="changelog_category_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
 											<input type="hidden" name="changelog_category_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
@@ -508,6 +508,7 @@ final class ModChangeLogs extends ModManager {
 												array(
 													'type' => 'color',
 													'id' => 'modpress-changelog-category-color',
+													'class' => 'w-50'
 												)
 											); ?>
 										</td>
