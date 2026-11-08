@@ -19,6 +19,7 @@ final class Roles {
 	 * @var string The role identifier for the manager role.
 	 */
 	public const MANAGER_ROLE = 'modpress_manager';
+	public const AUTHOR_ROLE = 'modpress_author';
 
 
 	/**
@@ -32,6 +33,7 @@ final class Roles {
 		}
 
 		self::manager_role();
+		self::author_role();
 	}
 	/**
 	 * Get the manager role identifier.
@@ -56,6 +58,28 @@ final class Roles {
 			);
 		}
 		return self::MANAGER_ROLE;
+	}
+	/**
+	 * Get the author role identifier.
+	 *
+	 * @since 1.0.0
+	 * @return string The author role identifier.
+	 */
+	public static function author_role(): string {
+		if ( ! get_role( self::AUTHOR_ROLE ) ) {
+			add_role(
+				self::AUTHOR_ROLE,
+				__( 'Mod Author', 'modpress' ),
+				array(
+					'read' => true,
+					'modpress_manager_mods_view' => true,
+					'modpress_manager_mods_edit' => true,
+					'modpress_manager_mods_delete' => true,
+					'modpress_manager_groups_view' => true,
+				)
+			);
+		}
+		return self::AUTHOR_ROLE;
 	}
 }
 

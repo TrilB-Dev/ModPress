@@ -42,6 +42,18 @@ namespace {
         }
     }
 
+    if ( ! function_exists( '_n' ) ) {
+        function _n( $singular, $plural, $number, $domain = null ): string {
+            return (string) ( 1 === (int) $number ? $singular : $plural );
+        }
+    }
+
+    if ( ! function_exists( 'number_format_i18n' ) ) {
+        function number_format_i18n( $number ) {
+            return number_format( (float) $number, 0, '.', ',' );
+        }
+    }
+
     if ( ! function_exists( 'sanitize_text_field' ) ) {
         function sanitize_text_field( $text ): string {
             return trim( strip_tags( (string) $text ) );
@@ -147,6 +159,12 @@ namespace {
     if ( ! function_exists( 'esc_html_e' ) ) {
         function esc_html_e( $text, $domain = null ): void {
             echo esc_html( $text );
+        }
+    }
+
+    if ( ! function_exists( 'esc_attr_e' ) ) {
+        function esc_attr_e( $text, $domain = null ): void {
+            echo esc_attr( $text );
         }
     }
 
@@ -265,6 +283,73 @@ namespace {
     if ( ! function_exists( 'admin_url' ) ) {
         function admin_url( $path = '' ): string {
             return 'http://example.com/wp-admin/' . ltrim( (string) $path, '/' );
+        }
+    }
+
+    if ( ! function_exists( 'build_query' ) ) {
+        function build_query( array $query ): string {
+            return http_build_query( $query );
+        }
+    }
+
+    if ( ! function_exists( 'wp_safe_redirect' ) ) {
+        function wp_safe_redirect( $location ) {
+            $GLOBALS['modpress_test_redirect'] = (string) $location;
+            return true;
+        }
+    }
+
+    if ( ! function_exists( 'set_transient' ) ) {
+        function set_transient( $key, $value, $expiration = 0 ) {
+            $GLOBALS['modpress_test_transients'][ (string) $key ] = $value;
+            return true;
+        }
+    }
+
+    if ( ! function_exists( 'get_transient' ) ) {
+        function get_transient( $key ) {
+            return $GLOBALS['modpress_test_transients'][ (string) $key ] ?? false;
+        }
+    }
+
+    if ( ! function_exists( 'delete_transient' ) ) {
+        function delete_transient( $key ) {
+            unset( $GLOBALS['modpress_test_transients'][ (string) $key ] );
+            return true;
+        }
+    }
+
+    if ( ! function_exists( 'wp_insert_term' ) ) {
+        function wp_insert_term( $term, $taxonomy, $args = array() ) {
+            $term_id = (int) ( $GLOBALS['modpress_test_next_term_id'] ?? 1000 );
+            $GLOBALS['modpress_test_next_term_id'] = $term_id + 1;
+            $taxonomy = (string) $taxonomy;
+            $GLOBALS['modpress_test_terms'][ $taxonomy ][ $term_id ] = (object) array(
+                'term_id' => $term_id,
+                'name' => (string) $term,
+                'slug' => (string) ( $args['slug'] ?? sanitize_title( $term ) ),
+                'taxonomy' => $taxonomy,
+            );
+            return array( 'term_id' => $term_id, 'term_taxonomy_id' => $term_id );
+        }
+    }
+
+    if ( ! function_exists( 'wp_update_term' ) ) {
+        function wp_update_term( $term_id, $taxonomy, $args = array() ) {
+            $term_id = (int) $term_id;
+            $taxonomy = (string) $taxonomy;
+            if ( isset( $GLOBALS['modpress_test_terms'][ $taxonomy ][ $term_id ] ) ) {
+                $GLOBALS['modpress_test_terms'][ $taxonomy ][ $term_id ]->name = (string) ( $args['name'] ?? $GLOBALS['modpress_test_terms'][ $taxonomy ][ $term_id ]->name );
+                $GLOBALS['modpress_test_terms'][ $taxonomy ][ $term_id ]->slug = (string) ( $args['slug'] ?? $GLOBALS['modpress_test_terms'][ $taxonomy ][ $term_id ]->slug );
+            }
+            return array( 'term_id' => $term_id, 'term_taxonomy_id' => $term_id );
+        }
+    }
+
+    if ( ! function_exists( 'wp_delete_term' ) ) {
+        function wp_delete_term( $term_id, $taxonomy ) {
+            unset( $GLOBALS['modpress_test_terms'][ (string) $taxonomy ][ (int) $term_id ] );
+            return true;
         }
     }
 
@@ -446,6 +531,107 @@ namespace ModPress\Tests\Unit {
 
             $this->assertStringContainsString( '<i class="fa fa-trash"></i>', $markup );
             $this->assertStringNotContainsString( '&lt;i class=&quot;fa fa-trash&quot;&gt;', $markup );
+        }
+
+        public function testFileTypeAndFileHostSavesPersistTaxonomyMetadata(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array(
+                'modpress_file_type' => array(
+                    'args' => array( 'hierarchical' => true ),
+                ),
+                'modpress_file_hosts' => array(
+                    'args' => array( 'hierarchical' => false ),
+                ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_file_type' => array(),
+                'modpress_file_hosts' => array(),
+            );
+            $GLOBALS['modpress_test_term_meta'] = array();
+            $GLOBALS['modpress_test_next_term_id'] = 1001;
+
+            $handler = new \ReflectionMethod( FunctionsMod::class, 'persist_taxonomy_term' );
+            $handler->setAccessible( true );
+
+            $file_type_id = $handler->invoke(
+                new FunctionsMod(),
+                'modpress_file_type',
+                array(
+                    'name' => 'PNG',
+                    'slug' => 'png',
+                    'description' => 'Portable network graphics',
+                    'image' => 'https://example.com/images/png.png',
+                )
+            );
+
+            $this->assertGreaterThan( 0, $file_type_id );
+            $this->assertNotEmpty( $GLOBALS['modpress_test_terms']['modpress_file_type'] );
+            $this->assertSame( 'PNG', current( $GLOBALS['modpress_test_terms']['modpress_file_type'] )->name );
+            $this->assertSame( 'https://example.com/images/png.png', get_term_meta( $file_type_id, 'image', true ) );
+
+            $host_id = $handler->invoke(
+                new FunctionsMod(),
+                'modpress_file_hosts',
+                array(
+                    'name' => 'MegaHost',
+                    'slug' => 'megahost',
+                    'description' => 'Premium host',
+                    'image' => 'https://example.com/images/logo.png',
+                    'url' => 'https://megahost.example.com',
+                )
+            );
+
+            $this->assertGreaterThan( 0, $host_id );
+            $this->assertNotEmpty( $GLOBALS['modpress_test_terms']['modpress_file_hosts'] );
+            $this->assertSame( 'https://megahost.example.com', get_term_meta( $host_id, 'url', true ) );
+            $this->assertSame( 'https://example.com/images/logo.png', get_term_meta( $host_id, 'image', true ) );
+        }
+
+        public function testFileTypeAndHostTableRowsUseDedicatedDeleteArrays(): void {
+            $GLOBALS['modpress_test_taxonomies'] = array(
+                'modpress_file_type' => array(
+                    'args' => array( 'hierarchical' => true ),
+                ),
+                'modpress_file_hosts' => array(
+                    'args' => array( 'hierarchical' => false ),
+                ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_file_type' => array(
+                    101 => (object) array(
+                        'term_id' => 101,
+                        'name' => 'PNG',
+                        'slug' => 'png',
+                    ),
+                ),
+                'modpress_file_hosts' => array(
+                    202 => (object) array(
+                        'term_id' => 202,
+                        'name' => 'MegaHost',
+                        'slug' => 'megahost',
+                    ),
+                ),
+            );
+
+            $manager = new \ModPress\Admin\Manager\Mods\ModFiles();
+            $type_method = new \ReflectionMethod( $manager, 'render_file_types_tab' );
+            $type_method->setAccessible( true );
+            $host_method = new \ReflectionMethod( $manager, 'render_file_hosts_tab' );
+            $host_method->setAccessible( true );
+
+            ob_start();
+            $type_method->invoke( $manager, 'modpress_file_type' );
+            $type_html = ob_get_clean();
+
+            ob_start();
+            $host_method->invoke( $manager, 'modpress_file_hosts' );
+            $host_html = ob_get_clean();
+
+            $this->assertStringContainsString( 'name="file_type_ids[]"', $type_html );
+            $this->assertStringContainsString( 'value="modpress_delete_file_type"', $type_html );
+            $this->assertStringNotContainsString( 'modpress_delete_group_entry', $type_html );
+            $this->assertStringContainsString( 'name="file_host_ids[]"', $host_html );
+            $this->assertStringContainsString( 'value="modpress_delete_file_host"', $host_html );
+            $this->assertStringNotContainsString( 'modpress_delete_group_entry', $host_html );
         }
 
         public function testEntryModalIncludesGroupCustomFieldsBeforeTaxonomyRegistration(): void {

@@ -1756,6 +1756,115 @@ final class FunctionsMod {
         return (string) ob_get_clean();
     }
     /**
+     * Save or update a taxonomy term and its structured metadata.
+     *
+     * @param string $taxonomy Taxonomy slug.
+     * @param array  $payload Term payload.
+     * @return int Number of the saved term.
+     * @since 1.0.0
+     */
+    private function persist_taxonomy_term( string $taxonomy, array $payload ): int {
+        $taxonomy = sanitize_key( $taxonomy );
+        if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+            return 0;
+        }
+
+        $name = trim( (string) ( $payload['name'] ?? '' ) );
+        if ( '' === $name ) {
+            return 0;
+        }
+
+        $slug = trim( (string) ( $payload['slug'] ?? '' ) );
+        if ( '' === $slug ) {
+            $slug = SanitizationHelper::slug( $name, '' );
+        }
+
+        $description = isset( $payload['description'] ) ? SanitizationHelper::textarea( (string) $payload['description'], '' ) : '';
+        $term_id = absint( $payload['term_id'] ?? 0 );
+        $parent = absint( $payload['parent'] ?? 0 );
+
+        $result = $term_id > 0
+            ? wp_update_term( $term_id, $taxonomy, array(
+                'name'        => $name,
+                'slug'        => $slug,
+                'description' => $description,
+                'parent'      => $parent,
+            ) )
+            : wp_insert_term( $name, $taxonomy, array(
+                'slug'        => $slug,
+                'description' => $description,
+                'parent'      => $parent,
+            ) );
+
+        if ( is_wp_error( $result ) || ! is_array( $result ) ) {
+            return 0;
+        }
+
+        $saved_term_id = absint( $result['term_id'] ?? 0 );
+        if ( $saved_term_id <= 0 ) {
+            return 0;
+        }
+
+        $sanitize_taxonomy_meta_value = static function ( $raw_value, string $meta_key ) {
+            if ( ! is_scalar( $raw_value ) ) {
+                return '';
+            }
+
+            $clean_value = function_exists( 'wp_unslash' ) ? wp_unslash( (string) $raw_value ) : (string) $raw_value;
+
+            if ( 'url' === $meta_key || 'image' === $meta_key ) {
+                if ( function_exists( '\\esc_url_raw' ) ) {
+                    return \esc_url_raw( $clean_value );
+                }
+
+                $fallback_url = filter_var( $clean_value, FILTER_SANITIZE_URL );
+                return is_string( $fallback_url ) ? $fallback_url : '';
+            }
+
+            if ( function_exists( '\\sanitize_text_field' ) ) {
+                return \sanitize_text_field( $clean_value );
+            }
+
+            return trim( strip_tags( $clean_value ) );
+        };
+
+        foreach ( array( 'image', 'icon', 'url' ) as $meta_key ) {
+            $raw_value = isset( $payload[ $meta_key ] ) ? $payload[ $meta_key ] : '';
+
+            if ( is_array( $raw_value ) ) {
+                $raw_value = array_values(
+                    array_filter(
+                        array_map(
+                            static function ( $value ) {
+                                if ( is_scalar( $value ) ) {
+                                    return function_exists( 'wp_unslash' ) ? wp_unslash( (string) $value ) : (string) $value;
+                                }
+                                return '';
+                            },
+                            $raw_value
+                        ),
+                        static function ( $value ) {
+                            return '' !== trim( (string) $value );
+                        }
+                    )
+                );
+                $raw_value = $raw_value[0] ?? '';
+            }
+
+            $value = $sanitize_taxonomy_meta_value( $raw_value, $meta_key );
+
+            if ( '' === trim( (string) $value ) ) {
+                delete_term_meta( $saved_term_id, $meta_key );
+                continue;
+            }
+
+            delete_term_meta( $saved_term_id, $meta_key );
+            update_term_meta( $saved_term_id, $meta_key, $value );
+        }
+
+        return $saved_term_id;
+    }
+    /**
      * Handle a tag save request.
      *
      * @return void
@@ -1776,13 +1885,27 @@ final class FunctionsMod {
      * @return void
      * @since 1.0.0
      */
-    public function save_files(): void {
+    public function save_file(): void {
         if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'You are not allowed to manage ModPress files.', 'modpress' ) );
         }
 
         check_admin_referer( 'modpress_save_files' );
         $this->redirect_mod_action_result( 'files', __( 'Files saved successfully.', 'modpress' ), true );
+    }
+    /**
+     * Handle a file delete request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function delete_file(): void {
+        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress files.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_delete_file' );
+        $this->redirect_mod_action_result( 'files', __( 'File deleted successfully.', 'modpress' ), true );
     }
     /**
      * Handle a file type save request.
@@ -1795,8 +1918,169 @@ final class FunctionsMod {
             wp_die( esc_html__( 'You are not allowed to manage ModPress file types.', 'modpress' ) );
         }
 
-        check_admin_referer( 'modpress_save_file_type' );
+        check_admin_referer( 'modpress_save_file_type', 'modpress_file_type_nonce' );
+
+        $taxonomy = RequestHelper::key( $_POST, 'file_type_slug', 'modpress_file_type' );
+        if ( '' === $taxonomy ) {
+            $taxonomy = 'modpress_file_type';
+        }
+
+        $payload = array(
+            'name'        => RequestHelper::text( $_POST, 'modpress-file-types-name', '' ),
+            'slug'        => RequestHelper::slug( $_POST, 'modpress-file-types-slug', '' ),
+            'description' => RequestHelper::text( $_POST, 'modpress-file-types-description', '' ),
+            'image'       => RequestHelper::text( $_POST, 'modpress-file-types-image', '' ),
+        );
+
+        $saved_term_id = $this->persist_taxonomy_term( $taxonomy, $payload );
+        if ( $saved_term_id <= 0 ) {
+            $this->redirect_mod_action_result( 'files', __( 'Unable to save the selected file type.', 'modpress' ), false );
+        }
+
         $this->redirect_mod_action_result( 'files', __( 'File type saved successfully.', 'modpress' ), true );
+    }
+    /**
+     * Handle a file type delete request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function delete_file_type(): void {
+        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress file types.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_delete_file_type', 'modpress_file_type_nonce' );
+
+        $taxonomy = RequestHelper::key( $_POST, 'file_type_slug', 'modpress_file_type' );
+        $requested_ids = RequestHelper::value( $_POST, 'file_type_ids', array() );
+        if ( ! is_array( $requested_ids ) ) {
+            $requested_ids = array( $requested_ids );
+        }
+
+        $term_ids = array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        static fn ( $value ) => absint( $value ),
+                        $requested_ids
+                    ),
+                    static fn ( $value ) => $value > 0
+                )
+            )
+        );
+
+        if ( empty( $term_ids ) ) {
+            $this->redirect_mod_action_result( 'files', __( 'No file type was selected to delete.', 'modpress' ), false );
+        }
+
+        foreach ( $term_ids as $term_id ) {
+            wp_delete_term( $term_id, $taxonomy );
+        }
+
+        $this->redirect_mod_action_result( 'files', __( 'File type deleted successfully.', 'modpress' ), true );
+    }
+    /**
+     * Handle a file host save request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function save_file_host(): void {
+        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress file hosts.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_file_host', 'modpress_file_host_nonce' );
+
+        $taxonomy = RequestHelper::key( $_POST, 'file_host_slug', 'modpress_file_hosts' );
+        if ( '' === $taxonomy ) {
+            $taxonomy = 'modpress_file_hosts';
+        }
+
+        $payload = array(
+            'name'        => RequestHelper::text( $_POST, 'modpress-file-hosts-name', '' ),
+            'slug'        => RequestHelper::slug( $_POST, 'modpress-file-hosts-slug', '' ),
+            'description' => RequestHelper::text( $_POST, 'modpress-file-hosts-description', '' ),
+            'image'       => RequestHelper::text( $_POST, 'modpress-file-hosts-logo', '' ),
+            'url'         => RequestHelper::text( $_POST, 'modpress-file-hosts-url', '' ),
+        );
+
+        $saved_term_id = $this->persist_taxonomy_term( $taxonomy, $payload );
+        if ( $saved_term_id <= 0 ) {
+            $this->redirect_mod_action_result( 'files', __( 'Unable to save the selected file host.', 'modpress' ), false );
+        }
+
+        $this->redirect_mod_action_result( 'files', __( 'File host saved successfully.', 'modpress' ), true );
+    }
+    /**
+     * Handle a file host delete request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function delete_file_host(): void {
+        if ( ! current_user_can( 'modpress_manager_files_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress file hosts.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_delete_file_host', 'modpress_file_host_nonce' );
+
+        $taxonomy = RequestHelper::key( $_POST, 'file_host_slug', 'modpress_file_hosts' );
+        $requested_ids = RequestHelper::value( $_POST, 'file_host_ids', array() );
+        if ( ! is_array( $requested_ids ) ) {
+            $requested_ids = array( $requested_ids );
+        }
+
+        $term_ids = array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        static fn ( $value ) => absint( $value ),
+                        $requested_ids
+                    ),
+                    static fn ( $value ) => $value > 0
+                )
+            )
+        );
+
+        if ( empty( $term_ids ) ) {
+            $this->redirect_mod_action_result( 'files', __( 'No file host was selected to delete.', 'modpress' ), false );
+        }
+
+        foreach ( $term_ids as $term_id ) {
+            wp_delete_term( $term_id, $taxonomy );
+        }
+
+        $this->redirect_mod_action_result( 'files', __( 'File host deleted successfully.', 'modpress' ), true );
+    }
+    /**
+     * Handle a licence save request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function save_licence(): void {
+        if ( ! current_user_can( 'modpress_manager_licences_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress licences.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_save_licence' );
+        $this->redirect_mod_action_result( 'licences', __( 'Licence saved successfully.', 'modpress' ), true );
+    }
+    /**
+     * Handle a licence delete request.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public function delete_licence(): void {
+        if ( ! current_user_can( 'modpress_manager_licences_edit' ) && ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'You are not allowed to manage ModPress licences.', 'modpress' ) );
+        }
+
+        check_admin_referer( 'modpress_delete_licence' );
+        $this->redirect_mod_action_result( 'licences', __( 'Licence deleted successfully.', 'modpress' ), true );
     }
     /**
      * Handle a changelog save request.

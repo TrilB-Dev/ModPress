@@ -304,7 +304,7 @@ final class ModFiles extends ModManager {
 							<?php $image_url = get_term_meta( (int) $term->term_id, 'image', true ); ?>
 							<tr>
 								<td>
-									<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select %s', 'modpress' ), $term->name ) ); ?>" />
+									<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy ); ?>" name="file_type_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select %s', 'modpress' ), $term->name ) ); ?>" />
 								</td>
 								<td>
 									<?php if ( ! empty( $image_url ) ) : ?>
@@ -330,10 +330,10 @@ final class ModFiles extends ModManager {
 											)
 										); ?>
 										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block">
-											<input type="hidden" name="action" value="modpress_delete_group_entry" />
-											<input type="hidden" name="group_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
-											<input type="hidden" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
-											<?php wp_nonce_field( 'modpress_delete_group_entry', 'modpress_group_entry_nonce' ); ?>
+											<input type="hidden" name="action" value="modpress_delete_file_type" />
+											<input type="hidden" name="file_type_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
+											<input type="hidden" name="file_type_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
+											<?php wp_nonce_field( 'modpress_delete_file_type', 'modpress_file_type_nonce' ); ?>
 											<?php echo FormFieldHelper::button(
 												FAHelper::faicon( 'trash' ),
 												array(
@@ -561,7 +561,7 @@ final class ModFiles extends ModManager {
 							<?php $term_url = get_term_meta( (int) $term->term_id, 'url', true ); ?>
 							<tr>
 								<td>
-									<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy ); ?>" name="group_entry_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select %s', 'modpress' ), $term->name ) ); ?>" />
+									<input type="checkbox" class="form-check-input modpress-row-checkbox" data-taxonomy="<?php echo esc_attr( $taxonomy ); ?>" name="file_host_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select %s', 'modpress' ), $term->name ) ); ?>" />
 								</td>
 								<td>
 									<?php if ( ! empty( $image_url ) ) : ?>

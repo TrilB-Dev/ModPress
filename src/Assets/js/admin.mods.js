@@ -134,6 +134,28 @@
             .filter((value) => value !== '');
     };
 
+    const resolveBulkDeleteArrayName = (form, fallbackName = 'group_entry_ids[]') => {
+        if (!form) {
+            return fallbackName;
+        }
+
+        const checkedRows = Array.from(form.querySelectorAll('.modpress-row-checkbox:checked'))
+            .filter((row) => Boolean(row.name));
+        const matchedRowName = checkedRows.find((row) => /(group|file_type|file_host)_.*ids\[\]$/.test(row.name))?.name;
+        if (matchedRowName) {
+            return matchedRowName;
+        }
+
+        const hiddenInputs = Array.from(form.querySelectorAll('input[type="hidden"][name]'));
+        const matchedHiddenName = hiddenInputs.find((input) => /(group|file_type|file_host)_.*ids\[\]$/.test(input.name))?.name;
+        if (matchedHiddenName) {
+            return matchedHiddenName;
+        }
+
+        const genericRowName = form.querySelector('.modpress-row-checkbox')?.name;
+        return genericRowName || fallbackName;
+    };
+
     const syncModManagerTabs = () => {
         const managerRoot = document.querySelector('.modpress-mod-manager-tab-content');
         if (!managerRoot) {
@@ -1398,19 +1420,24 @@
                 return;
             }
 
-            form.querySelectorAll('input[name="group_entry_ids[]"]').forEach((existingInput) => {
+            const deleteArrayName = resolveBulkDeleteArrayName(form, 'group_entry_ids[]');
+
+            form.querySelectorAll('input[type="hidden"][name="group_entry_ids[]"], input[type="hidden"][name="file_type_ids[]"], input[type="hidden"][name="file_host_ids[]"]').forEach((existingInput) => {
                 existingInput.remove();
             });
 
             checkedRows.forEach((entryId) => {
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
-                hiddenInput.name = 'group_entry_ids[]';
+                hiddenInput.name = deleteArrayName;
                 hiddenInput.value = entryId;
                 form.appendChild(hiddenInput);
             });
 
-            console.info('[ModPress] Submitting bulk delete for selected entries.', checkedRows);
+            console.info('[ModPress] Submitting bulk delete for selected entries.', {
+                arrayName: deleteArrayName,
+                ids: checkedRows,
+            });
             form.requestSubmit ? form.requestSubmit() : form.submit();
             return;
         }

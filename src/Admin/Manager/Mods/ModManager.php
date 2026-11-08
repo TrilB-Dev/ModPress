@@ -106,11 +106,17 @@ class ModManager extends Manager {
         add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'save_group_entry' ) );
         add_action( 'admin_post_modpress_delete_group_entry', array( $this->functions_mod, 'delete_group_entry' ) );
         add_action( 'admin_post_modpress_save_tags', array( $this->functions_mod, 'save_tags' ) );
-        add_action( 'admin_post_modpress_save_files', array( $this->functions_mod, 'save_files' ) );
+        add_action( 'admin_post_modpress_save_file', array( $this->functions_mod, 'save_file' ) );
+        add_action( 'admin_post_modpress_delete_file', array( $this->functions_mod, 'delete_file' ) );
         add_action( 'admin_post_modpress_save_file_type', array( $this->functions_mod, 'save_file_type' ) );
+        add_action( 'admin_post_modpress_delete_file_type', array( $this->functions_mod, 'delete_file_type' ) );
+        add_action( 'admin_post_modpress_save_file_host', array( $this->functions_mod, 'save_file_host' ) );
+        add_action( 'admin_post_modpress_delete_file_host', array( $this->functions_mod, 'delete_file_host' ) );
         add_action( 'admin_post_modpress_save_changelog', array( $this->functions_mod, 'save_changelog' ) );
         add_action( 'admin_post_modpress_save_changelog_category', array( $this->functions_mod, 'save_changelog_category' ) );
         add_action( 'admin_post_modpress_save_mod', array( $this->functions_mod, 'save_mod' ) );
+        add_action( 'admin_post_modpress_save_licence', array( $this->functions_mod, 'save_licence' ) );
+        add_action( 'admin_post_modpress_delete_licence', array( $this->functions_mod, 'delete_licence' ) );
     }
     /**
      * Register the assets for the mod manager.
