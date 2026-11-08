@@ -316,7 +316,7 @@ final class ModFiles extends ModManager {
 								<td><?php echo esc_html( $term->name ); ?></td>
 								<td><?php echo esc_html( $term->slug ); ?></td>
 								<td class="text-end">
-									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
+									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'File Type actions', 'modpress' ); ?>">
 										<?php echo FormFieldHelper::button(
 											FAHelper::faicon( 'pen-to-square' ),
 											array(
@@ -329,7 +329,7 @@ final class ModFiles extends ModManager {
 												),
 											)
 										); ?>
-										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block">
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete File Type', 'modpress' ); ?>">
 											<input type="hidden" name="action" value="modpress_delete_file_type" />
 											<input type="hidden" name="file_type_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
 											<input type="hidden" name="file_type_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
@@ -471,13 +471,6 @@ final class ModFiles extends ModManager {
 						</div>
 						<div class="modal-footer">
 							<?php echo FormFieldHelper::button( 
-								__( 'Save', 'modpress' ), 
-								array( 
-									'type' => 'submit', 
-									'class' => 'btn btn-primary' 
-								) 
-							); ?>
-							<?php echo FormFieldHelper::button( 
 								__( 'Cancel', 'modpress' ), 
 								array( 
 									'type' => 'button', 
@@ -485,6 +478,13 @@ final class ModFiles extends ModManager {
 									'attributes' => array( 
 										'data-bs-dismiss' => 'modal' 
 									) 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::button( 
+								FAHelper::faicon( 'floppy-disk' ) . ' ' . __( 'Save', 'modpress' ), 
+								array( 
+									'type' => 'submit', 
+									'class' => 'btn btn-primary' 
 								) 
 							); ?>
 						</div>
@@ -580,7 +580,7 @@ final class ModFiles extends ModManager {
 									<?php endif; ?>
 								</td>
 								<td class="text-end">
-									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Entry actions', 'modpress' ); ?>">
+									<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'File host actions', 'modpress' ); ?>">
 										<?php echo FormFieldHelper::button(
 											FAHelper::faicon( 'pen-to-square' ),
 											array(
@@ -593,7 +593,7 @@ final class ModFiles extends ModManager {
 												),
 											)
 										); ?>
-										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-block">
+										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete File Host', 'modpress' ); ?>">
 											<input type="hidden" name="action" value="modpress_delete_file_host" />
 											<input type="hidden" name="file_host_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
 											<input type="hidden" name="file_host_ids[]" value="<?php echo esc_attr( (string) $term->term_id ); ?>" />
@@ -632,7 +632,7 @@ final class ModFiles extends ModManager {
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?php esc_attr_e( 'Close', 'modpress' ); ?>"></button>
 						</div>
 						<div class="modal-body">
-							<table class="table table-bordered">
+							<table class="table table-borderless mb-0">
 								<tbody>
 									<tr>
 										<th scope="row" class="align-top text-nowrap pe-4">
@@ -759,13 +759,6 @@ final class ModFiles extends ModManager {
 						</div>
 						<div class="modal-footer">
 							<?php echo FormFieldHelper::button( 
-								__( 'Save', 'modpress' ), 
-								array( 
-									'type' => 'submit', 
-									'class' => 'btn btn-primary' 
-								) 
-							); ?>
-							<?php echo FormFieldHelper::button( 
 								__( 'Cancel', 'modpress' ), 
 								array( 
 									'type' => 'button', 
@@ -773,6 +766,13 @@ final class ModFiles extends ModManager {
 									'attributes' => array( 
 										'data-bs-dismiss' => 'modal' 
 									) 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::button( 
+								FAHelper::faicon( 'floppy-disk' ) . ' ' . __( 'Save', 'modpress' ), 
+								array( 
+									'type' => 'submit', 
+									'class' => 'btn btn-primary' 
 								) 
 							); ?>
 					</form>

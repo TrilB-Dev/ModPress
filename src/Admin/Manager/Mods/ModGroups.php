@@ -407,8 +407,8 @@ final class ModGroups extends ModManager {
 																		'attributes' => array(
 																			'data-bs-toggle' => 'modal',
 																			'data-bs-target' => '#modpress-entry-modal-' . sanitize_html_class( $taxonomy_key ) . '-' . (int) $term->term_id,
-																																																																							'data-taxonomy-key' => $taxonomy_key,
-																																																																							'data-group-entry-id' => (int) $term->term_id,
+																			'data-taxonomy-key' => $taxonomy_key,
+																			'data-group-entry-id' => (int) $term->term_id,
 																		),
 																	)
 																); ?>
@@ -1351,7 +1351,7 @@ final class ModGroups extends ModManager {
 								)
 							); ?>
 							<?php echo FormFieldHelper::button(
-								__( 'Save', 'modpress' ),
+								FAHelper::faicon( 'floppy-disk' ) . ' ' . __( 'Save', 'modpress' ),
 								array(
 									'type' => 'submit',
 									'class' => 'btn btn-primary'
