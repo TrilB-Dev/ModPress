@@ -275,6 +275,7 @@ final class ModFiles extends ModManager {
 						'attributes' => array(
 							'data-bs-toggle' => 'modal',
 							'data-bs-target' => '#modpress-file-types-modal',
+							'data-modpress-taxonomy-reset' => 'file_type',
 						),
 					)
 				); ?>
@@ -326,7 +327,12 @@ final class ModFiles extends ModManager {
 												'attributes' => array(
 													'data-bs-toggle' => 'modal',
 													'data-bs-target' => '#modpress-file-types-modal',
-												),
+													'data-modpress-taxonomy-edit' => 'file_type',
+													'data-term-id' => (string) $term->term_id,
+													'data-term-name' => $term->name,
+													'data-term-slug' => $term->slug,
+													'data-term-description' => $term->description ?? '',
+													'data-term-image' => $image_url,														'value' => $term->name,												),
 											)
 										); ?>
 										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete File Type', 'modpress' ); ?>">
@@ -362,6 +368,14 @@ final class ModFiles extends ModManager {
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_file_type" />
 						<input type="hidden" name="file_type_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
+						<?php echo FormFieldHelper::input(
+							'modpress-file-types-term-id',
+							'',
+							array(
+								'type' => 'hidden',
+								'id' => 'modpress-file-types-term-id',
+							)
+						); ?>
 						<?php wp_nonce_field( 'modpress_save_file_type', 'modpress_file_type_nonce' ); ?>
 						<div class="modal-header">
 							<h3 class="modal-title h5"><?php esc_html_e( 'Add File Type', 'modpress' ); ?></h3>
@@ -530,6 +544,7 @@ final class ModFiles extends ModManager {
 						'attributes' => array(
 							'data-bs-toggle' => 'modal',
 							'data-bs-target' => '#modpress-file-hosts-modal',
+							'data-modpress-taxonomy-reset' => 'file_host',
 						),
 					)
 				); ?>
@@ -590,7 +605,13 @@ final class ModFiles extends ModManager {
 												'attributes' => array(
 													'data-bs-toggle' => 'modal',
 													'data-bs-target' => '#modpress-file-hosts-modal',
-												),
+													'data-modpress-taxonomy-edit' => 'file_host',
+													'data-term-id' => (string) $term->term_id,
+													'data-term-name' => $term->name,
+													'data-term-slug' => $term->slug,
+													'data-term-description' => $term->description ?? '',
+													'data-term-image' => $image_url,
+													'data-term-url' => $term_url,														'value' => $term->name,												),
 											)
 										); ?>
 										<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="btn-group btn-group-sm d-inline-flex" role="group" aria-label="<?php esc_attr_e( 'Delete File Host', 'modpress' ); ?>">
@@ -626,6 +647,14 @@ final class ModFiles extends ModManager {
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="modpress_save_file_host" />
 						<input type="hidden" name="file_host_slug" value="<?php echo esc_attr( $taxonomy ); ?>" />
+						<?php echo FormFieldHelper::input(
+							'modpress-file-hosts-term-id',
+							'',
+							array(
+								'type' => 'hidden',
+								'id' => 'modpress-file-hosts-term-id',
+							)
+						); ?>
 						<?php wp_nonce_field( 'modpress_save_file_host', 'modpress_file_host_nonce' ); ?>
 						<div class="modal-header">
 							<h3 class="modal-title h5"><?php esc_html_e( 'Add File Host', 'modpress' ); ?></h3>

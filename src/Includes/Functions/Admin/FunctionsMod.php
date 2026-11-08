@@ -1926,6 +1926,7 @@ final class FunctionsMod {
         }
 
         $payload = array(
+            'term_id'     => absint( $_POST['modpress-file-types-term-id'] ?? 0 ),
             'name'        => RequestHelper::text( $_POST, 'modpress-file-types-name', '' ),
             'slug'        => RequestHelper::slug( $_POST, 'modpress-file-types-slug', '' ),
             'description' => RequestHelper::text( $_POST, 'modpress-file-types-description', '' ),
@@ -1999,6 +2000,7 @@ final class FunctionsMod {
         }
 
         $payload = array(
+            'term_id'     => absint( $_POST['modpress-file-hosts-term-id'] ?? 0 ),
             'name'        => RequestHelper::text( $_POST, 'modpress-file-hosts-name', '' ),
             'slug'        => RequestHelper::slug( $_POST, 'modpress-file-hosts-slug', '' ),
             'description' => RequestHelper::text( $_POST, 'modpress-file-hosts-description', '' ),

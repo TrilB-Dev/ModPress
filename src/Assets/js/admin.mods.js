@@ -1231,6 +1231,121 @@
         });
     };
 
+    const setModalFieldValue = (modal, name, value) => {
+        if (!modal || !name) {
+            return;
+        }
+
+        const field = modal.querySelector('[name="' + name + '"]');
+        if (!field) {
+            return;
+        }
+
+        field.value = value || '';
+    };
+
+    const setModalMediaValue = (modal, name, value) => {
+        if (!modal || !name) {
+            return;
+        }
+
+        const field = modal.querySelector('[name="' + name + '"]');
+        if (!field) {
+            return;
+        }
+
+        field.value = value || '';
+
+        const wrapper = field.closest('.modpress-media-picker');
+        const preview = wrapper ? wrapper.querySelector('[data-modpress-media-preview-container]') : null;
+        const previewImage = wrapper ? wrapper.querySelector('[data-modpress-media-preview-image]') : null;
+        if (preview) {
+            preview.classList.toggle('d-none', !value);
+        }
+        if (previewImage) {
+            previewImage.src = value || '';
+        }
+    };
+
+    const resetTaxonomyModal = (modal, type) => {
+        if (!modal) {
+            return;
+        }
+
+        const modalMap = {
+            file_type: {
+                fields: ['modpress-file-types-term-id', 'modpress-file-types-name', 'modpress-file-types-slug', 'modpress-file-types-description'],
+                media: ['modpress-file-types-image'],
+                title: 'Add File Type',
+            },
+            file_host: {
+                fields: ['modpress-file-hosts-term-id', 'modpress-file-hosts-name', 'modpress-file-hosts-slug', 'modpress-file-hosts-description', 'modpress-file-hosts-url'],
+                media: ['modpress-file-hosts-logo'],
+                title: 'Add File Host',
+            },
+        };
+
+        const config = modalMap[type] || null;
+        if (!config) {
+            return;
+        }
+
+        config.fields.forEach((fieldName) => setModalFieldValue(modal, fieldName, ''));
+        config.media.forEach((fieldName) => setModalMediaValue(modal, fieldName, ''));
+
+        const modalTitle = modal.querySelector('.modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = config.title;
+        }
+    };
+
+    const populateTaxonomyModal = (button) => {
+        if (!button) {
+            return;
+        }
+
+        const targetSelector = button.getAttribute('data-bs-target');
+        if (!targetSelector) {
+            return;
+        }
+
+        const modal = document.querySelector(targetSelector);
+        if (!modal) {
+            return;
+        }
+
+        const type = button.dataset.modpressTaxonomyEdit;
+        if (!type) {
+            return;
+        }
+
+        if ('file_type' === type) {
+            setModalFieldValue(modal, 'modpress-file-types-term-id', button.dataset.termId || '0');
+            setModalFieldValue(modal, 'modpress-file-types-name', button.dataset.termName || '');
+            setModalFieldValue(modal, 'modpress-file-types-slug', button.dataset.termSlug || '');
+            setModalFieldValue(modal, 'modpress-file-types-description', button.dataset.termDescription || '');
+            setModalMediaValue(modal, 'modpress-file-types-image', button.dataset.termImage || '');
+            const title = modal.querySelector('.modal-title');
+            if (title) {
+                title.textContent = button.dataset.termId ? 'Edit File Type' : 'Add File Type';
+            }
+            return;
+        }
+
+        if ('file_host' === type) {
+            setModalFieldValue(modal, 'modpress-file-hosts-term-id', button.dataset.termId || '0');
+            setModalFieldValue(modal, 'modpress-file-hosts-name', button.dataset.termName || '');
+            setModalFieldValue(modal, 'modpress-file-hosts-slug', button.dataset.termSlug || '');
+            setModalFieldValue(modal, 'modpress-file-hosts-description', button.dataset.termDescription || '');
+            setModalFieldValue(modal, 'modpress-file-hosts-url', button.dataset.termUrl || '');
+            setModalMediaValue(modal, 'modpress-file-hosts-logo', button.dataset.termImage || '');
+            const title = modal.querySelector('.modal-title');
+            if (title) {
+                title.textContent = button.dataset.termId ? 'Edit File Host' : 'Add File Host';
+            }
+        }
+    };
+
     const addOptionRow = (button) => {
         if (!button || button.dataset.modpressOptionAddPending === 'true') {
             return;
@@ -1375,6 +1490,20 @@
     });
 
     document.addEventListener('click', (event) => {
+        const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
+        if (taxonomyResetButton) {
+            const target = taxonomyResetButton.getAttribute('data-bs-target');
+            const modal = target ? document.querySelector(target) : null;
+            resetTaxonomyModal(modal, taxonomyResetButton.dataset.modpressTaxonomyReset);
+            return;
+        }
+
+        const taxonomyEditButton = event.target.closest('[data-modpress-taxonomy-edit]');
+        if (taxonomyEditButton) {
+            populateTaxonomyModal(taxonomyEditButton);
+            return;
+        }
+
         const groupPageLink = event.target.closest('.modpress-group-page-link');
         if (groupPageLink) {
             event.preventDefault();

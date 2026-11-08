@@ -628,9 +628,15 @@ namespace ModPress\Tests\Unit {
 
             $this->assertStringContainsString( 'name="file_type_ids[]"', $type_html );
             $this->assertStringContainsString( 'value="modpress_delete_file_type"', $type_html );
+            $this->assertStringContainsString( 'name="modpress-file-types-term-id"', $type_html );
+            $this->assertStringContainsString( 'data-term-id="101"', $type_html );
+            $this->assertStringContainsString( 'value="PNG"', $type_html );
             $this->assertStringNotContainsString( 'modpress_delete_group_entry', $type_html );
             $this->assertStringContainsString( 'name="file_host_ids[]"', $host_html );
             $this->assertStringContainsString( 'value="modpress_delete_file_host"', $host_html );
+            $this->assertStringContainsString( 'name="modpress-file-hosts-term-id"', $host_html );
+            $this->assertStringContainsString( 'data-term-id="202"', $host_html );
+            $this->assertStringContainsString( 'value="MegaHost"', $host_html );
             $this->assertStringNotContainsString( 'modpress_delete_group_entry', $host_html );
         }
 
