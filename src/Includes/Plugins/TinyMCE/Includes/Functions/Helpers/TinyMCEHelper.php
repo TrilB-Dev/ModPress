@@ -24,6 +24,13 @@ final class TinyMCEHelper {
      */
     public static function render( string $id, string $name, string $label, string $value = '', int $rows = 8, bool $media_buttons = false, array $options = [] ): void {
         $editor_id = sanitize_key( $id );
+
+        if ( ! class_exists( Settings::class ) || ! defined( 'MODPRESS_FILE' ) || ! defined( 'MODPRESS_URL' ) ) {
+            printf( '<label class="form-label" for="%1$s">%2$s</label>', esc_attr( $editor_id ), esc_html( $label ) );
+            printf( '<textarea class="form-control modpress-tinymce" id="%1$s" name="%2$s" rows="%3$d">%4$s</textarea>', esc_attr( $editor_id ), esc_attr( $name ), max( 1, $rows ), esc_textarea( $value ) );
+            return;
+        }
+
         $rows = max( 1, $rows );
         $plugins = Settings::plugins();
         $content_skin = Settings::content_skin();

@@ -8,7 +8,13 @@
  */
 namespace ModPress\Admin\Manager\Mods;
 
+use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\ModManagement\ModManagement;
+use ModPress\Includes\Functions\Helpers\FormFieldHelper;
+use ModPress\Includes\Plugins\FontAwesome\Includes\Functions\Helpers\FAHelper;
+use ModPress\Includes\Functions\Helpers\WPMediaHelper;
+use ModPress\Includes\Plugins\TinyMCE\Includes\Functions\Helpers\TinyMCEHelper;
+
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -20,15 +26,27 @@ final class Mods extends ModManager {
 	 *
 	 * @return void
 	 */
-	public function render_page_content(): void {
+	public function render_page_content( string $form = '' ): void {
+		$form_state = $this->normalize_form_state( $form );
+		if ( '' === $form_state && isset( $_GET['form'] ) ) {
+			$form_state = $this->normalize_form_state( (string) wp_unslash( $_GET['form'] ) );
+		}
+
+		if ( in_array( $form_state, array( 'new', 'edit' ), true ) ) {
+			$this->render_mod_form();
+			return;
+		}
+
 		$mod_service = new ModManagement();
 		$mods        = $mod_service->get_mods();
+
+		$this->render_mod_form();
 		?>
-		<div class="card shadow-sm border-0">
+		<div class="card shadow-sm border-0 mt-4">
 			<div class="card-body p-4">
 				<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
 					<h2 class="h5 mb-0"><?php esc_html_e( 'Available Mods', 'modpress' ); ?></h2>
-					<a class="btn btn-primary btn-sm" href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=manage-mod&tab=mods' ) ); ?>"><?php esc_html_e( 'Create mod', 'modpress' ); ?></a>
+					<a class="btn btn-primary btn-sm" href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=mod-manager&tab=mods&form=new' ) ); ?>"><?php esc_html_e( 'Create mod', 'modpress' ); ?></a>
 				</div>
 				<?php if ( empty( $mods ) ) : ?>
 					<p class="text-muted mb-0"><?php esc_html_e( 'No mods have been created yet.', 'modpress' ); ?></p>
@@ -55,6 +73,351 @@ final class Mods extends ModManager {
 						</table>
 					</div>
 				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+	}
+	/**
+	 * Render the mod form.
+	 *
+	 * @param array $mod The mod data to populate the form with.
+	 * @return void
+	 * @since 1.0.0
+	 */
+	private function render_mod_form( array $mod = [] ): void {
+		$mod_id = absint( $mod['ID'] ?? ( $mod['id'] ?? 0 ) );
+		$mod    = array_merge(
+			array(
+				'ID' => 0,
+				'post_title' => '',
+				'post_name' => '',
+				'post_author' => get_current_user_id(),
+				'post_status' => 'draft',
+				'post_excerpt' => '',
+				'post_content' => '',
+				'featured_image' => '',
+			),
+			$mod
+		);
+
+		$featured_image = $mod_id > 0 ? (string) get_post_thumbnail_id( $mod_id ) : (string) ( $mod['featured_image'] ?? '' );
+		$author_id = absint( $mod['post_author'] ?? get_current_user_id() );
+		$can_edit_others = current_user_can( 'modpress_manager_mods_edit_others' );
+		$author_options = array();
+		if ( function_exists( 'get_users' ) && $can_edit_others ) {
+			foreach ( get_users( array( 'orderby' => 'display_name', 'fields' => array( 'ID', 'display_name' ) ) ) as $user ) {
+				$author_options[ (string) $user->ID ] = $user->display_name;
+			}
+		}
+		if ( empty( $author_options ) && $can_edit_others ) {
+			$author_options[ (string) $author_id ] = __( 'Current User', 'modpress' );
+		}
+		$current_user = function_exists( 'get_userdata' ) ? get_userdata( $author_id ) : null;
+		$current_user_name = $current_user && ! empty( $current_user->display_name ) ? $current_user->display_name : __( 'Current User', 'modpress' );
+
+		$mod_type_options = array();
+		if ( function_exists( 'get_terms' ) ) {
+			$mod_type_terms = get_terms(
+				array(
+					'taxonomy'   => 'modpress_type',
+					'hide_empty' => false,
+					'orderby'    => 'name',
+					'order'      => 'ASC',
+				)
+			);
+
+			if ( ! is_wp_error( $mod_type_terms ) && ! empty( $mod_type_terms ) ) {
+				foreach ( $mod_type_terms as $term ) {
+					$mod_type_options[ (string) (int) $term->term_id ] = $term->name;
+				}
+			}
+		}
+
+		if ( empty( $mod_type_options ) ) {
+			$mod_type_options = array(
+				'core' => __( 'Core Mod', 'modpress' ),
+				'addon' => __( 'Addon', 'modpress' ),
+				'resource' => __( 'Resource Pack', 'modpress' ),
+			);
+		}
+		$mod_type_selected = (string) ( $mod['mod_type'] ?? '' );
+		if ( '' === $mod_type_selected && $mod_id > 0 && function_exists( 'wp_get_post_terms' ) ) {
+			$selected_mod_type = wp_get_post_terms( $mod_id, 'modpress_type', array( 'fields' => 'ids' ) );
+			if ( ! is_wp_error( $selected_mod_type ) && ! empty( $selected_mod_type ) ) {
+				$mod_type_selected = (string) (int) $selected_mod_type[0];
+			}
+		}
+		if ( '' === $mod_type_selected && ! empty( $mod_type_options ) ) {
+			$mod_type_selected = (string) array_key_first( $mod_type_options );
+		}
+
+		$status_options = array(
+			'draft' => __( 'Draft', 'modpress' ),
+			'publish' => __( 'Published', 'modpress' ),
+			'private' => __( 'Private', 'modpress' ),
+			'future' => __( 'Future', 'modpress' ),
+		);
+		$mod_status_options = array(
+			'draft' => __( 'Draft', 'modpress' ),
+			'alpha' => __( 'Alpha', 'modpress' ),
+			'beta' => __( 'Beta', 'modpress' ),
+			'released' => __( 'Released', 'modpress' ),
+			'experimental' => __( 'Experimental', 'modpress' ),
+			'maintenance' => __( 'Maintenance', 'modpress' ),
+		);
+		$mod_type_options = array(
+			'core' => __( 'Core Mod', 'modpress' ),
+			'addon' => __( 'Addon', 'modpress' ),
+			'resource' => __( 'Resource Pack', 'modpress' ),
+		);
+		?>
+		<div class="card shadow-sm border-0">
+			<div class="card-body p-4">
+				<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+					<h2 class="h4 mb-0"><?php echo esc_html( $mod_id > 0 ? __( 'Edit Mod', 'modpress' ) : __( 'New Mod', 'modpress' ) ); ?></h2>
+					<a class="btn btn-outline-secondary btn-sm" href="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=mod-manager&tab=mods&form=new' ) ); ?>"><?php esc_html_e( 'Reset', 'modpress' ); ?></a>
+				</div>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="modpress_save_mod" />
+					<input type="hidden" name="modpress_action" value="modpress_save_mod" />
+					<?php if ( $mod_id > 0 ) : ?>
+						<input type="hidden" name="mod_id" value="<?php echo esc_attr( (string) $mod_id ); ?>" />
+					<?php endif; ?>
+					<?php wp_nonce_field( 'modpress_save_mod', 'modpress_mod_nonce' ); ?>
+					<div class="row g-3">
+						<div class="col-md-6">
+							<?php echo FormFieldHelper::label( 
+								'modpress-mod-title', 
+								__( 'Mod Name', 'modpress' ), 
+								array( 
+									'description' => __( 'Set the public name for this mod.', 'modpress' ) 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::text_input( 
+								'post_title', 
+								(string) ( $mod['post_title'] ?? '' ), 
+								array( 
+									'id' => 'modpress-mod-title', 
+									'required' => true, 
+									'placeholder' => __( 'My Mod', 'modpress' ) 
+								) 
+							); ?>
+						</div>
+						<div class="col-md-6">
+							<?php echo FormFieldHelper::label( 
+								'modpress-mod-slug', 
+								__( 'Mod Slug', 'modpress' ), 
+								array( 'description' => __( 'Used in URLs and internal references.', 'modpress' ) ) 
+							); ?>
+							<?php echo FormFieldHelper::text_input( 
+								'post_name', 
+								(string) ( $mod['post_name'] ?? '' ), 
+								array( 'id' => 'modpress-mod-slug', 'placeholder' => __( 'my-mod', 'modpress' ) ) 
+							); ?>
+						</div>
+						<div class="col-md-6">
+							<?php echo FormFieldHelper::label( 
+								'modpress-mod-author', 
+								__( 'Mod Author', 'modpress' ), 
+								array( 
+									'tooltip' => __( 'Choose the author assigned to this mod.', 'modpress' ), 
+									'description' => __( 'This is the WordPress user tied to the mod entry.', 'modpress' ) 
+								) 
+							); ?>
+						<?php if ( $can_edit_others ) : ?>
+							<?php echo FormFieldHelper::bootstrap_select(
+								'post_author',
+								array(
+									'data' => $author_options,
+									'selected' => (string) $author_id,
+									'id' => 'modpress-mod-author',
+									'live_search' => true,
+								)
+							); ?>
+						<?php else : ?>
+							<?php echo FormFieldHelper::text_input( 
+								'post_author_display', 
+								$current_user_name, 
+								array( 
+									'id' => 'modpress-mod-author-display', 
+									'readonly' => true 
+								) 
+							); ?>
+							<input type="hidden" name="post_author" value="<?php echo esc_attr( (string) $author_id ); ?>" />
+						<?php endif; ?>
+						</div>
+						<div class="col-md-6">
+							<?php echo FormFieldHelper::label( 
+								'modpress-mod-status', 
+								__( 'Status', 'modpress' ), 
+								array( 
+									'tooltip' => __( 'Control the published state of the mod.', 'modpress' ), 
+									'description' => __( 'This is the WordPress publishing state.', 'modpress' ) 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::bootstrap_select(
+								'post_status',
+								array(
+									'data' => $status_options,
+									'selected' => (string) ( $mod['post_status'] ?? 'draft' ),
+									'id' => 'modpress-mod-status',
+								)
+							); ?>
+						</div>
+						<div class="col-md-6">
+							<?php echo FormFieldHelper::label( 
+								'modpress-mod-development-status', 
+								__( 'Mod Status', 'modpress' ), 
+								array( 
+									'tooltip' => __( 'Track the release phase for this mod.', 'modpress' ), 
+									'description' => __( 'This status is used by ModPress for lifecycle tracking.', 'modpress' ) 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::bootstrap_select(
+								'mod_status',
+								array(
+									'data' => $mod_status_options,
+									'selected' => (string) ( $mod['mod_status'] ?? 'draft' ),
+									'id' => 'modpress-mod-development-status',
+								)
+							); ?>
+						</div>
+						<div class="col-md-6">
+							<?php echo FormFieldHelper::label( 
+								'modpress-mod-type', 
+								__( 'Mod Type', 'modpress' ), 
+								array( 
+									'tooltip' => __( 'Choose the kind of mod this is.', 'modpress' ), 
+									'description' => __( 'This helps organize mods by their content type.', 'modpress' ) 
+								) 
+							); ?>
+							<?php echo FormFieldHelper::bootstrap_select(
+								'mod_type',
+								array(
+									'data' => $mod_type_options,
+									'selected' => $mod_type_selected,
+									'id' => 'modpress-mod-type',
+								)
+							); ?>
+						</div>
+						<?php
+						$group_taxonomies = array();
+						if ( class_exists( '\ModPress\Includes\ModManagement\GroupsManager' ) ) {
+							$group_taxonomies = ( new GroupsManager() )->get_group_definitions();
+						}
+						foreach ( $group_taxonomies as $taxonomy_key => $group_config ) {
+							if ( 'modpress_type' === (string) $taxonomy_key ) {
+								continue;
+							}
+
+							$taxonomy_terms = function_exists( 'get_terms' ) ? get_terms(
+								array(
+									'taxonomy'   => $taxonomy_key,
+									'hide_empty' => false,
+									'orderby'    => 'name',
+									'order'      => 'ASC',
+								)
+							) : array();
+							if ( is_wp_error( $taxonomy_terms ) || empty( $taxonomy_terms ) ) {
+								continue;
+							}
+
+							$taxonomy_options = array();
+							foreach ( $taxonomy_terms as $term ) {
+								$taxonomy_options[ (string) (int) $term->term_id ] = $term->name;
+							}
+
+							$taxonomy_selected = '';
+							if ( $mod_id > 0 && function_exists( 'wp_get_post_terms' ) ) {
+								$assigned_terms = wp_get_post_terms( $mod_id, $taxonomy_key, array( 'fields' => 'ids' ) );
+								if ( ! is_wp_error( $assigned_terms ) && ! empty( $assigned_terms ) ) {
+									$taxonomy_selected = (string) (int) $assigned_terms[0];
+								}
+							}
+							?>
+							<div class="col-md-6">
+								<?php echo FormFieldHelper::label(
+									$taxonomy_key,
+									(string) ( $group_config['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
+									array(
+										'description' => (string) ( $group_config['description'] ?? '' ),
+									)
+								); ?>
+								<?php echo FormFieldHelper::bootstrap_select(
+									$taxonomy_key,
+									array(
+										'data' => $taxonomy_options,
+										'selected' => $taxonomy_selected,
+										'id' => sanitize_key( $taxonomy_key ),
+										'live_search' => true,
+									)
+								); ?>
+							</div>
+						<?php }
+						?>
+						<div class="col-12">
+							<?php echo FormFieldHelper::label( 
+								'modpress-mod-excerpt', 
+								__( 'Short Description', 'modpress' ), 
+								array( 
+									'description' => __( 'A brief summary shown in listings and previews.', 'modpress' ) 
+								) 
+							); ?>
+							<?php echo TinyMCEHelper::render( 
+								'modpress-mod-excerpt', 
+								'post_excerpt', 
+								__( 'Short Description', 'modpress' ), 
+								(string) ( $mod['post_excerpt'] ?? '' ), 
+								12, 
+								false,
+								array()
+							); ?>
+						</div>
+						<div class="col-12">
+							<?php echo TinyMCEHelper::render( 
+								'modpress-mod-content', 
+								'post_content', 
+								__( 'Long Description', 'modpress' ), 
+								(string) ( $mod['post_content'] ?? '' ), 
+								12, 
+								false,
+								array()
+							); ?>
+						</div>
+						<div class="col-12">
+							<?php echo FormFieldHelper::label( 
+								'featured_image', 
+								__( 'Mod Header', 'modpress' ), 
+								array( 
+									'tooltip' => __( 'Set the image that appears at the top of the mod page.', 'modpress' ), 
+									'description' => __( 'Use a wide image to represent the mod.', 'modpress' ) 
+								) 
+							); ?>
+							<?php echo WPMediaHelper::create(
+								$featured_image,
+								array(
+									'name' => 'featured_image',
+									'id' => 'featured_image',
+									'button_text' => __( 'Choose Header Image', 'modpress' ),
+									'show_remove' => true,
+									'media_type' => 'image',
+								),
+								array(
+									'alt' => __( 'Mod header preview', 'modpress' ),
+								)
+							); ?>
+						</div>
+						<div class="col-12 d-flex justify-content-end gap-2">
+							<?php echo FormFieldHelper::button( 
+								$mod_id > 0 ? __( 'Update Mod', 'modpress' ) : __( 'Create Mod', 'modpress' ), 
+								array( 
+									'type' => 'submit', 
+									'class' => 'btn btn-primary' 
+								) 
+							); ?>
+						</div>
+					</div>
+				</form>
 			</div>
 		</div>
 		<?php

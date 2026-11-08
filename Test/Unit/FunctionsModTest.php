@@ -68,7 +68,19 @@ namespace {
 
     if ( ! function_exists( 'current_user_can' ) ) {
         function current_user_can( $capability ): bool {
+            $capability = (string) $capability;
+            if ( array_key_exists( $capability, $GLOBALS['modpress_test_capabilities'] ?? array() ) ) {
+                return (bool) ( $GLOBALS['modpress_test_capabilities'][ $capability ] ?? false );
+            }
+
             return $GLOBALS['modpress_test_can_create'] ?? false;
+        }
+    }
+
+    if ( ! function_exists( 'get_userdata' ) ) {
+        function get_userdata( $user_id ) {
+            $user_id = (int) $user_id;
+            return $GLOBALS['modpress_test_users'][ $user_id ] ?? null;
         }
     }
 
@@ -129,6 +141,24 @@ namespace {
         function wp_insert_post( $postarr, $wp_error = false ) {
             $GLOBALS['modpress_test_inserted_post'] = $postarr;
             return $GLOBALS['modpress_test_insert_result'] ?? 123;
+        }
+    }
+
+    if ( ! function_exists( 'wp_get_post_terms' ) ) {
+        function wp_get_post_terms( $post_id, $taxonomy, $args = array() ) {
+            $terms = $GLOBALS['modpress_test_post_terms'][ (int) $post_id ][ (string) $taxonomy ] ?? array();
+            if ( ! empty( $args ) && isset( $args['fields'] ) && 'ids' === $args['fields'] ) {
+                return array_values( array_map( 'intval', $terms ) );
+            }
+
+            return array();
+        }
+    }
+
+    if ( ! function_exists( 'wp_set_post_terms' ) ) {
+        function wp_set_post_terms( $post_id, $terms, $taxonomy, $append = false ) {
+            $GLOBALS['modpress_test_post_terms'][ (int) $post_id ][ (string) $taxonomy ] = array_map( 'intval', (array) $terms );
+            return array_map( 'intval', (array) $terms );
         }
     }
 
@@ -330,6 +360,13 @@ namespace {
         }
     }
 
+    if ( ! function_exists( 'set_post_thumbnail' ) ) {
+        function set_post_thumbnail( $post_id, $thumbnail_id ) {
+            $GLOBALS['modpress_test_thumbnail'][ (int) $post_id ] = (int) $thumbnail_id;
+            return true;
+        }
+    }
+
     if ( ! function_exists( 'set_transient' ) ) {
         function set_transient( $key, $value, $expiration = 0 ) {
             $GLOBALS['modpress_test_transients'][ (string) $key ] = $value;
@@ -495,6 +532,13 @@ namespace ModPress\Tests\Unit {
             $_SERVER['REQUEST_METHOD'] = 'POST';
             $_POST = [];
             $GLOBALS['modpress_test_can_create'] = true;
+            $GLOBALS['modpress_test_capabilities'] = array();
+            $GLOBALS['modpress_test_users'] = array(
+                42 => (object) array(
+                    'ID' => 42,
+                    'display_name' => 'Current User',
+                ),
+            );
             $GLOBALS['modpress_test_insert_result'] = 123;
             $GLOBALS['modpress_test_inserted_post'] = null;
             $GLOBALS['modpress_test_nonce'] = null;
@@ -549,6 +593,183 @@ namespace ModPress\Tests\Unit {
                 $GLOBALS['modpress_test_nonce']
             );
             $this->assertNull( $GLOBALS['modpress_test_inserted_post'] );
+        }
+
+        public function testModFormRendersCorePostFieldNames(): void {
+            $manager = new \ModPress\Admin\Manager\Mods\Mods();
+            $method = new \ReflectionMethod( $manager, 'render_mod_form' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke(
+                $manager,
+                array(
+                    'post_title' => 'Example Mod',
+                    'post_name' => 'example-mod',
+                    'post_excerpt' => 'Short description',
+                    'post_content' => '<p>Long description</p>',
+                )
+            );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'name="post_title"', $html );
+            $this->assertStringContainsString( 'name="post_name"', $html );
+            $this->assertStringContainsString( 'name="post_author"', $html );
+            $this->assertStringContainsString( 'name="post_excerpt"', $html );
+            $this->assertStringContainsString( 'name="post_content"', $html );
+            $this->assertStringContainsString( 'name="featured_image"', $html );
+            $this->assertStringContainsString( 'name="modpress_action"', $html );
+        }
+
+        public function testModFormShowsCurrentUserNameAndHiddenIdWhenUserCannotEditOthers(): void {
+            $GLOBALS['modpress_test_capabilities'] = array(
+                'modpress_manager_mods_edit_others' => false,
+            );
+            $GLOBALS['modpress_test_users'][42] = (object) array(
+                'ID' => 42,
+                'display_name' => 'Current User',
+            );
+
+            $manager = new \ModPress\Admin\Manager\Mods\Mods();
+            $method = new \ReflectionMethod( $manager, 'render_mod_form' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke( $manager, array( 'post_author' => 42 ) );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'name="post_author_display"', $html );
+            $this->assertStringContainsString( 'value="Current User"', $html );
+            $this->assertStringContainsString( 'name="post_author"', $html );
+            $this->assertStringContainsString( 'type="hidden"', $html );
+            $this->assertStringContainsString( 'value="42"', $html );
+            $this->assertStringNotContainsString( 'id="modpress-mod-author" class="selectpicker"', $html );
+        }
+
+        public function testModsScreenOpensTheNewModFormWhenFormStateIsNew(): void {
+            $manager = new \ModPress\Admin\Manager\Mods\Mods();
+
+            ob_start();
+            $manager->render_page_content( 'new' );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'New Mod', $html );
+            $this->assertStringContainsString( 'name="post_title"', $html );
+            $this->assertStringNotContainsString( 'Available Mods', $html );
+        }
+
+        public function testModFormIncludesDynamicGroupTaxonomySelects(): void {
+            $GLOBALS['modpress_test_db_groups'] = array(
+                array(
+                    'id' => 11,
+                    'group_key' => 'modpress_type',
+                    'group_slug' => 'type',
+                    'group_name' => 'Mod Type',
+                ),
+                array(
+                    'id' => 12,
+                    'group_key' => 'modpress_games',
+                    'group_slug' => 'games',
+                    'group_name' => 'Games',
+                ),
+                array(
+                    'id' => 13,
+                    'group_key' => 'modpress_software',
+                    'group_slug' => 'software',
+                    'group_name' => 'Software',
+                ),
+            );
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_type' => array(
+                    1 => (object) array( 'term_id' => 1, 'name' => 'Core', 'slug' => 'core', 'taxonomy' => 'modpress_type' ),
+                    2 => (object) array( 'term_id' => 2, 'name' => 'Addon', 'slug' => 'addon', 'taxonomy' => 'modpress_type' ),
+                ),
+                'modpress_games' => array(
+                    10 => (object) array( 'term_id' => 10, 'name' => 'Skyrim', 'slug' => 'skyrim', 'taxonomy' => 'modpress_games' ),
+                    11 => (object) array( 'term_id' => 11, 'name' => 'Fallout', 'slug' => 'fallout', 'taxonomy' => 'modpress_games' ),
+                ),
+                'modpress_software' => array(
+                    20 => (object) array( 'term_id' => 20, 'name' => 'Gamebryo', 'slug' => 'gamebryo', 'taxonomy' => 'modpress_software' ),
+                ),
+            );
+
+            $manager = new \ModPress\Admin\Manager\Mods\Mods();
+            $method = new \ReflectionMethod( $manager, 'render_mod_form' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke( $manager, array() );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'name="mod_type"', $html );
+            $this->assertStringContainsString( 'name="modpress_games"', $html );
+            $this->assertStringContainsString( 'Skyrim', $html );
+            $this->assertStringContainsString( 'name="modpress_software"', $html );
+            $this->assertStringNotContainsString( 'name="modpress_type"', $html );
+        }
+
+        public function testSaveModPersistsDynamicGroupTerms(): void {
+            $GLOBALS['modpress_test_db_groups'] = array(
+                array(
+                    'id' => 12,
+                    'group_key' => 'modpress_games',
+                    'group_slug' => 'games',
+                    'group_name' => 'Games',
+                ),
+                array(
+                    'id' => 13,
+                    'group_key' => 'modpress_software',
+                    'group_slug' => 'software',
+                    'group_name' => 'Software',
+                ),
+            );
+            $GLOBALS['modpress_test_post_terms'] = array();
+            $_POST = array(
+                'modpress_action' => 'modpress_save_mod',
+                'modpress_mod_nonce' => 'valid',
+                'post_title' => 'Example Mod',
+                'post_name' => 'example-mod',
+                'post_author' => '42',
+                'post_status' => 'draft',
+                'post_excerpt' => 'Short excerpt',
+                'post_content' => '<p>Long content</p>',
+                'mod_type' => '2',
+                'modpress_games' => '10',
+                'modpress_software' => '20',
+            );
+
+            $notice = ( new FunctionsMod() )->save_mod();
+
+            $this->assertStringContainsString( 'Mod saved successfully.', $notice );
+            $this->assertSame( array( 2 ), $GLOBALS['modpress_test_post_terms'][123]['modpress_type'] ?? array() );
+            $this->assertSame( array( 10 ), $GLOBALS['modpress_test_post_terms'][123]['modpress_games'] ?? array() );
+            $this->assertSame( array( 20 ), $GLOBALS['modpress_test_post_terms'][123]['modpress_software'] ?? array() );
+        }
+
+        public function testSaveModPersistsCorePostFieldsAndThumbnail(): void {
+            $_POST = [
+                'modpress_action' => 'modpress_save_mod',
+                'modpress_mod_nonce' => 'valid',
+                'post_title' => 'My Mod',
+                'post_name' => 'my-mod',
+                'post_author' => '7',
+                'post_status' => 'draft',
+                'post_excerpt' => 'Short summary',
+                'post_content' => '<p>Detailed description</p>',
+                'featured_image' => '321',
+                'mod_status' => 'released',
+            ];
+
+            $notice = ( new FunctionsMod() )->save_mod();
+
+            $this->assertStringContainsString( 'Mod saved successfully.', $notice );
+            $this->assertSame( 'My Mod', $GLOBALS['modpress_test_inserted_post']['post_title'] );
+            $this->assertSame( 'my-mod', $GLOBALS['modpress_test_inserted_post']['post_name'] );
+            $this->assertSame( 7, (int) $GLOBALS['modpress_test_inserted_post']['post_author'] );
+            $this->assertSame( 'draft', $GLOBALS['modpress_test_inserted_post']['post_status'] );
+            $this->assertSame( 'Short summary', $GLOBALS['modpress_test_inserted_post']['post_excerpt'] );
+            $this->assertSame( '<p>Detailed description</p>', $GLOBALS['modpress_test_inserted_post']['post_content'] );
+            $this->assertSame( 321, (int) ( $GLOBALS['modpress_test_thumbnail'][ 123 ] ?? 0 ) );
         }
 
         public function testButtonHelperRendersHtmlLabelsForIcons(): void {

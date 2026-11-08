@@ -100,6 +100,7 @@ class ModManager extends Manager {
     public function register_actions(): void {
         $this->functions_mod = $this->functions_mod ?? new FunctionsMod();
 
+        add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
         add_action( 'admin_post_modpress_save_group', array( $this->functions_mod, 'save_group' ) );
         add_action( 'admin_post_modpress_delete_group', array( $this->functions_mod, 'delete_group' ) );
         add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'save_group_entry' ) );
@@ -139,9 +140,13 @@ class ModManager extends Manager {
      * @return void
      * @since 1.0.0
      */
-    public function render(): void {
-        $tab = SanitizationHelper::key( wp_unslash( $_GET['tab'] ?? 'dashboard' ), 'general' );
+    public function render( string $tab = '', string $form = '' ): void {
+        $tab = '' !== $tab ? SanitizationHelper::key( $tab, 'dashboard' ) : SanitizationHelper::key( wp_unslash( $_GET['tab'] ?? 'dashboard' ), 'dashboard' );
         $tab = $this->normalize_tab( $tab );
+        $form = $this->normalize_form_state( $form );
+        if ( '' === $form ) {
+            $form = $this->normalize_form_state( RequestHelper::get_key( 'form', '' ) );
+        }
         $capabilities = array(
             'dashboard' => 'modpress_manager_dashboard',
             'groups'    => 'modpress_manager_groups_view',
@@ -156,7 +161,7 @@ class ModManager extends Manager {
         }
 
         $this->header( $this->title( $tab ) );
-        $this->render_tab_content( $tab );
+        $this->render_tab_content( $tab, $form );
         $this->footer();
     }
 
@@ -167,8 +172,9 @@ class ModManager extends Manager {
      * @return void
      * @since 1.0.0
      */
-    public function render_tab_content( string $tab ): void {
+    public function render_tab_content( string $tab, string $form = '' ): void {
         $tab = $this->normalize_tab( $tab );
+        $form = $this->normalize_form_state( $form );
 
         $view_capabilities = [
             'dashboard' => [
@@ -208,10 +214,17 @@ class ModManager extends Manager {
         $screen = $this->get_tab_screen( $tab );
         if ( null === $screen ) {
             return;
-        }?>
+        }
+
+        $screen_content = $screen;
+        if ( 'mods' === $tab && in_array( $form, array( 'new', 'edit' ), true ) && $screen_content instanceof Mods ) {
+            $screen_content->render_page_content( $form );
+            return;
+        }
+        ?>
 
         <div class="modpress-mod-manager-tab-content" role="tabpanel">
-            <?php $screen->render_page_content(); ?>
+            <?php $screen_content->render_page_content(); ?>
         </div>
         <?php
     }

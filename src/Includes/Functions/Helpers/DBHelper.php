@@ -105,7 +105,8 @@ final class DBHelper {
 			return '';
 		}
 
-		return $wpdb->prefix . self::$table_prefix . $table;
+		$prefix = isset( $wpdb ) && is_object( $wpdb ) && isset( $wpdb->prefix ) ? (string) $wpdb->prefix : '';
+		return $prefix . self::$table_prefix . $table;
 	}
 
 	/**
@@ -188,6 +189,10 @@ final class DBHelper {
 
 		$table_name = self::table_name( $table );
 		if ( '' === $table_name ) {
+			return false;
+		}
+
+		if ( ! isset( $wpdb ) || ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_var' ) || ! method_exists( $wpdb, 'prepare' ) ) {
 			return false;
 		}
 

@@ -128,8 +128,9 @@ final class FunctionsMod {
 	 * @return void
      * @since 1.0.0
 	 */
-	private function validate_save_nonce( string $action ): void {
-		check_admin_referer( $action, '_wpnonce' );
+	private function validate_save_nonce( string $action, ?string $query_arg = null ): void {
+		$nonce_name = $query_arg ?? ( $action . '_nonce' );
+		check_admin_referer( $action, $nonce_name );
 	}
 	/**
 	 * Save a Mod submitted through the native admin form.
@@ -144,24 +145,30 @@ final class FunctionsMod {
 
 		$action = isset( $_POST['modpress_action'] )
 			? sanitize_key( wp_unslash( $_POST['modpress_action'] ) )
-			: '';
+			: ( isset( $_POST['action'] ) ? sanitize_key( wp_unslash( $_POST['action'] ) ) : '' );
 
-		if ( 'modpress_save_mod' !== $action ) {
+		if ( ! in_array( $action, array( 'save_mod', 'modpress_save_mod' ), true ) ) {
 			return '';
 		}
 
-		if ( ! current_user_can( 'modpress_create' ) ) {
+		if ( ! current_user_can( 'modpress_create' ) && ! current_user_can( 'manage_options' ) ) {
 			return AlertHelper::get_admin_notice(
 				__( 'You are not allowed to create Mods.', 'modpress' ),
 				'error'
 			);
 		}
 
-		$this->validate_save_nonce( 'modpress_save_mod' );
-		check_admin_referer( 'modpress_save_mod', 'modpress_mod_nonce' );
+		$this->validate_save_nonce( 'modpress_save_mod', 'modpress_mod_nonce' );
 
-		$title = isset( $_POST['post_title'] ) ? SanitizationHelper::text( wp_unslash( $_POST['post_title'] ) ): '';
-		$content = isset( $_POST['post_content'] ) ? wp_kses_post( wp_unslash( $_POST['post_content'] ) ): '';
+		$title = isset( $_POST['post_title'] ) ? SanitizationHelper::text( wp_unslash( $_POST['post_title'] ) ) : '';
+		$content = isset( $_POST['post_content'] ) ? wp_kses_post( wp_unslash( $_POST['post_content'] ) ) : '';
+		$excerpt = isset( $_POST['post_excerpt'] ) ? SanitizationHelper::textarea( wp_unslash( $_POST['post_excerpt'] ) ) : '';
+		$slug = isset( $_POST['post_name'] ) ? SanitizationHelper::slug( wp_unslash( $_POST['post_name'] ), SanitizationHelper::slug( $title, '' ) ) : SanitizationHelper::slug( $title, '' );
+		$author = isset( $_POST['post_author'] ) ? absint( wp_unslash( $_POST['post_author'] ) ) : get_current_user_id();
+		$status = isset( $_POST['post_status'] ) ? sanitize_key( wp_unslash( $_POST['post_status'] ) ) : 'publish';
+		$status = '' !== $status ? $status : 'publish';
+		$featured_image = isset( $_POST['featured_image'] ) ? absint( wp_unslash( $_POST['featured_image'] ) ) : 0;
+		$mod_id = isset( $_POST['mod_id'] ) ? absint( wp_unslash( $_POST['mod_id'] ) ) : 0;
 
 		if ( '' === $title ) {
 			return AlertHelper::get_admin_notice(
@@ -170,22 +177,63 @@ final class FunctionsMod {
 			);
 		}
 
-		$post_id = wp_insert_post(
-			[
-				'post_title'   => $title,
-				'post_content' => $content,
-				'post_status'  => 'publish',
-				'post_author'  => get_current_user_id(),
-				'post_type'    => 'modpress_mod',
-			],
-			true
+		$post_args = array(
+			'post_title'   => $title,
+			'post_content' => $content,
+			'post_status'  => $status,
+			'post_author'  => $author,
+			'post_type'    => 'modpress_mod',
 		);
+		if ( $mod_id > 0 ) {
+			$post_args['ID'] = $mod_id;
+		}
+		if ( '' !== $slug ) {
+			$post_args['post_name'] = $slug;
+		}
+		if ( '' !== $excerpt ) {
+			$post_args['post_excerpt'] = $excerpt;
+		}
+
+		$post_id = wp_insert_post( $post_args, true );
 
 		if ( is_wp_error( $post_id ) ) {
 			return AlertHelper::get_admin_notice(
 				__( 'The Mod could not be saved.', 'modpress' ),
 				'error'
 			);
+		}
+
+		if ( $featured_image > 0 ) {
+			set_post_thumbnail( $post_id, $featured_image );
+		}
+
+		$mod_type_value = isset( $_POST['mod_type'] ) ? absint( wp_unslash( $_POST['mod_type'] ) ) : 0;
+		if ( $mod_type_value > 0 && function_exists( 'wp_set_post_terms' ) ) {
+			wp_set_post_terms( $post_id, array( $mod_type_value ), 'modpress_type', false );
+		}
+
+		$group_taxonomies = ( new GroupsManager() )->get_group_definitions();
+		if ( ! empty( $group_taxonomies ) ) {
+			foreach ( $group_taxonomies as $taxonomy_key => $group_definition ) {
+				if ( 'modpress_type' === $taxonomy_key ) {
+					continue;
+				}
+
+				$raw_value = isset( $_POST[ $taxonomy_key ] ) ? wp_unslash( $_POST[ $taxonomy_key ] ) : '';
+				$term_values = array();
+				if ( is_array( $raw_value ) ) {
+					$term_values = array_map( 'absint', $raw_value );
+				} else {
+					$term_value = absint( $raw_value );
+					if ( $term_value > 0 ) {
+						$term_values[] = $term_value;
+					}
+				}
+
+				if ( function_exists( 'wp_set_post_terms' ) ) {
+					wp_set_post_terms( $post_id, $term_values, $taxonomy_key, false );
+				}
+			}
 		}
 
 		return AlertHelper::get_admin_notice(

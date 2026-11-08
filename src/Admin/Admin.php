@@ -174,8 +174,10 @@ final class Admin {
 	 * @param string $tab Requested tab slug.
 	 * @return void
 	 */
-	public function route_manager( string $group, string $tab = '' ): void {
+	public function route_manager( string $group, string $tab = '', string $form = '' ): void {
 		$group = sanitize_key( $group );
+		$tab = sanitize_key( $tab );
+		$form = sanitize_key( $form );
 		$normalized_group = array(
 			'modpress'        => 'dashboard',
 			'dashboard'       => 'dashboard',
@@ -188,13 +190,13 @@ final class Admin {
 			'reports'         => 'reports',
 		)[ $group ] ?? 'dashboard';
 
-		LoggerHelper::write_log( sprintf( 'ModPress dashboard render triggered. Group=%s Tab=%s', $group, $tab ) );
+		LoggerHelper::write_log( sprintf( 'ModPress dashboard render triggered. Group=%s Tab=%s Form=%s', $group, $tab, $form ) );
 
 		try {
 			switch ( $normalized_group ) {
 				case 'mods':
 					LoggerHelper::write_log( 'ModPress dashboard routed to mods page.' );
-					$this->render_mods();
+					$this->render_mods( $tab, $form );
 					return;
 				case 'settings':
 					LoggerHelper::write_log( 'ModPress dashboard routed to settings page.' );
@@ -237,9 +239,9 @@ final class Admin {
 	 * This method is responsible for rendering the mods page of the ModPress plugin.
 	 * It delegates the rendering to the ModManager instance.
 	 */
-	public function render_mods(): void {
+	public function render_mods( string $tab = '', string $form = '' ): void {
 		LoggerHelper::write_log( 'ModPress mods render started.' );
-		$this->mod_manager->render();
+		$this->mod_manager->render( $tab, $form );
 		LoggerHelper::write_log( 'ModPress mods render complete.' );
 	}
 	/**

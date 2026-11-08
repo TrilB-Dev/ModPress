@@ -68,6 +68,22 @@ abstract class Manager {
 	}
 
 	/**
+	 * Normalize a form state to a supported admin form key.
+	 *
+	 * @param string $value Raw form state.
+	 * @return string
+	 * @since 1.0.0
+	 */
+	protected function normalize_form_state( string $value ): string {
+		$key = sanitize_key( $value );
+		if ( in_array( $key, array( 'new', 'edit' ), true ) ) {
+			return $key;
+		}
+
+		return '';
+	}
+
+	/**
 	 * Register one asset bundle for a group of admin pages.
 	 *
 	 * @param Assets             $assets Asset registry.

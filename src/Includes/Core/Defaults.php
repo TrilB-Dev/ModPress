@@ -1706,7 +1706,12 @@ final class Defaults {
             }
         }
     }
-
+    /**
+     * Register default licences.
+     *
+     * @return void
+     * @since 1.0.0
+     */
     private static function default_licences(): void {
         $licences = [
             'GPL'=>[
