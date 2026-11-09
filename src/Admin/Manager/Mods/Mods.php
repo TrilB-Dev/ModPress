@@ -372,6 +372,7 @@ final class Mods extends ModManager {
 										'selected' => $taxonomy_selected,
 										'id' => sanitize_key( $taxonomy_key ),
 										'live_search' => true,
+												'show_selected_tags' => true,
 									)
 								) : FormFieldHelper::bootstrap_select(
 									$taxonomy_key,
@@ -386,7 +387,54 @@ final class Mods extends ModManager {
 							</div>
 						<?php }
 						?>
-						<div class="col-12">
+						<?php
+							$tag_options = array();
+							$tag_taxonomy = 'modpress_tag';
+							if ( function_exists( 'get_terms' ) ) {
+								$tag_terms = get_terms(
+									array(
+										'taxonomy'   => $tag_taxonomy,
+										'hide_empty' => false,
+										'orderby'    => 'name',
+										'order'      => 'ASC',
+									)
+								);
+								if ( ! is_wp_error( $tag_terms ) && ! empty( $tag_terms ) ) {
+									foreach ( $tag_terms as $term ) {
+										$tag_options[ (string) (int) $term->term_id ] = $term->name;
+									}
+								}
+							}
+							$tag_selected = array();
+							if ( $mod_id > 0 && function_exists( 'wp_get_post_terms' ) ) {
+								$assigned_tags = wp_get_post_terms( $mod_id, $tag_taxonomy, array( 'fields' => 'ids' ) );
+								if ( ! is_wp_error( $assigned_tags ) && ! empty( $assigned_tags ) ) {
+									$tag_selected = array_values( array_map( 'strval', array_map( 'intval', $assigned_tags ) ) );
+								}
+							}
+							?>
+							<div class="col-md-6">
+								<?php echo FormFieldHelper::label(
+									'modpress_tag',
+									__( 'Tags', 'modpress' ),
+									array()
+								); ?>
+								<?php echo FormFieldHelper::bootstrap_multiselect(
+									'modpress_tag',
+									array(
+										'data' => $tag_options,
+										'selected' => $tag_selected,
+										'id' => 'modpress-tag',
+										'live_search' => true,
+										'show_selected_tags' => true,
+										'open_options' => true,
+										'live_search_placeholder' => 'Search or create tags',
+										'placeholder' => 'Search or create tags',
+									)
+								); ?>
+								<div class="form-text"><?php esc_html_e( 'Choose or add tags that describe this mod.', 'modpress' ); ?></div>
+							</div>
+<div class="col-12">
 							<?php echo FormFieldHelper::label( 
 								'modpress-mod-excerpt', 
 								__( 'Short Description', 'modpress' ), 
