@@ -124,45 +124,52 @@ final class Import extends ToolsManager {
 				?>
 			</div>
 		</form>
-		<form
-			method="post"
-			action="<?php echo \esc_url( UrlHelper::admin_action( 'modpress_import_group_defaults' ) ); ?>"
-		>
-			<?php \wp_nonce_field( 'modpress_import_group_defaults', 'modpress_import_group_defaults_nonce' ); ?>
-			<input type="hidden" name="action" value="modpress_import_group_defaults" />
-			<input type="hidden" name="import_target" value="modpress_file_type" />
-			<div class="card-body">
-				<?php echo \wp_kses_post(
-					FormFieldHelper::button(
-						\__( 'Import File Types', 'modpress' ),
-						array(
-							'type'  => 'submit',
-							'class' => 'btn-warning',
+		<div class="card modpress-import-form shadow-sm mt-4">
+			<form
+				method="post"
+				action="<?php echo \esc_url( UrlHelper::admin_action( 'modpress_import_group_defaults' ) ); ?>"
+			>
+				<?php \wp_nonce_field( 'modpress_import_group_defaults', 'modpress_import_group_defaults_nonce' ); ?>
+				<input type="hidden" name="action" value="modpress_import_group_defaults" />
+				<input type="hidden" name="import_target" value="modpress_file_type" />
+				<div class="card-body">
+					<h3 class="h5 mb-3"><?php \esc_html_e( 'Import File Type Defaults', 'modpress' ); ?></h3>
+					<p class="text-secondary mb-3"><?php \esc_html_e( 'This will clear the existing default file types and rebuild the default file types table from scratch.', 'modpress' ); ?></p>
+					<?php echo \wp_kses_post(
+						FormFieldHelper::button(
+							\__( 'Import File Types', 'modpress' ),
+							array(
+								'type'  => 'submit',
+								'class' => 'btn-warning',
+							)
 						)
-					)
-				); ?>
-			</div>
-		</form>
-
-		<form
-			method="post"
-			action="<?php echo \esc_url( UrlHelper::admin_action( 'modpress_import_group_defaults' ) ); ?>"
-		>
-			<?php \wp_nonce_field( 'modpress_import_group_defaults', 'modpress_import_group_defaults_nonce' ); ?>
-			<input type="hidden" name="action" value="modpress_import_group_defaults" />
-			<input type="hidden" name="import_target" value="modpress_mod_status" />
-			<div class="card-body">
-				<?php echo \wp_kses_post(
-					FormFieldHelper::button(
-						\__( 'Import Statuses', 'modpress' ),
-						array(
-							'type'  => 'submit',
-							'class' => 'btn-warning',
+					); ?>
+				</div>
+			</form>
+		</div>
+		<div class="card modpress-import-form shadow-sm mt-4">
+			<form
+				method="post"
+				action="<?php echo \esc_url( UrlHelper::admin_action( 'modpress_import_group_defaults' ) ); ?>"
+			>
+				<?php \wp_nonce_field( 'modpress_import_group_defaults', 'modpress_import_group_defaults_nonce' ); ?>
+				<input type="hidden" name="action" value="modpress_import_group_defaults" />
+				<input type="hidden" name="import_target" value="modpress_mod_status" />
+				<div class="card-body">
+					<h3 class="h5 mb-3"><?php \esc_html_e( 'Import Status Defaults', 'modpress' ); ?></h3>
+					<p class="text-secondary mb-3"><?php \esc_html_e( 'This will clear the existing default status terms and rebuild the default statuses table from scratch.', 'modpress' ); ?></p>
+					<?php echo \wp_kses_post(
+						FormFieldHelper::button(
+							\__( 'Import Statuses', 'modpress' ),
+							array(
+								'type'  => 'submit',
+								'class' => 'btn-warning',
+							)
 						)
-					)
-				); ?>
-			</div>
-		</form>
+					); ?>
+				</div>
+			</form>
+		</div> <!-- Close card for Import Statuses -->
 
 		<div class="card modpress-import-form shadow-sm mt-4">
 			<div class="card-body">
