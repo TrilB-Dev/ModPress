@@ -27,6 +27,7 @@ final class Taxonomies {
 		self::changelog_category_taxonomy();
 		self::file_type_taxonomy();
 		self::file_hosts_taxonomy();
+		self::mod_status_taxonomy();
 	}
 
 	/**
