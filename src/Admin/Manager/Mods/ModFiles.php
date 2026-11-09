@@ -251,20 +251,50 @@ final class ModFiles extends ModManager {
 			return;
 		}
 
+		$file_type_page = absint( $_GET['modpress_file_type_page'] ?? 1 );
+		$per_page = 10;
+		$terms_response = get_terms(
+			array(
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+		$total_terms = is_wp_error( $terms_response ) ? 0 : count( (array) $terms_response );
+		$total_pages = 0 === $total_terms ? 1 : (int) ceil( $total_terms / $per_page );
+		$current_page = max( 1, min( $file_type_page, $total_pages ) );
 		$terms = get_terms(
 			array(
 				'taxonomy'   => $taxonomy,
 				'hide_empty' => false,
 				'orderby'    => 'name',
 				'order'      => 'ASC',
+				'number'     => $per_page,
+				'offset'     => ( $current_page - 1 ) * $per_page,
 			)
 		);
 		if ( is_wp_error( $terms ) ) {
 			$terms = array();
 		}
+		$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+		if ( '' !== $request_uri ) {
+			$pagination_base = preg_replace( '/([?&])modpress_file_type_page=[^&]*/', '$1', $request_uri );
+			$pagination_base = rtrim( preg_replace( '/[?&]$/', '', (string) $pagination_base ), '?' );
+			$pagination_base = rtrim( $pagination_base, '&' );
+		} else {
+			$pagination_base = function_exists( 'admin_url' ) ? admin_url( 'admin.php' ) : '';
+		}
+		$build_file_type_pagination_url = static function ( int $page_no ) use ( $pagination_base ): string {
+			if ( '' === $pagination_base ) {
+				return '?modpress_file_type_page=' . $page_no;
+			}
+
+			$separator = false === strpos( $pagination_base, '?' ) ? '?' : '&';
+			return rtrim( $pagination_base, '?' ) . $separator . 'modpress_file_type_page=' . $page_no;
+		};
 		?>
 		<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-			<div class="text-muted small"><?php echo esc_html( sprintf( _n( '%s entry', '%s entries', count( $terms ), 'modpress' ), number_format_i18n( count( $terms ) ) ) ); ?></div>
+			<div class="text-muted small"><?php echo esc_html( sprintf( _n( '%s entry', '%s entries', $total_terms, 'modpress' ), number_format_i18n( $total_terms ) ) ); ?></div>
 			<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Taxonomy actions', 'modpress' ); ?>">
 				<?php echo FormFieldHelper::button(
 					FAHelper::faicon( 'plus' ) . ' ' . __( 'Add New Type', 'modpress' ),
@@ -362,6 +392,23 @@ final class ModFiles extends ModManager {
 				</tbody>
 			</table>
 		</div>
+		<?php if ( $total_terms > $per_page ) : ?>
+			<nav aria-label="<?php esc_attr_e( 'File type pagination', 'modpress' ); ?>" class="mt-3">
+				<ul class="pagination pagination-sm justify-content-end mb-0">
+					<li class="page-item <?php echo 1 === $current_page ? 'disabled' : ''; ?>">
+						<a class="page-link" href="<?php echo esc_url( $build_file_type_pagination_url( max( 1, $current_page - 1 ) ) ); ?>"><?php esc_html_e( 'Previous', 'modpress' ); ?></a>
+					</li>
+					<?php for ( $page_no = 1; $page_no <= $total_pages; $page_no++ ) : ?>
+						<li class="page-item <?php echo $page_no === $current_page ? 'active' : ''; ?>">
+							<a class="page-link" href="<?php echo esc_url( $build_file_type_pagination_url( $page_no ) ); ?>"><?php echo esc_html( (string) $page_no ); ?></a>
+						</li>
+					<?php endfor; ?>
+					<li class="page-item <?php echo $current_page >= $total_pages ? 'disabled' : ''; ?>">
+						<a class="page-link" href="<?php echo esc_url( $build_file_type_pagination_url( min( $total_pages, $current_page + 1 ) ) ); ?>"><?php esc_html_e( 'Next', 'modpress' ); ?></a>
+					</li>
+				</ul>
+			</nav>
+		<?php endif; ?>
 
 		<div class="modal fade" id="modpress-file-types-modal" tabindex="-1" aria-hidden="true">
 			<div class="modal-dialog modal-lg modal-dialog-centered">
