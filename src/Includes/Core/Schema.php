@@ -118,6 +118,7 @@ final class Schema {
                 group_parent longtext DEFAULT NULL,
                 group_parent_entry longtext DEFAULT NULL,
                 group_fields longtext DEFAULT NULL,
+                group_multiselect boolean DEFAULT FALSE,
                 created_by bigint(20) unsigned DEFAULT NULL,
                 created_at datetime DEFAULT CURRENT_TIMESTAMP,
                 updated_at datetime DEFAULT CURRENT_TIMESTAMP,

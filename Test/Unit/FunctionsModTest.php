@@ -1681,6 +1681,27 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'a:2:{i:0;i:84;i:1;i:85;}', $payload['group_parent_entry'] );
         }
 
+        public function testGroupPayloadPersistsMultiselectFlag(): void {
+            $_POST = array(
+                'group_name' => 'Language',
+                'group_slug' => 'modpress_language',
+                'group_singular_name' => 'Language',
+                'group_description' => 'Language group description.',
+                'group_hierarchical' => '0',
+                'group_multiselect' => '1',
+                'group_parent' => array( 0, 420 ),
+                'group_parent_entry' => array( 0, 84 ),
+            );
+
+            $method = new \ReflectionMethod( \ModPress\Includes\Functions\Admin\FunctionsMod::class, 'build_group_payload' );
+            $method->setAccessible( true );
+
+            $payload = $method->invoke( new \ModPress\Includes\Functions\Admin\FunctionsMod(), 'Language', 'modpress_language' );
+
+            $this->assertArrayHasKey( 'group_multiselect', $payload );
+            $this->assertTrue( (bool) $payload['group_multiselect'] );
+        }
+
         public function testSwitchSelectPreservesSelectedModeValue(): void {
             $_POST = array(
                 'group_name' => 'Mod release',

@@ -337,11 +337,16 @@ final class Mods extends ModManager {
 								$taxonomy_options[ (string) (int) $term->term_id ] = $term->name;
 							}
 
+							$group_multiselect = ! empty( $group_config['group_multiselect'] ?? false );
 							$taxonomy_selected = '';
 							if ( $mod_id > 0 && function_exists( 'wp_get_post_terms' ) ) {
 								$assigned_terms = wp_get_post_terms( $mod_id, $taxonomy_key, array( 'fields' => 'ids' ) );
 								if ( ! is_wp_error( $assigned_terms ) && ! empty( $assigned_terms ) ) {
-									$taxonomy_selected = (string) (int) $assigned_terms[0];
+									if ( $group_multiselect ) {
+										$taxonomy_selected = array_values( array_map( 'strval', array_map( 'intval', $assigned_terms ) ) );
+									} else {
+										$taxonomy_selected = (string) (int) $assigned_terms[0];
+									}
 								}
 							}
 							$selected_group_values[ $taxonomy_key ] = $taxonomy_selected;
@@ -353,14 +358,22 @@ final class Mods extends ModManager {
 								$parent_entries = array_values( array_map( 'strval', (array) ( $group_config['group_parent_entry'] ?? array() ) ) );
 							}
 							?>
-							<div class="col-md-6 modpress-dynamic-group-field <?php echo $should_show_group ? '' : 'd-none'; ?>" data-modpress-group-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" data-modpress-parent-group="<?php echo esc_attr( $parent_group ); ?>" data-modpress-parent-entries="<?php echo esc_attr( wp_json_encode( $parent_entries ) ); ?>">
+							<div class="col-md-6 modpress-dynamic-group-field <?php echo $should_show_group ? '' : 'd-none'; ?>" data-modpress-group-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" data-modpress-parent-group="<?php echo esc_attr( $parent_group ); ?>" data-modpress-parent-entries="<?php echo esc_attr( wp_json_encode( $parent_entries ) ); ?>" data-modpress-group-multiselect="<?php echo esc_attr( $group_multiselect ? '1' : '0' ); ?>">
 								<?php echo FormFieldHelper::label(
 									$taxonomy_key,
 									(string) ( $group_config['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
 									array(
 									)
 								); ?>
-								<?php echo FormFieldHelper::bootstrap_select(
+								<?php echo $group_multiselect ? FormFieldHelper::bootstrap_multiselect(
+									$taxonomy_key,
+									array(
+										'data' => $taxonomy_options,
+										'selected' => $taxonomy_selected,
+										'id' => sanitize_key( $taxonomy_key ),
+										'live_search' => true,
+									)
+								) : FormFieldHelper::bootstrap_select(
 									$taxonomy_key,
 									array(
 										'data' => $taxonomy_options,

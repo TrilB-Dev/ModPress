@@ -187,6 +187,7 @@ final class Defaults {
 				'created_by'          => 1,
 				'created_at'          => current_time( 'mysql' ),
 				'updated_at'          => current_time( 'mysql' ),
+				'group_multiselect'   => false, 
 			)
 		);
 
@@ -199,6 +200,7 @@ final class Defaults {
 				'group_description'  => 'The Mod Asset Type group is used to categorise your mods by their asset type.',
 				'group_parent'       => array( $mod_type_group_id ),
 				'group_parent_entry' => array( $type_term_map['assets'] ?? 0 ),
+                'group_multiselect'  => false,
 			),
 			'modpress_games' => array(
 				'id'                 => 3,
@@ -209,6 +211,7 @@ final class Defaults {
 				'group_description'  => 'The Game that mods belong to. This group is used to categorise your mods by their game.',
 				'group_parent'       => array( $mod_type_group_id ),
 				'group_parent_entry' => array( $type_term_map['games'] ?? 0 ),
+                'group_multiselect'  => false,
 			),
 			'modpress_software' => array(
 				'id'                 => 4,
@@ -218,6 +221,7 @@ final class Defaults {
 				'group_description'  => 'The Software that mods belong to. This group is used to categorise your mods by their software.',
 				'group_parent'       => array( $mod_type_group_id ),
 				'group_parent_entry' => array( $type_term_map['software'] ?? 0 ),
+                'group_multiselect'  => false,
 			),
 			'modpress_web' => array(
 				'id'                 => 5,
@@ -227,6 +231,7 @@ final class Defaults {
 				'group_description'  => 'The Web Extension that mods belong to. This group is used to categorise your mods by their web extensions.',
 				'group_parent'       => array( $mod_type_group_id ),
 				'group_parent_entry' => array( $type_term_map['web'] ?? 0 ),
+                'group_multiselect'  => false,
 			),
 			'modpress_platforms' => array(
 				'id'                 => 6,
@@ -236,6 +241,7 @@ final class Defaults {
 				'group_description'  => 'The Platform that mods belong to. This group is used to categorise your mods by their platform.',
 				'group_parent'       => array( $mod_type_group_id ),
 				'group_parent_entry' => array_filter( array( $type_term_map['games'] ?? 0, $type_term_map['software'] ?? 0 ) ),
+                'group_multiselect'  => true,
 			),
 			'modpress_language' => array(
 				'id'                 => 7,
@@ -246,6 +252,7 @@ final class Defaults {
                 'group_hierarchical'  => true,
 				'group_parent'       => array( 2 ),
 				'group_parent_entry' => array_filter( array( $asset_term_map['scripts'] ?? 0, $asset_term_map['libraries'] ?? 0, $asset_term_map['snippets'] ?? 0 ) ),
+                'group_multiselect'  => true,
 			),
 		);
 
@@ -272,6 +279,7 @@ final class Defaults {
 					'group_singular_name' => $group_data['group_singular_name'],
 					'group_description'   => $group_data['group_description'],
 					'group_hierarchical'  => $group_data['group_hierarchical'] ?? false,
+					'group_multiselect'   => $group_data['group_multiselect'] ?? false,
 					'group_parent'        => self::encode_parent_ids( $group_parent_ids ),
 					'group_parent_entry'  => self::encode_parent_ids( $group_parent_entry_ids ),
 					'group_fields'        => null,

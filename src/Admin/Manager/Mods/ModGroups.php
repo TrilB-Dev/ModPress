@@ -560,6 +560,7 @@ final class ModGroups extends ModManager {
 				'group_singular_name' => '',
 				'group_description'  => '',
 				'group_hierarchical' => false,
+				'group_multiselect'  => false,
 				'group_parent'       => '',
 				'group_parent_entry' => '',
 			),
@@ -591,6 +592,7 @@ final class ModGroups extends ModManager {
 			'group_singular_name' => (string) ( $selected_group['group_singular_name'] ?? '' ),
 			'group_description'  => (string) ( $selected_group['group_description'] ?? '' ),
 			'group_hierarchical' => ! empty( $selected_group['group_hierarchical'] ),
+			'group_multiselect'  => ! empty( $selected_group['group_multiselect'] ),
 			'group_parent'       => is_array( $selected_group['group_parent'] ?? null ) ? $selected_group['group_parent'] : (array) ( $selected_group['group_parent'] ?? array() ),
 			'group_parent_entry' => is_array( $selected_group['group_parent_entry'] ?? null ) ? $selected_group['group_parent_entry'] : (array) ( $selected_group['group_parent_entry'] ?? array() ),
 		);
@@ -759,6 +761,23 @@ final class ModGroups extends ModManager {
 														},
 														__( 'Allow nested entries within this group.', 'modpress' ),
 														__( 'Enable this when the group should behave like a parent/child structure.', 'modpress' )
+													); ?>
+													<?php $this->render_form_row(
+														'group_multiselect',
+														__( 'Allow Multiple Selections', 'modpress' ),
+														function () use ( $group_options, $modal_id ) {
+																		return FormFieldHelper::switch(
+																		'group_multiselect',
+																true,
+																__( 'Enabled', 'modpress' ),
+																array(
+																	'id' => $modal_id . '-group_multiselect',
+																	'checked' => (bool) ( $group_options['group_multiselect'] ?? false ),
+																)
+															);
+														},
+														__( 'Allow multiple selections for this group.', 'modpress' ),
+														__( 'Enable this when editors should be able to select multiple entries for this group.', 'modpress' )
 													); ?>
 													<?php $this->render_form_row(
 														'group_parent',
