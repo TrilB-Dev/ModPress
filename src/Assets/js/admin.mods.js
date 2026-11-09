@@ -322,6 +322,54 @@
         });
     };
 
+    const findParentControl = (parentName = '') => {
+        const normalizedParentName = String(parentName || '').trim();
+        if (!normalizedParentName) {
+            return null;
+        }
+
+        const candidateIds = new Set();
+        candidateIds.add(normalizedParentName);
+        candidateIds.add(normalizedParentName.replace(/_/g, '-'));
+        candidateIds.add(normalizedParentName.replace(/-/g, '_'));
+
+        if (normalizedParentName === 'mod_type') {
+            candidateIds.add('modpress-mod-type');
+            candidateIds.add('modpress_mod_type');
+        }
+
+        for (const candidateId of candidateIds) {
+            const byId = candidateId ? document.getElementById(candidateId) : null;
+            if (byId) {
+                return byId;
+            }
+        }
+
+        return null;
+    };
+
+    const syncModGroupVisibility = () => {
+        document.querySelectorAll('.modpress-dynamic-group-field').forEach((field) => {
+            const parentName = String(field.dataset.modpressParentGroup || '').trim();
+            const entries = (() => {
+                try {
+                    return JSON.parse(field.dataset.modpressParentEntries || '[]');
+                } catch (error) {
+                    return [];
+                }
+            })();
+
+            let shouldShow = true;
+            if (parentName && entries.length > 0) {
+                const parentControl = findParentControl(parentName);
+                const selectedValue = parentControl ? String(parentControl.value || '').trim() : '';
+                shouldShow = entries.includes(selectedValue);
+            }
+
+            field.classList.toggle('d-none', !shouldShow);
+        });
+    };
+
     const getSelectedValues = (select) => {
         if (!select) {
             return [];
@@ -983,6 +1031,8 @@
 
         syncGroupParentField('');
         syncGroupDeleteState();
+        syncModGroupVisibility();
+        syncModGroupVisibility();
     };
 
     const getNextCustomFieldIndex = (scope = document) => {
@@ -1454,6 +1504,10 @@
             syncDeleteButtons();
         }
 
+        if (target.matches('#modpress-mod-type') || target.matches('[name="mod_type"]')) {
+            syncModGroupVisibility();
+        }
+
         if (target.matches('.modpress-select-all')) {
             const taxonomy = target.dataset.taxonomy;
             const rows = document.querySelectorAll('.modpress-row-checkbox[data-taxonomy="' + taxonomy + '"]');
@@ -1500,6 +1554,10 @@
             if (parentEntrySelect) {
                 refreshBootstrapSelect(parentEntrySelect);
             }
+        }
+
+        if (target.matches('#modpress-mod-type') || target.matches('[name="mod_type"]')) {
+            syncModGroupVisibility();
         }
 
         if (target.matches('[name$="_mode"]') || target.matches('.modpress-image-picker-mode-input')) {

@@ -309,6 +309,10 @@ final class Mods extends ModManager {
 						$group_taxonomies = array();
 						if ( class_exists( '\ModPress\Includes\ModManagement\GroupsManager' ) ) {
 							$group_taxonomies = ( new GroupsManager() )->get_group_definitions();
+							$selected_group_values = array(
+								'mod_type' => $mod_type_selected,
+								'modpress_type' => $mod_type_selected,
+							);
 						}
 						foreach ( $group_taxonomies as $taxonomy_key => $group_config ) {
 							if ( 'modpress_type' === (string) $taxonomy_key ) {
@@ -339,8 +343,16 @@ final class Mods extends ModManager {
 									$taxonomy_selected = (string) (int) $assigned_terms[0];
 								}
 							}
+							$selected_group_values[ $taxonomy_key ] = $taxonomy_selected;
+							$should_show_group = GroupsManager::should_show_group( $taxonomy_key, $selected_group_values, $group_taxonomies );
+							$parent_group = '';
+							$parent_entries = array();
+							if ( ! empty( $group_config['group_parent'] ?? array() ) ) {
+								$parent_group = GroupsManager::resolve_group_field_name( (string) ( $group_config['group_parent'][0] ?? '' ), $group_taxonomies );
+								$parent_entries = array_values( array_map( 'strval', (array) ( $group_config['group_parent_entry'] ?? array() ) ) );
+							}
 							?>
-							<div class="col-md-6">
+							<div class="col-md-6 modpress-dynamic-group-field <?php echo $should_show_group ? '' : 'd-none'; ?>" data-modpress-group-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" data-modpress-parent-group="<?php echo esc_attr( $parent_group ); ?>" data-modpress-parent-entries="<?php echo esc_attr( wp_json_encode( $parent_entries ) ); ?>">
 								<?php echo FormFieldHelper::label(
 									$taxonomy_key,
 									(string) ( $group_config['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),

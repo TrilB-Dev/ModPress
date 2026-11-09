@@ -89,6 +89,7 @@ final class GroupsManager {
 			}
 
 			$definitions[ $taxonomy_key ] = array(
+				'id'                => isset( $group['id'] ) ? (int) $group['id'] : 0,
 				'label'             => (string) ( $group['group_name'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
 				'description'       => (string) ( $group['group_description'] ?? '' ),
 				'post_type'         => array( 'modpress_mod' ),
@@ -100,11 +101,179 @@ final class GroupsManager {
 				'show_in_rest'      => true,
 				'group'             => $taxonomy_key,
 				'parent_group'      => $taxonomy_key,
+				'group_parent'      => self::normalize_parent_values( $group['group_parent'] ?? array() ),
+				'group_parent_entry' => self::normalize_parent_values( $group['group_parent_entry'] ?? array() ),
 				'reserved'          => false,
 			);
 		}
 
 		return $definitions;
+	}
+
+	/**
+	 * Normalize a serialized or nested parent value list into a flat list of unique values.
+	 *
+	 * @param mixed $raw_value Raw parent value.
+	 * @return array<int, string>
+	 * @since 1.0.0
+	 */
+	public static function normalize_parent_values( $raw_value ): array {
+		if ( is_null( $raw_value ) || '' === $raw_value ) {
+			return array();
+		}
+
+		if ( is_string( $raw_value ) ) {
+			$unserialized = @unserialize( $raw_value );
+			if ( is_array( $unserialized ) ) {
+				$raw_value = $unserialized;
+			} else {
+				$raw_value = array( $raw_value );
+			}
+		}
+
+		if ( ! is_array( $raw_value ) ) {
+			$raw_value = array( $raw_value );
+		}
+
+		$values = array();
+		$flatten = static function ( $value ) use ( &$flatten, &$values ) {
+			if ( is_array( $value ) ) {
+				foreach ( $value as $nested_value ) {
+					$flatten( $nested_value );
+				}
+				return;
+			}
+
+			$string_value = trim( (string) $value );
+			if ( '' === $string_value ) {
+				return;
+			}
+
+			$values[] = is_numeric( $string_value ) ? (string) absint( $string_value ) : sanitize_key( $string_value );
+		};
+
+		foreach ( $raw_value as $value ) {
+			$flatten( $value );
+		}
+
+		return array_values( array_unique( array_filter( $values, static fn ( $value ) => '' !== trim( (string) $value ) ) ) );
+	}
+
+	/**
+	 * Resolve the form field name that corresponds to a parent group condition.
+	 *
+	 * @param string $parent_group Parent group value.
+	 * @param array<string, array<string, mixed>> $group_definitions Group definitions.
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public static function resolve_group_field_name( string $parent_group, array $group_definitions = array() ): string {
+		$normalized_parent = trim( (string) $parent_group );
+		if ( '' === $normalized_parent ) {
+			return '';
+		}
+
+		if ( 'modpress_type' === $normalized_parent ) {
+			return 'mod_type';
+		}
+
+		if ( is_numeric( $normalized_parent ) ) {
+			$parent_id = absint( $normalized_parent );
+			foreach ( $group_definitions as $taxonomy_key => $group_config ) {
+				if ( absint( $group_config['id'] ?? 0 ) === $parent_id ) {
+					return 'modpress_type' === (string) $taxonomy_key ? 'mod_type' : (string) $taxonomy_key;
+				}
+			}
+
+			return (string) $parent_id;
+		}
+
+		if ( isset( $group_definitions[ $normalized_parent ] ) ) {
+			return 'modpress_type' === $normalized_parent ? 'mod_type' : $normalized_parent;
+		}
+
+		return $normalized_parent;
+	}
+
+	/**
+	 * Determine whether a mod group should be visible based on the selected parent group and value.
+	 *
+	 * @param string $taxonomy_key Taxonomy key being evaluated.
+	 * @param array<string, mixed> $selected_values Active control values keyed by field name.
+	 * @param array<string, array<string, mixed>> $group_definitions Group definitions.
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function should_show_group( string $taxonomy_key, array $selected_values = array(), array $group_definitions = array() ): bool {
+		$taxonomy_key = trim( (string) $taxonomy_key );
+		if ( '' === $taxonomy_key ) {
+			return false;
+		}
+
+		if ( 'modpress_type' === $taxonomy_key ) {
+			return true;
+		}
+
+		$group_config = $group_definitions[ $taxonomy_key ] ?? array();
+		$parent_groups = self::normalize_parent_values( $group_config['group_parent'] ?? array() );
+		$parent_entries = self::normalize_parent_values( $group_config['group_parent_entry'] ?? array() );
+		if ( empty( $parent_groups ) && empty( $parent_entries ) ) {
+			return true;
+		}
+
+		$selected_lookup = array();
+		foreach ( $selected_values as $field_name => $value ) {
+			$field_name = trim( (string) $field_name );
+			if ( '' === $field_name ) {
+				continue;
+			}
+
+			$field_values = is_array( $value ) ? $value : array( $value );
+			$selected_lookup[ $field_name ] = array_values(
+				array_filter(
+					array_map( 'strval', $field_values ),
+					static fn ( $item ) => '' !== trim( (string) $item )
+				)
+			);
+		}
+
+		if ( empty( $parent_groups ) ) {
+			foreach ( $parent_entries as $parent_entry ) {
+				foreach ( $selected_lookup as $field_values ) {
+					if ( in_array( $parent_entry, $field_values, true ) ) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		foreach ( $parent_groups as $parent_group ) {
+			$parent_field_name = self::resolve_group_field_name( $parent_group, $group_definitions );
+			$selected_parent_values = array();
+			foreach ( $selected_lookup as $field_name => $field_values ) {
+				if ( $field_name === $parent_field_name || str_replace( 'modpress_', 'mod_', $field_name ) === $parent_field_name || str_replace( 'mod_', 'modpress_', $field_name ) === $parent_field_name ) {
+					$selected_parent_values = $field_values;
+					break;
+				}
+			}
+
+			if ( empty( $selected_parent_values ) ) {
+				continue;
+			}
+
+			if ( empty( $parent_entries ) ) {
+				return true;
+			}
+
+			foreach ( $selected_parent_values as $selected_parent_value ) {
+				if ( in_array( (string) $selected_parent_value, $parent_entries, true ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 	/**
 	 * Retrieve a group by its ID.

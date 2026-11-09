@@ -2095,5 +2095,45 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'a:1:{i:0;i:2;}', $payload['group_parent'] );
             $this->assertSame( 'a:2:{i:0;i:42;i:1;i:43;}', $payload['group_parent_entry'] );
         }
+
+        public function testGroupVisibilityRulesMatchSavedParentGroupAndTermValues(): void {
+            $GLOBALS['modpress_test_db_groups'] = array(
+                array(
+                    'id' => 1,
+                    'group_key' => 'modpress_type',
+                    'group_slug' => 'type',
+                    'group_name' => 'Mod Type',
+                    'group_singular_name' => 'Mod Type',
+                    'group_parent' => array(),
+                    'group_parent_entry' => array(),
+                ),
+                array(
+                    'id' => 2,
+                    'group_key' => 'modpress_assets',
+                    'group_slug' => 'assets',
+                    'group_name' => 'Asset Types',
+                    'group_singular_name' => 'Asset Type',
+                    'group_parent' => array( 1 ),
+                    'group_parent_entry' => array( 9 ),
+                ),
+                array(
+                    'id' => 3,
+                    'group_key' => 'modpress_language',
+                    'group_slug' => 'language',
+                    'group_name' => 'Languages',
+                    'group_singular_name' => 'Language',
+                    'group_parent' => array( 2 ),
+                    'group_parent_entry' => array( 42, 43 ),
+                ),
+            );
+
+            $definitions = ( new \ModPress\Includes\ModManagement\GroupsManager() )->get_group_definitions();
+
+            $this->assertSame( array( '1' ), $definitions['modpress_assets']['group_parent'] );
+            $this->assertSame( array( '9' ), $definitions['modpress_assets']['group_parent_entry'] );
+            $this->assertTrue( \ModPress\Includes\ModManagement\GroupsManager::should_show_group( 'modpress_assets', array( 'mod_type' => '9' ), $definitions ) );
+            $this->assertFalse( \ModPress\Includes\ModManagement\GroupsManager::should_show_group( 'modpress_language', array( 'modpress_assets' => '99' ), $definitions ) );
+            $this->assertTrue( \ModPress\Includes\ModManagement\GroupsManager::should_show_group( 'modpress_language', array( 'modpress_assets' => '42' ), $definitions ) );
+        }
     }
 }
