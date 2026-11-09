@@ -39,8 +39,6 @@ final class Mods extends ModManager {
 
 		$mod_service = new ModManagement();
 		$mods        = $mod_service->get_mods();
-
-		$this->render_mod_form();
 		?>
 		<div class="card shadow-sm border-0 mt-4">
 			<div class="card-body p-4">
