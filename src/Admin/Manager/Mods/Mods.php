@@ -521,7 +521,7 @@ final class Mods extends ModManager {
 													); ?>
 													<div class="form-text"><?php esc_html_e( 'Choose whether this dependent is internal or external.', 'modpress' ); ?></div>
 												</div>
-												<div class="col-md-4 modpress-dependent-target-wrapper modpress-dependent-target-internal <?php echo 'internal' === $dependent_type ? '' : 'd-none'; ?>">
+												<div class="col-md-8 modpress-dependent-target-wrapper modpress-dependent-target-internal <?php echo 'internal' === $dependent_type ? '' : 'd-none'; ?>">
 													<?php echo FormFieldHelper::label(
 														'modpress-dependent-mod-' . (string) $dependent_index,
 														__( 'Internal Mod', 'modpress' ),
@@ -540,7 +540,7 @@ final class Mods extends ModManager {
 													); ?>
 													<div class="form-text"><?php esc_html_e( 'Select the internal mod this dependent refers to.', 'modpress' ); ?></div>
 												</div>
-												<div class="col-md-4 modpress-dependent-target-wrapper modpress-dependent-target-external <?php echo 'external' === $dependent_type ? '' : 'd-none'; ?>">
+												<div class="col-md-8 modpress-dependent-target-wrapper modpress-dependent-target-external <?php echo 'external' === $dependent_type ? '' : 'd-none'; ?>">
 													<?php echo FormFieldHelper::label(
 														'modpress-dependent-url-' . (string) $dependent_index,
 														__( 'External URL', 'modpress' ),
@@ -573,7 +573,7 @@ final class Mods extends ModManager {
 															'id' => 'modpress-dependent-instructions-' . (string) $dependent_index,
 															'rows' => 3,
 															'placeholder' => __( 'Add any setup, usage, or dependency notes here.', 'modpress' ),
-															'class' => 'modpress-dependent-instructions',
+															'class' => 'modpress-dependent-instructions w-100',
 														)
 													); ?>
 													<div class="form-text"><?php esc_html_e( 'Add any setup, usage, or dependency notes here.', 'modpress' ); ?></div>
