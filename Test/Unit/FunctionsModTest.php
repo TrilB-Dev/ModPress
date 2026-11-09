@@ -702,10 +702,41 @@ namespace ModPress\Tests\Unit {
             $html = ob_get_clean();
 
             $this->assertStringContainsString( 'name="mod_type"', $html );
+            $this->assertStringContainsString( 'value="1"', $html );
+            $this->assertStringContainsString( '>Core</option>', $html );
+            $this->assertStringContainsString( 'value="2"', $html );
+            $this->assertStringContainsString( '>Addon</option>', $html );
+            $this->assertStringNotContainsString( 'Core Mod', $html );
+            $this->assertStringNotContainsString( 'Resource Pack', $html );
             $this->assertStringContainsString( 'name="modpress_games"', $html );
             $this->assertStringContainsString( 'Skyrim', $html );
             $this->assertStringContainsString( 'name="modpress_software"', $html );
             $this->assertStringNotContainsString( 'name="modpress_type"', $html );
+        }
+
+        public function testModFormIncludesModStatusTermsFromTaxonomy(): void {
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_mod_status' => array(
+                    1 => (object) array( 'term_id' => 1, 'name' => 'Planned', 'slug' => 'planned', 'taxonomy' => 'modpress_mod_status' ),
+                    2 => (object) array( 'term_id' => 2, 'name' => 'Released', 'slug' => 'released', 'taxonomy' => 'modpress_mod_status' ),
+                ),
+            );
+
+            $manager = new \ModPress\Admin\Manager\Mods\Mods();
+            $method = new \ReflectionMethod( $manager, 'render_mod_form' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke( $manager, array() );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'name="mod_status"', $html );
+            $this->assertStringContainsString( 'value="1"', $html );
+            $this->assertStringContainsString( '>Planned</option>', $html );
+            $this->assertStringContainsString( 'value="2"', $html );
+            $this->assertStringContainsString( '>Released</option>', $html );
+            $this->assertStringNotContainsString( 'value="draft">Draft', $html );
+            $this->assertStringNotContainsString( 'value="alpha">Alpha', $html );
         }
 
         public function testSaveModPersistsDynamicGroupTerms(): void {

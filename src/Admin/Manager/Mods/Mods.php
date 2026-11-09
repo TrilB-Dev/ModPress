@@ -131,13 +131,6 @@ final class Mods extends ModManager {
 			}
 		}
 
-		if ( empty( $mod_type_options ) ) {
-			$mod_type_options = array(
-				'core' => __( 'Core Mod', 'modpress' ),
-				'addon' => __( 'Addon', 'modpress' ),
-				'resource' => __( 'Resource Pack', 'modpress' ),
-			);
-		}
 		$mod_type_selected = (string) ( $mod['mod_type'] ?? '' );
 		if ( '' === $mod_type_selected && $mod_id > 0 && function_exists( 'wp_get_post_terms' ) ) {
 			$selected_mod_type = wp_get_post_terms( $mod_id, 'modpress_type', array( 'fields' => 'ids' ) );
@@ -155,19 +148,33 @@ final class Mods extends ModManager {
 			'private' => __( 'Private', 'modpress' ),
 			'future' => __( 'Future', 'modpress' ),
 		);
-		$mod_status_options = array(
-			'draft' => __( 'Draft', 'modpress' ),
-			'alpha' => __( 'Alpha', 'modpress' ),
-			'beta' => __( 'Beta', 'modpress' ),
-			'released' => __( 'Released', 'modpress' ),
-			'experimental' => __( 'Experimental', 'modpress' ),
-			'maintenance' => __( 'Maintenance', 'modpress' ),
-		);
-		$mod_type_options = array(
-			'core' => __( 'Core Mod', 'modpress' ),
-			'addon' => __( 'Addon', 'modpress' ),
-			'resource' => __( 'Resource Pack', 'modpress' ),
-		);
+		$mod_status_options = array();
+		if ( function_exists( 'get_terms' ) ) {
+			$mod_status_terms = get_terms(
+				array(
+					'taxonomy'   => 'modpress_mod_status',
+					'hide_empty' => false,
+					'orderby'    => 'name',
+					'order'      => 'ASC',
+				)
+			);
+
+			if ( ! is_wp_error( $mod_status_terms ) && ! empty( $mod_status_terms ) ) {
+				foreach ( $mod_status_terms as $term ) {
+					$mod_status_options[ (string) (int) $term->term_id ] = $term->name;
+				}
+			}
+		}
+		$mod_status_selected = (string) ( $mod['mod_status'] ?? '' );
+		if ( '' === $mod_status_selected && $mod_id > 0 && function_exists( 'wp_get_post_terms' ) ) {
+			$selected_mod_status = wp_get_post_terms( $mod_id, 'modpress_mod_status', array( 'fields' => 'ids' ) );
+			if ( ! is_wp_error( $selected_mod_status ) && ! empty( $selected_mod_status ) ) {
+				$mod_status_selected = (string) (int) $selected_mod_status[0];
+			}
+		}
+		if ( '' === $mod_status_selected && ! empty( $mod_status_options ) ) {
+			$mod_status_selected = (string) array_key_first( $mod_status_options );
+		}
 		?>
 		<div class="card shadow-sm border-0">
 			<div class="card-body p-4">
@@ -280,7 +287,7 @@ final class Mods extends ModManager {
 										'mod_status',
 										array(
 											'data' => $mod_status_options,
-											'selected' => (string) ( $mod['mod_status'] ?? 'draft' ),
+											'selected' => $mod_status_selected,
 											'id' => 'modpress-mod-development-status',
 										)
 									); ?>

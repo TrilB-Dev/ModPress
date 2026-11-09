@@ -212,6 +212,11 @@ final class FunctionsMod {
 			wp_set_post_terms( $post_id, array( $mod_type_value ), 'modpress_type', false );
 		}
 
+		$mod_status_value = isset( $_POST['mod_status'] ) ? absint( wp_unslash( $_POST['mod_status'] ) ) : 0;
+		if ( $mod_status_value > 0 && function_exists( 'wp_set_post_terms' ) ) {
+			wp_set_post_terms( $post_id, array( $mod_status_value ), 'modpress_mod_status', false );
+		}
+
 		$group_taxonomies = ( new GroupsManager() )->get_group_definitions();
 		if ( ! empty( $group_taxonomies ) ) {
 			foreach ( $group_taxonomies as $taxonomy_key => $group_definition ) {
