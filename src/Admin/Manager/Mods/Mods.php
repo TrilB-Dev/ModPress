@@ -248,21 +248,14 @@ final class Mods extends ModManager {
 										); ?>
 										<input type="hidden" name="post_author" value="<?php echo esc_attr( (string) $author_id ); ?>" />
 									<?php endif; ?>
-									<?php echo FormFieldHelper::label(
-										'modpress-mod-author',
-										'',
-										array(
-											'description' => __( 'This is the WordPress user tied to the mod entry.', 'modpress' ),
-										)
-									); ?>
+									<div class="form-text"><?php esc_html_e( 'This is the WordPress user tied to the mod entry.', 'modpress' ); ?></div>
 								</div>
 								<div class="col-md-4">
 									<?php echo FormFieldHelper::label(
 										'modpress-mod-status',
 										__( 'Status', 'modpress' ),
 										array(
-											'tooltip' => __( 'Control the published state of the mod.', 'modpress' ),
-											'description' => __( 'This is the WordPress publishing state.', 'modpress' ),
+											'tooltip' => __( 'Control the published state of the mod.', 'modpress' )
 										)
 									); ?>
 									<?php echo FormFieldHelper::bootstrap_select(
@@ -273,14 +266,14 @@ final class Mods extends ModManager {
 											'id' => 'modpress-mod-status',
 										)
 									); ?>
+									<div class="form-text"><?php esc_html_e( 'Control the published state of the mod.', 'modpress' ); ?></div>
 								</div>
 								<div class="col-md-4">
 									<?php echo FormFieldHelper::label(
 										'modpress-mod-development-status',
 										__( 'Mod Status', 'modpress' ),
 										array(
-											'tooltip' => __( 'Track the release phase for this mod.', 'modpress' ),
-											'description' => __( 'This status is used by ModPress for lifecycle tracking.', 'modpress' ),
+											'tooltip' => __( 'Track the release phase for this mod.', 'modpress' )
 										)
 									); ?>
 									<?php echo FormFieldHelper::bootstrap_select(
@@ -291,6 +284,7 @@ final class Mods extends ModManager {
 											'id' => 'modpress-mod-development-status',
 										)
 									); ?>
+									<div class="form-text"><?php esc_html_e( 'This status is used by ModPress for lifecycle tracking.', 'modpress' ); ?></div>
 								</div>
 							</div>
 						</div>
@@ -299,8 +293,7 @@ final class Mods extends ModManager {
 								'modpress-mod-type', 
 								__( 'Mod Type', 'modpress' ), 
 								array( 
-									'tooltip' => __( 'Choose the kind of mod this is.', 'modpress' ), 
-									'description' => __( 'This helps organize mods by their content type.', 'modpress' ) 
+									'tooltip' => __( 'Choose the kind of mod this is.', 'modpress' ) 
 								) 
 							); ?>
 							<?php echo FormFieldHelper::bootstrap_select(
@@ -311,6 +304,7 @@ final class Mods extends ModManager {
 									'id' => 'modpress-mod-type',
 								)
 							); ?>
+							<div class="form-text"><?php esc_html_e( 'This helps organize mods by their content type.', 'modpress' ); ?></div>
 						</div>
 						<?php
 						$group_taxonomies = array();
@@ -364,7 +358,6 @@ final class Mods extends ModManager {
 									$taxonomy_key,
 									(string) ( $group_config['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
 									array(
-										'description' => (string) ( $group_config['description'] ?? '' ),
 									)
 								); ?>
 								<?php echo FormFieldHelper::bootstrap_select(
@@ -376,6 +369,7 @@ final class Mods extends ModManager {
 										'live_search' => true,
 									)
 								); ?>
+								<div class="form-text"><?php esc_html_e( $group_config['description'] ?? '', 'modpress' ); ?></div>
 							</div>
 						<?php }
 						?>
@@ -384,7 +378,6 @@ final class Mods extends ModManager {
 								'modpress-mod-excerpt', 
 								__( 'Short Description', 'modpress' ), 
 								array( 
-									'description' => __( 'A brief summary shown in listings and previews.', 'modpress' ) 
 								) 
 							); ?>
 							<?php echo TinyMCEHelper::render( 
@@ -396,6 +389,7 @@ final class Mods extends ModManager {
 								false,
 								array()
 							); ?>
+							<div class="form-text"><?php esc_html_e( 'A brief summary shown in listings and previews.', 'modpress' ); ?></div>
 						</div>
 						<div class="col-12">
 							<?php echo TinyMCEHelper::render( 
@@ -407,6 +401,7 @@ final class Mods extends ModManager {
 								false,
 								array()
 							); ?>
+							<div class="form-text"><?php esc_html_e( 'The full description of the mod.', 'modpress' ); ?></div>
 						</div>
 						<div class="col-12">
 							<?php echo FormFieldHelper::label( 
@@ -430,6 +425,7 @@ final class Mods extends ModManager {
 									'alt' => __( 'Mod header preview', 'modpress' ),
 								)
 							); ?>
+							<div class="form-text"><?php esc_html_e( 'Use a wide image to represent the mod.', 'modpress' ); ?></div>
 						</div>
 						<div class="col-12 d-flex justify-content-end gap-2">
 							<?php echo FormFieldHelper::button( 
