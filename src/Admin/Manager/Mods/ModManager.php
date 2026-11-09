@@ -100,7 +100,7 @@ class ModManager extends Manager {
     public function register_actions(): void {
         $this->functions_mod = $this->functions_mod ?? new FunctionsMod();
 
-        add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+        //add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
         add_action( 'admin_post_modpress_save_group', array( $this->functions_mod, 'save_group' ) );
         add_action( 'admin_post_modpress_delete_group', array( $this->functions_mod, 'delete_group' ) );
         add_action( 'admin_post_modpress_save_group_entry', array( $this->functions_mod, 'save_group_entry' ) );

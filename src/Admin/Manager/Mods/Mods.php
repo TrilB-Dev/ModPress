@@ -184,101 +184,108 @@ final class Mods extends ModManager {
 					<?php wp_nonce_field( 'modpress_save_mod', 'modpress_mod_nonce' ); ?>
 					<div class="row g-3">
 						<div class="col-md-6">
-							<?php echo FormFieldHelper::label( 
-								'modpress-mod-title', 
-								__( 'Mod Name', 'modpress' ), 
-								array( 
-									'description' => __( 'Set the public name for this mod.', 'modpress' ) 
-								) 
-							); ?>
-							<?php echo FormFieldHelper::text_input( 
-								'post_title', 
-								(string) ( $mod['post_title'] ?? '' ), 
-								array( 
-									'id' => 'modpress-mod-title', 
-									'required' => true, 
-									'placeholder' => __( 'My Mod', 'modpress' ) 
-								) 
-							); ?>
-						</div>
-						<div class="col-md-6">
-							<?php echo FormFieldHelper::label( 
-								'modpress-mod-slug', 
-								__( 'Mod Slug', 'modpress' ), 
-								array( 'description' => __( 'Used in URLs and internal references.', 'modpress' ) ) 
-							); ?>
-							<?php echo FormFieldHelper::text_input( 
-								'post_name', 
-								(string) ( $mod['post_name'] ?? '' ), 
-								array( 'id' => 'modpress-mod-slug', 'placeholder' => __( 'my-mod', 'modpress' ) ) 
-							); ?>
-						</div>
-						<div class="col-md-6">
-							<?php echo FormFieldHelper::label( 
-								'modpress-mod-author', 
-								__( 'Mod Author', 'modpress' ), 
-								array( 
-									'tooltip' => __( 'Choose the author assigned to this mod.', 'modpress' ), 
-									'description' => __( 'This is the WordPress user tied to the mod entry.', 'modpress' ) 
-								) 
-							); ?>
-						<?php if ( $can_edit_others ) : ?>
-							<?php echo FormFieldHelper::bootstrap_select(
-								'post_author',
+							<?php echo FormFieldHelper::label( 'modpress-mod-title', __( 'Mod Name', 'modpress' ) ); ?>
+							<?php echo FormFieldHelper::text_input(
+								'post_title',
+								(string) ( $mod['post_title'] ?? '' ),
 								array(
-									'data' => $author_options,
-									'selected' => (string) $author_id,
-									'id' => 'modpress-mod-author',
-									'live_search' => true,
+									'id' => 'modpress-mod-title',
+									'required' => true,
+									'placeholder' => __( 'My Mod', 'modpress' ),
+									'class' => 'w-100',
 								)
 							); ?>
-						<?php else : ?>
-							<?php echo FormFieldHelper::text_input( 
-								'post_author_display', 
-								$current_user_name, 
-								array( 
-									'id' => 'modpress-mod-author-display', 
-									'readonly' => true 
-								) 
-							); ?>
-							<input type="hidden" name="post_author" value="<?php echo esc_attr( (string) $author_id ); ?>" />
-						<?php endif; ?>
+							<div class="form-text"><?php esc_html_e( 'Set the public name for this mod.', 'modpress' ); ?></div>
 						</div>
 						<div class="col-md-6">
-							<?php echo FormFieldHelper::label( 
-								'modpress-mod-status', 
-								__( 'Status', 'modpress' ), 
-								array( 
-									'tooltip' => __( 'Control the published state of the mod.', 'modpress' ), 
-									'description' => __( 'This is the WordPress publishing state.', 'modpress' ) 
-								) 
-							); ?>
-							<?php echo FormFieldHelper::bootstrap_select(
-								'post_status',
+							<?php echo FormFieldHelper::label( 'modpress-mod-slug', __( 'Mod Slug', 'modpress' ) ); ?>
+							<?php echo FormFieldHelper::text_input(
+								'post_name',
+								(string) ( $mod['post_name'] ?? '' ),
 								array(
-									'data' => $status_options,
-									'selected' => (string) ( $mod['post_status'] ?? 'draft' ),
-									'id' => 'modpress-mod-status',
+									'id' => 'modpress-mod-slug',
+									'placeholder' => __( 'my-mod', 'modpress' ),
+									'class' => 'w-100',
 								)
 							); ?>
+							<div class="form-text"><?php esc_html_e( 'Used in URLs and internal references.', 'modpress' ); ?></div>
 						</div>
-						<div class="col-md-6">
-							<?php echo FormFieldHelper::label( 
-								'modpress-mod-development-status', 
-								__( 'Mod Status', 'modpress' ), 
-								array( 
-									'tooltip' => __( 'Track the release phase for this mod.', 'modpress' ), 
-									'description' => __( 'This status is used by ModPress for lifecycle tracking.', 'modpress' ) 
-								) 
-							); ?>
-							<?php echo FormFieldHelper::bootstrap_select(
-								'mod_status',
-								array(
-									'data' => $mod_status_options,
-									'selected' => (string) ( $mod['mod_status'] ?? 'draft' ),
-									'id' => 'modpress-mod-development-status',
-								)
-							); ?>
+						<div class="col-12">
+							<div class="row g-3 align-items-end">
+								<div class="col-md-4">
+									<?php echo FormFieldHelper::label(
+										'modpress-mod-author',
+										__( 'Mod Author', 'modpress' ),
+										array(
+											'tooltip' => __( 'Choose the author assigned to this mod.', 'modpress' ),
+										)
+									); ?>
+									<?php if ( $can_edit_others ) : ?>
+										<?php echo FormFieldHelper::bootstrap_select(
+											'post_author',
+											array(
+												'data' => $author_options,
+												'selected' => (string) $author_id,
+												'id' => 'modpress-mod-author',
+												'live_search' => true,
+											)
+										); ?>
+									<?php else : ?>
+										<?php echo FormFieldHelper::text_input(
+											'post_author_display',
+											$current_user_name,
+											array(
+												'id' => 'modpress-mod-author-display',
+												'readonly' => true,
+											)
+										); ?>
+										<input type="hidden" name="post_author" value="<?php echo esc_attr( (string) $author_id ); ?>" />
+									<?php endif; ?>
+									<?php echo FormFieldHelper::label(
+										'modpress-mod-author',
+										'',
+										array(
+											'description' => __( 'This is the WordPress user tied to the mod entry.', 'modpress' ),
+										)
+									); ?>
+								</div>
+								<div class="col-md-4">
+									<?php echo FormFieldHelper::label(
+										'modpress-mod-status',
+										__( 'Status', 'modpress' ),
+										array(
+											'tooltip' => __( 'Control the published state of the mod.', 'modpress' ),
+											'description' => __( 'This is the WordPress publishing state.', 'modpress' ),
+										)
+									); ?>
+									<?php echo FormFieldHelper::bootstrap_select(
+										'post_status',
+										array(
+											'data' => $status_options,
+											'selected' => (string) ( $mod['post_status'] ?? 'draft' ),
+											'id' => 'modpress-mod-status',
+										)
+									); ?>
+								</div>
+								<div class="col-md-4">
+									<?php echo FormFieldHelper::label(
+										'modpress-mod-development-status',
+										__( 'Mod Status', 'modpress' ),
+										array(
+											'tooltip' => __( 'Track the release phase for this mod.', 'modpress' ),
+											'description' => __( 'This status is used by ModPress for lifecycle tracking.', 'modpress' ),
+										)
+									); ?>
+									<?php echo FormFieldHelper::bootstrap_select(
+										'mod_status',
+										array(
+											'data' => $mod_status_options,
+											'selected' => (string) ( $mod['mod_status'] ?? 'draft' ),
+											'id' => 'modpress-mod-development-status',
+										)
+									); ?>
+								</div>
+							</div>
 						</div>
 						<div class="col-md-6">
 							<?php echo FormFieldHelper::label( 
