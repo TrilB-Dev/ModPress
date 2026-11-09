@@ -50,6 +50,20 @@ final class FunctionsImport {
 
         \check_admin_referer( 'modpress_import_group_defaults', 'modpress_import_group_defaults_nonce' );
 
+        $import_target = isset( $_POST['import_target'] ) ? sanitize_key( \wp_unslash( $_POST['import_target'] ) ) : '';
+
+        if ( 'modpress_file_type' === $import_target ) {
+            Defaults::default_file_type();
+            \wp_safe_redirect( \admin_url( 'admin.php?page=modpress&group=tools&tab=import&default_file_types_imported=1' ) );
+            exit;
+        }
+
+        if ( 'modpress_mod_status' === $import_target ) {
+            Defaults::default_mod_status();
+            \wp_safe_redirect( \admin_url( 'admin.php?page=modpress&group=tools&tab=import&default_mod_statuses_imported=1' ) );
+            exit;
+        }
+
         if ( empty( $_POST['confirm_default_reset'] ) || '1' !== (string) $_POST['confirm_default_reset'] ) {
             \wp_safe_redirect( \admin_url( 'admin.php?page=modpress&group=tools&tab=import&default_groups_import_failed=1' ) );
             exit;

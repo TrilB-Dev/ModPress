@@ -462,7 +462,7 @@ final class Defaults {
      * @return void
      * @since 1.0.0
      */
-    private static function default_file_type(): void {
+    public static function default_file_type(): void {
         $FileType = [
             '3DS'     => [
                 'name' => '3D Studio Scene'

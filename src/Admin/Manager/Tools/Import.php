@@ -71,6 +71,12 @@ final class Import extends ToolsManager {
 		if ( '1' === (string) ( $_GET['default_groups_import_failed'] ?? '' ) ) {
 			AlertHelper::render_admin_notice( \__( 'The default ModPress groups could not be imported.', 'modpress' ), 'error' );
 		}
+		if ( '1' === (string) ( $_GET['default_file_types_imported'] ?? '' ) ) {
+			AlertHelper::render_admin_notice( \__( 'The default ModPress file types were imported successfully.', 'modpress' ), 'success' );
+		}
+		if ( '1' === (string) ( $_GET['default_mod_statuses_imported'] ?? '' ) ) {
+			AlertHelper::render_admin_notice( \__( 'The default ModPress mod statuses were imported successfully.', 'modpress' ), 'success' );
+		}
 		?>
 		<form
 			method="post"
@@ -116,6 +122,45 @@ final class Import extends ToolsManager {
 					)
 				);
 				?>
+			</div>
+		</form>
+		<form
+			method="post"
+			action="<?php echo \esc_url( UrlHelper::admin_action( 'modpress_import_group_defaults' ) ); ?>"
+		>
+			<?php \wp_nonce_field( 'modpress_import_group_defaults', 'modpress_import_group_defaults_nonce' ); ?>
+			<input type="hidden" name="action" value="modpress_import_group_defaults" />
+			<input type="hidden" name="import_target" value="modpress_file_type" />
+			<div class="card-body">
+				<?php echo \wp_kses_post(
+					FormFieldHelper::button(
+						\__( 'Import File Types', 'modpress' ),
+						array(
+							'type'  => 'submit',
+							'class' => 'btn-warning',
+						)
+					)
+				); ?>
+			</div>
+		</form>
+
+		<form
+			method="post"
+			action="<?php echo \esc_url( UrlHelper::admin_action( 'modpress_import_group_defaults' ) ); ?>"
+		>
+			<?php \wp_nonce_field( 'modpress_import_group_defaults', 'modpress_import_group_defaults_nonce' ); ?>
+			<input type="hidden" name="action" value="modpress_import_group_defaults" />
+			<input type="hidden" name="import_target" value="modpress_mod_status" />
+			<div class="card-body">
+				<?php echo \wp_kses_post(
+					FormFieldHelper::button(
+						\__( 'Import Statuses', 'modpress' ),
+						array(
+							'type'  => 'submit',
+							'class' => 'btn-warning',
+						)
+					)
+				); ?>
 			</div>
 		</form>
 
