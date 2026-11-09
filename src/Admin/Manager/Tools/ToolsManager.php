@@ -12,6 +12,7 @@ use ModPress\Admin\Manager\Tools\Reset;
 use ModPress\Admin\Manager\Tools\Import;
 use ModPress\Admin\Manager\Tools\Export;
 use ModPress\Admin\Manager\Tools\General;
+use ModPress\Admin\Manager\Tools\Licencing;
 use ModPress\Assets\Assets;
 use ModPress\Includes\Functions\Helpers\RequestHelper;
 use ModPress\Includes\Functions\Helpers\SanitizationHelper;
@@ -51,6 +52,7 @@ class ToolsManager extends Manager {
 			'import' => 'modpress_tools_import',
 			'export' => 'modpress_tools_export',
 			'general' => 'modpress_tools_general',
+			'licencing' => 'modpress_tools_licencing',
 		);
 		if ( ! PermissionHelper::can( $capabilities[ $tool ] ) ) {
 			wp_die( esc_html__( 'You are not authorized to access this ModPress tool.', 'modpress' ) );
@@ -76,7 +78,7 @@ class ToolsManager extends Manager {
 			$tool = RequestHelper::get_key( 'tab', 'debug' );
 		}
 
-		$valid_tools = array( 'debug', 'reset', 'import', 'export', 'general' );
+		$valid_tools = array( 'debug', 'reset', 'import', 'export', 'general', 'licencing' );
 		return in_array( $tool, $valid_tools, true ) ? $tool : 'debug';
 	}
 
@@ -99,6 +101,8 @@ class ToolsManager extends Manager {
 				return new Reset();
 			case 'export':
 				return new Export();
+			case 'licencing':
+				return new Licencing();
 		}
 	}
 	/**
@@ -125,6 +129,7 @@ class ToolsManager extends Manager {
 			'import' => __( 'Import', 'modpress' ),
 			'export' => __( 'Export', 'modpress' ),
 			'general' => __( 'General', 'modpress' ),
+			'licencing' => __( 'Licencing', 'modpress' ),
 		)[ $tool ];
 	}
 }
