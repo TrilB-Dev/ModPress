@@ -70,6 +70,7 @@ yarn-error.log*
 #phpunit.xml
 #tests/
 coverage/
+code/*
 
 # Local development
 local-config.php

@@ -350,13 +350,7 @@ final class Mods extends ModManager {
 								}
 							}
 							$selected_group_values[ $taxonomy_key ] = $taxonomy_selected;
-
-							$parent_group_values = GroupsManager::normalize_parent_values( $group_config['group_parent'] ?? array() );
-							$parent_entry_values = GroupsManager::normalize_parent_values( $group_config['group_parent_entry'] ?? array() );
 							$should_show_group = GroupsManager::should_show_group( $taxonomy_key, $selected_group_values, $group_taxonomies );
-							if ( ! empty( $parent_group_values ) && empty( $parent_entry_values ) ) {
-								$should_show_group = true;
-							}
 							$parent_group = '';
 							$parent_entries = array();
 							if ( ! empty( $group_config['group_parent'] ?? array() ) ) {
