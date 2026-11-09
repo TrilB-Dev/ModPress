@@ -25,6 +25,7 @@ final class PostTypes {
 		self::mods_posttype();
 		self::changelog_posttype();
 		self::file_posttype();
+		self::licence_posttype();
 	}
 
 	/**
@@ -43,7 +44,7 @@ final class PostTypes {
 				'label'           => __( 'Mods', 'modpress' ),
 				'description'     => __( 'Mod entries managed by ModPress.', 'modpress' ),
 				'supports'        => array( 'title', 'editor', 'thumbnail', 'comments', 'trackbacks', 'revisions', 'custom-fields', 'page-attributes', 'post-formats' ),
-				'taxonomies'      => array( 'modpress_mod_group', 'modpress_mod_tag' ),
+				'taxonomies'      => array( 'modpress_mod_status', 'modpress_mod_tag', 'modpress_file_type', 'modpress_licence_type' ),
 				'public'          => true,
 				'show_ui'         => true,
 				'show_in_menu'    => false,
@@ -128,7 +129,7 @@ final class PostTypes {
 				'label'           => __( 'Licences', 'modpress' ),
 				'description'     => __( 'Digital licences managed by ModPress.', 'modpress' ),
 				'supports'        => array( 'title', 'editor', 'thumbnail', 'comments', 'trackbacks', 'revisions', 'custom-fields', 'page-attributes', 'post-formats' ),
-				'taxonomies'      => '',
+				'taxonomies'      => array( 'modpress_licence_type' ),
 				'public'          => true,
 				'show_ui'         => true,
 				'show_in_menu'    => false,

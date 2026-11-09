@@ -16,10 +16,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Defaults {
+    /**
+     * Constructor for the Defaults class.
+     *
+     * @since 1.0.0
+     */
 	public function __construct() {
 		// Initialize default values here.
 	}
-
+    /**
+     * Install all default values for the plugin.
+     *
+     * @return void
+     * @since 1.0.0
+     */
 	public static function install_defaults(): void {
 		self::default_types();
 		self::default_mod_status();
@@ -35,7 +45,12 @@ final class Defaults {
 		self::default_licences();
 		self::default_groups();
 	}
-
+    /**
+     * Reset the default groups by deleting and recreating the groups table.
+     *
+     * @return bool True on success, false on failure.
+     * @since 1.0.0
+     */
 	public static function reset_group_defaults(): bool {
 		self::delete_default_terms();
 
@@ -51,7 +66,12 @@ final class Defaults {
 		self::install_defaults();
 		return true;
 	}
-
+    /**
+     * Delete all default terms for the plugin's taxonomies.
+     *
+     * @return void
+     * @since 1.0.0
+     */
 	private static function delete_default_terms(): void {
 		$taxonomies = array_unique( array_merge(
 			get_taxonomies( array(), 'names' ),
@@ -92,12 +112,24 @@ final class Defaults {
 			}
 		}
 	}
-
+    /**
+     * Encode an array of parent IDs into a serialized string.
+     *
+     * @param array $ids The array of parent IDs.
+     * @return string|null The serialized string of parent IDs or null if empty.
+     * @since 1.0.0
+     */
 	private static function encode_parent_ids( array $ids = array() ): ?string {
 		$values = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
 		return empty( $values ) ? null : serialize( $values );
 	}
-
+    /**
+     * Get a map of term slugs to term IDs for a given taxonomy.
+     *
+     * @param string $taxonomy The taxonomy to retrieve terms for.
+     * @return array An associative array mapping term slugs to term IDs.
+     * @since 1.0.0
+     */
 	private static function get_term_id_map( string $taxonomy ): array {
 		$terms = get_terms(
 			array(

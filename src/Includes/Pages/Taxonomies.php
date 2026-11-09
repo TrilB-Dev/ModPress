@@ -147,23 +147,23 @@ final class Taxonomies {
 	}
 
 	public static function licence_taxonomy(): bool {
-		if ( taxonomy_exists( 'modpress_licence' ) ) {
+		if ( taxonomy_exists( 'modpress_licence_type' ) ) {
 			return false;
 		}
 
 		return Taxonomy::create(
-			'modpress_licence',
+			'modpress_licence_type',
 			array(
-				'label'             => __( 'Licences', 'modpress' ),
-				'description'       => __( 'Licences used to describe mods.', 'modpress' ),
-				'post_type'       	=> array( 'modpress_mod' ),
+				'label'             => __( 'Licence Type', 'modpress' ),
+				'description'       => __( 'Licence types are groups of digital licence policies.', 'modpress' ),
+				'post_type'       	=> array( 'modpress_mod', 'modpress_licence' ),
 				'hierarchical'      => true,
 				'public'            => true,
 				'show_ui'           => true,
 				'show_in_menu'      => false,
 				'show_admin_column' => true,
 				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => 'mod-licences' ),
+				'rewrite'           => array( 'slug' => 'mod-licence-type' ),
 			)
 		);
 	}
