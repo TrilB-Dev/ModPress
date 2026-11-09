@@ -1550,8 +1550,10 @@
             if (parentEntryRow && parentEntrySelect) {
                 parentEntryRow.classList.toggle('d-none', '' === parentValue);
             }
-            populateParentEntryOptions(getGroupParentEntries(parentValue, modal), parentEntrySelect ? getSelectedValues(parentEntrySelect) : [], modal);
+
             if (parentEntrySelect) {
+                setSelectedValues(parentEntrySelect, []);
+                populateParentEntryOptions(getGroupParentEntries(parentValue, modal), [], modal);
                 refreshBootstrapSelect(parentEntrySelect);
             }
         }

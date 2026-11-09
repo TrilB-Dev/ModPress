@@ -657,7 +657,7 @@ final class ModGroups extends ModManager {
 		$custom_fields_accordion_id = $modal_id . '-custom-fields-accordion';
 		$custom_field_template_id = $modal_id . '-custom-field-template';
 		?>
-		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-key="<?php echo esc_attr( $selected_group_key ); ?>" data-group-fields="<?php echo esc_attr( wp_json_encode( $selected_group_fields ) ); ?>">
+		<div class="modal fade" id="<?php echo esc_attr( $modal_id ); ?>" tabindex="-1" aria-labelledby="<?php echo esc_attr( $modal_id . '-title' ); ?>" aria-hidden="true" data-group-key="<?php echo esc_attr( $selected_group_key ); ?>" data-group-fields="<?php echo esc_attr( wp_json_encode( $selected_group_fields ) ); ?>" data-group-entries="<?php echo esc_attr( wp_json_encode( $group_entries ) ); ?>">
 			<div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" role="document">
 				<div class="modal-content" style="overflow-y: scroll;">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="<?php echo esc_attr( $save_form_id ); ?>" data-role="group-save-form">
