@@ -64,6 +64,7 @@ final class ModGroups extends ModManager {
 				'group_singular_name' => (string) ( $group['group_singular_name'] ?? '' ),
 				'group_description'  => (string) ( $group['group_description'] ?? '' ),
 				'group_hierarchical' => ! empty( $group['group_hierarchical'] ),
+				'group_multiselect'  => ! empty( $group['group_multiselect'] ),
 				'group_parent'       => FunctionsMod::normalize_group_parent_values( $group['group_parent'] ?? array() ),
 				'group_parent_entry' => FunctionsMod::normalize_group_parent_values( $group['group_parent_entry'] ?? array() ),
 				'group_fields'       => isset( $group['group_fields'] ) ? $group['group_fields'] : null,
