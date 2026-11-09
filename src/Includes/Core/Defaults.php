@@ -463,680 +463,914 @@ final class Defaults {
      * @since 1.0.0
      */
     public static function default_file_type(): void {
-        $FileType = [
-            '3DS'     => [
-                'name' => '3D Studio Scene'
+        $file_types = [
+            '3DS' => [
+                'slug' => '3ds',
+                'description' => '3D Studio Scene',
+            ],
+            '3G2' => [
+                'slug' => '3g2',
+                'description' => '3GPP2 Multimedia File',
+            ],
+            '3GP' => [
+                'slug' => '3gp',
+                'description' => '3GPP Multimedia File',
+            ],
+            '7Z' => [
+                'slug' => '7z',
+                'description' => '7-Zip Compressed File',
+            ],
+            'AAC' => [
+                'slug' => 'aac',
+                'description' => 'Advanced Audio Coding',
+            ],
+            'ACCDB' => [
+                'slug' => 'accdb',
+                'description' => 'Access 2007 Database',
+            ],
+            'AE' => [
+                'slug' => 'ae',
+                'description' => 'Adobe After Effects',
+            ],
+            'AEP' => [
+                'slug' => 'aep',
+                'description' => 'After Effects Project',
+            ],
+            'AEPX' => [
+                'slug' => 'aepx',
+                'description' => 'After Effects XML Project',
+            ],
+            'AI' => [
+                'slug' => 'ai',
+                'description' => 'Adobe Illustrator',
+            ],
+            'AIF' => [
+                'slug' => 'aif',
+                'description' => 'Audio Interchange File Format',
+            ],
+            'AIFF' => [
+                'slug' => 'aiff',
+                'description' => 'Audio Interchange File Format',
+            ],
+            'ALAC' => [
+                'slug' => 'alac',
+                'description' => 'Apple Lossless Audio Codec',
+            ],
+            'AMR' => [
+                'slug' => 'amr',
+                'description' => 'Adaptive Multi-Rate Codec',
+            ],
+            'AN' => [
+                'slug' => 'an',
+                'description' => 'Adobe Animate',
+            ],
+            'APK' => [
+                'slug' => 'apk',
+                'description' => 'Android Package',
+            ],
+            'APP' => [
+                'slug' => 'app',
+                'description' => 'Application Package',
+            ],
+            'AR' => [
+                'slug' => 'ar',
+                'description' => 'Adobe Aero',
+            ],
+            'ARJ' => [
+                'slug' => 'arj',
+                'description' => 'ARJ Compressed File',
+            ],
+            'ARW' => [
+                'slug' => 'arw',
+                'description' => 'Sony Digital Camera Image',
+            ],
+            'AU' => [
+                'slug' => 'au',
+                'description' => 'Adobe Audition',
+            ],
+            'AVI' => [
+                'slug' => 'avi',
+                'description' => 'Audio Video Interleave',
+            ],
+            'AZW' => [
+                'slug' => 'azw',
+                'description' => 'Amazon Kindle eBook',
+            ],
+            'BAK' => [
+                'slug' => 'bak',
+                'description' => 'Backup File',
+            ],
+            'BASH' => [
+                'slug' => 'bash',
+                'description' => 'Bash Script File',
+            ],
+            'BAT' => [
+                'slug' => 'bat',
+                'description' => 'Batch File',
             ],
-            '3G2'     => [
-                'name' => '3GPP2 Multimedia File'
+            'BIN' => [
+                'slug' => 'bin',
+                'description' => 'OS Disk Image',
             ],
-            '3GP'     => [
-                'name' => '3GPP Multimedia File'
+            'BLEND' => [
+                'slug' => 'blend',
+                'description' => 'Blender Project File',
             ],
-            '7Z'      => [
-                'name' => '7-Zip Compressed File'
+            'BMP' => [
+                'slug' => 'bmp',
+                'description' => 'Blender Project File',
             ],
-            'AAC'     => [
-                'name' => 'Advanced Audio Coding'
+            'C' => [
+                'slug' => 'c',
+                'description' => 'C Source File',
             ],
-            'ACCDB'   => [
-                'name' => 'Access 2007 Database'
+            'C++' => [
+                'slug' => 'c-plus-plus',
+                'description' => 'C++ Source File',
             ],
-            'AE'      => [
-                'name' => 'Adobe After Effects'
+            'C4D' => [
+                'slug' => 'c4d',
+                'description' => 'Cinema 4D Project',
             ],
-            'AEP'     => [
-                'name' => 'After Effects Project'
+            'CER' => [
+                'slug' => 'cer',
+                'description' => 'Internet Security Certificate',
             ],
-            'AEPX'    => [
-                'name' => 'After Effects XML Project'
+            'CFG' => [
+                'slug' => 'cfg',
+                'description' => 'Configuration File',
             ],
-            'AI'      => [
-                'name' => 'Adobe Illustrator'
+            'CGI' => [
+                'slug' => 'cgi',
+                'description' => 'Common Gateway Interface Script',
             ],
-            'AIF'     => [
-                'name' => 'Audio Interchange File Format'
+            'CH' => [
+                'slug' => 'ch',
+                'description' => 'Adobe Character Animator',
             ],
-            'AIFF'    => [
-                'name' => 'Audio Interchange File Format'
+            'CPP' => [
+                'slug' => 'cpp',
+                'description' => 'C++ Source Code',
             ],
-            'ALAC'    => [
-                'name' => 'Apple Lossless Audio Codec'
+            'CR2' => [
+                'slug' => 'cr2',
+                'description' => 'Canon Raw Image',
             ],
-            'AMR'     => [
-                'name' => 'Adaptive Multi-Rate Codec'
+            'CRT' => [
+                'slug' => 'crt',
+                'description' => 'Security Certificate',
             ],
-            'AN'      => [
-                'name' => 'Adobe Animate'
+            'CS' => [
+                'slug' => 'cs',
+                'description' => 'C# Source File',
             ],
-            'APK'     => [
-                'name' => 'Android Package'
+            'CSS' => [
+                'slug' => 'css',
+                'description' => 'Cascading Style Sheets',
             ],
-            'APP'     => [
-                'name' => 'Application Package'
+            'CSV' => [
+                'slug' => 'csv',
+                'description' => 'Comma-Separated Values',
             ],
-            'AR'      => [
-                'name' => 'Adobe Aero'
+            'CUE' => [
+                'slug' => 'cue',
+                'description' => 'Disk Image Cue Sheet',
             ],
-            'ARJ'     => [
-                'name' => 'ARJ Compressed File'
+            'DAE' => [
+                'slug' => 'dae',
+                'description' => 'Digital Asset Exchange',
             ],
-            'ARW'     => [
-                'name' => 'Sony Digital Camera Image'
+            'DB' => [
+                'slug' => 'db',
+                'description' => 'Database File',
             ],
-            'AU'      => [
-                'name' => 'Adobe Audition'
+            'DEB' => [
+                'slug' => 'deb',
+                'description' => 'Debian Software Package',
             ],
-            'AVI'     => [
-                'name' => 'Audio Video Interleave'
+            'DJVU' => [
+                'slug' => 'djvu',
+                'description' => 'DjVu Document',
             ],
-            'AZW'     => [
-                'name' => 'Amazon Kindle eBook'
+            'DLL' => [
+                'slug' => 'dll',
+                'description' => 'Dynamic Link Library',
             ],
-            'BAK'     => [
-                'name' => 'Backup File'
+            'DMG' => [
+                'slug' => 'dmg',
+                'description' => 'Apple Disk Image',
             ],
-            'BASH'    => [
-                'name' => 'Bash Script File'
+            'DN' => [
+                'slug' => 'dn',
+                'description' => 'Adobe Dimension Project',
             ],
-            'BAT'     => [
-                'name' => 'Batch File'
+            'DNG' => [
+                'slug' => 'dng',
+                'description' => 'Digital Negative Image',
             ],
-            'BIN'     => [
-                'name' => 'OS Disk Image'
+            'DOC' => [
+                'slug' => 'doc',
+                'description' => 'Microsoft Word Document',
             ],
-            'BLEND'   => [
-                'name' => 'Blender Project File'
+            'DOCX' => [
+                'slug' => 'docx',
+                'description' => 'Microsoft Word Open XML Document',
             ],
-            'BMP'     => [
-                'name' => 'Blender Project File'
+            'DRV' => [
+                'slug' => 'drv',
+                'description' => 'Device Driver',
             ],
-            'C'       => [
-                'name' => 'C Source File'
+            'DSD' => [
+                'slug' => 'dsd',
+                'description' => 'Super Audio CD',
             ],
-            'C++'     => [
-                'name' => 'C++ Source File'
+            'DW' => [
+                'slug' => 'dw',
+                'description' => 'Autodesk Drawing File',
             ],
-            'C4D'     => [
-                'name' => 'Cinema 4D Project'
+            'EPS' => [
+                'slug' => 'eps',
+                'description' => 'Encapsulated PostScript',
             ],
-            'CER'     => [
-                'name' => 'Internet Security Certificate'
+            'EPUB' => [
+                'slug' => 'epub',
+                'description' => 'ePublication File',
             ],
-            'CFG'     => [
-                'name' => 'Configuration File'
+            'EXE' => [
+                'slug' => 'exe',
+                'description' => 'Executable File',
             ],
-            'CGI'     => [
-                'name' => 'Common Gateway Interface Script'
+            'FBX' => [
+                'slug' => 'fbx',
+                'description' => 'Autodesk Filmbox Format',
             ],
-            'CH'      => [
-                'name' => 'Adobe Character Animator'
+            'FIG' => [
+                'slug' => 'fig',
+                'description' => 'Figma',
             ],
-            'CPP'     => [
-                'name' => 'C++ Source Code'
+            'FLAC' => [
+                'slug' => 'flac',
+                'description' => 'Free Lossless Audio Codec',
             ],
-            'CR2'     => [
-                'name' => 'Canon Raw Image'
+            'FLV' => [
+                'slug' => 'flv',
+                'description' => 'Flash Video File',
             ],
-            'CRT'     => [
-                'name' => 'Security Certificate'
+            'FNT' => [
+                'slug' => 'fnt',
+                'description' => 'Font File',
             ],
-            'CS'      => [
-                'name' => 'C# Source File'
+            'FON' => [
+                'slug' => 'fon',
+                'description' => 'Font File',
             ],
-            'CSS'     => [
-                'name' => 'Cascading Style Sheets'
-            ],
-            'CSV'     => [
-                'name' => 'Comma-Separated Values'
-            ],
-            'CUE'     => [
-                'name' => 'Disk Image Cue Sheet'
-            ],
-            'DAE'     => [
-                'name' => 'Digital Asset Exchange'
-            ],
-            'DB'      => [
-                'name' => 'Database File'
-            ],
-            'DEB'     => [
-                'name' => 'Debian Software Package'
-            ],
-            'DJVU'    => [
-                'name' => 'DjVu Document'
-            ],
-            'DLL'     => [
-                'name' => 'Dynamic Link Library'
-            ],
-            'DMG'     => [
-                'name' => 'Apple Disk Image'
-            ],
-            'DN'      => [
-                'name' => 'Adobe Dimension Project'
-            ],
-            'DNG'     => [
-                'name' => 'Digital Negative Image'
-            ],
-            'DOC'     => [
-                'name' => 'Microsoft Word Document'
-            ],
-            'DOCX'    => [
-                'name' => 'Microsoft Word Open XML Document'
-            ],
-            'DRV'     => [
-                'name' => 'Device Driver'
-            ],
-            'DSD'     => [
-                'name' => 'Super Audio CD'
-            ],
-            'DW'      => [
-                'name' => 'Autodesk Drawing File'
-            ],
-            'EPS'     => [
-                'name' => 'Encapsulated PostScript'
-            ],
-            'EPUB'    => [
-                'name' => 'ePublication File'
-            ],
-            'EXE'     => [
-                'name' => 'Executable File'
-            ],
-            'FBX'     => [
-                'name' => 'Autodesk Filmbox Format'
-            ],
-            'FIG'     => [
-                'name' => 'Figma'
-            ],
-            'FLAC'    => [
-                'name' => 'Free Lossless Audio Codec'
-            ],
-            'FLV'     => [
-                'name' => 'Flash Video File'
-            ],
-            'FNT'     => [
-                'name' => 'Font File'
-            ],
-            'FON'     => [
-                'name' => 'Font File'
-            ],
-            'FR'      => [
-                'name' => 'Adobe FrameMaker File'
+            'FR' => [
+                'slug' => 'fr',
+                'description' => 'Adobe FrameMaker File',
             ],
             'GEOJSON' => [
-                'name' => 'Geographic JSON File'
-            ],
-            'GIF'     => [
-                'name' => 'Graphics Interchange Format'
-            ],
-            'GLB'     => [
-                'name' => 'GL Transmission Format (Binary)'
-            ],
-            'GLTF'    => [
-                'name' => 'GL Transmission Format'
-            ],
-            'GPG'     => [
-                'name' => 'GNU Privacy Guard File'
-            ],
-            'GPX'     => [
-                'name' => 'GPS Exchange Format'
-            ],
-            'GZ'      => [
-                'name' => 'Gzip Compressed File'
-            ],
-            'H5'      => [
-                'name' => 'HDF5 File Format'
-            ],
-            'HDF5'    => [
-                'name' => 'Hierarchical Data Format'
-            ],
-            'HTM'     => [
-                'name' => 'HyperText Markup Language'
-            ],
-            'HTML'    => [
-                'name' => 'HyperText Markup Language'
-            ],
-            'IC'      => [
-                'name' => 'Adobe InCopy'
-            ],
-            'ICO'     => [
-                'name' => 'Windows Icon File'
-            ],
-            'ID'      => [
-                'name' => 'Adobe InDesign'
-            ],
-            'IMG'     => [
-                'name' => 'Disk Image File'
-            ],
-            'INI'     => [
-                'name' => 'Initialization File'
-            ],
-            'ISO'     => [
-                'name' => 'Disc Image File'
-            ],
-            'JAVA'    => [
-                'name' => 'Java Source File'
-            ],
-            'JPEG'    => [
-                'name' => 'JPEG Image'
-            ],
-            'JPG'     => [
-                'name' => 'JPEG Image'
-            ],
-            'JS'      => [
-                'name' => 'JavaScript File'
-            ],
-            'JSON'    => [
-                'name' => 'JavaScript Object Notation'
-            ],
-            'JSX'     => [
-                'name' => 'JavaScript XML'
-            ],
-            'KEY'     => [
-                'name' => 'Apple Keynote File'
-            ],
-            'KML'     => [
-                'name' => 'Keyhole Markup Language'
-            ],
-            'KMZ'     => [
-                'name' => 'Compressed KML File'
-            ],
-            'LOG'     => [
-                'name' => 'Log File'
-            ],
-            'LOTTIE'  => [
-                'name' => 'Lottie Animation File'
-            ],
-            'LR'      => [
-                'name' => 'Adobe Lightroom'
-            ],
-            'LRC'     => [
-                'name' => 'Lyrics File - Adobe Audition'
-            ],
-            'LXO'     => [
-                'name' => 'Luxology Modo Scene'
-            ],
-            'M4A'     => [
-                'name' => 'MPEG-4 Audio'
-            ],
-            'M4V'     => [
-                'name' => 'MPEG-4 Video'
-            ],
-            'MA'      => [
-                'name' => 'Autodesk Maya ASCII Scene'
-            ],
-            'MAT'     => [
-                'name' => 'MATLAB Data File'
-            ],
-            'MAX'     => [
-                'name' => '3ds Max Scene File'
-            ],
-            'MB'      => [
-                'name' => 'Maya Binary Scene File'
-            ],
-            'MDB'     => [
-                'name' => 'Microsoft Access Database'
-            ],
-            'ME'      => [
-                'name' => 'Adobe Media Encoder'
-            ],
-            'MKV'     => [
-                'name' => 'Matroska Video File'
-            ],
-            'MO'      => [
-                'name' => 'Machine Object File'
-            ],
-            'MOBI'    => [
-                'name' => 'Kindle eBook'
-            ],
-            'MOGRT'   => [
-                'name' => 'Motion Graphics Template'
-            ],
-            'MOV'     => [
-                'name' => 'Apple QuickTime Movie'
-            ],
-            'MP3'     => [
-                'name' => 'MP3 Audio File'
-            ],
-            'MP4'     => [
-                'name' => 'MPEG-4 Video File'
-            ],
-            'MPG'     => [
-                'name' => 'MPEG Video File'
-            ],
-            'MSG'     => [
-                'name' => 'Outlook Email Message'
-            ],
-            'MSI'     => [
-                'name' => 'Microsoft Installer Package'
-            ],
-            'MTL'     => [
-                'name' => 'Material Template Library'
-            ],
-            'NEF'     => [
-                'name' => 'Nikon Electronic Format'
-            ],
-            'OBB'     => [
-                'name' => 'Opaque Binary Blob'
-            ],
-            'OBJ'     => [
-                'name' => 'Wavefront 3D Object'
-            ],
-            'ODP'     => [
-                'name' => 'OpenDocument Presentation'
-            ],
-            'ODS'     => [
-                'name' => 'OpenDocument Spreadsheet'
-            ],
-            'ODT'     => [
-                'name' => 'OpenDocument Text'
-            ],
-            'OGG'     => [
-                'name' => 'Ogg Vorbis Audio'
-            ],
-            'ONNX'    => [
-                'name' => 'Open Neural Network Exchange'
-            ],
-            'OPUS'    => [
-                'name' => 'Opus Audio Format'
-            ],
-            'ORF'     => [
-                'name' => 'Olympus Raw File'
-            ],
-            'OST'     => [
-                'name' => 'Outlook Offline Data'
-            ],
-            'OTF'     => [
-                'name' => 'OpenType Font'
-            ],
-            'P'       => [
-                'name' => 'PowerPoint Presentation'
-            ],
-            'PAT'     => [
-                'name' => 'Pattern File'
-            ],
-            'PB'      => [
-                'name' => 'TensorFlow Model File'
-            ],
-            'PCM'     => [
-                'name' => 'Pulse-Code Modulation'
-            ],
-            'PDF'     => [
-                'name' => 'Portable Document Format'
-            ],
-            'PEF'     => [
-                'name' => 'Pentax Raw Image'
-            ],
-            'PEM'     => [
-                'name' => 'Cryptographic Key File'
-            ],
-            'PFX'     => [
-                'name' => 'Personal Information Exchange File'
-            ],
-            'PHP'     => [
-                'name' => 'PHP Script'
-            ],
-            'PKG'     => [
-                'name' => 'Mac OS X Installer'
-            ],
-            'PL'      => [
-                'name' => 'Adobe Prelude'
-            ],
-            'PLY'     => [
-                'name' => '3D Scan File (Polygon File Format)'
-            ],
-            'PNG'     => [
-                'name' => 'Portable Network Graphics'
-            ],
-            'PPT'     => [
-                'name' => 'PowerPoint Presentation'
-            ],
-            'PPTX'    => [
-                'name' => 'PowerPoint Open XML Presentation'
-            ],
-            'PR'      => [
-                'name' => 'Adobe Premiere Pro'
-            ],
-            'PRJ'     => [
-                'name' => 'Project Dependency File'
-            ],
-            'PRPROJ'  => [
-                'name' => 'Premiere Pro Project'
-            ],
-            'PS'      => [
-                'name' => 'Adobe Photoshop'
-            ],
-            'PS1'     => [
-                'name' => 'PowerShell Script'
-            ],
-            'PSC'     => [
-                'name' => 'Adobe Presenter Content'
-            ],
-            'PSD'     => [
-                'name' => 'Adobe Photoshop Document'
-            ],
-            'PSDT'    => [
-                'name' => 'Photoshop Template'
-            ],
-            'PST'     => [
-                'name' => 'Outlook Email Backup'
-            ],
-            'PSX'     => [
-                'name' => 'Adobe Photoshop Extended'
-            ],
-            'PT'      => [
-                'name' => 'Microsoft PowerPoint File'
-            ],
-            'PTH'     => [
-                'name' => 'PyTorch Model File'
-            ],
-            'PTX'     => [
-                'name' => 'Pro Tools Session File'
-            ],
-            'PY'      => [
-                'name' => 'Python Script'
-            ],
-            'RAF'     => [
-                'name' => 'Fujifilm RAW File'
-            ],
-            'RAR'     => [
-                'name' => 'RAR Archive'
-            ],
-            'RAW'     => [
-                'name' => 'Raw Image File'
-            ],
-            'RB'      => [
-                'name' => 'Ruby Script'
-            ],
-            'RDATA'   => [
-                'name' => 'R Language Data File'
-            ],
-            'RESUME'  => [
-                'name' => 'Resume File'
-            ],
-            'RM'      => [
-                'name' => 'RealMedia File'
-            ],
-            'RMVB'    => [
-                'name' => 'RealMedia Variable Bitrate'
-            ],
-            'RPM'     => [
-                'name' => 'Red Hat Linux Package'
-            ],
-            'RTF'     => [
-                'name' => 'Rich Text Format'
-            ],
-            'RU'      => [
-                'name' => 'Adobe Rush Project'
-            ],
-            'RVT'     => [
-                'name' => 'Revit Project File'
+                'slug' => 'geojson',
+                'description' => 'Geographic JSON File',
+            ],
+            'GIF' => [
+                'slug' => 'gif',
+                'description' => 'Graphics Interchange Format',
+            ],
+            'GLB' => [
+                'slug' => 'glb',
+                'description' => 'GL Transmission Format (Binary)',
+            ],
+            'GLTF' => [
+                'slug' => 'gltf',
+                'description' => 'GL Transmission Format',
+            ],
+            'GPG' => [
+                'slug' => 'gpg',
+                'description' => 'GNU Privacy Guard File',
+            ],
+            'GPX' => [
+                'slug' => 'gpx',
+                'description' => 'GPS Exchange Format',
+            ],
+            'GZ' => [
+                'slug' => 'gz',
+                'description' => 'Gzip Compressed File',
+            ],
+            'H5' => [
+                'slug' => 'h5',
+                'description' => 'HDF5 File Format',
+            ],
+            'HDF5' => [
+                'slug' => 'hdf5',
+                'description' => 'Hierarchical Data Format',
+            ],
+            'HTM' => [
+                'slug' => 'htm',
+                'description' => 'HyperText Markup Language',
+            ],
+            'HTML' => [
+                'slug' => 'html',
+                'description' => 'HyperText Markup Language',
+            ],
+            'IC' => [
+                'slug' => 'ic',
+                'description' => 'Adobe InCopy',
+            ],
+            'ICO' => [
+                'slug' => 'ico',
+                'description' => 'Windows Icon File',
+            ],
+            'ID' => [
+                'slug' => 'id',
+                'description' => 'Adobe InDesign',
+            ],
+            'IMG' => [
+                'slug' => 'img',
+                'description' => 'Disk Image File',
+            ],
+            'INI' => [
+                'slug' => 'ini',
+                'description' => 'Initialization File',
+            ],
+            'ISO' => [
+                'slug' => 'iso',
+                'description' => 'Disc Image File',
+            ],
+            'JAVA' => [
+                'slug' => 'java',
+                'description' => 'Java Source File',
+            ],
+            'JPEG' => [
+                'slug' => 'jpeg',
+                'description' => 'JPEG Image',
+            ],
+            'JPG' => [
+                'slug' => 'jpg',
+                'description' => 'JPEG Image',
+            ],
+            'JS' => [
+                'slug' => 'js',
+                'description' => 'JavaScript File',
+            ],
+            'JSON' => [
+                'slug' => 'json',
+                'description' => 'JavaScript Object Notation',
+            ],
+            'JSX' => [
+                'slug' => 'jsx',
+                'description' => 'JavaScript XML',
+            ],
+            'KEY' => [
+                'slug' => 'key',
+                'description' => 'Apple Keynote File',
+            ],
+            'KML' => [
+                'slug' => 'kml',
+                'description' => 'Keyhole Markup Language',
+            ],
+            'KMZ' => [
+                'slug' => 'kmz',
+                'description' => 'Compressed KML File',
+            ],
+            'LOG' => [
+                'slug' => 'log',
+                'description' => 'Log File',
+            ],
+            'LOTTIE' => [
+                'slug' => 'lottie',
+                'description' => 'Lottie Animation File',
+            ],
+            'LR' => [
+                'slug' => 'lr',
+                'description' => 'Adobe Lightroom',
+            ],
+            'LRC' => [
+                'slug' => 'lrc',
+                'description' => 'Lyrics File - Adobe Audition',
+            ],
+            'LXO' => [
+                'slug' => 'lxo',
+                'description' => 'Luxology Modo Scene',
+            ],
+            'M4A' => [
+                'slug' => 'm4a',
+                'description' => 'MPEG-4 Audio',
+            ],
+            'M4V' => [
+                'slug' => 'm4v',
+                'description' => 'MPEG-4 Video',
+            ],
+            'MA' => [
+                'slug' => 'ma',
+                'description' => 'Autodesk Maya ASCII Scene',
+            ],
+            'MAT' => [
+                'slug' => 'mat',
+                'description' => 'MATLAB Data File',
+            ],
+            'MAX' => [
+                'slug' => 'max',
+                'description' => '3ds Max Scene File',
+            ],
+            'MB' => [
+                'slug' => 'mb',
+                'description' => 'Maya Binary Scene File',
+            ],
+            'MDB' => [
+                'slug' => 'mdb',
+                'description' => 'Microsoft Access Database',
+            ],
+            'ME' => [
+                'slug' => 'me',
+                'description' => 'Adobe Media Encoder',
+            ],
+            'MKV' => [
+                'slug' => 'mkv',
+                'description' => 'Matroska Video File',
+            ],
+            'MO' => [
+                'slug' => 'mo',
+                'description' => 'Machine Object File',
+            ],
+            'MOBI' => [
+                'slug' => 'mobi',
+                'description' => 'Kindle eBook',
+            ],
+            'MOGRT' => [
+                'slug' => 'mogrt',
+                'description' => 'Motion Graphics Template',
+            ],
+            'MOV' => [
+                'slug' => 'mov',
+                'description' => 'Apple QuickTime Movie',
+            ],
+            'MP3' => [
+                'slug' => 'mp3',
+                'description' => 'MP3 Audio File',
+            ],
+            'MP4' => [
+                'slug' => 'mp4',
+                'description' => 'MPEG-4 Video File',
+            ],
+            'MPG' => [
+                'slug' => 'mpg',
+                'description' => 'MPEG Video File',
+            ],
+            'MSG' => [
+                'slug' => 'msg',
+                'description' => 'Outlook Email Message',
+            ],
+            'MSI' => [
+                'slug' => 'msi',
+                'description' => 'Microsoft Installer Package',
+            ],
+            'MTL' => [
+                'slug' => 'mtl',
+                'description' => 'Material Template Library',
+            ],
+            'NEF' => [
+                'slug' => 'nef',
+                'description' => 'Nikon Electronic Format',
+            ],
+            'OBB' => [
+                'slug' => 'obb',
+                'description' => 'Opaque Binary Blob',
+            ],
+            'OBJ' => [
+                'slug' => 'obj',
+                'description' => 'Wavefront 3D Object',
+            ],
+            'ODP' => [
+                'slug' => 'odp',
+                'description' => 'OpenDocument Presentation',
+            ],
+            'ODS' => [
+                'slug' => 'ods',
+                'description' => 'OpenDocument Spreadsheet',
+            ],
+            'ODT' => [
+                'slug' => 'odt',
+                'description' => 'OpenDocument Text',
+            ],
+            'OGG' => [
+                'slug' => 'ogg',
+                'description' => 'Ogg Vorbis Audio',
+            ],
+            'ONNX' => [
+                'slug' => 'onnx',
+                'description' => 'Open Neural Network Exchange',
+            ],
+            'OPUS' => [
+                'slug' => 'opus',
+                'description' => 'Opus Audio Format',
+            ],
+            'ORF' => [
+                'slug' => 'orf',
+                'description' => 'Olympus Raw File',
+            ],
+            'OST' => [
+                'slug' => 'ost',
+                'description' => 'Outlook Offline Data',
+            ],
+            'OTF' => [
+                'slug' => 'otf',
+                'description' => 'OpenType Font',
+            ],
+            'P' => [
+                'slug' => 'p',
+                'description' => 'PowerPoint Presentation',
+            ],
+            'PAT' => [
+                'slug' => 'pat',
+                'description' => 'Pattern File',
+            ],
+            'PB' => [
+                'slug' => 'pb',
+                'description' => 'TensorFlow Model File',
+            ],
+            'PCM' => [
+                'slug' => 'pcm',
+                'description' => 'Pulse-Code Modulation',
+            ],
+            'PDF' => [
+                'slug' => 'pdf',
+                'description' => 'Portable Document Format',
+            ],
+            'PEF' => [
+                'slug' => 'pef',
+                'description' => 'Pentax Raw Image',
+            ],
+            'PEM' => [
+                'slug' => 'pem',
+                'description' => 'Cryptographic Key File',
+            ],
+            'PFX' => [
+                'slug' => 'pfx',
+                'description' => 'Personal Information Exchange File',
+            ],
+            'PHP' => [
+                'slug' => 'php',
+                'description' => 'PHP Script',
+            ],
+            'PKG' => [
+                'slug' => 'pkg',
+                'description' => 'Mac OS X Installer',
+            ],
+            'PL' => [
+                'slug' => 'pl',
+                'description' => 'Adobe Prelude',
+            ],
+            'PLY' => [
+                'slug' => 'ply',
+                'description' => '3D Scan File (Polygon File Format)',
+            ],
+            'PNG' => [
+                'slug' => 'png',
+                'description' => 'Portable Network Graphics',
+            ],
+            'PPT' => [
+                'slug' => 'ppt',
+                'description' => 'PowerPoint Presentation',
+            ],
+            'PPTX' => [
+                'slug' => 'pptx',
+                'description' => 'PowerPoint Open XML Presentation',
+            ],
+            'PR' => [
+                'slug' => 'pr',
+                'description' => 'Adobe Premiere Pro',
+            ],
+            'PRJ' => [
+                'slug' => 'prj',
+                'description' => 'Project Dependency File',
+            ],
+            'PRPROJ' => [
+                'slug' => 'prproj',
+                'description' => 'Premiere Pro Project',
+            ],
+            'PS' => [
+                'slug' => 'ps',
+                'description' => 'Adobe Photoshop',
+            ],
+            'PS1' => [
+                'slug' => 'ps1',
+                'description' => 'PowerShell Script',
+            ],
+            'PSC' => [
+                'slug' => 'psc',
+                'description' => 'Adobe Presenter Content',
+            ],
+            'PSD' => [
+                'slug' => 'psd',
+                'description' => 'Adobe Photoshop Document',
+            ],
+            'PSDT' => [
+                'slug' => 'psdt',
+                'description' => 'Photoshop Template',
+            ],
+            'PST' => [
+                'slug' => 'pst',
+                'description' => 'Outlook Email Backup',
+            ],
+            'PSX' => [
+                'slug' => 'psx',
+                'description' => 'Adobe Photoshop Extended',
+            ],
+            'PT' => [
+                'slug' => 'pt',
+                'description' => 'Microsoft PowerPoint File',
+            ],
+            'PTH' => [
+                'slug' => 'pth',
+                'description' => 'PyTorch Model File',
+            ],
+            'PTX' => [
+                'slug' => 'ptx',
+                'description' => 'Pro Tools Session File',
+            ],
+            'PY' => [
+                'slug' => 'py',
+                'description' => 'Python Script',
+            ],
+            'RAF' => [
+                'slug' => 'raf',
+                'description' => 'Fujifilm RAW File',
+            ],
+            'RAR' => [
+                'slug' => 'rar',
+                'description' => 'RAR Archive',
+            ],
+            'RAW' => [
+                'slug' => 'raw',
+                'description' => 'Raw Image File',
+            ],
+            'RB' => [
+                'slug' => 'rb',
+                'description' => 'Ruby Script',
+            ],
+            'RDATA' => [
+                'slug' => 'rdata',
+                'description' => 'R Language Data File',
+            ],
+            'RESUME' => [
+                'slug' => 'resume',
+                'description' => 'Resume File',
+            ],
+            'RM' => [
+                'slug' => 'rm',
+                'description' => 'RealMedia File',
+            ],
+            'RMVB' => [
+                'slug' => 'rmvb',
+                'description' => 'RealMedia Variable Bitrate',
+            ],
+            'RPM' => [
+                'slug' => 'rpm',
+                'description' => 'Red Hat Linux Package',
+            ],
+            'RTF' => [
+                'slug' => 'rtf',
+                'description' => 'Rich Text Format',
+            ],
+            'RU' => [
+                'slug' => 'ru',
+                'description' => 'Adobe Rush Project',
+            ],
+            'RVT' => [
+                'slug' => 'rvt',
+                'description' => 'Revit Project File',
             ],
             'SAFARIEXTZ' => [
-                'name' => 'Safari Extension'
+                'slug' => 'safariextz',
+                'description' => 'Safari Extension',
             ],
-            'SAV'     => [
-                'name' => 'SPSS Data File'
+            'SAV' => [
+                'slug' => 'sav',
+                'description' => 'SPSS Data File',
             ],
-            'SCPT'    => [
-                'name' => 'AppleScript Script File'
+            'SCPT' => [
+                'slug' => 'scpt',
+                'description' => 'AppleScript Script File',
             ],
-            'SDF'     => [
-                'name' => 'Structured Data File'
+            'SDF' => [
+                'slug' => 'sdf',
+                'description' => 'Structured Data File',
             ],
-            'SFX'     => [
-                'name' => 'Self-Extracting Archive'
+            'SFX' => [
+                'slug' => 'sfx',
+                'description' => 'Self-Extracting Archive',
             ],
-            'SH'      => [
-                'name' => 'Shell Script'
+            'SH' => [
+                'slug' => 'sh',
+                'description' => 'Shell Script',
             ],
-            'SHP'     => [
-                'name' => 'ESRI Shapefile'
+            'SHP' => [
+                'slug' => 'shp',
+                'description' => 'ESRI Shapefile',
             ],
-            'SKETCH'  => [
-                'name' => 'Sketch Design File'
+            'SKETCH' => [
+                'slug' => 'sketch',
+                'description' => 'Sketch Design File',
             ],
-            'SKP'     => [
-                'name' => 'SketchUp File'
+            'SKP' => [
+                'slug' => 'skp',
+                'description' => 'SketchUp File',
             ],
-            'SLDPRT'  => [
-                'name' => 'SolidWorks Part File'
+            'SLDPRT' => [
+                'slug' => 'sldprt',
+                'description' => 'SolidWorks Part File',
             ],
-            'SLDX'    => [
-                'name' => 'PowerPoint Slide Show File'
+            'SLDX' => [
+                'slug' => 'sldx',
+                'description' => 'PowerPoint Slide Show File',
             ],
-            'SP'      => [
-                'name' => 'Adobe Soundbooth Project'
+            'SP' => [
+                'slug' => 'sp',
+                'description' => 'Adobe Soundbooth Project',
             ],
-            'SQL'     => [
-                'name' => 'Structured Query Language File'
+            'SQL' => [
+                'slug' => 'sql',
+                'description' => 'Structured Query Language File',
             ],
-            'STEP'    => [
-                'name' => 'STEP 3D File Format'
+            'STEP' => [
+                'slug' => 'step',
+                'description' => 'STEP 3D File Format',
             ],
-            'STL'     => [
-                'name' => 'Stereolithography File'
+            'STL' => [
+                'slug' => 'stl',
+                'description' => 'Stereolithography File',
             ],
-            'SVG'     => [
-                'name' => 'Scalable Vector Graphics'
+            'SVG' => [
+                'slug' => 'svg',
+                'description' => 'Scalable Vector Graphics',
             ],
-            'SWF'     => [
-                'name' => 'Shockwave Flash File'
+            'SWF' => [
+                'slug' => 'swf',
+                'description' => 'Shockwave Flash File',
             ],
-            'SYS'     => [
-                'name' => 'System File'
+            'SYS' => [
+                'slug' => 'sys',
+                'description' => 'System File',
             ],
-            'TAR'     => [
-                'name' => 'Unix Archive File'
+            'TAR' => [
+                'slug' => 'tar',
+                'description' => 'Unix Archive File',
             ],
-            'TEMP'    => [
-                'name' => 'Temporary File'
+            'TEMP' => [
+                'slug' => 'temp',
+                'description' => 'Temporary File',
             ],
-            'TFLITE'  => [
-                'name' => 'TensorFlow Lite Model'
+            'TFLITE' => [
+                'slug' => 'tflite',
+                'description' => 'TensorFlow Lite Model',
             ],
-            'TGA'     => [
-                'name' => 'Targa Graphic File'
+            'TGA' => [
+                'slug' => 'tga',
+                'description' => 'Targa Graphic File',
             ],
-            'THMX'    => [
-                'name' => 'Office Theme File'
+            'THMX' => [
+                'slug' => 'thmx',
+                'description' => 'Office Theme File',
             ],
-            'TIF'     => [
-                'name' => 'Tagged Image File Format'
+            'TIF' => [
+                'slug' => 'tif',
+                'description' => 'Tagged Image File Format',
             ],
-            'TIFF'    => [
-                'name' => 'Tagged Image File Format'
+            'TIFF' => [
+                'slug' => 'tiff',
+                'description' => 'Tagged Image File Format',
             ],
-            'TMP'     => [
-                'name' => 'Temporary File'
+            'TMP' => [
+                'slug' => 'tmp',
+                'description' => 'Temporary File',
             ],
             'TORRENT' => [
-                'name' => 'Torrent File'
+                'slug' => 'torrent',
+                'description' => 'Torrent File',
             ],
-            'TS'      => [
-                'name' => 'TypeScript File'
+            'TS' => [
+                'slug' => 'ts',
+                'description' => 'TypeScript File',
             ],
-            'TSX'     => [
-                'name' => 'TypeScript XML File'
+            'TSX' => [
+                'slug' => 'tsx',
+                'description' => 'TypeScript XML File',
             ],
-            'TTF'     => [
-                'name' => 'TrueType Font'
+            'TTF' => [
+                'slug' => 'ttf',
+                'description' => 'TrueType Font',
             ],
-            'TXT'     => [
-                'name' => 'Text File'
+            'TXT' => [
+                'slug' => 'txt',
+                'description' => 'Text File',
             ],
-            'USD'     => [
-                'name' => 'Pixar Universal Scene Description'
+            'USD' => [
+                'slug' => 'usd',
+                'description' => 'Pixar Universal Scene Description',
             ],
-            'USDA'    => [
-                'name' => 'Pixar USD ASCII'
+            'USDA' => [
+                'slug' => 'usda',
+                'description' => 'Pixar USD ASCII',
             ],
-            'USDC'    => [
-                'name' => 'Pixar USD ASCII'
+            'USDC' => [
+                'slug' => 'usdc',
+                'description' => 'Pixar USD ASCII',
             ],
-            'USDZ'    => [
-                'name' => 'Universal Scene Description Zip'
+            'USDZ' => [
+                'slug' => 'usdz',
+                'description' => 'Universal Scene Description Zip',
             ],
-            'VHD'     => [
-                'name' => 'Virtual Hard Disk (Microsoft)'
+            'VHD' => [
+                'slug' => 'vhd',
+                'description' => 'Virtual Hard Disk (Microsoft)',
             ],
-            'VHDX'    => [
-                'name' => 'Virtual Hard Disk Extended'
+            'VHDX' => [
+                'slug' => 'vhdx',
+                'description' => 'Virtual Hard Disk Extended',
             ],
-            'VOB'     => [
-                'name' => 'DVD Video File'
+            'VOB' => [
+                'slug' => 'vob',
+                'description' => 'DVD Video File',
             ],
-            'VTT'     => [
-                'name' => 'Web Video Text Tracks'
+            'VTT' => [
+                'slug' => 'vtt',
+                'description' => 'Web Video Text Tracks',
             ],
-            'W'       => [
-                'name' => 'Microsoft Word File'
+            'W' => [
+                'slug' => 'w',
+                'description' => 'Microsoft Word File',
             ],
-            'WAV'     => [
-                'name' => 'Waveform Audio File'
+            'WAV' => [
+                'slug' => 'wav',
+                'description' => 'Waveform Audio File',
             ],
-            'WEBM'    => [
-                'name' => 'Web Media File'
+            'WEBM' => [
+                'slug' => 'webm',
+                'description' => 'Web Media File',
             ],
-            'WEBP'    => [
-                'name' => 'Web Image Format'
+            'WEBP' => [
+                'slug' => 'webp',
+                'description' => 'Web Image Format',
             ],
-            'WMA'     => [
-                'name' => 'Windows Media Audio'
+            'WMA' => [
+                'slug' => 'wma',
+                'description' => 'Windows Media Audio',
             ],
-            'WMV'     => [
-                'name' => 'Windows Media Video'
+            'WMV' => [
+                'slug' => 'wmv',
+                'description' => 'Windows Media Video',
             ],
-            'WOFF'    => [
-                'name' => 'Web Open Font Format'
+            'WOFF' => [
+                'slug' => 'woff',
+                'description' => 'Web Open Font Format',
             ],
-            'X'       => [
-                'name' => 'Microsoft Excel Chart'
+            'X' => [
+                'slug' => 'x',
+                'description' => 'Microsoft Excel Chart',
             ],
-            'XCF'     => [
-                'name' => 'GIMP Image File'
+            'XCF' => [
+                'slug' => 'xcf',
+                'description' => 'GIMP Image File',
             ],
-            'XD'      => [
-                'name' => 'Adobe XD'
+            'XD' => [
+                'slug' => 'xd',
+                'description' => 'Adobe XD',
             ],
-            'XLS'     => [
-                'name' => 'Excel Spreadsheet'
+            'XLS' => [
+                'slug' => 'xls',
+                'description' => 'Excel Spreadsheet',
             ],
-            'XLSX'    => [
-                'name' => 'Excel Open XML Spreadsheet'
+            'XLSX' => [
+                'slug' => 'xlsx',
+                'description' => 'Excel Open XML Spreadsheet',
             ],
-            'XML'     => [
-                'name' => 'eXtensible Markup Language'
+            'XML' => [
+                'slug' => 'xml',
+                'description' => 'eXtensible Markup Language',
             ],
-            'YML'     => [
-                'name' => 'YAML Configuration File'
+            'YML' => [
+                'slug' => 'yml',
+                'description' => 'YAML Configuration File',
             ],
-            'ZIP'     => [
-                'name' => 'ZIP Archive'
-            ]
+            'ZIP' => [
+                'slug' => 'zip',
+                'description' => 'ZIP Archive',
+            ],
         ];
-        foreach ( $FileTypes as $type => $data ) {
-            if ( ! term_exists( $type, 'modpress_file_type' ) ) {
-                $result = wp_insert_term( $type, 'modpress_file_type' );
+
+        foreach ( $file_types as $name => $data ) {
+            if ( ! term_exists( $name, 'modpress_file_type' ) ) {
+                $result = wp_insert_term(
+                    $name,
+                    'modpress_file_type',
+                    array(
+                        'slug' => $data['slug'],
+                        'description' => $data['description'],
+                    )
+                );
+                if ( is_wp_error( $result ) ) {
+                    LoggerHelper::write_log( 'ModPress: Failed to create file type term ' . $name . ': ' . $result->get_error_message() );
+                }
             }
         }
     }
