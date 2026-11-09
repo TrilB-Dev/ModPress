@@ -132,6 +132,71 @@ final class FunctionsMod {
 		$nonce_name = $query_arg ?? ( $action . '_nonce' );
 		check_admin_referer( $action, $nonce_name );
 	}
+
+	/**
+	 * Normalize and sanitize the dependent entry payload for a mod.
+	 *
+	 * @param array<int, mixed> $dependents Raw dependent values from the form.
+	 * @return array<int, array<string, scalar>>
+	 */
+	private function normalize_mod_dependents( array $dependents ): array {
+		if ( empty( $dependents ) ) {
+			return array();
+		}
+
+		$normalized = array();
+		foreach ( $dependents as $dependent ) {
+			if ( ! is_array( $dependent ) ) {
+				continue;
+			}
+
+			$type = sanitize_key( (string) ( $dependent['type'] ?? 'internal' ) );
+			if ( ! in_array( $type, array( 'internal', 'external' ), true ) ) {
+				$type = 'internal';
+			}
+
+			$entry = array(
+				'type' => $type,
+			);
+
+			if ( 'internal' === $type ) {
+				$mod_id = absint( $dependent['mod_id'] ?? 0 );
+				if ( $mod_id > 0 ) {
+					$entry['mod_id'] = $mod_id;
+				}
+			} else {
+				$external_url = isset( $dependent['external_url'] ) ? wp_unslash( $dependent['external_url'] ) : '';
+				if ( is_string( $external_url ) ) {
+					$external_url = trim( $external_url );
+					if ( function_exists( 'esc_url_raw' ) ) {
+						$external_url = esc_url_raw( $external_url );
+					} elseif ( function_exists( 'sanitize_url' ) ) {
+						$external_url = sanitize_url( $external_url );
+					}
+				}
+				if ( '' !== $external_url ) {
+					$entry['external_url'] = $external_url;
+				}
+			}
+
+			$instructions = isset( $dependent['instructions'] ) ? SanitizationHelper::textarea( wp_unslash( $dependent['instructions'] ) ) : '';
+			if ( '' !== $instructions ) {
+				$entry['instructions'] = $instructions;
+			}
+
+			$has_valid_value = ( 'internal' === $type )
+				? ( ! empty( $entry['mod_id'] ) || ! empty( $entry['instructions'] ) )
+				: ( ! empty( $entry['external_url'] ) || ! empty( $entry['instructions'] ) );
+
+			if ( ! $has_valid_value ) {
+				continue;
+			}
+
+			$normalized[] = $entry;
+		}
+
+		return array_values( $normalized );
+	}
 	/**
 	 * Save a Mod submitted through the native admin form.
 	 *
@@ -239,6 +304,12 @@ final class FunctionsMod {
 					wp_set_post_terms( $post_id, $term_values, $taxonomy_key, false );
 				}
 			}
+		}
+
+		$dependents = isset( $_POST['dependents'] ) && is_array( $_POST['dependents'] ) ? array_map( 'wp_unslash', $_POST['dependents'] ) : array();
+		$normalized_dependents = $this->normalize_mod_dependents( $dependents );
+		if ( ! empty( $normalized_dependents ) || $mod_id > 0 ) {
+			update_post_meta( $post_id, '_modpress_dependents', $normalized_dependents );
 		}
 
 		return AlertHelper::get_admin_notice(

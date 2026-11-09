@@ -92,6 +92,13 @@ if ( ! function_exists( 'wp_unique_id' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_post_thumbnail_id' ) ) {
+	function get_post_thumbnail_id( $post = null ) {
+		$post_id = is_object( $post ) ? (int) ( $post->ID ?? 0 ) : (int) $post;
+		return $GLOBALS['modpress_test_thumbnail_ids'][ $post_id ] ?? 0;
+	}
+}
+
 if ( ! function_exists( 'get_the_date' ) ) {
 	function get_the_date( $format = '', $post = null ) {
 		if ( is_object( $post ) && ! empty( $post->post_date ) ) {

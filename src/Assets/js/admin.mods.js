@@ -1295,6 +1295,110 @@
         syncOptionRepeaterType(row);
     };
 
+    const syncDependentRowState = (row) => {
+        if (!row) {
+            return;
+        }
+
+        const typeField = row.querySelector('.modpress-dependent-type');
+        const type = typeField ? String(typeField.value || 'internal').trim() : 'internal';
+        const normalizedType = ['internal', 'external'].includes(type) ? type : 'internal';
+        const internalBlock = row.querySelector('.modpress-dependent-target-internal');
+        const externalBlock = row.querySelector('.modpress-dependent-target-external');
+
+        if (internalBlock) {
+            internalBlock.classList.toggle('d-none', normalizedType !== 'internal');
+        }
+
+        if (externalBlock) {
+            externalBlock.classList.toggle('d-none', normalizedType !== 'external');
+        }
+
+        row.querySelectorAll('.modpress-dependent-target-wrapper input, .modpress-dependent-target-wrapper select, .modpress-dependent-target-wrapper textarea').forEach((input) => {
+            const belongsToActivePane = normalizedType === 'internal'
+                ? input.closest('.modpress-dependent-target-internal')
+                : input.closest('.modpress-dependent-target-external');
+            if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement || input instanceof HTMLTextAreaElement) {
+                input.disabled = !belongsToActivePane;
+            }
+        });
+    };
+
+    const getNextDependentIndex = (repeater) => {
+        if (!repeater) {
+            return 0;
+        }
+
+        let highestIndex = -1;
+        repeater.querySelectorAll('.modpress-dependent-item').forEach((row) => {
+            const rowIndex = Number.parseInt(String(row.dataset.dependentIndex || ''), 10);
+            if (!Number.isNaN(rowIndex) && rowIndex > highestIndex) {
+                highestIndex = rowIndex;
+            }
+        });
+
+        return highestIndex + 1;
+    };
+
+    const addDependentRow = (button = null) => {
+        const repeater = document.getElementById('modpress-dependent-repeater');
+        if (!repeater) {
+            return;
+        }
+
+        const template = document.getElementById('modpress-dependent-template');
+        if (!template || !template.content || !template.content.firstElementChild) {
+            return;
+        }
+
+        const row = template.content.firstElementChild.cloneNode(true);
+        const nextIndex = getNextDependentIndex(repeater);
+        row.dataset.dependentIndex = String(nextIndex);
+
+        const typeField = row.querySelector('.modpress-dependent-type');
+        const modField = row.querySelector('.modpress-dependent-internal');
+        const urlField = row.querySelector('.modpress-dependent-external');
+        const instructionsField = row.querySelector('.modpress-dependent-instructions');
+
+        if (typeField) {
+            typeField.name = 'dependents[' + nextIndex + '][type]';
+            typeField.id = 'modpress-dependent-type-' + nextIndex;
+            typeField.value = 'internal';
+        }
+
+        if (modField) {
+            modField.name = 'dependents[' + nextIndex + '][mod_id]';
+            modField.id = 'modpress-dependent-mod-' + nextIndex;
+        }
+
+        if (urlField) {
+            urlField.name = 'dependents[' + nextIndex + '][external_url]';
+            urlField.id = 'modpress-dependent-url-' + nextIndex;
+        }
+
+        if (instructionsField) {
+            instructionsField.name = 'dependents[' + nextIndex + '][instructions]';
+            instructionsField.id = 'modpress-dependent-instructions-' + nextIndex;
+        }
+
+        const removeButton = row.querySelector('.modpress-dependent-remove');
+        if (removeButton) {
+            removeButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                const targetRow = event.target.closest('.modpress-dependent-item');
+                if (targetRow) {
+                    targetRow.remove();
+                    if (!repeater.querySelector('.modpress-dependent-item')) {
+                        addDependentRow();
+                    }
+                }
+            });
+        }
+
+        repeater.appendChild(row);
+        syncDependentRowState(row);
+    };
+
     const bindCustomFieldButtons = () => {
         document.querySelectorAll('[data-role="add-custom-field"]').forEach((button) => {
             if (button.dataset.modpressCustomFieldBound === 'true') {
@@ -1536,6 +1640,11 @@
             syncOptionRepeaterType(fieldRow);
         }
 
+        if (target.matches('.modpress-dependent-type')) {
+            const dependentRow = target.closest('.modpress-dependent-item');
+            syncDependentRowState(dependentRow);
+        }
+
         if (target.matches('[name^="custom_field_type_switch"]')) {
             const fieldRow = target.closest('.modpress-custom-field-row');
             syncCustomFieldVisibility(fieldRow);
@@ -1609,6 +1718,27 @@
     });
 
     document.addEventListener('click', (event) => {
+        const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
+        if (dependentAddButton) {
+            event.preventDefault();
+            addDependentRow(dependentAddButton);
+            return;
+        }
+
+        const dependentRemoveButton = event.target.closest('.modpress-dependent-remove');
+        if (dependentRemoveButton) {
+            event.preventDefault();
+            const row = dependentRemoveButton.closest('.modpress-dependent-item');
+            const repeater = row ? row.closest('#modpress-dependent-repeater') : document.getElementById('modpress-dependent-repeater');
+            if (row) {
+                row.remove();
+            }
+            if (repeater && !repeater.querySelector('.modpress-dependent-item')) {
+                addDependentRow();
+            }
+            return;
+        }
+
         const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
         if (taxonomyResetButton) {
             const target = taxonomyResetButton.getAttribute('data-bs-target');
@@ -1762,6 +1892,10 @@
         if (titleField) {
             syncModSlugFromTitle(titleField);
         }
+
+        document.querySelectorAll('.modpress-dependent-item').forEach((row) => {
+            syncDependentRowState(row);
+        });
 
         document.querySelectorAll('.modal[data-group-fields]').forEach((modal) => {
             hydrateGroupModalCustomFields(modal);

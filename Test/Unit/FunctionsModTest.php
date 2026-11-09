@@ -179,7 +179,19 @@ namespace {
 
             $values = $meta[ $key ] ?? array();
             if ( $single ) {
-                return $values[0] ?? '';
+                if ( is_array( $values ) ) {
+                    if ( empty( $values ) ) {
+                        return '';
+                    }
+                    if ( isset( $values[0] ) && is_array( $values[0] ) ) {
+                        return $values;
+                    }
+                    if ( array_is_list( $values ) ) {
+                        return $values[0];
+                    }
+                    return $values;
+                }
+                return $values;
             }
 
             return $values;
@@ -188,7 +200,7 @@ namespace {
 
     if ( ! function_exists( 'update_post_meta' ) ) {
         function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
-            $GLOBALS['modpress_test_post_meta'][ (int) $post_id ][ $meta_key ] = array( $meta_value );
+            $GLOBALS['modpress_test_post_meta'][ (int) $post_id ][ $meta_key ] = $meta_value;
             return true;
         }
     }
@@ -801,6 +813,84 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 'Short summary', $GLOBALS['modpress_test_inserted_post']['post_excerpt'] );
             $this->assertSame( '<p>Detailed description</p>', $GLOBALS['modpress_test_inserted_post']['post_content'] );
             $this->assertSame( 321, (int) ( $GLOBALS['modpress_test_thumbnail'][ 123 ] ?? 0 ) );
+        }
+
+        public function testSaveModPersistsDependentMetadataAndHydratesExistingValues(): void {
+            $GLOBALS['modpress_test_post_meta'] = array(
+                123 => array(
+                    '_modpress_dependents' => array(
+                        array(
+                            'type' => 'external',
+                            'external_url' => 'https://example.com/guide',
+                            'instructions' => 'Follow the external setup guide.',
+                        ),
+                    ),
+                ),
+            );
+
+            $_POST = array(
+                'modpress_action' => 'modpress_save_mod',
+                'modpress_mod_nonce' => 'valid',
+                'post_title' => 'My Mod',
+                'post_name' => 'my-mod',
+                'post_author' => '7',
+                'post_status' => 'draft',
+                'post_excerpt' => 'Short summary',
+                'post_content' => '<p>Detailed description</p>',
+                'dependents' => array(
+                    array(
+                        'type' => 'external',
+                        'external_url' => 'https://example.com/setup',
+                        'instructions' => 'Follow the setup guide.',
+                    ),
+                    array(
+                        'type' => 'internal',
+                        'mod_id' => '88',
+                        'instructions' => 'Use the compatibility patch.',
+                    ),
+                ),
+            );
+
+            $notice = ( new FunctionsMod() )->save_mod();
+
+            $this->assertStringContainsString( 'Mod saved successfully.', $notice );
+            $this->assertSame(
+                array(
+                    array(
+                        'type' => 'external',
+                        'external_url' => 'https://example.com/setup',
+                        'instructions' => 'Follow the setup guide.',
+                    ),
+                    array(
+                        'type' => 'internal',
+                        'mod_id' => 88,
+                        'instructions' => 'Use the compatibility patch.',
+                    ),
+                ),
+                $GLOBALS['modpress_test_post_meta'][123]['_modpress_dependents'] ?? array()
+            );
+
+            $manager = new \ModPress\Admin\Manager\Mods\Mods();
+            $method = new \ReflectionMethod( $manager, 'render_mod_form' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke(
+                $manager,
+                array(
+                    'ID' => 123,
+                    'post_title' => 'My Mod',
+                    'post_name' => 'my-mod',
+                    'post_author' => 7,
+                    'post_status' => 'draft',
+                    'post_excerpt' => 'Short summary',
+                    'post_content' => '<p>Detailed description</p>',
+                )
+            );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'https://example.com/setup', $html );
+            $this->assertStringContainsString( 'name="dependents[0][external_url]"', $html );
         }
 
         public function testButtonHelperRendersHtmlLabelsForIcons(): void {

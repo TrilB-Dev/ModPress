@@ -142,6 +142,39 @@ final class Mods extends ModManager {
 			$mod_type_selected = (string) array_key_first( $mod_type_options );
 		}
 
+		$dependent_mod_options = array();
+		if ( function_exists( 'get_posts' ) ) {
+			$mod_posts = get_posts(
+				array(
+					'post_type'      => 'modpress_mod',
+					'post_status'    => array( 'publish', 'draft', 'private', 'future' ),
+					'posts_per_page' => -1,
+					'orderby'        => 'title',
+					'order'          => 'ASC',
+				)
+			);
+
+			if ( ! empty( $mod_posts ) ) {
+				foreach ( $mod_posts as $mod_post ) {
+					$dependent_mod_options[ (string) $mod_post->ID ] = $mod_post->post_title;
+				}
+			}
+		}
+		$existing_dependents = array();
+		if ( $mod_id > 0 ) {
+			$saved_dependents = get_post_meta( $mod_id, '_modpress_dependents', true );
+			if ( is_array( $saved_dependents ) ) {
+				$existing_dependents = $saved_dependents;
+			}
+		}
+		if ( empty( $existing_dependents ) ) {
+			$existing_dependents = array(
+				array(
+					'type' => 'internal',
+				),
+			);
+		}
+
 		$status_options = array(
 			'draft' => __( 'Draft', 'modpress' ),
 			'publish' => __( 'Published', 'modpress' ),
@@ -358,33 +391,33 @@ final class Mods extends ModManager {
 								$parent_entries = array_values( array_map( 'strval', (array) ( $group_config['group_parent_entry'] ?? array() ) ) );
 							}
 							?>
-							<div class="col-md-6 modpress-dynamic-group-field <?php echo $should_show_group ? '' : 'd-none'; ?>" data-modpress-group-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" data-modpress-parent-group="<?php echo esc_attr( $parent_group ); ?>" data-modpress-parent-entries="<?php echo esc_attr( wp_json_encode( $parent_entries ) ); ?>" data-modpress-group-multiselect="<?php echo esc_attr( $group_multiselect ? '1' : '0' ); ?>">
-								<?php echo FormFieldHelper::label(
-									$taxonomy_key,
-									(string) ( $group_config['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
-									array(
-									)
-								); ?>
-								<?php echo $group_multiselect ? FormFieldHelper::bootstrap_multiselect(
-									$taxonomy_key,
-									array(
-										'data' => $taxonomy_options,
-										'selected' => $taxonomy_selected,
-										'id' => sanitize_key( $taxonomy_key ),
-										'live_search' => true,
-												'show_selected_tags' => true,
-									)
-								) : FormFieldHelper::bootstrap_select(
-									$taxonomy_key,
-									array(
-										'data' => $taxonomy_options,
-										'selected' => $taxonomy_selected,
-										'id' => sanitize_key( $taxonomy_key ),
-										'live_search' => true,
-									)
-								); ?>
-								<div class="form-text"><?php esc_html_e( $group_config['description'] ?? '', 'modpress' ); ?></div>
-							</div>
+						<div class="col-md-6 modpress-dynamic-group-field <?php echo $should_show_group ? '' : 'd-none'; ?>" data-modpress-group-taxonomy="<?php echo esc_attr( $taxonomy_key ); ?>" data-modpress-parent-group="<?php echo esc_attr( $parent_group ); ?>" data-modpress-parent-entries="<?php echo esc_attr( wp_json_encode( $parent_entries ) ); ?>" data-modpress-group-multiselect="<?php echo esc_attr( $group_multiselect ? '1' : '0' ); ?>">
+							<?php echo FormFieldHelper::label(
+								$taxonomy_key,
+								(string) ( $group_config['label'] ?? ucfirst( str_replace( array( '-', '_' ), ' ', $taxonomy_key ) ) ),
+								array(
+								)
+							); ?>
+							<?php echo $group_multiselect ? FormFieldHelper::bootstrap_multiselect(
+								$taxonomy_key,
+								array(
+									'data' => $taxonomy_options,
+									'selected' => $taxonomy_selected,
+									'id' => sanitize_key( $taxonomy_key ),
+									'live_search' => true,
+									'show_selected_tags' => true,
+								)
+							) : FormFieldHelper::bootstrap_select(
+								$taxonomy_key,
+								array(
+									'data' => $taxonomy_options,
+									'selected' => $taxonomy_selected,
+									'id' => sanitize_key( $taxonomy_key ),
+									'live_search' => true,
+								)
+							); ?>
+							<div class="form-text"><?php esc_html_e( $group_config['description'] ?? '', 'modpress' ); ?></div>
+						</div>
 						<?php }
 						?>
 						<?php
@@ -413,7 +446,7 @@ final class Mods extends ModManager {
 								}
 							}
 							?>
-							<div class="col-md-6">
+						<div class="col-md-6">
 								<?php echo FormFieldHelper::label(
 									'modpress_tag',
 									__( 'Tags', 'modpress' ),
@@ -432,9 +465,151 @@ final class Mods extends ModManager {
 										'placeholder' => 'Search or create tags',
 									)
 								); ?>
-								<div class="form-text"><?php esc_html_e( 'Choose or add tags that describe this mod.', 'modpress' ); ?></div>
-							</div>
+							<div class="form-text"><?php esc_html_e( 'Choose or add tags that describe this mod.', 'modpress' ); ?></div>
+						</div>
+						<div class="col-12">
+							<div class="card border-0 bg-light-subtle">
+								<div class="card-body">
+									<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+										<div>
+											<?php echo FormFieldHelper::label(
+												'modpress-dependent-repeater',
+												__( 'Dependents', 'modpress' ),
+												array(
+													'description' => __( 'Add dependent mods or external references for this mod.', 'modpress' ),
+												)
+											); ?>
+										</div>
+										<button type="button" class="btn btn-sm btn-outline-primary" data-modpress-dependent-add>
+											<?php echo FAHelper::faicon( 'plus' ); ?> <?php esc_html_e( 'Add dependent', 'modpress' ); ?>
+										</button>
+									</div>
+									<div id="modpress-dependent-repeater" class="modpress-dependent-repeater">
+<?php foreach ( $existing_dependents as $dependent_index => $dependent ) : ?>
+<?php
+$dependent_type = sanitize_key( (string) ( $dependent['type'] ?? 'internal' ) );
+if ( ! in_array( $dependent_type, array( 'internal', 'external' ), true ) ) {
+$dependent_type = 'internal';
+}
+$dependent_mod_id = isset( $dependent['mod_id'] ) ? absint( $dependent['mod_id'] ) : '';
+$dependent_external_url = isset( $dependent['external_url'] ) ? (string) $dependent['external_url'] : '';
+$dependent_instructions = isset( $dependent['instructions'] ) ? (string) $dependent['instructions'] : '';
+?>
+<div class="modpress-dependent-item border rounded p-3 mb-3" data-dependent-index="<?php echo esc_attr( (string) $dependent_index ); ?>">
+<div class="d-flex justify-content-end mb-2">
+<button type="button" class="btn btn-sm btn-outline-danger modpress-dependent-remove" aria-label="<?php esc_attr_e( 'Remove dependent', 'modpress' ); ?>"><?php echo FAHelper::faicon( 'trash' ); ?></button>
+</div>
+<div class="row g-3">
+<div class="col-md-4">
+<?php echo FormFieldHelper::label(
+'modpress-dependent-type-' . (string) $dependent_index,
+__( 'Type', 'modpress' ),
+array(
+'description' => __( 'Choose whether this dependent is internal or external.', 'modpress' ),
+)
+); ?>
+<?php echo FormFieldHelper::bootstrap_select(
+'dependents[' . (int) $dependent_index . '][type]',
+array(
+'data' => array(
+'internal' => __( 'Internal', 'modpress' ),
+'external' => __( 'External', 'modpress' ),
+),
+'selected' => $dependent_type,
+'id' => 'modpress-dependent-type-' . (string) $dependent_index,
+'class' => 'modpress-dependent-type',
+)
+); ?>
+</div>
+<div class="col-md-4 modpress-dependent-target-wrapper modpress-dependent-target-internal <?php echo 'internal' === $dependent_type ? '' : 'd-none'; ?>">
+<?php echo FormFieldHelper::label(
+'modpress-dependent-mod-' . (string) $dependent_index,
+__( 'Internal Mod', 'modpress' ),
+array(
+'description' => __( 'Choose an existing mod in ModPress.', 'modpress' ),
+)
+); ?>
+<?php echo FormFieldHelper::bootstrap_select(
+'dependents[' . (int) $dependent_index . '][mod_id]',
+array(
+'data' => $dependent_mod_options,
+'selected' => (string) $dependent_mod_id,
+'id' => 'modpress-dependent-mod-' . (string) $dependent_index,
+'class' => 'modpress-dependent-internal',
+'live_search' => true,
+)
+); ?>
+</div>
+<div class="col-md-4 modpress-dependent-target-wrapper modpress-dependent-target-external <?php echo 'external' === $dependent_type ? '' : 'd-none'; ?>">
+<?php echo FormFieldHelper::label(
+'modpress-dependent-url-' . (string) $dependent_index,
+__( 'External URL', 'modpress' ),
+array(
+'description' => __( 'Enter the external reference URL.', 'modpress' ),
+)
+); ?>
+<?php echo FormFieldHelper::text_input(
+'dependents[' . (int) $dependent_index . '][external_url]',
+$dependent_external_url,
+array(
+'type' => 'url',
+'id' => 'modpress-dependent-url-' . (string) $dependent_index,
+'placeholder' => 'https://example.com',
+'class' => 'modpress-dependent-external',
+)
+); ?>
+</div>
 <div class="col-12">
+<?php echo FormFieldHelper::label(
+'modpress-dependent-instructions-' . (string) $dependent_index,
+__( 'Instructions', 'modpress' ),
+array(
+'description' => __( 'Add any notes or instructions for this dependent.', 'modpress' ),
+)
+); ?>
+<?php echo FormFieldHelper::textarea(
+'dependents[' . (int) $dependent_index . '][instructions]',
+$dependent_instructions,
+array(
+'id' => 'modpress-dependent-instructions-' . (string) $dependent_index,
+'rows' => 3,
+'placeholder' => __( 'Add any setup, usage, or dependency notes here.', 'modpress' ),
+'class' => 'modpress-dependent-instructions',
+)
+); ?>
+</div>
+</div>
+</div>
+<?php endforeach; ?>
+<template id="modpress-dependent-template">
+<div class="modpress-dependent-item border rounded p-3 mb-3" data-dependent-index="0">
+<div class="d-flex justify-content-end mb-2">
+<button type="button" class="btn btn-sm btn-outline-danger modpress-dependent-remove" aria-label="<?php esc_attr_e( 'Remove dependent', 'modpress' ); ?>"><?php echo FAHelper::faicon( 'trash' ); ?></button>
+</div>
+<div class="row g-3">
+<div class="col-md-4">
+<?php echo FormFieldHelper::label( 'modpress-dependent-type-template', __( 'Type', 'modpress' ), array( 'description' => __( 'Choose whether this dependent is internal or external.', 'modpress' ) ) ); ?>
+<?php echo FormFieldHelper::bootstrap_select( 'dependents[template][type]', array( 'data' => array( 'internal' => __( 'Internal', 'modpress' ), 'external' => __( 'External', 'modpress' ) ), 'selected' => 'internal', 'id' => 'modpress-dependent-type-template', 'class' => 'modpress-dependent-type' ) ); ?>
+</div>
+<div class="col-md-4 modpress-dependent-target-wrapper modpress-dependent-target-internal">
+<?php echo FormFieldHelper::label( 'modpress-dependent-mod-template', __( 'Internal Mod', 'modpress' ), array( 'description' => __( 'Choose an existing mod in ModPress.', 'modpress' ) ) ); ?>
+<?php echo FormFieldHelper::bootstrap_select( 'dependents[template][mod_id]', array( 'data' => $dependent_mod_options, 'selected' => '', 'id' => 'modpress-dependent-mod-template', 'class' => 'modpress-dependent-internal', 'live_search' => true ) ); ?>
+</div>
+<div class="col-md-4 modpress-dependent-target-wrapper modpress-dependent-target-external d-none">
+<?php echo FormFieldHelper::label( 'modpress-dependent-url-template', __( 'External URL', 'modpress' ), array( 'description' => __( 'Enter the external reference URL.', 'modpress' ) ) ); ?>
+<?php echo FormFieldHelper::text_input( 'dependents[template][external_url]', '', array( 'type' => 'url', 'id' => 'modpress-dependent-url-template', 'placeholder' => 'https://example.com', 'class' => 'modpress-dependent-external' ) ); ?>
+</div>
+<div class="col-12">
+<?php echo FormFieldHelper::label( 'modpress-dependent-instructions-template', __( 'Instructions', 'modpress' ), array( 'description' => __( 'Add any notes or instructions for this dependent.', 'modpress' ) ) ); ?>
+<?php echo FormFieldHelper::textarea( 'dependents[template][instructions]', '', array( 'id' => 'modpress-dependent-instructions-template', 'rows' => 3, 'placeholder' => __( 'Add any setup, usage, or dependency notes here.', 'modpress' ), 'class' => 'modpress-dependent-instructions' ) ); ?>
+</div>
+</div>
+</div>
+</template>
+</div>
+<?php //Files ?>
+						</div>
+						<div class="col-12">
 							<?php echo FormFieldHelper::label( 
 								'modpress-mod-excerpt', 
 								__( 'Short Description', 'modpress' ), 
