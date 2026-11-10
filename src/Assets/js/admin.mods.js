@@ -1340,45 +1340,61 @@
         return highestIndex + 1;
     };
 
-    const addDependentRow = (button = null) => {
-        const repeater = document.getElementById('modpress-dependent-repeater');
-        if (!repeater) {
-            return;
-        }
-
+    const buildDependentRow = (repeater, dependent = {}, rowIndex = null) => {
         const template = document.getElementById('modpress-dependent-template');
         if (!template || !template.content || !template.content.firstElementChild) {
-            return;
+            return null;
         }
 
         const row = template.content.firstElementChild.cloneNode(true);
-        const nextIndex = getNextDependentIndex(repeater);
+        const nextIndex = Number.isInteger(rowIndex) ? rowIndex : getNextDependentIndex(repeater);
         row.dataset.dependentIndex = String(nextIndex);
 
         const typeField = row.querySelector('.modpress-dependent-type');
         const modField = row.querySelector('.modpress-dependent-internal');
         const urlField = row.querySelector('.modpress-dependent-external');
         const instructionsField = row.querySelector('.modpress-dependent-instructions');
+        const value = dependent && typeof dependent === 'object' ? dependent : {};
+        const type = ['internal', 'external'].includes(String(value.type || 'internal')) ? String(value.type || 'internal') : 'internal';
 
         if (typeField) {
             typeField.name = 'dependents[' + nextIndex + '][type]';
             typeField.id = 'modpress-dependent-type-' + nextIndex;
-            typeField.value = 'internal';
+            typeField.value = type;
+            if (typeof window !== 'undefined' && window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
+                try {
+                    window.Selectpicker.getOrCreateInstance(typeField)?.refresh();
+                } catch (error) {
+                    // Ignore selectpicker refresh issues.
+                }
+            }
         }
 
         if (modField) {
             modField.name = 'dependents[' + nextIndex + '][mod_id]';
             modField.id = 'modpress-dependent-mod-' + nextIndex;
+            if (value.mod_id !== undefined && value.mod_id !== null && value.mod_id !== '') {
+                modField.value = String(value.mod_id);
+            }
+            if (typeof window !== 'undefined' && window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
+                try {
+                    window.Selectpicker.getOrCreateInstance(modField)?.refresh();
+                } catch (error) {
+                    // Ignore selectpicker refresh issues.
+                }
+            }
         }
 
         if (urlField) {
             urlField.name = 'dependents[' + nextIndex + '][external_url]';
             urlField.id = 'modpress-dependent-url-' + nextIndex;
+            urlField.value = typeof value.external_url === 'string' ? value.external_url : (value.external_url ?? '');
         }
 
         if (instructionsField) {
             instructionsField.name = 'dependents[' + nextIndex + '][instructions]';
             instructionsField.id = 'modpress-dependent-instructions-' + nextIndex;
+            instructionsField.value = typeof value.instructions === 'string' ? value.instructions : (value.instructions ?? '');
         }
 
         const removeButton = row.querySelector('.modpress-dependent-remove');
@@ -1388,15 +1404,44 @@
                 const targetRow = event.target.closest('.modpress-dependent-item');
                 if (targetRow) {
                     targetRow.remove();
-                    if (!repeater.querySelector('.modpress-dependent-item')) {
-                        addDependentRow();
-                    }
                 }
             });
         }
 
         repeater.appendChild(row);
         syncDependentRowState(row);
+
+        return row;
+    };
+
+    const hydrateDependentRows = (repeater = document.getElementById('modpress-dependent-repeater')) => {
+        if (!repeater) {
+            return;
+        }
+
+        let savedDependents = [];
+        try {
+            savedDependents = JSON.parse(repeater.dataset.modpressSavedDependents || '[]');
+        } catch (error) {
+            savedDependents = [];
+        }
+
+        if (!Array.isArray(savedDependents) || !savedDependents.length) {
+            return;
+        }
+
+        savedDependents.forEach((dependent, index) => {
+            buildDependentRow(repeater, dependent, index);
+        });
+    };
+
+    const addDependentRow = (button = null) => {
+        const repeater = document.getElementById('modpress-dependent-repeater');
+        if (!repeater) {
+            return;
+        }
+
+        buildDependentRow(repeater, { type: 'internal' }, getNextDependentIndex(repeater));
     };
 
     const bindCustomFieldButtons = () => {
@@ -1729,12 +1774,8 @@
         if (dependentRemoveButton) {
             event.preventDefault();
             const row = dependentRemoveButton.closest('.modpress-dependent-item');
-            const repeater = row ? row.closest('#modpress-dependent-repeater') : document.getElementById('modpress-dependent-repeater');
             if (row) {
                 row.remove();
-            }
-            if (repeater && !repeater.querySelector('.modpress-dependent-item')) {
-                addDependentRow();
             }
             return;
         }
@@ -1892,6 +1933,8 @@
         if (titleField) {
             syncModSlugFromTitle(titleField);
         }
+
+        hydrateDependentRows();
 
         document.querySelectorAll('.modpress-dependent-item').forEach((row) => {
             syncDependentRowState(row);

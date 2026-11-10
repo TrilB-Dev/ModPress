@@ -889,8 +889,10 @@ namespace ModPress\Tests\Unit {
             );
             $html = ob_get_clean();
 
-            $this->assertStringContainsString( 'https://example.com/setup', $html );
-            $this->assertStringContainsString( 'name="dependents[0][external_url]"', $html );
+            $this->assertStringContainsString( 'example.com', $html );
+            $this->assertStringContainsString( 'data-modpress-saved-dependents=', $html );
+            $this->assertStringContainsString( 'modpress-dependent-template', $html );
+            $this->assertStringContainsString( 'dependents[template][external_url]', $html );
         }
 
         public function testButtonHelperRendersHtmlLabelsForIcons(): void {
