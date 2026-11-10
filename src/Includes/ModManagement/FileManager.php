@@ -31,12 +31,31 @@ final class FileManager {
 				continue;
 			}
 
+			$type = (string) ( $file['type'] ?? 'internal' );
+			$download = (string) ( $file['download'] ?? $file['url'] ?? '' );
+			if ( 'external' === $type ) {
+				$host_url = (string) ( $file['host_url'] ?? '' );
+				$path_suffix = (string) ( $file['url_suffix'] ?? '' );
+				if ( '' !== $host_url ) {
+					$download = rtrim( $host_url, '/' );
+					if ( '' !== $path_suffix ) {
+						$download .= '/' . ltrim( $path_suffix, '/' );
+					}
+				}
+			}
+			if ( '' === $download && isset( $file['host_id'] ) ) {
+				$download = (string) ( $file['host_url'] ?? '' );
+			}
+
 			$prepared[] = array(
-				'name'      => (string) ( $file['name'] ?? __( 'Unknown file', 'modpress' ) ),
-				'url'       => (string) ( $file['url'] ?? '' ),
+				'name'      => (string) ( $file['name'] ?? ( $file['file_name'] ?? __( 'Unknown file', 'modpress' ) ) ),
+				'url'       => (string) ( $file['url'] ?? $download ),
 				'version'   => (string) ( $file['version'] ?? '0.0.0' ),
-				'download'  => (string) ( $file['download'] ?? '' ),
+				'download'  => $download,
 				'updated'   => (string) ( $file['updated'] ?? '' ),
+				'type'      => $type,
+				'host_id'   => (int) ( $file['host_id'] ?? 0 ),
+				'description' => (string) ( $file['description'] ?? '' ),
 			);
 		}
 

@@ -815,6 +815,96 @@ namespace ModPress\Tests\Unit {
             $this->assertSame( 321, (int) ( $GLOBALS['modpress_test_thumbnail'][ 123 ] ?? 0 ) );
         }
 
+        public function testSaveModPersistsFileMetadataAndRendersFileRepeater(): void {
+            $GLOBALS['modpress_test_terms'] = array(
+                'modpress_file_hosts' => array(
+                    8 => (object) array( 'term_id' => 8, 'name' => 'Mega', 'slug' => 'mega', 'taxonomy' => 'modpress_file_hosts' ),
+                    9 => (object) array( 'term_id' => 9, 'name' => 'Mirror', 'slug' => 'mirror', 'taxonomy' => 'modpress_file_hosts' ),
+                ),
+            );
+            $GLOBALS['modpress_test_term_meta'] = array(
+                8 => array( 'url' => array( 'https://mega.example.com/files/' ) ),
+                9 => array( 'url' => array( 'https://mirror.example.com/downloads/' ) ),
+            );
+
+            $_POST = array(
+                'modpress_action' => 'modpress_save_mod',
+                'modpress_mod_nonce' => 'valid',
+                'post_title' => 'My Mod',
+                'post_name' => 'my-mod',
+                'post_author' => '7',
+                'post_status' => 'draft',
+                'post_excerpt' => 'Short summary',
+                'post_content' => '<p>Detailed description</p>',
+                'files' => array(
+                    array(
+                        'type' => 'internal',
+                        'attachment_id' => '315',
+                        'name' => 'main-file',
+                        'version' => '1.2.3',
+                        'description' => 'Primary release',
+                    ),
+                    array(
+                        'type' => 'external',
+                        'host_id' => '9',
+                        'host_url' => 'https://mirror.example.com/downloads/',
+                        'url_suffix' => 'my-mod-v1.2.3.zip',
+                        'description' => 'Mirror download',
+                    ),
+                ),
+            );
+
+            $notice = ( new FunctionsMod() )->save_mod();
+
+            $this->assertStringContainsString( 'Mod saved successfully.', $notice );
+            $this->assertSame(
+                array(
+                    array(
+                        'type' => 'internal',
+                        'attachment_id' => 315,
+                        'name' => 'main-file',
+                        'version' => '1.2.3',
+                        'description' => 'Primary release',
+                        'download' => '315',
+                    ),
+                    array(
+                        'type' => 'external',
+                        'host_id' => 9,
+                        'host_url' => 'https://mirror.example.com/downloads/',
+                        'url_suffix' => 'my-mod-v1.2.3.zip',
+                        'description' => 'Mirror download',
+                        'download' => 'https://mirror.example.com/downloads/my-mod-v1.2.3.zip',
+                    ),
+                ),
+                $GLOBALS['modpress_test_post_meta'][123]['_modpress_files'] ?? array()
+            );
+
+            $manager = new \ModPress\Admin\Manager\Mods\Mods();
+            $method = new \ReflectionMethod( $manager, 'render_mod_form' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke(
+                $manager,
+                array(
+                    'ID' => 123,
+                    'post_title' => 'My Mod',
+                    'post_name' => 'my-mod',
+                    'post_author' => 7,
+                    'post_status' => 'draft',
+                    'post_excerpt' => 'Short summary',
+                    'post_content' => '<p>Detailed description</p>',
+                )
+            );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'modpress-file-repeater', $html );
+            $this->assertStringContainsString( 'data-modpress-file-add', $html );
+            $this->assertStringContainsString( 'modpress-file-host-selector', $html );
+            $this->assertStringContainsString( 'Mega', $html );
+            $this->assertStringContainsString( 'Mirror', $html );
+        }
+
         public function testSaveModPersistsDependentMetadataAndHydratesExistingValues(): void {
             $GLOBALS['modpress_test_post_meta'] = array(
                 123 => array(

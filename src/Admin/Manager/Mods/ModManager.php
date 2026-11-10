@@ -98,6 +98,11 @@ class ModManager extends Manager {
      * @since 1.0.0
      */
     public function register_actions(): void {
+        /**
+         * Initialize the FunctionsMod instance.
+         * 
+         * @since 1.0.0
+         */
         $this->functions_mod = $this->functions_mod ?? new FunctionsMod();
 
         //add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );

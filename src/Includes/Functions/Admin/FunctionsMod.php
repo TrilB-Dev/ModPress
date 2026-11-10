@@ -197,6 +197,111 @@ final class FunctionsMod {
 
 		return array_values( $normalized );
 	}
+
+	/**
+	 * Normalize and sanitize the file payload for a mod.
+	 *
+	 * @param array<int, mixed> $files Raw file values from the form.
+	 * @return array<int, array<string, scalar>>
+	 */
+	private function normalize_mod_files( array $files ): array {
+		if ( empty( $files ) ) {
+			return array();
+		}
+
+		$normalized = array();
+		foreach ( $files as $file ) {
+			if ( ! is_array( $file ) ) {
+				continue;
+			}
+
+			$type = sanitize_key( (string) ( $file['type'] ?? 'internal' ) );
+			if ( ! in_array( $type, array( 'internal', 'external' ), true ) ) {
+				$type = 'internal';
+			}
+
+			$entry = array(
+				'type' => $type,
+			);
+
+			if ( 'internal' === $type ) {
+				$attachment_id = absint( $file['attachment_id'] ?? ( $file['file_id'] ?? 0 ) );
+				$name = SanitizationHelper::text( wp_unslash( (string) ( $file['name'] ?? '' ) ), '' );
+				$version = SanitizationHelper::text( wp_unslash( (string) ( $file['version'] ?? '' ) ), '' );
+				$description = isset( $file['description'] ) ? SanitizationHelper::textarea( wp_unslash( (string) $file['description'] ) ) : '';
+				if ( $attachment_id > 0 ) {
+					$entry['attachment_id'] = $attachment_id;
+				}
+				if ( '' !== $name ) {
+					$entry['name'] = $name;
+				}
+				if ( '' !== $version ) {
+					$entry['version'] = $version;
+				}
+				if ( '' !== $description ) {
+					$entry['description'] = $description;
+				}
+				if ( $attachment_id > 0 ) {
+					$entry['download'] = (string) $attachment_id;
+				}
+			} else {
+				$host_id = absint( $file['host_id'] ?? 0 );
+				$host_url = isset( $file['host_url'] ) ? trim( (string) wp_unslash( $file['host_url'] ) ) : '';
+				if ( '' === $host_url && $host_id > 0 && function_exists( 'get_term_meta' ) ) {
+					$host_url = (string) get_term_meta( $host_id, 'url', true );
+				}
+				if ( is_string( $host_url ) ) {
+					$host_url = trim( $host_url );
+					if ( function_exists( 'esc_url_raw' ) ) {
+						$host_url = esc_url_raw( $host_url );
+					} elseif ( function_exists( 'sanitize_url' ) ) {
+						$host_url = sanitize_url( $host_url );
+					}
+				}
+				$url_suffix = isset( $file['url_suffix'] ) ? trim( (string) wp_unslash( $file['url_suffix'] ) ) : '';
+				if ( '' !== $url_suffix ) {
+					$url_suffix = ltrim( $url_suffix, '/' );
+				}
+				$description = isset( $file['description'] ) ? SanitizationHelper::textarea( wp_unslash( (string) $file['description'] ) ) : '';
+				if ( $host_id > 0 ) {
+					$entry['host_id'] = $host_id;
+				}
+				if ( '' !== $host_url ) {
+					$entry['host_url'] = $host_url;
+				}
+				if ( '' !== $url_suffix ) {
+					$entry['url_suffix'] = $url_suffix;
+				}
+				if ( '' !== $description ) {
+					$entry['description'] = $description;
+				}
+				$download = '';
+				if ( '' !== $host_url ) {
+					$download = rtrim( $host_url, '/' );
+					if ( '' !== $url_suffix ) {
+						$download .= '/' . ltrim( $url_suffix, '/' );
+					}
+				} elseif ( '' !== $url_suffix ) {
+					$download = $url_suffix;
+				}
+				if ( '' !== $download ) {
+					$entry['download'] = $download;
+				}
+			}
+
+			$has_valid_value = ( 'internal' === $type )
+				? ( ! empty( $entry['attachment_id'] ) || ! empty( $entry['name'] ) || ! empty( $entry['version'] ) || ! empty( $entry['description'] ) )
+				: ( ! empty( $entry['host_id'] ) || ! empty( $entry['host_url'] ) || ! empty( $entry['url_suffix'] ) || ! empty( $entry['description'] ) );
+
+			if ( ! $has_valid_value ) {
+				continue;
+			}
+
+			$normalized[] = $entry;
+		}
+
+		return array_values( $normalized );
+	}
 	/**
 	 * Save a Mod submitted through the native admin form.
 	 *
@@ -310,6 +415,12 @@ final class FunctionsMod {
 		$normalized_dependents = $this->normalize_mod_dependents( $dependents );
 		if ( ! empty( $normalized_dependents ) || $mod_id > 0 ) {
 			update_post_meta( $post_id, '_modpress_dependents', $normalized_dependents );
+		}
+
+		$files = isset( $_POST['files'] ) && is_array( $_POST['files'] ) ? array_map( 'wp_unslash', $_POST['files'] ) : array();
+		$normalized_files = $this->normalize_mod_files( $files );
+		if ( ! empty( $normalized_files ) || $mod_id > 0 ) {
+			update_post_meta( $post_id, '_modpress_files', $normalized_files );
 		}
 
 		return AlertHelper::get_admin_notice(
