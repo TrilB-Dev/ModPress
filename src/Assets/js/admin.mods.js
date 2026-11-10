@@ -1604,15 +1604,23 @@
 
         const internalRadio = row.querySelector('.modpress-file-type-radio[value="internal"]');
         const externalRadio = row.querySelector('.modpress-file-type-radio[value="external"]');
+        const internalLabel = row.querySelector('label[for="modpress-file-type-template-internal"]');
+        const externalLabel = row.querySelector('label[for="modpress-file-type-template-external"]');
         if (internalRadio) {
             internalRadio.name = 'files[' + nextIndex + '][type]';
             internalRadio.id = 'modpress-file-type-internal-' + nextIndex;
             internalRadio.checked = type === 'internal';
+            if (internalLabel) {
+                internalLabel.setAttribute('for', internalRadio.id);
+            }
         }
         if (externalRadio) {
             externalRadio.name = 'files[' + nextIndex + '][type]';
             externalRadio.id = 'modpress-file-type-external-' + nextIndex;
             externalRadio.checked = type === 'external';
+            if (externalLabel) {
+                externalLabel.setAttribute('for', externalRadio.id);
+            }
         }
 
         const attachmentInput = row.querySelector('[data-media-field="true"]');
