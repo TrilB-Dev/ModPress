@@ -1348,6 +1348,21 @@
         }
     };
 
+    const bindDependentTypeField = (field) => {
+        if (!field || field.dataset.modpressDependentBound === 'true') {
+            return;
+        }
+
+        field.dataset.modpressDependentBound = 'true';
+        const handleDependentTypeSelection = () => {
+            const row = field.closest('.modpress-dependent-item');
+            syncDependentRowState(row);
+        };
+
+        field.addEventListener('change', handleDependentTypeSelection);
+        field.addEventListener('changed.bs.select', handleDependentTypeSelection);
+    };
+
     const getNextDependentIndex = (repeater) => {
         if (!repeater) {
             return 0;
@@ -1385,6 +1400,7 @@
             typeField.name = 'dependents[' + nextIndex + '][type]';
             typeField.id = 'modpress-dependent-type-' + nextIndex;
             typeField.value = type;
+            bindDependentTypeField(typeField);
             refreshBootstrapSelect(typeField);
         }
 
