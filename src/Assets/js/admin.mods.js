@@ -1296,11 +1296,15 @@
     };
 
     const isDependentTypeField = (target) => {
-        if (!target || !target.matches) {
+        if (!target) {
             return false;
         }
 
-        if (target.matches('.modpress-dependent-type')) {
+        if (target.matches && (target.matches('select.modpress-dependent-type') || target.matches('.modpress-dependent-type'))) {
+            return true;
+        }
+
+        if (target.closest && target.closest('select.modpress-dependent-type')) {
             return true;
         }
 
@@ -1308,12 +1312,20 @@
         return /^modpress-dependent-type(?:-\d+)?$/.test(id);
     };
 
+    const getDependentTypeField = (row) => {
+        if (!row) {
+            return null;
+        }
+
+        return row.querySelector('select.modpress-dependent-type') || row.querySelector('.modpress-dependent-type');
+    };
+
     const syncDependentRowState = (row) => {
         if (!row) {
             return;
         }
 
-        const typeField = row.querySelector('.modpress-dependent-type');
+        const typeField = getDependentTypeField(row);
         const type = typeField ? String(typeField.value || 'internal').trim() : 'internal';
         const normalizedType = ['internal', 'external'].includes(type) ? type : 'internal';
         const internalBlock = row.querySelector('.modpress-dependent-target-internal');
