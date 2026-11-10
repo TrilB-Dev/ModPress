@@ -489,7 +489,6 @@ final class Mods extends ModManager {
 														'modpress-dependent-type-template', 
 														__( 'Type', 'modpress' ), 
 														array( 
-															'description' => __( 'Choose whether this dependent is internal or external.', 'modpress' ) 
 														) 
 													); ?>
 													<?php echo FormFieldHelper::bootstrap_select( 
@@ -504,6 +503,7 @@ final class Mods extends ModManager {
 															'class' => 'modpress-dependent-type w-100' 
 														) 
 													); ?>
+													<div class="form-text"><?php esc_html_e( 'Choose whether this dependent is internal or external.', 'modpress' ); ?></div>
 												</div>
 												<div class="col-md-7 modpress-dependent-target-wrapper modpress-dependent-target-internal">
 													<?php echo FormFieldHelper::label( 
@@ -519,17 +519,17 @@ final class Mods extends ModManager {
 															'data' => $dependent_mod_options, 
 															'selected' => '', 
 															'id' => 'modpress-dependent-mod-template', 
-															'class' => 'modpress-dependent-internal w-100', 
+															'class' => 'modpress-dependent-internal', 
 															'live_search' => true 
 														) 
 													); ?>
+													<div class="form-text"><?php esc_html_e( 'Choose the internal mod to use as a dependent.', 'modpress' ); ?></div>
 												</div>
 												<div class="col-md-7 modpress-dependent-target-wrapper modpress-dependent-target-external d-none">
 													<?php echo FormFieldHelper::label( 
 														'modpress-dependent-url-template', 
 														__( 'External URL', 'modpress' ), 
 														array( 
-															'description' => __( 'Enter the external reference URL.', 'modpress' ) 
 														) 
 													); ?>
 													<?php echo FormFieldHelper::text_input( 
@@ -539,16 +539,16 @@ final class Mods extends ModManager {
 															'type' => 'url', 
 															'id' => 'modpress-dependent-url-template', 
 															'placeholder' => 'https://example.com', 
-															'class' => 'modpress-dependent-external w-100' 
+															'class' => 'modpress-dependent-external' 
 														) 
 													); ?>
+													<div class="form-text"><?php esc_html_e( 'Enter the external URL to where this  dependency can be found.', 'modpress' ); ?></div>
 												</div>
 												<div class="col-12">
 													<?php echo FormFieldHelper::label( 
 														'modpress-dependent-instructions-template', 
 														__( 'Instructions', 'modpress' ), 
 														array( 
-															'description' => __( 'Add any notes or instructions for this dependent.', 'modpress' ) 
 														) 
 													); ?>
 													<?php echo FormFieldHelper::textarea( 
@@ -561,6 +561,7 @@ final class Mods extends ModManager {
 															'class' => 'modpress-dependent-instructions w-100' 
 														) 
 													); ?>
+													<div class="form-text"><?php esc_html_e( 'Provide any notes or additional instructions for this dependent.', 'modpress' ); ?></div>
 												</div>
 											</div>
 										</div>
