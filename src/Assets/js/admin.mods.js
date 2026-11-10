@@ -1537,6 +1537,11 @@
             }
         });
 
+        row.dataset.fileType = type;
+        radioButtons.forEach((radio) => {
+            radio.checked = radio.value === type;
+        });
+
         const internalBlock = row.querySelector('.modpress-file-target-internal');
         const externalBlock = row.querySelector('.modpress-file-target-external');
 
@@ -1622,6 +1627,15 @@
                 externalLabel.setAttribute('for', externalRadio.id);
             }
         }
+
+        row.querySelectorAll('.modpress-file-description').forEach((descriptionField, descriptionIndex) => {
+            const descriptionKey = descriptionIndex === 0 ? 'internal' : 'external';
+            descriptionField.name = 'files[' + nextIndex + '][description]';
+            descriptionField.id = 'modpress-file-description-' + descriptionKey + '-' + nextIndex;
+            if (value.description !== undefined && value.description !== null && value.description !== '') {
+                descriptionField.value = String(value.description);
+            }
+        });
 
         const attachmentInput = row.querySelector('[data-media-field="true"]');
         if (attachmentInput) {
