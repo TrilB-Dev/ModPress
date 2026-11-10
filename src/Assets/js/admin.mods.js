@@ -2065,6 +2065,23 @@
             return;
         }
 
+        const fileAddButton = event.target.closest('[data-modpress-file-add]');
+        if (fileAddButton) {
+            event.preventDefault();
+            addFileRow(fileAddButton);
+            return;
+        }
+
+        const fileRemoveButton = event.target.closest('.modpress-file-remove');
+        if (fileRemoveButton) {
+            event.preventDefault();
+            const row = fileRemoveButton.closest('.modpress-file-item');
+            if (row) {
+                row.remove();
+            }
+            return;
+        }
+
         const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
         if (taxonomyResetButton) {
             const target = taxonomyResetButton.getAttribute('data-bs-target');
@@ -2220,9 +2237,14 @@
         }
 
         hydrateDependentRows();
+        hydrateFileRows();
 
         document.querySelectorAll('.modpress-dependent-item').forEach((row) => {
             syncDependentRowState(row);
+        });
+
+        document.querySelectorAll('.modpress-file-item').forEach((row) => {
+            syncFileRowState(row);
         });
 
         document.querySelectorAll('.modal[data-group-fields]').forEach((modal) => {
