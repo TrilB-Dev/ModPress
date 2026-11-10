@@ -538,7 +538,7 @@ final class Mods extends ModManager {
 																'type' => 'url', 
 																'id' => 'modpress-dependent-url-template', 
 																'placeholder' => 'https://example.com', 
-																'class' => 'modpress-dependent-external' 
+																'class' => 'modpress-dependent-external w-100' 
 															) 
 														); ?>
 														<div class="form-text"><?php esc_html_e( 'Enter the external URL to where this  dependency can be found.', 'modpress' ); ?></div>
