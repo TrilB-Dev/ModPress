@@ -510,7 +510,6 @@ final class Mods extends ModManager {
 															'modpress-dependent-mod-template', 
 															__( 'Internal Mod', 'modpress' ), 
 															array( 
-																'description' => __( 'Choose an existing mod in ModPress.', 'modpress' ) 
 															) 
 														); ?>
 														<?php echo FormFieldHelper::bootstrap_select( 

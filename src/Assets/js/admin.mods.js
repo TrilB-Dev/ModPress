@@ -1324,6 +1324,17 @@
         });
     };
 
+    const syncDependentTypeChange = (target) => {
+        if (!target || !target.matches || !target.matches('.modpress-dependent-type')) {
+            return;
+        }
+
+        const dependentRow = target.closest('.modpress-dependent-item');
+        if (dependentRow) {
+            syncDependentRowState(dependentRow);
+        }
+    };
+
     const getNextDependentIndex = (repeater) => {
         if (!repeater) {
             return 0;
@@ -1750,6 +1761,10 @@
             }
         }
 
+    });
+
+    document.addEventListener('changed.bs.select', (event) => {
+        syncDependentTypeChange(event.target);
     });
 
     document.addEventListener('click', (event) => {
