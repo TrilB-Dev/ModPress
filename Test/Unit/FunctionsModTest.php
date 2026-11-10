@@ -1849,6 +1849,24 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'class="form-check form-switch', $output );
         }
 
+        public function testBootstrapSelectPreservesCustomClassesAndWidth(): void {
+            $output = \ModPress\Includes\Functions\Helpers\FormFieldHelper::bootstrap_select(
+                'dependents[template][type]',
+                array(
+                    'data' => array(
+                        'internal' => 'Internal',
+                        'external' => 'External',
+                    ),
+                    'selected' => 'internal',
+                    'class' => 'modpress-dependent-type w-100',
+                )
+            );
+
+            $this->assertStringContainsString( 'selectpicker', $output );
+            $this->assertStringContainsString( 'modpress-dependent-type', $output );
+            $this->assertStringContainsString( 'w-100', $output );
+        }
+
         public function testSwitchCheckboxUsesStandardValueWhenBooleanFalseIsPassed(): void {
             $output = \ModPress\Includes\Functions\Helpers\FormFieldHelper::switch(
                 'custom_field_show_in_table[]',

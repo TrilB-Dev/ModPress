@@ -712,11 +712,18 @@ final class FormFieldHelper {
 	 */
 	private static function bootstrap_select_classes( string $classes ): string {
 
-		$allowed = array( 'selectpicker', 'dropup', 'show-tick' );
-		$split   = preg_split( '/\s+/', trim( $classes ) );
-		$classes = is_array( $split ) ? $split : array();
+		$split = preg_split( '/\s+/', trim( $classes ) );
+		$items = is_array( $split ) ? $split : array();
 
-		return implode( ' ', array_values( array_unique( array_merge( array( 'selectpicker' ), array_intersect( $classes, $allowed ) ) ) ) );
+		$normalized = array();
+		foreach ( $items as $item ) {
+			$sanitized = sanitize_html_class( (string) $item );
+			if ( '' !== $sanitized ) {
+				$normalized[] = $sanitized;
+			}
+		}
+
+		return implode( ' ', array_values( array_unique( array_merge( array( 'selectpicker' ), $normalized ) ) ) );
 	}
 	/**
 	 * Render a select option.
