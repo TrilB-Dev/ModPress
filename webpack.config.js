@@ -33,18 +33,20 @@ const entries = {
     './src/Assets/js/bootstrap.js',
     './src/Assets/scss/bootstrap.scss',
   ],
+  
   'admin.ui': [
     './src/Assets/js/admin.ui.js',
-    './src/Assets/js/admin.dashboard.js',
-    './src/Assets/js/admin.page.js',
-    './src/Assets/js/admin.plugins.js',
-    './src/Assets/js/admin.settings.js',
-    './src/Assets/js/admin.tools.js',
-    './src/Assets/js/admin.wpmedia.js',
-    './src/Assets/js/admin.mods.js',
-    './src/Assets/js/admin.ajax.js',
-    './src/Assets/scss/admin.ui.scss',
+    './src/Assets/scss/admin.ui.scss'
   ],
+  'admin.dashboard': './src/Assets/js/admin.dashboard.js',
+  'admin.page': './src/Assets/js/admin.page.js',
+  'admin.plugins': './src/Assets/js/admin.plugins.js',
+  'admin.settings': './src/Assets/js/admin.settings.js',
+  'admin.tools': './src/Assets/js/admin.tools.js',
+  'admin.wpmedia': './src/Assets/js/admin.wpmedia.js',
+  'admin.mods': './src/Assets/js/admin.mods.js',
+  'admin.ajax': './src/Assets/js/admin.ajax.js',
+    
   'wpoverride': './src/Assets/scss/wpoverride.scss'
 };
 
