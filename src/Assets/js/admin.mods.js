@@ -1295,6 +1295,19 @@
         syncOptionRepeaterType(row);
     };
 
+    const isDependentTypeField = (target) => {
+        if (!target || !target.matches) {
+            return false;
+        }
+
+        if (target.matches('.modpress-dependent-type')) {
+            return true;
+        }
+
+        const id = typeof target.id === 'string' ? target.id : '';
+        return /^modpress-dependent-type(?:-\d+)?$/.test(id);
+    };
+
     const syncDependentRowState = (row) => {
         if (!row) {
             return;
@@ -1325,7 +1338,7 @@
     };
 
     const syncDependentTypeChange = (target) => {
-        if (!target || !target.matches || !target.matches('.modpress-dependent-type')) {
+        if (!isDependentTypeField(target)) {
             return;
         }
 
@@ -1686,7 +1699,7 @@
             syncOptionRepeaterType(fieldRow);
         }
 
-        if (target.matches('.modpress-dependent-type')) {
+        if (isDependentTypeField(target)) {
             const dependentRow = target.closest('.modpress-dependent-item');
             syncDependentRowState(dependentRow);
         }
@@ -1764,7 +1777,10 @@
     });
 
     document.addEventListener('changed.bs.select', (event) => {
-        syncDependentTypeChange(event.target);
+        const target = event && event.target ? event.target : null;
+        if (isDependentTypeField(target)) {
+            syncDependentTypeChange(target);
+        }
     });
 
     document.addEventListener('click', (event) => {
