@@ -1361,13 +1361,7 @@
             typeField.name = 'dependents[' + nextIndex + '][type]';
             typeField.id = 'modpress-dependent-type-' + nextIndex;
             typeField.value = type;
-            if (typeof window !== 'undefined' && window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
-                try {
-                    window.Selectpicker.getOrCreateInstance(typeField)?.refresh();
-                } catch (error) {
-                    // Ignore selectpicker refresh issues.
-                }
-            }
+            refreshBootstrapSelect(typeField);
         }
 
         if (modField) {
@@ -1376,13 +1370,7 @@
             if (value.mod_id !== undefined && value.mod_id !== null && value.mod_id !== '') {
                 modField.value = String(value.mod_id);
             }
-            if (typeof window !== 'undefined' && window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
-                try {
-                    window.Selectpicker.getOrCreateInstance(modField)?.refresh();
-                } catch (error) {
-                    // Ignore selectpicker refresh issues.
-                }
-            }
+            refreshBootstrapSelect(modField);
         }
 
         if (urlField) {
@@ -1409,6 +1397,8 @@
         }
 
         repeater.appendChild(row);
+        refreshBootstrapSelect(typeField);
+        refreshBootstrapSelect(modField);
         syncDependentRowState(row);
 
         return row;
