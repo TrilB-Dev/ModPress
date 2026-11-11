@@ -46,6 +46,85 @@ final class Defaults {
 		self::default_groups();
 	}
     /**
+     * Install the default settings for the plugin.
+     *
+     * @return void
+     * @since 1.0.0
+     */
+    public static function install_default_settings(): void {
+        $default_settings = self::default_settings();
+        foreach ( $default_settings as $section => $settings ) {
+            foreach ( $settings as $key => $value ) {
+                if ( get_option( "{$section}_{$key}" ) === false ) {
+                    update_option( "{$section}_{$key}", $value );
+                }
+            }
+        }
+    }
+    /**
+     * Get the plugin default settings.
+     *
+     * @return array<string, array<string, mixed>>
+     * @since 1.0.0
+     */
+    public static function default_settings(): array {
+        return [
+            'setup' => [
+                'first_install_complete' => false,
+                'onboarding_steps_complete' => 0,
+            ],
+            'general' => [
+                'root_name' => 'ModPress',
+                'root_description' => '',
+                'archive_title' => '',
+                'archive_description' => '',
+                'root_slug' => 'modpress',
+                'category_slug' => '',
+                'tag_slug' => '',
+                'permalink' => '%mod_root%/%mod_type%/%mod_post%',
+                'enable_schema' => true,
+            ],
+            'layout' => [
+                'show_search' => true,
+                'show_toc' => true,
+                'show_breadcrumbs' => true,
+                'show_last_updated' => true,
+                'show_author' => false,
+                'show_reading_time' => false,
+                'show_feedback' => true,
+                'show_related_pages' => true,
+                'related_pages_count' => 4,
+                'search_placeholder' => '',
+                'search_button_text' => __( 'Search', 'modpress' ),
+                'search_scope' => 'all',
+                'search_no_results_message' => '',
+                'search_results_count' => 10,
+                'search_min_chars' => 2,
+                'search_live_results' => true,
+                'show_sidebar' => true,
+                'sidebar_position' => 'left',
+                'sidebar_width' => 280,
+                'sidebar_sticky' => true,
+                'sidebar_show_categories' => true,
+                'sidebar_show_category_count' => false,
+                'sidebar_expand_categories' => true,
+                'sidebar_show_page_count' => false,
+                'page_show_title' => true,
+                'page_show_toc' => true,
+                'page_toc_position' => 'sidebar',
+                'toc_min_level' => 2,
+                'toc_max_level' => 4,
+                'page_show_navigation' => true,
+                'reading_time_wpm' => 200,
+            ],
+            'access' => [],
+            'tools' => [ 
+                'debug_logging' => false,
+                'console_logging' => false 
+            ]
+        ];
+    }
+    /**
      * Reset the default groups by deleting and recreating the groups table.
      *
      * @return bool True on success, false on failure.
