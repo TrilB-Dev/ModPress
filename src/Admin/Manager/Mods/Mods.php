@@ -746,16 +746,18 @@ final class Mods extends ModManager {
 																	__( 'Download URL', 'modpress' )
 																); ?>
 																<?php echo FormFieldHelper::input_group(
-																	'<span class="input-group-text">https://</span>' . FormFieldHelper::text_input(
+																	'<span class="input-group-text modpress-file-host-url-display" id="modpress-file-host-url-template">https://</span>'
+																			. '<input type="hidden" name="files[template][host_url]" class="modpress-file-host-url" value="" />'
+																			. FormFieldHelper::text_input(
 																		'files[template][host_url]',
 																		'',
 																		array(
 																			'type' => 'url',
-																			'id' => 'modpress-file-host-url-template',
+																			'id' => 'modpress-file-host-url-value-template',
 																			'class' => 'modpress-file-host-url',
 																			'placeholder' => 'example.com/downloads',
 																		)
-																	) . '<span class="input-group-text">/</span>' . FormFieldHelper::text_input(
+																	) . FormFieldHelper::text_input(
 																		'files[template][url_suffix]',
 																		'',
 																		array(

@@ -1505,12 +1505,26 @@
 
         const row = field.closest('.modpress-file-item');
         const hostUrlMap = getFileHostUrlMap();
+        const hostUrlFields = row ? Array.from(row.querySelectorAll('.modpress-file-host-url')) : [];
+        if (hostUrlFields.length > 1) {
+            hostUrlFields.slice(0, -1).forEach((hostField) => {
+                hostField.remove();
+            });
+        }
+
         const hostUrlField = row ? row.querySelector('.modpress-file-host-url') : null;
+        const hostUrlDisplay = row ? row.querySelector('.modpress-file-host-url-display') : null;
         if (!hostUrlField) {
             return;
         }
 
-        hostUrlField.value = hostUrlMap[String(field.value || '').trim()] || '';
+        const nextHostUrl = hostUrlMap[String(field.value || '').trim()] || '';
+        hostUrlField.value = nextHostUrl;
+        hostUrlField.type = 'hidden';
+
+        if (hostUrlDisplay) {
+            hostUrlDisplay.textContent = nextHostUrl || 'https://';
+        }
     };
 
     const bindFileHostSelector = (field) => {
@@ -1678,11 +1692,25 @@
             refreshBootstrapSelect(hostField);
         }
 
+        const hostUrlFields = Array.from(row.querySelectorAll('.modpress-file-host-url'));
+        if (hostUrlFields.length > 1) {
+            hostUrlFields.slice(0, -1).forEach((hostField) => {
+                hostField.remove();
+            });
+        }
+
         const hostUrlField = row.querySelector('.modpress-file-host-url');
         if (hostUrlField) {
             hostUrlField.name = 'files[' + nextIndex + '][host_url]';
             hostUrlField.id = 'modpress-file-host-url-' + nextIndex;
             hostUrlField.value = typeof value.host_url === 'string' ? value.host_url : (value.host_url ?? '');
+            hostUrlField.type = 'hidden';
+        }
+
+        const hostUrlDisplay = row.querySelector('.modpress-file-host-url-display');
+        if (hostUrlDisplay) {
+            hostUrlDisplay.id = 'modpress-file-host-url-' + nextIndex;
+            hostUrlDisplay.textContent = hostUrlField && hostUrlField.value ? hostUrlField.value : 'https://';
         }
 
         const urlSuffixField = row.querySelector('.modpress-file-url-suffix');
