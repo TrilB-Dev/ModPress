@@ -656,7 +656,7 @@ final class Mods extends ModManager {
 														</div>
 														<div class="col-12 modpress-file-target-wrapper modpress-file-target-internal">
 															<div class="row g-3">
-																<div class="col-md-6">
+																<div class="col-md-5">
 																	<?php echo WPMediaHelper::create(
 																		'',
 																		array(
@@ -673,7 +673,7 @@ final class Mods extends ModManager {
 																		)
 																	); ?>
 															</div>
-															<div class="col-md-3">
+															<div class="col-md-5">
 																<?php echo FormFieldHelper::label( 
 																	'modpress-file-name-template', 
 																	__( 'File Name', 'modpress' ) 
@@ -688,7 +688,7 @@ final class Mods extends ModManager {
 																	) 
 																); ?>
 															</div>
-															<div class="col-md-3">
+															<div class="col-md-2">
 																<?php echo FormFieldHelper::label( 
 																	'modpress-file-version-template', 
 																	__( 'Version', 'modpress' ) 
