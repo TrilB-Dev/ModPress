@@ -762,7 +762,7 @@ final class Mods extends ModManager {
 																		'',
 																		array(
 																			'id' => 'modpress-file-url-suffix-template',
-																			'class' => 'modpress-file-url-suffix',
+																			'class' => 'modpress-file-url-suffix w-100',
 																			'placeholder' => 'path/to/file/link/',
 																		)
 																	),
