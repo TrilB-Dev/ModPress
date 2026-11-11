@@ -629,12 +629,30 @@ final class Mods extends ModManager {
 													</div>
 													<div class="row g-3">
 														<div class="col-12">
-															<div class="btn-group w-100" role="group" aria-label="<?php esc_attr_e( 'File source', 'modpress' ); ?>">
-																<input type="radio" class="btn-check modpress-file-type-radio" name="files[template][type]" id="modpress-file-type-template-internal" value="internal" checked />
-																<label class="btn btn-outline-primary" for="modpress-file-type-template-internal"><?php esc_html_e( 'Internal', 'modpress' ); ?></label>
-																<input type="radio" class="btn-check modpress-file-type-radio" name="files[template][type]" id="modpress-file-type-template-external" value="external" />
-																<label class="btn btn-outline-primary" for="modpress-file-type-template-external"><?php esc_html_e( 'External', 'modpress' ); ?></label>
-															</div>
+															<?php echo FormFieldHelper::button_group(
+																'files[template][type]',
+																array(
+																	'internal' => array(
+																		'label' => __( 'Internal', 'modpress' ),
+																		'input_attributes' => array(
+																			'class' => 'modpress-file-type-radio',
+																		),
+																	),
+																	'external' => array(
+																		'label' => __( 'External', 'modpress' ),
+																		'input_attributes' => array(
+																			'class' => 'modpress-file-type-radio',
+																		),
+																	),
+																),
+																'internal',
+																array(
+																	'id' => 'modpress-file-type-template',
+																	'class' => 'w-100',
+																	'variant' => 'outline-primary',
+																	'aria_label' => __( 'File source', 'modpress' ),
+																),
+															); ?>
 														</div>
 														<div class="col-12 modpress-file-target-wrapper modpress-file-target-internal">
 															<div class="row g-3">
@@ -656,23 +674,60 @@ final class Mods extends ModManager {
 																	); ?>
 															</div>
 															<div class="col-md-3">
-																<?php echo FormFieldHelper::label( 'modpress-file-name-template', __( 'File Name', 'modpress' ) ); ?>
-																<?php echo FormFieldHelper::text_input( 'files[template][name]', '', array( 'id' => 'modpress-file-name-template', 'class' => 'modpress-file-name w-100', 'placeholder' => 'mod-file.zip' ) ); ?>
+																<?php echo FormFieldHelper::label( 
+																	'modpress-file-name-template', 
+																	__( 'File Name', 'modpress' ) 
+																); ?>
+																<?php echo FormFieldHelper::text_input( 
+																	'files[template][name]', 
+																	'', 
+																	array( 
+																		'id' => 'modpress-file-name-template', 
+																		'class' => 'modpress-file-name w-100', 
+																		'placeholder' => 'mod-file.zip' 
+																	) 
+																); ?>
 															</div>
 															<div class="col-md-3">
-																<?php echo FormFieldHelper::label( 'modpress-file-version-template', __( 'Version', 'modpress' ) ); ?>
-																<?php echo FormFieldHelper::text_input( 'files[template][version]', '', array( 'id' => 'modpress-file-version-template', 'class' => 'modpress-file-version w-100', 'placeholder' => '1.0.0' ) ); ?>
+																<?php echo FormFieldHelper::label( 
+																	'modpress-file-version-template', 
+																	__( 'Version', 'modpress' ) 
+																); ?>
+																<?php echo FormFieldHelper::text_input( 
+																	'files[template][version]', 
+																	'', 
+																	array( 
+																		'id' => 'modpress-file-version-template', 
+																		'class' => 'modpress-file-version w-100', 
+																		'placeholder' => '1.0.0' 
+																	) 
+																); ?>
 															</div>
 															<div class="col-12">
-																<?php echo FormFieldHelper::label( 'modpress-file-description-template', __( 'Description', 'modpress' ) ); ?>
-																<?php echo FormFieldHelper::textarea( 'files[template][description]', '', array( 'id' => 'modpress-file-description-template', 'class' => 'modpress-file-description w-100', 'rows' => 3, 'placeholder' => __( 'Describe the file contents or release notes.', 'modpress' ) ) ); ?>
+																<?php echo FormFieldHelper::label( 
+																	'modpress-file-description-template', 
+																	__( 'Description', 'modpress' ) 
+																); ?>
+																<?php echo FormFieldHelper::textarea( 
+																	'files[template][description]', 
+																	'', 
+																	array( 
+																		'id' => 'modpress-file-description-template', 
+																		'class' => 'modpress-file-description w-100', 
+																		'rows' => 3, 
+																		'placeholder' => __( 'Describe the file contents or release notes.', 'modpress' ) 
+																	) 
+																); ?>
 															</div>
 														</div>
 													</div>
 													<div class="col-12 modpress-file-target-wrapper modpress-file-target-external d-none">
 														<div class="row g-3">
-															<div class="col-md-4">
-																<?php echo FormFieldHelper::label( 'modpress-file-host-selector-template', __( 'Host', 'modpress' ) ); ?>
+															<div class="col-md-3">
+																<?php echo FormFieldHelper::label( 
+																	'modpress-file-host-selector-template', 
+																	__( 'Host', 'modpress' ) 
+																); ?>
 																<?php echo FormFieldHelper::bootstrap_select(
 																	'files[template][host_id]',
 																	array(
@@ -685,17 +740,52 @@ final class Mods extends ModManager {
 																	)
 																); ?>
 															</div>
-															<div class="col-md-4">
-																<?php echo FormFieldHelper::label( 'modpress-file-host-url-template', __( 'Host URL', 'modpress' ) ); ?>
-																<?php echo FormFieldHelper::text_input( 'files[template][host_url]', '', array( 'type' => 'url', 'id' => 'modpress-file-host-url-template', 'class' => 'modpress-file-host-url w-100', 'placeholder' => 'https://example.com/downloads/' ) ); ?>
-															</div>
-															<div class="col-md-4">
-																<?php echo FormFieldHelper::label( 'modpress-file-url-suffix-template', __( 'Remainder of URL', 'modpress' ) ); ?>
-																<?php echo FormFieldHelper::text_input( 'files[template][url_suffix]', '', array( 'id' => 'modpress-file-url-suffix-template', 'class' => 'modpress-file-url-suffix w-100', 'placeholder' => 'mod-file.zip' ) ); ?>
+															<div class="col-md-6">
+															<?php echo FormFieldHelper::label(
+																	'modpress-file-host-url-template',
+																	__( 'Download URL', 'modpress' )
+																); ?>
+																<?php echo FormFieldHelper::input_group(
+																	'<span class="input-group-text">https://</span>' . FormFieldHelper::text_input(
+																		'files[template][host_url]',
+																		'',
+																		array(
+																			'type' => 'url',
+																			'id' => 'modpress-file-host-url-template',
+																			'class' => 'modpress-file-host-url',
+																			'placeholder' => 'example.com/downloads',
+																		)
+																	) . '<span class="input-group-text">/</span>' . FormFieldHelper::text_input(
+																		'files[template][url_suffix]',
+																		'',
+																		array(
+																			'id' => 'modpress-file-url-suffix-template',
+																			'class' => 'modpress-file-url-suffix',
+																			'placeholder' => 'mod-file.zip',
+																		)
+																	),
+																	array(
+																		'attributes' => array(
+																			'class' => 'flex-nowrap',
+																			'role' => 'group',
+																			'aria-label' => __( 'Download URL', 'modpress' ),
+																		),
+																	)
+																); ?>
 															</div>
 															<div class="col-12">
-																<?php echo FormFieldHelper::label( 'modpress-file-description-external-template', __( 'Description', 'modpress' ) ); ?>
-																<?php echo FormFieldHelper::textarea( 'files[template][description]', '', array( 'id' => 'modpress-file-description-external-template', 'class' => 'modpress-file-description w-100', 'rows' => 3, 'placeholder' => __( 'Add a short description for this external file.', 'modpress' ) ) ); ?>
+																<?php echo FormFieldHelper::label( 
+																	'modpress-file-description-external-template', 
+																	__( 'Description', 'modpress' ) 
+																); ?>
+																<?php echo FormFieldHelper::textarea( 
+																	'files[template][description]', '', array( 
+																		'id' => 'modpress-file-description-external-template', 
+																		'class' => 'modpress-file-description w-100', 
+																		'rows' => 3, 
+																		'placeholder' => __( 'Add a short description for this external file.', 'modpress' ) 
+																	) 
+																); ?>
 															</div>
 														</div>
 													</div>

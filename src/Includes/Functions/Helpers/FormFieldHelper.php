@@ -235,7 +235,7 @@ final class FormFieldHelper {
 	 */
 	public static function button_group( string $name, array $buttons = array(), $selected = array(), array $options = array() ): string {
 
-		$type             = in_array( $options['type'] ?? 'radio', array( 'button', 'checkbox', 'radio' ), true ) ? $options['type'] : 'radio';
+		$type             = in_array( $options['type'] ?? 'radio', array( 'button', 'checkbox', 'radio' ), true ) ? ( $options['type'] ?? 'radio' ) : 'radio';
 		$size             = in_array( $options['size'] ?? '', array( 'sm', 'lg' ), true ) ? $options['size'] : '';
 		$group_id         = (string) ( $options['id'] ?? self::unique_field_id( $name . '-group' ) );
 		$group_attributes = array_merge( $options['attributes'] ?? array(), $options );
@@ -278,7 +278,7 @@ final class FormFieldHelper {
 			}
 
 			$input_attributes          = array_merge( $definition['input_attributes'] ?? array(), array( 'autocomplete' => 'off' ) );
-			$input_attributes['class'] = 'btn-check';
+			$input_attributes['class'] = self::classes( array( 'btn-check', $input_attributes['class'] ?? '' ) );
 			$input_attributes['id']    = $id;
 			$input_attributes['type']  = $type;
 			$input_attributes['name']  = $input_name;
