@@ -763,7 +763,7 @@ final class Mods extends ModManager {
 																		array(
 																			'id' => 'modpress-file-url-suffix-template',
 																			'class' => 'modpress-file-url-suffix',
-																			'placeholder' => 'mod-file.zip',
+																			'placeholder' => 'path/to/file/link/',
 																		)
 																	),
 																	array(
@@ -774,6 +774,7 @@ final class Mods extends ModManager {
 																		),
 																	)
 																); ?>
+																<div class="form-text"><?php esc_html_e( 'Please provide the download URL for the external file.', 'modpress' ); ?></div>
 															</div>
 															<div class="col-12">
 																<?php echo FormFieldHelper::label( 
