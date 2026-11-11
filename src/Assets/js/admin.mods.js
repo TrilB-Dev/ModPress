@@ -1609,8 +1609,8 @@
 
         const internalRadio = row.querySelector('.modpress-file-type-radio[value="internal"]');
         const externalRadio = row.querySelector('.modpress-file-type-radio[value="external"]');
-        const internalLabel = row.querySelector('label[for="modpress-file-type-template-internal"]');
-        const externalLabel = row.querySelector('label[for="modpress-file-type-template-external"]');
+        const internalLabel = internalRadio ? internalRadio.nextElementSibling : null;
+        const externalLabel = externalRadio ? externalRadio.nextElementSibling : null;
         if (internalRadio) {
             internalRadio.name = 'files[' + nextIndex + '][type]';
             internalRadio.id = 'modpress-file-type-internal-' + nextIndex;

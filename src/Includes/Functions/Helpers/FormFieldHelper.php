@@ -237,7 +237,7 @@ final class FormFieldHelper {
 
 		$type             = in_array( $options['type'] ?? 'radio', array( 'button', 'checkbox', 'radio' ), true ) ? ( $options['type'] ?? 'radio' ) : 'radio';
 		$size             = in_array( $options['size'] ?? '', array( 'sm', 'lg' ), true ) ? $options['size'] : '';
-		$group_id         = (string) ( $options['id'] ?? self::unique_field_id( $name . '-group' ) );
+		$group_id         = self::unique_field_id( (string) ( $options['id'] ?? $name . '-group' ) );
 		$group_attributes = array_merge( $options['attributes'] ?? array(), $options );
 		unset( $group_attributes['attributes'], $group_attributes['id'], $group_attributes['class'], $group_attributes['type'], $group_attributes['size'], $group_attributes['vertical'], $group_attributes['variant'], $group_attributes['button_class'], $group_attributes['aria_label'], $group_attributes['append_array'] );
 		$group_attributes['id']   = $group_id;
@@ -259,7 +259,8 @@ final class FormFieldHelper {
 			$definition   = is_array( $button ) ? $button : array();
 			$value        = (string) ( $definition['value'] ?? ( is_array( $button ) ? $key : $key ) );
 			$label        = (string) ( $definition['label'] ?? ( is_array( $button ) ? $value : $button ) );
-			$id           = (string) ( $definition['id'] ?? self::unique_field_id( $group_id . '-' . $value ) );
+			$base_id      = (string) ( $definition['id'] ?? $group_id . '-' . $value );
+			$id           = self::unique_field_id( $base_id );
 			$variant      = (string) ( $definition['variant'] ?? $options['variant'] ?? 'outline-primary' );
 			$button_class = self::classes( array( 'btn', 'btn-' . sanitize_html_class( $variant ), $definition['class'] ?? $options['button_class'] ?? '' ) );
 			$disabled     = ! empty( $definition['disabled'] );

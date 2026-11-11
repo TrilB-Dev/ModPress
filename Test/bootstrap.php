@@ -24,6 +24,31 @@ if ( ! function_exists( 'sanitize_key' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esc_attr' ) ) {
+	function esc_attr( $text ): string {
+		return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' );
+	}
+}
+
+if ( ! function_exists( 'esc_html' ) ) {
+	function esc_html( $text ): string {
+		return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' );
+	}
+}
+
+if ( ! function_exists( 'esc_textarea' ) ) {
+	function esc_textarea( $text ): string {
+		return htmlspecialchars( (string) $text, ENT_QUOTES, 'UTF-8' );
+	}
+}
+
+if ( ! function_exists( 'sanitize_html_class' ) ) {
+	function sanitize_html_class( $class ): string {
+		$normalized = preg_replace( '/[^a-zA-Z0-9_\-\s]/', '', (string) $class );
+		return trim( preg_replace( '/\s+/', '-', strtolower( (string) $normalized ) ) );
+	}
+}
+
 if ( ! function_exists( '__' ) ) {
 	function __( $text, $domain = null ): string {
 		return (string) $text;
