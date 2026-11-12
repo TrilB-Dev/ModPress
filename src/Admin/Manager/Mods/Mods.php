@@ -684,7 +684,7 @@ final class Mods extends ModManager {
 																	array( 
 																		'id' => 'modpress-file-name-template', 
 																		'class' => 'modpress-file-name w-100', 
-																		'placeholder' => 'mod-file.zip' 
+																		'placeholder' => 'File Name' 
 																	) 
 																); ?>
 															</div>
@@ -740,7 +740,7 @@ final class Mods extends ModManager {
 																	)
 																); ?>
 															</div>
-															<div class="col-md-6">
+															<div class="col-md-9">
 															<?php echo FormFieldHelper::label(
 																	'modpress-file-host-url-template',
 																	__( 'Download URL', 'modpress' )

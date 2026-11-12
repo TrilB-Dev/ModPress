@@ -12,6 +12,7 @@
 namespace ModPress\Includes\Core\WP;
 
 use ModPress\Includes\Core\Capabilities;
+use ModPress\Includes\Core\Defaults;
 use ModPress\Includes\Core\Roles;
 use ModPress\Includes\ModManagement\GroupsManager;
 use ModPress\Includes\Plugins\Plugins;
@@ -61,6 +62,7 @@ final class Activator {
 		GroupsManager::create_default_group();
 		Roles::install();
 		Capabilities::install();
+		Defaults::install_default_settings();
 		SettingsManager::install();
 
 		foreach ( $callbacks ?? self::$callbacks as $callback ) {

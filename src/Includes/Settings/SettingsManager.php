@@ -17,14 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class SettingsManager {
     /**
-     * Registered default settings for each group.
-     *
-     * @var array<string, array<string, mixed>>
-     * @since 1.0.0
-     */
-    private static array $registered_groups = [];
-
-    /**
      * Runtime settings store used when the custom settings table is unavailable.
      *
      * @var array<string, array<string, mixed>>
@@ -33,20 +25,12 @@ final class SettingsManager {
     private static array $runtime_store = [];
 
     /**
-     * Registered default keys for each group.
+     * Registered setting keys mapped to their logical group.
      *
      * @var array<string, string>
      * @since 1.0.0
      */
     private static array $registered_keys = [];
-
-    /**
-     * Whether default settings have already been seeded for this runtime.
-     *
-     * @var bool
-     * @since 1.0.0
-     */
-    private static bool $seeded = false;
 
     /**
      * Get the table name for the custom ModPress settings storage.
@@ -65,17 +49,7 @@ final class SettingsManager {
      * @since 1.0.0
      */
     public static function install(): void {
-        if ( self::$seeded ) {
-            return;
-        }
-
-        self::$seeded = true;
         Database::install();
-
-        foreach ( self::registered_defaults() as $group => $settings ) {
-            $stored_settings = self::get_group( $group ) ?? [];
-            self::set_group( $group, array_merge( $settings, $stored_settings ) );
-        }
     }
     /**
      * Get a setting value.
@@ -91,7 +65,8 @@ final class SettingsManager {
                 return $settings[ $key ];
             }
         }
-        return self::registered_default( $key, $default );
+
+        return $default;
     }
     /**
      * Set a setting value.
@@ -178,68 +153,9 @@ final class SettingsManager {
         return $settings;
     }
     /**
-     * Get the default settings.
+     * Get the settings for a specific group.
      *
-     * @return array
-     * @since 1.0.0
-     */
-    public static function defaults(): array {
-        return [
-            'general' => [
-                'root_name' => 'ModPress',
-                'root_description' => __( 'A searchable catalogue powered by ModPress.', 'modpress' ),
-                'archive_title' => __( 'ModPress Catalogue', 'modpress' ),
-                'archive_description' => __( 'Browse the ModPress catalogue.', 'modpress' ),
-                'root_slug' => 'catalogue',
-                'category_slug' => 'catalogue-group',
-                'tag_slug' => 'catalogue-tag',
-                'permalink' => '%mod_root%/%mod_type%/%mod_post%',
-                'enable_schema' => true,
-            ],
-            'layout' => [
-                'show_search' => true,
-                'show_toc' => true,
-                'show_breadcrumbs' => true,
-                'show_last_updated' => true,
-                'show_author' => false,
-                'show_reading_time' => false,
-                'show_feedback' => true,
-                'show_related_pages' => true,
-                'related_pages_count' => 4,
-                'search_placeholder' => __( 'Search the catalogue', 'modpress' ),
-                'search_button_text' => __( 'Search', 'modpress' ),
-                'search_scope' => 'all',
-                'search_no_results_message' => __( 'No catalogue entries found.', 'modpress' ),
-                'search_results_count' => 10,
-                'search_min_chars' => 2,
-                'search_live_results' => true,
-                'show_sidebar' => true,
-                'sidebar_position' => 'left',
-                'sidebar_width' => 280,
-                'sidebar_sticky' => true,
-                'sidebar_show_categories' => true,
-                'sidebar_show_category_count' => false,
-                'sidebar_expand_categories' => true,
-                'sidebar_show_page_count' => false,
-                'page_show_title' => true,
-                'page_show_toc' => true,
-                'page_toc_position' => 'sidebar',
-                'toc_min_level' => 2,
-                'toc_max_level' => 4,
-                'page_show_navigation' => true,
-                'reading_time_wpm' => 200,
-            ],
-            'access' => [],
-            'tools' => [ 
-                'debug_logging' => false,
-                'console_logging' => false 
-            ],
-        ];
-    }
-    /**
-     * Get the default settings.
-     *
-     * @return array
+     * @return array|null
      * @since 1.0.0
      */
     public static function get_group( string $group ): ?array {
@@ -263,11 +179,10 @@ final class SettingsManager {
         $settings = $value === null ? null : maybe_unserialize( $value );
 
         if ( ! is_array( $settings ) ) {
-            return self::registered_defaults()[ $normalized_group ] ?? null;
+            return null;
         }
 
-        $defaults = self::registered_defaults()[ $normalized_group ] ?? [];
-        return array_merge( $defaults, $settings );
+        return $settings;
     }
     /**
      * Set the settings for a specific group.
@@ -344,7 +259,7 @@ final class SettingsManager {
         return false !== $result;
     }
     /**
-     * Register a settings group with default values.
+     * Register a settings group for lookup resolution.
      *
      * @param string $group
      * @param array $defaults
@@ -357,13 +272,13 @@ final class SettingsManager {
             return false;
         }
 
-        self::$registered_groups[ $group ] = array_merge( self::$registered_groups[ $group ] ?? [], $defaults );
         foreach ( $defaults as $key => $default ) {
             $key = sanitize_key( (string) $key );
             if ( '' !== $key ) {
                 self::$registered_keys[ $key ] = $group;
             }
         }
+
         return true;
     }
     /**
@@ -383,7 +298,7 @@ final class SettingsManager {
 
         $group = self::normalize_group( $group );
         self::$registered_keys[ $key ] = $group;
-        self::$registered_groups[ $group ][ $key ] = $default;
+
         return true;
     }
     /**
@@ -435,38 +350,6 @@ final class SettingsManager {
         return 'general';
     }
 
-    /**
-     * Return core and extension defaults for activation and fallback reads.
-     *
-     * @return array<string, array<string, mixed>>
-     * @since 1.0.0
-     */
-    private static function registered_defaults(): array {
-        $defaults = self::defaults();
-        foreach ( self::$registered_groups as $group => $settings ) {
-            $defaults[ $group ] = array_merge( $defaults[ $group ] ?? [], $settings );
-        }
-
-        return $defaults;
-    }
-    /**
-     * Get the registered default for a specific setting key.
-     *
-     * @param string $key
-     * @param mixed $fallback
-     * @return mixed
-     * @since 1.0.0
-     */
-    private static function registered_default( string $key, $fallback ) {
-        $key = sanitize_key( $key );
-        foreach ( self::registered_defaults() as $settings ) {
-            if ( array_key_exists( $key, $settings ) ) {
-                return $settings[ $key ];
-            }
-        }
-
-        return $fallback;
-    }
     /**
      * Normalize a group name by replacing dashes and spaces with underscores and removing the 'modpress_' prefix if present.
      *

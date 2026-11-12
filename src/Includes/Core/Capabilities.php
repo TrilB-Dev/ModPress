@@ -23,24 +23,24 @@ class Capabilities {
 		return array_merge(
 			array(
 				'modpress_admin_view'                => array(
-					'group'       => 'ModPress Licence',
-					'label'       => __( 'View Licence Administration', 'modpress' ),
+					'group'       => 'ModPress',
+					'label'       => __( 'View ModPress Administration', 'modpress' ),
 					'description' => __( 'Allows access to the ModPress dashboard and admin pages.', 'modpress' ),
 				),
 				'modpress_dashboard_view'            => array(
-					'group'       => 'ModPress Licence',
-					'label'       => __( 'View Licence Dashboard', 'modpress' ),
+					'group'       => 'ModPress',
+					'label'       => __( 'View ModPress Dashboard', 'modpress' ),
 					'description' => __( 'Allows viewing the ModPress dashboard and summary status.', 'modpress' ),
 				),
 				'modpress_settings_general_view'     => array(
 					'group'       => 'ModPress Settings',
-					'label'       => __( 'View Licence Settings', 'modpress' ),
-					'description' => __( 'Allows viewing the general licence management settings.', 'modpress' ),
+					'label'       => __( 'View ModPress Settings', 'modpress' ),
+					'description' => __( 'Allows viewing the general ModPress management settings.', 'modpress' ),
 				),
 				'modpress_settings_general_edit'     => array(
 					'group'       => 'ModPress Settings',
-					'label'       => __( 'Edit Licence Settings', 'modpress' ),
-					'description' => __( 'Allows editing the licence management settings.', 'modpress' ),
+					'label'       => __( 'Edit ModPress Settings', 'modpress' ),
+					'description' => __( 'Allows editing the ModPress management settings.', 'modpress' ),
 				),
 				'modpress_settings_layout_view'      => array(
 					'group'       => 'ModPress Settings',
@@ -60,7 +60,7 @@ class Capabilities {
 				'modpress_settings_access_edit'      => array(
 					'group'       => 'ModPress Settings',
 					'label'       => __( 'Edit Access Controls', 'modpress' ),
-					'description' => __( 'Allows changing licence access roles and permission boundaries.', 'modpress' ),
+					'description' => __( 'Allows changing ModPress access roles and permission boundaries.', 'modpress' ),
 				),
 				'modpress_settings_security_view'    => array(
 					'group'       => 'ModPress Settings',
@@ -79,13 +79,13 @@ class Capabilities {
 				),
 				'modpress_tools_import'              => array(
 					'group'       => 'ModPress Tools',
-					'label'       => __( 'Import Licence Data', 'modpress' ),
-					'description' => __( 'Allows importing licence exports into the system securely.', 'modpress' ),
+					'label'       => __( 'Import ModPress Data', 'modpress' ),
+					'description' => __( 'Allows importing ModPress exports into the system securely.', 'modpress' ),
 				),
 				'modpress_tools_export'              => array(
 					'group'       => 'ModPress Tools',
-					'label'       => __( 'Export Licence Data', 'modpress' ),
-					'description' => __( 'Allows exporting licence records using encryption and a password.', 'modpress' ),
+					'label'       => __( 'Export ModPress Data', 'modpress' ),
+					'description' => __( 'Allows exporting ModPress records using encryption and a password.', 'modpress' ),
 				),
 				'modpress_tools_debug'               => array(
 					'group'       => 'ModPress Tools',
@@ -94,8 +94,8 @@ class Capabilities {
 				),
 				'modpress_tools_reset'               => array(
 					'group'       => 'ModPress Tools',
-					'label'       => __( 'Reset Licence Data', 'modpress' ),
-					'description' => __( 'Allows resetting or clearing licence records and related data.', 'modpress' ),
+					'label'       => __( 'Reset ModPress Data', 'modpress' ),
+					'description' => __( 'Allows resetting or clearing ModPress records and related data.', 'modpress' ),
 				),
 				'modpress_settings_plugins_view'     => array(
 					'group'       => 'ModPress Settings',
@@ -161,6 +161,61 @@ class Capabilities {
 					'group'       => 'Mod Management',
 					'label'       => __( 'Edit Tags', 'modpress' ),
 					'description' => __( 'Allows editing tags within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_files_view' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'View Files', 'modpress' ),
+					'description' => __( 'Allows viewing files within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_files_edit' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'Edit Files', 'modpress' ),
+					'description' => __( 'Allows editing files within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_files_edit_others' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'Edit Other Files', 'modpress' ),
+					'description' => __( 'Allows editing files created by other users within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_files_type_view' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'View File Types', 'modpress' ),
+					'description' => __( 'Allows viewing file types within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_files_type_edit' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'Edit File Types', 'modpress' ),
+					'description' => __( 'Allows editing file types within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_files_hosts_view' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'View File Hosts', 'modpress' ),
+					'description' => __( 'Allows viewing file hosts within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_files_hosts_edit' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'Edit File Hosts', 'modpress' ),
+					'description' => __( 'Allows editing file hosts within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_changelogs_view' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'View Changelogs', 'modpress' ),
+					'description' => __( 'Allows viewing changelogs within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_changelogs_edit' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'Edit Changelogs', 'modpress' ),
+					'description' => __( 'Allows editing changelogs within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_changelogs_categories_view' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'View Changelog Categories', 'modpress' ),
+					'description' => __( 'Allows viewing changelog categories within Mod Management.', 'modpress' ),
+				),
+				'modpress_manager_changelogs_categories_edit' => array(
+					'group'       => 'Mod Management',
+					'label'       => __( 'Edit Changelog Categories', 'modpress' ),
+					'description' => __( 'Allows editing changelog categories within Mod Management.', 'modpress' ),
 				),
 			),
 			self::$extensions
