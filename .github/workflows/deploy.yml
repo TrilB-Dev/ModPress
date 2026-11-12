@@ -1,12 +1,16 @@
-name: Build AccessPress Deploy Branch
+name: Build ModPress Deploy Branch
 
 on:
   push:
     branches:
-      - master
+      - Master
+
+concurrency:
+  group: deploy-master-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  php-test:
     runs-on: self-hosted
     strategy:
       fail-fast: false
@@ -18,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: master
+          ref: Master
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -38,6 +42,59 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-php-${{ matrix.php-version }}-
 
+      - name: Fix vendor permissions
+        shell: bash
+        run: |
+          if [ -d vendor ]; then
+            chmod -R u+rwX,go+rX vendor 2>/dev/null || true
+          fi
+
+      - name: Install dependencies
+        shell: bash
+        run: composer install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Validate Composer
+        shell: bash
+        run: composer validate --no-check-publish
+
+      - name: Run PHPCS if configured
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          if [ -f phpcs.xml.dist ] || [ -f .phpcs.xml ] || [ -f phpcs.xml ]; then
+            if [ -f vendor/bin/phpcs ]; then
+              chmod -R u+rwX,go+rX vendor 2>/dev/null || true
+              chmod +x vendor/bin/phpcs vendor/bin/phpcbf 2>/dev/null || true
+              echo "Running PHPCS checks. Violations will be reported without failing the job until the codebase is cleaned up."
+              php vendor/bin/phpcs --standard=phpcs.xml.dist . --report=summary || php vendor/bin/phpcs . --report=summary || true
+            else
+              echo "PHPCS is not installed for this PHP version; skipping static analysis."
+            fi
+          else
+            echo "No PHPCS config found; skipping static analysis."
+          fi
+
+  deploy:
+    needs: php-test
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/Master'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: Master
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, xml, curl, zip, intl
+          tools: composer:v2
+          coverage: none
+
       - name: Configure Git
         shell: bash
         run: |
@@ -50,7 +107,7 @@ jobs:
 
       - name: Create New Deploy branch
         shell: bash
-        run: git checkout -b Deploy master
+        run: git checkout -b Deploy Master
 
       - name: Install Node dependencies
         shell: bash
@@ -96,9 +153,9 @@ jobs:
         shell: bash
         run: git push origin Deploy
 
-      - name: Checkout master branch
+      - name: Checkout Master branch
         shell: bash
-        run: git checkout master
+        run: git checkout Master
 
       - name: Fetch Deploy branch
         shell: bash
@@ -120,6 +177,7 @@ jobs:
           rm -rf Scripts || true
           rm -rf Docs || true
           rm -rf PluginBackup || true
+          rm -rf Old || true
 
       - name: Remove Root Non Production Files
         shell: bash
@@ -147,7 +205,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No deployment cleanup changes to commit"
           else
-            git commit -m "Deployment Ready - Remove development files and update to latest master"
+            git commit -m "Deployment Ready - Remove development files and update to latest Master"
           fi
 
       - name: Push Deploy
