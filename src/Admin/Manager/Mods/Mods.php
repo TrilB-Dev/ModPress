@@ -99,6 +99,21 @@ final class Mods extends ModManager {
 		);
 
 		$featured_image = $mod_id > 0 ? (string) get_post_thumbnail_id( $mod_id ) : (string) ( $mod['featured_image'] ?? '' );
+		$mod_logo = $mod_id > 0 ? (string) get_post_meta( $mod_id, 'mod_logo', true ) : (string) ( $mod['mod_logo'] ?? '' );
+		$mod_gallery = $mod_id > 0 ? get_post_meta( $mod_id, 'mod_gallery', true ) : ( $mod['mod_gallery'] ?? array() );
+		if ( ! is_array( $mod_gallery ) ) {
+			if ( is_string( $mod_gallery ) ) {
+				$decoded_gallery = json_decode( wp_unslash( $mod_gallery ), true );
+				if ( is_array( $decoded_gallery ) ) {
+					$mod_gallery = $decoded_gallery;
+				} else {
+					$mod_gallery = array_values( array_filter( array_map( 'absint', preg_split( '/[\s,]+/', trim( $mod_gallery ) ) ) ) );
+				}
+			} else {
+				$mod_gallery = array();
+			}
+		}
+		$mod_gallery = array_values( array_unique( array_filter( array_map( 'absint', (array) $mod_gallery ) ) ) );
 		$author_id = absint( $mod['post_author'] ?? get_current_user_id() );
 		$can_edit_others = current_user_can( 'modpress_manager_mods_edit_others' );
 		$author_options = array();
@@ -855,6 +870,54 @@ final class Mods extends ModManager {
 								)
 							); ?>
 							<div class="form-text"><?php esc_html_e( 'Use a wide image to represent the mod.', 'modpress' ); ?></div>
+						</div>
+						<div class="col-12">
+							<?php echo FormFieldHelper::label(
+								'mod_logo',
+								__( 'Mod Logo', 'modpress' ),
+								array(
+									'tooltip' => __( 'Set the square logo that represents the mod in listings and cards.', 'modpress' ),
+									'description' => __( 'Use a square image for the mod branding.', 'modpress' )
+								)
+							); ?>
+							<?php echo WPMediaHelper::create(
+								$mod_logo,
+								array(
+									'name' => 'mod_logo',
+									'id' => 'mod_logo',
+									'button_text' => __( 'Choose Logo', 'modpress' ),
+									'show_remove' => true,
+									'media_type' => 'image',
+								),
+								array(
+									'alt' => __( 'Mod logo preview', 'modpress' ),
+								)
+							); ?>
+							<div class="form-text"><?php esc_html_e( 'Use a square image for the mod branding.', 'modpress' ); ?></div>
+						</div>
+						<div class="col-12">
+							<?php echo FormFieldHelper::label(
+								'mod_gallery',
+								__( 'Mod Gallery', 'modpress' ),
+								array(
+									'tooltip' => __( 'Attach a gallery of images that showcase the mod.', 'modpress' ),
+									'description' => __( 'Choose a gallery image or store a list of gallery IDs.', 'modpress' )
+								)
+							); ?>
+							<?php echo WPMediaHelper::create(
+								! empty( $mod_gallery ) ? (string) $mod_gallery[0] : '',
+								array(
+									'name' => 'mod_gallery',
+									'id' => 'mod_gallery',
+									'button_text' => __( 'Choose Gallery Image', 'modpress' ),
+									'show_remove' => true,
+									'media_type' => 'image',
+								),
+								array(
+									'alt' => __( 'Mod gallery preview', 'modpress' ),
+								)
+							); ?>
+							<div class="form-text"><?php esc_html_e( 'Store gallery IDs for the mod showcase.', 'modpress' ); ?></div>
 						</div>
 						<div class="col-12 d-flex justify-content-end gap-2">
 							<?php echo FormFieldHelper::button( 

@@ -633,6 +633,38 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'name="modpress_action"', $html );
         }
 
+        public function testModFormIncludesLogoAndGalleryFields(): void {
+            $manager = new \ModPress\Admin\Manager\Mods\Mods();
+            $method = new \ReflectionMethod( $manager, 'render_mod_form' );
+            $method->setAccessible( true );
+
+            ob_start();
+            $method->invoke( $manager, array( 'post_title' => 'Example Mod' ) );
+            $html = ob_get_clean();
+
+            $this->assertStringContainsString( 'name="mod_logo"', $html );
+            $this->assertStringContainsString( 'name="mod_gallery"', $html );
+            $this->assertStringContainsString( 'Logo', $html );
+            $this->assertStringContainsString( 'Gallery', $html );
+        }
+
+        public function testSaveModPersistsLogoAndGalleryMeta(): void {
+            $_POST = [
+                'modpress_action' => 'save_mod',
+                'modpress_mod_nonce' => 'valid',
+                'post_title' => 'Example Mod',
+                'post_status' => 'publish',
+                'mod_logo' => '42',
+                'mod_gallery' => '[12,13,14]',
+            ];
+
+            $notice = ( new FunctionsMod() )->save_mod();
+
+            $this->assertStringContainsString( 'Mod saved successfully.', $notice );
+            $this->assertSame( 42, $GLOBALS['modpress_test_post_meta'][123]['mod_logo'] ?? null );
+            $this->assertSame( array( 12, 13, 14 ), $GLOBALS['modpress_test_post_meta'][123]['mod_gallery'] ?? null );
+        }
+
         public function testModFormShowsCurrentUserNameAndHiddenIdWhenUserCannotEditOthers(): void {
             $GLOBALS['modpress_test_capabilities'] = array(
                 'modpress_manager_mods_edit_others' => false,

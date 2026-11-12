@@ -338,6 +338,19 @@ final class FunctionsMod {
 		$status = isset( $_POST['post_status'] ) ? sanitize_key( wp_unslash( $_POST['post_status'] ) ) : 'publish';
 		$status = '' !== $status ? $status : 'publish';
 		$featured_image = isset( $_POST['featured_image'] ) ? absint( wp_unslash( $_POST['featured_image'] ) ) : 0;
+		$mod_logo = isset( $_POST['mod_logo'] ) ? absint( wp_unslash( $_POST['mod_logo'] ) ) : 0;
+		$mod_gallery_raw = isset( $_POST['mod_gallery'] ) ? wp_unslash( $_POST['mod_gallery'] ) : '';
+		$mod_gallery = array();
+		if ( is_array( $mod_gallery_raw ) ) {
+			$mod_gallery = array_values( array_unique( array_filter( array_map( 'absint', $mod_gallery_raw ) ) ) );
+		} elseif ( is_string( $mod_gallery_raw ) ) {
+			$decoded_gallery = json_decode( $mod_gallery_raw, true );
+			if ( is_array( $decoded_gallery ) ) {
+				$mod_gallery = array_values( array_unique( array_filter( array_map( 'absint', $decoded_gallery ) ) ) );
+			} else {
+				$mod_gallery = array_values( array_unique( array_filter( array_map( 'absint', preg_split( '/[\s,]+/', trim( $mod_gallery_raw ) ) ) ) ) );
+			}
+		}
 		$mod_id = isset( $_POST['mod_id'] ) ? absint( wp_unslash( $_POST['mod_id'] ) ) : 0;
 
 		if ( '' === $title ) {
@@ -376,6 +389,9 @@ final class FunctionsMod {
 		if ( $featured_image > 0 ) {
 			set_post_thumbnail( $post_id, $featured_image );
 		}
+
+		update_post_meta( $post_id, 'mod_logo', $mod_logo );
+		update_post_meta( $post_id, 'mod_gallery', $mod_gallery );
 
 		$mod_type_value = isset( $_POST['mod_type'] ) ? absint( wp_unslash( $_POST['mod_type'] ) ) : 0;
 		if ( $mod_type_value > 0 && function_exists( 'wp_set_post_terms' ) ) {
