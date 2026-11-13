@@ -47,10 +47,11 @@ final class WPMediaHelper {
 		$field_name        = (string) ( $button_config['name'] ?? 'media_value' );
 		$field_id          = (string) ( $button_config['id'] ?? sanitize_key( $field_name ) );
 		$button_label      = (string) ( $button_config['button_text'] ?? $button_config['text'] ?? __( 'Select Media', 'modpress' ) );
-		$return_value_mode = (string) ( $button_config['return_value'] ?? 'url' );
-		$value_type        = self::resolve_value_type( $field_value );
-		$resolved_value    = 'id' === $return_value_mode ? self::resolve_attachment_id( $field_value ) : self::resolve_image_url( $field_value );
-		$resolved_value    = is_string( $resolved_value ) ? $resolved_value : '';
+		$value_type       = self::resolve_value_type( $field_value );
+		$return_value_mode = (string) ( $button_config['return_value'] ?? ( 'id' === $value_type ? 'id' : 'url' ) );
+		$is_multiple       = ! empty( $button_config['multiple'] );
+		$normalized_values = self::normalize_media_values( $field_value, $is_multiple );
+		$resolved_value    = self::resolve_hidden_value( $normalized_values, $return_value_mode, $is_multiple );
 
 		$wrapper_class = self::classes(
 			array(
@@ -82,11 +83,24 @@ final class WPMediaHelper {
 					'data-return-value' => $return_value_mode,
 					'data-media-title' => $button_config['media_title'] ?? __( 'Select Media', 'modpress' ),
 					'data-media-button-text' => $button_config['media_button_text'] ?? __( 'Use Media', 'modpress' ),
+					'data-multiple' => $is_multiple ? 'true' : 'false',
 				),
 			),
 			$button_config
 		);
-		unset( $button_options['button_text'], $button_options['text'], $button_options['name'], $button_options['id'], $button_options['wrapper_class'], $button_options['style'], $button_options['media_type'], $button_options['return_value'], $button_options['media_title'], $button_options['media_button_text'] );
+		unset(
+			$button_options['button_text'],
+			$button_options['text'],
+			$button_options['name'],
+			$button_options['id'],
+			$button_options['wrapper_class'],
+			$button_options['style'],
+			$button_options['media_type'],
+			$button_options['return_value'],
+			$button_options['media_title'],
+			$button_options['media_button_text'],
+			$button_options['multiple']
+		);
 
 		$button_markup = FormFieldHelper::button(
 			$button_label,
@@ -108,19 +122,7 @@ final class WPMediaHelper {
 			);
 		}
 
-		$preview_hidden = '' !== $resolved_value ? '' : ' d-none';
-		$preview_src    = esc_url( $resolved_value );
-		$preview_alt    = esc_attr( (string) ( $image_preview_config['alt'] ?? $field_name ) );
-		$preview_markup = sprintf(
-			'<div class="%1$s%2$s" data-modpress-media-preview-container="true">' .
-			'<img src="%3$s" alt="%4$s" class="%5$s" style="max-width:120px; max-height:120px; width:auto; height:auto; object-fit:cover;" data-modpress-media-preview-image="true" />' .
-			'</div>',
-			esc_attr( $preview_class ),
-			esc_attr( $preview_hidden ),
-			$preview_src,
-			$preview_alt,
-			esc_attr( self::classes( array( 'img-fluid', 'rounded', $image_preview_config['image_class'] ?? '' ) ) )
-		);
+		$preview_markup = self::render_preview_markup( $normalized_values, $is_multiple, $preview_class, $image_preview_config );
 
 		$hidden_input = FormFieldHelper::input(
 			$field_name,
@@ -134,6 +136,7 @@ final class WPMediaHelper {
 					'data-media-field-id' => $field_id,
 					'data-media-target' => $field_name,
 					'data-media-value-type' => $value_type,
+					'data-multiple' => $is_multiple ? 'true' : 'false',
 				),
 			)
 		);
@@ -190,21 +193,164 @@ final class WPMediaHelper {
 	}
 
 	/**
+	 * Normalize the input into a list of saveable values.
+	 *
+	 * @param mixed $value The raw field value.
+	 * @param bool  $is_multiple Whether multiple values should be allowed.
+	 * @return array The normalized list of values.
+	 */
+	private static function normalize_media_values( $value, bool $is_multiple = false ): array {
+		if ( is_array( $value ) ) {
+			$items = $value;
+		} elseif ( is_string( $value ) ) {
+			$value = trim( $value );
+			if ( '' === $value ) {
+				return array();
+			}
+
+			$decoded = json_decode( wp_unslash( $value ), true );
+			if ( is_array( $decoded ) ) {
+				$items = $decoded;
+			} else {
+				$items = preg_split( '/[\s,]+/', $value ) ?: array();
+			}
+		} else {
+			$items = array( $value );
+		}
+
+		$normalized = array();
+		foreach ( $items as $item ) {
+			if ( is_array( $item ) ) {
+				foreach ( $item as $nested ) {
+					$nested_value = trim( (string) $nested );
+					if ( '' !== $nested_value ) {
+						$normalized[] = $nested_value;
+					}
+				}
+				continue;
+			}
+
+			$item_value = trim( (string) $item );
+			if ( '' !== $item_value ) {
+				$normalized[] = $item_value;
+			}
+		}
+
+		$unique = array_values( array_unique( $normalized ) );
+		if ( ! $is_multiple && ! empty( $unique ) ) {
+			return array( $unique[0] );
+		}
+
+		return $unique;
+	}
+
+	/**
+	 * Render a preview for either a single-value or multi-value media field.
+	 *
+	 * @param array  $values The normalized values to render.
+	 * @param bool   $is_multiple Whether this field expects multiple values.
+	 * @param string $preview_class The CSS class for the preview wrapper.
+	 * @param array  $image_preview_config The preview configuration.
+	 * @return string The rendered preview markup.
+	 */
+	private static function render_preview_markup( array $values, bool $is_multiple, string $preview_class, array $image_preview_config ): string {
+		if ( empty( $values ) ) {
+			return sprintf(
+				'<div class="%1$s d-none" data-modpress-media-preview-container="true"><div data-modpress-media-preview-list="true"></div></div>',
+				esc_attr( $preview_class )
+			);
+		}
+
+		$preview_items = array();
+		foreach ( $values as $value ) {
+			$preview_url = self::resolve_image_url( $value );
+			if ( '' === $preview_url ) {
+				continue;
+			}
+
+			$preview_items[] = sprintf(
+				'<img src="%1$s" alt="%2$s" class="%3$s" style="max-width:120px; max-height:120px; width:auto; height:auto; object-fit:cover;" data-modpress-media-preview-image="true" />',
+				esc_url( $preview_url ),
+				esc_attr( (string) ( $image_preview_config['alt'] ?? 'media preview' ) ),
+				esc_attr( self::classes( array( 'img-fluid', 'rounded', $image_preview_config['image_class'] ?? '' ) ) )
+			);
+		}
+
+		if ( empty( $preview_items ) ) {
+			return sprintf(
+				'<div class="%1$s d-none" data-modpress-media-preview-container="true"><div data-modpress-media-preview-list="true"></div></div>',
+				esc_attr( $preview_class )
+			);
+		}
+
+		$preview_content = $is_multiple
+			? '<div class="d-flex flex-wrap gap-2" data-modpress-media-preview-list="true">' . implode( '', $preview_items ) . '</div>'
+			: $preview_items[0];
+
+		return sprintf(
+			'<div class="%1$s" data-modpress-media-preview-container="true">%2$s</div>',
+			esc_attr( $preview_class ),
+			$preview_content
+		);
+	}
+
+	/**
+	 * Resolve a hidden value for storage.
+	 *
+	 * @param array  $values The normalized values.
+	 * @param string $return_value_mode The field return mode.
+	 * @param bool   $is_multiple Whether the field supports multiple selection.
+	 * @return string The serialized hidden value.
+	 */
+	private static function resolve_hidden_value( array $values, string $return_value_mode, bool $is_multiple ): string {
+		if ( empty( $values ) ) {
+			return '';
+		}
+
+		$resolved = array();
+		foreach ( $values as $value ) {
+			if ( 'id' === $return_value_mode ) {
+				$id_value = self::resolve_attachment_id( $value );
+				if ( '' !== $id_value ) {
+					$resolved[] = $id_value;
+				}
+				continue;
+			}
+
+			$url_value = self::resolve_image_url( $value );
+			if ( '' !== $url_value ) {
+				$resolved[] = $url_value;
+			}
+		}
+
+		if ( empty( $resolved ) ) {
+			return '';
+		}
+
+		return $is_multiple ? implode( ',', $resolved ) : (string) $resolved[0];
+	}
+
+	/**
 	 * Resolve the active value type.
 	 *
 	 * @param mixed $value The field value.
 	 * @return string 'url' | 'id' | 'empty'.
 	 */
 	private static function resolve_value_type( $value ): string {
-		if ( null === $value || '' === trim( (string) $value ) ) {
+		$values = self::normalize_media_values( $value, true );
+		if ( empty( $values ) ) {
 			return 'empty';
 		}
 
-		if ( is_numeric( $value ) || ( is_string( $value ) && preg_match( '/^\d+$/', trim( $value ) ) ) ) {
-			return 'id';
+		foreach ( $values as $entry ) {
+			if ( preg_match( '/^\d+$/', trim( (string) $entry ) ) ) {
+				continue;
+			}
+
+			return filter_var( trim( (string) $entry ), FILTER_VALIDATE_URL ) ? 'url' : 'url';
 		}
 
-		return filter_var( trim( (string) $value ), FILTER_VALIDATE_URL ) ? 'url' : 'url';
+		return 'id';
 	}
 
 	/**
@@ -214,6 +360,17 @@ final class WPMediaHelper {
 	 * @return string The attachment ID as a string.
 	 */
 	private static function resolve_attachment_id( $value ): string {
+		if ( is_array( $value ) ) {
+			$ids = array();
+			foreach ( $value as $entry ) {
+				$id_value = self::resolve_attachment_id( $entry );
+				if ( '' !== $id_value ) {
+					$ids[] = $id_value;
+				}
+			}
+			return implode( ',', array_unique( $ids ) );
+		}
+
 		if ( is_numeric( $value ) ) {
 			return (string) $value;
 		}
@@ -222,6 +379,9 @@ final class WPMediaHelper {
 			$value = trim( $value );
 			if ( preg_match( '/^\d+$/', $value ) ) {
 				return $value;
+			}
+			if ( preg_match( '/^\d+(?:\s*,\s*\d+)+$/', $value ) ) {
+				return preg_replace( '/\s+/', '', $value );
 			}
 		}
 
@@ -239,6 +399,16 @@ final class WPMediaHelper {
 			return '';
 		}
 
+		if ( is_array( $value ) ) {
+			foreach ( $value as $entry ) {
+				$url_value = self::resolve_image_url( $entry );
+				if ( '' !== $url_value ) {
+					return $url_value;
+				}
+			}
+			return '';
+		}
+
 		if ( is_numeric( $value ) ) {
 			return '';
 		}
@@ -246,6 +416,9 @@ final class WPMediaHelper {
 		if ( is_string( $value ) ) {
 			$value = trim( $value );
 			if ( '' === $value ) {
+				return '';
+			}
+			if ( preg_match( '/^\d+(?:\s*,\s*\d+)+$/', $value ) ) {
 				return '';
 			}
 			return filter_var( $value, FILTER_VALIDATE_URL ) ? $value : '';

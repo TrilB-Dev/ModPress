@@ -531,6 +531,7 @@ namespace ModPress\Tests\Unit {
     use ModPress\Includes\Functions\Helpers\DBHelper;
     use ModPress\Includes\Functions\Helpers\FAHelper;
     use ModPress\Includes\Functions\Helpers\FormFieldHelper;
+    use ModPress\Includes\Functions\Helpers\WPMediaHelper;
     use ModPress\Includes\ModManagement\GroupsManager;
     use ModPress\Includes\Settings\SettingsManager;
     use PHPUnit\Framework\TestCase;
@@ -646,6 +647,28 @@ namespace ModPress\Tests\Unit {
             $this->assertStringContainsString( 'name="mod_gallery"', $html );
             $this->assertStringContainsString( 'Logo', $html );
             $this->assertStringContainsString( 'Gallery', $html );
+        }
+
+        public function testWPMediaHelperSupportsMultipleSelectionForGalleryFields(): void {
+            $html = WPMediaHelper::create(
+                array( 12, 13, 14 ),
+                array(
+                    'name' => 'mod_gallery[]',
+                    'id' => 'mod_gallery',
+                    'button_text' => 'Choose Gallery Image',
+                    'show_remove' => true,
+                    'media_type' => 'image',
+                    'multiple' => true,
+                ),
+                array(
+                    'alt' => 'Mod gallery preview',
+                )
+            );
+
+            $this->assertStringContainsString( 'mod_gallery[]', $html );
+            $this->assertStringContainsString( 'data-modpress-media-picker="true"', $html );
+            $this->assertStringContainsString( 'data-multiple="true"', $html );
+            $this->assertStringContainsString( 'data-media-field="true"', $html );
         }
 
         public function testSaveModPersistsLogoAndGalleryMeta(): void {

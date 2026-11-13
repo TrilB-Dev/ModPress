@@ -905,13 +905,15 @@ final class Mods extends ModManager {
 								)
 							); ?>
 							<?php echo WPMediaHelper::create(
-								! empty( $mod_gallery ) ? (string) $mod_gallery[0] : '',
+								! empty( $mod_gallery ) ? implode( ',', array_map( 'strval', $mod_gallery ) ) : '',
 								array(
 									'name' => 'mod_gallery',
 									'id' => 'mod_gallery',
-									'button_text' => __( 'Choose Gallery Image', 'modpress' ),
-									'show_remove' => true,
-									'media_type' => 'image',
+									'button_text' => __( 'Choose Gallery Images', 'modpress' ),
+											'show_remove' => true,
+											'media_type' => 'image',
+											'multiple' => true,
+											'return_value' => 'id',
 								),
 								array(
 									'alt' => __( 'Mod gallery preview', 'modpress' ),

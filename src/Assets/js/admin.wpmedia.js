@@ -4,6 +4,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    const parseMediaValues = (value) => {
+        if (Array.isArray(value)) {
+            return value.flatMap((entry) => parseMediaValues(entry));
+        }
+
+        if (typeof value !== 'string') {
+            return [];
+        }
+
+        return value
+            .split(',')
+            .map((entry) => entry.trim())
+            .filter(Boolean);
+    };
+
     const getMediaTarget = (button) => {
         const wrapper = button.closest('[data-modpress-media-wrapper="true"]');
         if (!wrapper) {
@@ -26,18 +41,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const syncMediaPreview = (wrapper, nextValue) => {
         const previewContainer = wrapper.querySelector('[data-modpress-media-preview-container="true"]');
         const previewImage = wrapper.querySelector('[data-modpress-media-preview-image="true"]');
+        const previewList = wrapper.querySelector('[data-modpress-media-preview-list="true"]');
         const removeButton = wrapper.querySelector('[data-modpress-media-remove]');
+        const hiddenField = wrapper.querySelector('[data-media-field="true"]');
+        const isMultiple = hiddenField && hiddenField.dataset.multiple === 'true';
 
+        const values = parseMediaValues(nextValue);
+
+        if (isMultiple) {
+            const urlValues = values
+                .filter((entry) => !/^\d+$/.test(entry))
+                .slice(0, 6);
+
+            if (previewList) {
+                previewList.innerHTML = urlValues
+                    .map((src) => `<img src="${src}" alt="Media preview" class="img-fluid rounded" style="max-width:120px; max-height:120px; width:auto; height:auto; object-fit:cover;" data-modpress-media-preview-image="true" />`)
+                    .join('');
+            }
+
+            if (previewContainer) {
+                previewContainer.classList.toggle('d-none', values.length === 0 && urlValues.length === 0);
+            }
+
+            if (removeButton) {
+                removeButton.classList.toggle('d-none', values.length === 0 && urlValues.length === 0);
+            }
+
+            return;
+        }
+
+        const firstValue = values.length > 0 ? values[0] : '';
         if (previewImage) {
-            previewImage.src = nextValue || '';
+            previewImage.src = firstValue || '';
         }
 
         if (previewContainer) {
-            previewContainer.classList.toggle('d-none', !nextValue);
+            previewContainer.classList.toggle('d-none', !firstValue);
         }
 
         if (removeButton) {
-            removeButton.classList.toggle('d-none', !nextValue);
+            removeButton.classList.toggle('d-none', !firstValue);
         }
     };
 
@@ -93,12 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const { wrapper, field } = mediaTarget;
+        const isMultiple = button.dataset.multiple === 'true' || field.dataset.multiple === 'true';
         const mediaFrame = window.wp.media({
             title: button.dataset.mediaTitle || 'Select Media',
             button: {
                 text: button.dataset.mediaButtonText || 'Use Media',
             },
-            multiple: false,
+            multiple: isMultiple,
             library: {
                 type: button.dataset.mediaType || 'image',
             },
@@ -107,19 +151,28 @@ document.addEventListener('DOMContentLoaded', () => {
         activeMediaFrame = mediaFrame;
 
         mediaFrame.on('select', () => {
-            const attachment = mediaFrame.state().get('selection').first();
-            if (!attachment) {
+            const selection = mediaFrame.state().get('selection');
+            const attachments = selection ? selection.toArray() : [];
+
+            if (attachments.length === 0) {
                 console.error('ModPress media picker: no media selected.');
                 return;
             }
 
-            const selected = attachment.toJSON();
-            const nextValue = button.dataset.returnValue === 'id'
-                ? String(selected.id || '')
-                : (selected.url || selected.sizes?.full?.url || selected.icon || '');
+            const values = attachments.map((attachment) => {
+                const selected = attachment.toJSON();
+                if (button.dataset.returnValue === 'id') {
+                    return String(selected.id || '');
+                }
+
+                return selected.url || selected.sizes?.full?.url || selected.icon || '';
+            }).filter(Boolean);
+
+            const nextValue = isMultiple ? values.join(',') : (values[0] || '');
 
             field.value = nextValue;
             field.dataset.mediaValueType = button.dataset.returnValue || 'url';
+            field.dataset.multiple = isMultiple ? 'true' : 'false';
             field.dispatchEvent(new Event('input', { bubbles: true }));
 
             syncMediaPreview(wrapper, nextValue);
@@ -177,11 +230,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const value = String(hiddenField.value || '').trim();
         const previewContainer = wrapper.querySelector('[data-modpress-media-preview-container="true"]');
+        const previewList = wrapper.querySelector('[data-modpress-media-preview-list="true"]');
         const previewImage = wrapper.querySelector('[data-modpress-media-preview-image="true"]');
+        const values = parseMediaValues(value);
 
-        if (!value) {
+        if (!values.length) {
             if (previewContainer) {
                 previewContainer.classList.add('d-none');
+            }
+            return;
+        }
+
+        const isMultiple = hiddenField.dataset.multiple === 'true';
+
+        if (isMultiple) {
+            const firstNumericId = values.find((entry) => /^\d+$/.test(entry));
+            if (firstNumericId && typeof window.wp.media.attachment === 'function') {
+                const attachment = window.wp.media.attachment(firstNumericId);
+                attachment.fetch({
+                    success: (model) => {
+                        const url = model && model.attributes && model.attributes.url ? model.attributes.url : '';
+                        if (url && previewList) {
+                            previewList.innerHTML = `<img src="${url}" alt="Media preview" class="img-fluid rounded" style="max-width:120px; max-height:120px; width:auto; height:auto; object-fit:cover;" data-modpress-media-preview-image="true" />`;
+                        }
+
+                        if (previewContainer) {
+                            previewContainer.classList.remove('d-none');
+                        }
+                    },
+                });
+                return;
+            }
+
+            const urlValues = values.filter((entry) => !/^\d+$/.test(entry)).slice(0, 6);
+            if (previewList) {
+                previewList.innerHTML = urlValues
+                    .map((src) => `<img src="${src}" alt="Media preview" class="img-fluid rounded" style="max-width:120px; max-height:120px; width:auto; height:auto; object-fit:cover;" data-modpress-media-preview-image="true" />`)
+                    .join('');
+            }
+
+            if (previewContainer) {
+                previewContainer.classList.toggle('d-none', urlValues.length === 0);
             }
             return;
         }
