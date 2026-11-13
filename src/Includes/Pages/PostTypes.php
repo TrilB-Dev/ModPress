@@ -115,6 +115,7 @@ final class PostTypes {
 				'rewrite'         => array( 'slug' => 'files' ),
 				'capability_type' => 'post',
 				'map_meta_cap'    => true,
+				'hierarchical'    => true,
 			)
 		);
 	}

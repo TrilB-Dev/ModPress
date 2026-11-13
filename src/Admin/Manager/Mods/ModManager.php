@@ -122,6 +122,7 @@ class ModManager extends Manager {
         add_action( 'admin_post_modpress_save_changelog_category', array( $this->functions_mod, 'save_changelog_category' ) );
         add_action( 'admin_post_modpress_delete_changelog_category', array( $this->functions_mod, 'delete_changelog_category' ) );
         add_action( 'admin_post_modpress_save_mod', array( $this->functions_mod, 'save_mod' ) );
+        add_action( 'admin_post_modpress_delete_mod', array( $this->functions_mod, 'delete_mod' ) );
         add_action( 'admin_post_modpress_save_licence', array( $this->functions_mod, 'save_licence' ) );
         add_action( 'admin_post_modpress_delete_licence', array( $this->functions_mod, 'delete_licence' ) );
     }

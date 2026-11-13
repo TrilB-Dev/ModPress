@@ -1505,25 +1505,24 @@
 
         const row = field.closest('.modpress-file-item');
         const hostUrlMap = getFileHostUrlMap();
-        const hostUrlFields = row ? Array.from(row.querySelectorAll('.modpress-file-host-url')) : [];
-        if (hostUrlFields.length > 1) {
-            hostUrlFields.slice(0, -1).forEach((hostField) => {
-                hostField.remove();
-            });
-        }
-
-        const hostUrlField = row ? row.querySelector('.modpress-file-host-url') : null;
+        const hostUrlField = row ? row.querySelector('.modpress-file-host-url, .modpress-file-host-url-value') : null;
         const hostUrlDisplay = row ? row.querySelector('.modpress-file-host-url-display') : null;
         if (!hostUrlField) {
             return;
         }
 
         const nextHostUrl = hostUrlMap[String(field.value || '').trim()] || '';
-        hostUrlField.value = nextHostUrl;
-        hostUrlField.type = 'hidden';
+        if (hostUrlField.type === 'hidden' || hostUrlField.matches('.modpress-file-host-url')) {
+            hostUrlField.value = nextHostUrl;
+        } else if (hostUrlField instanceof HTMLInputElement) {
+            hostUrlField.value = nextHostUrl;
+        }
 
         if (hostUrlDisplay) {
-            hostUrlDisplay.textContent = nextHostUrl || 'https://';
+            const displayValue = nextHostUrl
+                ? nextHostUrl.replace(/^https?:\/\//i, '').replace(/\/+$/, '')
+                : 'https://';
+            hostUrlDisplay.textContent = displayValue || 'https://';
         }
     };
 
@@ -1574,6 +1573,29 @@
             if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement || input instanceof HTMLTextAreaElement) {
                 input.disabled = !belongsToActivePane;
             }
+        });
+    };
+
+    const bindFileTargetButtons = (row) => {
+        if (!row) {
+            return;
+        }
+
+        row.querySelectorAll('[data-file-target-type]').forEach((button) => {
+            if (button.dataset.modpressFileTargetBound === 'true') {
+                return;
+            }
+
+            button.dataset.modpressFileTargetBound = 'true';
+            button.addEventListener('click', () => {
+                const targetType = button.dataset.fileTargetType || 'internal';
+                const radio = row.querySelector('.modpress-file-type-radio[value="' + targetType + '"]');
+                if (radio) {
+                    radio.checked = true;
+                }
+
+                syncFileRowState(row);
+            });
         });
     };
 
@@ -1642,15 +1664,6 @@
             }
         }
 
-        row.querySelectorAll('.modpress-file-description').forEach((descriptionField, descriptionIndex) => {
-            const descriptionKey = descriptionIndex === 0 ? 'internal' : 'external';
-            descriptionField.name = 'files[' + nextIndex + '][description]';
-            descriptionField.id = 'modpress-file-description-' + descriptionKey + '-' + nextIndex;
-            if (value.description !== undefined && value.description !== null && value.description !== '') {
-                descriptionField.value = String(value.description);
-            }
-        });
-
         const attachmentInput = row.querySelector('[data-media-field="true"]');
         if (attachmentInput) {
             attachmentInput.name = 'files[' + nextIndex + '][attachment_id]';
@@ -1692,25 +1705,20 @@
             refreshBootstrapSelect(hostField);
         }
 
-        const hostUrlFields = Array.from(row.querySelectorAll('.modpress-file-host-url'));
-        if (hostUrlFields.length > 1) {
-            hostUrlFields.slice(0, -1).forEach((hostField) => {
-                hostField.remove();
-            });
-        }
-
         const hostUrlField = row.querySelector('.modpress-file-host-url');
         if (hostUrlField) {
             hostUrlField.name = 'files[' + nextIndex + '][host_url]';
             hostUrlField.id = 'modpress-file-host-url-' + nextIndex;
             hostUrlField.value = typeof value.host_url === 'string' ? value.host_url : (value.host_url ?? '');
-            hostUrlField.type = 'hidden';
         }
 
         const hostUrlDisplay = row.querySelector('.modpress-file-host-url-display');
         if (hostUrlDisplay) {
-            hostUrlDisplay.id = 'modpress-file-host-url-' + nextIndex;
-            hostUrlDisplay.textContent = hostUrlField && hostUrlField.value ? hostUrlField.value : 'https://';
+            hostUrlDisplay.id = 'modpress-file-host-url-display-' + nextIndex;
+            const displayValue = hostUrlField && hostUrlField.value
+                ? hostUrlField.value.replace(/^https?:\/\//i, '').replace(/\/+$/, '')
+                : 'https://';
+            hostUrlDisplay.textContent = displayValue || 'https://';
         }
 
         const urlSuffixField = row.querySelector('.modpress-file-url-suffix');
@@ -1732,6 +1740,7 @@
         }
 
         bindFileTypeRadio(row);
+        bindFileTargetButtons(row);
         syncFileRowState(row);
         syncFileHostValue(hostField);
 

@@ -284,6 +284,7 @@ final class FormFieldHelper {
 			$input_attributes['type']  = $type;
 			$input_attributes['name']  = $input_name;
 			$input_attributes['value'] = $value;
+			$input_attributes['data-file-target-type'] = $value;
 
 			$is_selected = in_array( $value, $selected_values, true );
 			if ( $is_selected ) {
@@ -294,7 +295,7 @@ final class FormFieldHelper {
 			}
 
 			$html .= '<input ' . self::attributes_to_string( $input_attributes ) . ' />';
-			$html .= '<label class="' . esc_attr( $button_class ) . '" for="' . esc_attr( $id ) . '">' . self::render_button_label( $label, $definition ) . '</label>';
+			$html .= '<label class="' . esc_attr( $button_class ) . '" data-file-target-type="' . esc_attr( $value ) . '" for="' . esc_attr( $id ) . '" aria-pressed="' . ( $is_selected ? 'true' : 'false' ) . '">' . self::render_button_label( $label, $definition ) . '</label>';
 		}
 
 		return $html . '</div>' . self::feedback( $options );

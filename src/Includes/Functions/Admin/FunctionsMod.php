@@ -321,11 +321,18 @@ final class FunctionsMod {
 			return '';
 		}
 
+		$should_redirect = false;
+		if ( isset( $_POST['action'] ) ) {
+			$requested_action = sanitize_key( wp_unslash( $_POST['action'] ) );
+			$should_redirect = 'modpress_save_mod' === $requested_action;
+		}
+
 		if ( ! current_user_can( 'modpress_create' ) && ! current_user_can( 'manage_options' ) ) {
-			return AlertHelper::get_admin_notice(
-				__( 'You are not allowed to create Mods.', 'modpress' ),
-				'error'
-			);
+			$notice = __( 'You are not allowed to create Mods.', 'modpress' );
+			if ( $should_redirect ) {
+				$this->redirect_mod_action_result( 'mods', $notice, false );
+			}
+			return AlertHelper::get_admin_notice( $notice, 'error' );
 		}
 
 		$this->validate_save_nonce( 'modpress_save_mod', 'modpress_mod_nonce' );
@@ -354,10 +361,11 @@ final class FunctionsMod {
 		$mod_id = isset( $_POST['mod_id'] ) ? absint( wp_unslash( $_POST['mod_id'] ) ) : 0;
 
 		if ( '' === $title ) {
-			return AlertHelper::get_admin_notice(
-				__( 'A Mod title is required.', 'modpress' ),
-				'error'
-			);
+			$notice = __( 'A Mod title is required.', 'modpress' );
+			if ( $should_redirect ) {
+				$this->redirect_mod_action_result( 'mods', $notice, false );
+			}
+			return AlertHelper::get_admin_notice( $notice, 'error' );
 		}
 
 		$post_args = array(
@@ -380,10 +388,11 @@ final class FunctionsMod {
 		$post_id = wp_insert_post( $post_args, true );
 
 		if ( is_wp_error( $post_id ) ) {
-			return AlertHelper::get_admin_notice(
-				__( 'The Mod could not be saved.', 'modpress' ),
-				'error'
-			);
+			$notice = __( 'The Mod could not be saved.', 'modpress' );
+			if ( $should_redirect ) {
+				$this->redirect_mod_action_result( 'mods', $notice, false );
+			}
+			return AlertHelper::get_admin_notice( $notice, 'error' );
 		}
 
 		if ( $featured_image > 0 ) {
@@ -439,10 +448,11 @@ final class FunctionsMod {
 			update_post_meta( $post_id, '_modpress_files', $normalized_files );
 		}
 
-		return AlertHelper::get_admin_notice(
-			__( 'Mod saved successfully.', 'modpress' ),
-			'success'
-		);
+		$notice = __( 'Mod saved successfully.', 'modpress' );
+		if ( $should_redirect ) {
+			$this->redirect_mod_action_result( 'mods', $notice, true );
+		}
+		return AlertHelper::get_admin_notice( $notice, 'success' );
 	}
 	/**
      * Save a custom taxonomy group from the group modal.
