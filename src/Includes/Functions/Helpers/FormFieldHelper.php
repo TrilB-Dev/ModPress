@@ -255,6 +255,11 @@ final class FormFieldHelper {
 			$input_name .= '[]';
 		}
 
+		if ( 'button' === $type ) {
+			$hidden_value = isset( $selected_values[0] ) ? (string) $selected_values[0] : '';
+			$html       .= '<input type="hidden" name="' . esc_attr( $input_name ) . '" value="' . esc_attr( $hidden_value ) . '" data-modpress-button-group-value="true" data-modpress-button-group-name="' . esc_attr( $input_name ) . '" />';
+		}
+
 		foreach ( $buttons as $key => $button ) {
 			$definition   = is_array( $button ) ? $button : array();
 			$value        = (string) ( $definition['value'] ?? ( is_array( $button ) ? $key : $key ) );
@@ -271,10 +276,18 @@ final class FormFieldHelper {
 					continue;
 				}
 
-				$button_options          = $definition;
-				$button_options['class'] = $button_class;
-				$button_options['type']  = $definition['type'] ?? 'button';
-				$html                   .= self::button( $label, $button_options );
+				$button_options = $definition;
+				$button_options['class'] = self::classes( array( 'modpress-button-group-button', $button_class, $definition['class'] ?? $options['button_class'] ?? '' ) );
+				$button_options['type'] = 'button';
+				$button_options['attributes'] = array_merge(
+					$definition['attributes'] ?? array(),
+					array(
+						'data-file-target-type' => $value,
+						'aria-pressed' => in_array( $value, $selected_values, true ) ? 'true' : 'false',
+					)
+				);
+				$button_options['data-file-target-type'] = $value;
+				$html .= self::button( $label, $button_options );
 				continue;
 			}
 

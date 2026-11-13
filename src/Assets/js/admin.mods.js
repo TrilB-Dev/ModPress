@@ -1542,17 +1542,35 @@
             return;
         }
 
-        const radioButtons = row.querySelectorAll('.modpress-file-type-radio');
+        const hiddenTypeInput = row.querySelector('[data-modpress-button-group-value="true"]');
+        const legacyRadioButtons = row.querySelectorAll('.modpress-file-type-radio');
+        const buttonTargets = row.querySelectorAll('[data-file-target-type]');
         let type = 'internal';
-        radioButtons.forEach((radio) => {
-            if (radio.checked) {
-                type = radio.value || 'internal';
-            }
-        });
+
+        if (hiddenTypeInput && hiddenTypeInput.value) {
+            type = String(hiddenTypeInput.value).trim() || 'internal';
+        } else {
+            legacyRadioButtons.forEach((radio) => {
+                if (radio.checked) {
+                    type = radio.value || 'internal';
+                }
+            });
+        }
 
         row.dataset.fileType = type;
-        radioButtons.forEach((radio) => {
+
+        if (hiddenTypeInput) {
+            hiddenTypeInput.value = type;
+        }
+
+        legacyRadioButtons.forEach((radio) => {
             radio.checked = radio.value === type;
+        });
+
+        buttonTargets.forEach((button) => {
+            const isActive = (button.dataset.fileTargetType || '') === type;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
 
         const internalBlock = row.querySelector('.modpress-file-target-internal');
@@ -1589,10 +1607,17 @@
             button.dataset.modpressFileTargetBound = 'true';
             button.addEventListener('click', () => {
                 const targetType = button.dataset.fileTargetType || 'internal';
-                const radio = row.querySelector('.modpress-file-type-radio[value="' + targetType + '"]');
-                if (radio) {
-                    radio.checked = true;
+                const hiddenTypeInput = row.querySelector('[data-modpress-button-group-value="true"]');
+
+                if (hiddenTypeInput) {
+                    hiddenTypeInput.value = targetType;
                 }
+
+                row.querySelectorAll('[data-file-target-type]').forEach((candidate) => {
+                    const isActive = (candidate.dataset.fileTargetType || '') === targetType;
+                    candidate.classList.toggle('active', isActive);
+                    candidate.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                });
 
                 syncFileRowState(row);
             });
@@ -1643,6 +1668,12 @@
         const value = file && typeof file === 'object' ? file : {};
         const type = ['internal', 'external'].includes(String(value.type || 'internal')) ? String(value.type || 'internal') : 'internal';
 
+        const hiddenTypeInput = row.querySelector('[data-modpress-button-group-value="true"]');
+        if (hiddenTypeInput) {
+            hiddenTypeInput.name = 'files[' + nextIndex + '][type]';
+            hiddenTypeInput.value = type;
+        }
+
         const internalRadio = row.querySelector('.modpress-file-type-radio[value="internal"]');
         const externalRadio = row.querySelector('.modpress-file-type-radio[value="external"]');
         const internalLabel = internalRadio ? internalRadio.nextElementSibling : null;
@@ -1663,6 +1694,14 @@
                 externalLabel.setAttribute('for', externalRadio.id);
             }
         }
+
+        const buttonTargets = row.querySelectorAll('[data-file-target-type]');
+        buttonTargets.forEach((button) => {
+            button.dataset.fileTargetName = 'files[' + nextIndex + '][type]';
+            const isActive = (button.dataset.fileTargetType || '') === type;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
 
         const attachmentInput = row.querySelector('[data-media-field="true"]');
         if (attachmentInput) {
