@@ -1629,7 +1629,8 @@
             return;
         }
 
-        row.querySelectorAll('.modpress-file-type-radio').forEach((radio) => {
+        const legacyRadios = row.querySelectorAll('.modpress-file-type-radio');
+        legacyRadios.forEach((radio) => {
             if (radio.dataset.modpressFileTypeBound === 'true') {
                 return;
             }
@@ -1674,28 +1675,21 @@
             hiddenTypeInput.value = type;
         }
 
-        const internalRadio = row.querySelector('.modpress-file-type-radio[value="internal"]');
-        const externalRadio = row.querySelector('.modpress-file-type-radio[value="external"]');
-        const internalLabel = internalRadio ? internalRadio.nextElementSibling : null;
-        const externalLabel = externalRadio ? externalRadio.nextElementSibling : null;
-        if (internalRadio) {
-            internalRadio.name = 'files[' + nextIndex + '][type]';
-            internalRadio.id = 'modpress-file-type-internal-' + nextIndex;
-            internalRadio.checked = type === 'internal';
-            if (internalLabel) {
-                internalLabel.setAttribute('for', internalRadio.id);
-            }
-        }
-        if (externalRadio) {
-            externalRadio.name = 'files[' + nextIndex + '][type]';
-            externalRadio.id = 'modpress-file-type-external-' + nextIndex;
-            externalRadio.checked = type === 'external';
-            if (externalLabel) {
-                externalLabel.setAttribute('for', externalRadio.id);
-            }
+        const internalButton = row.querySelector('[data-file-target-type="internal"]');
+        const externalButton = row.querySelector('[data-file-target-type="external"]');
+        const buttonTargets = row.querySelectorAll('[data-file-target-type]');
+
+        if (internalButton) {
+            internalButton.dataset.fileTargetName = 'files[' + nextIndex + '][type]';
+            internalButton.classList.toggle('active', type === 'internal');
+            internalButton.setAttribute('aria-pressed', type === 'internal' ? 'true' : 'false');
         }
 
-        const buttonTargets = row.querySelectorAll('[data-file-target-type]');
+        if (externalButton) {
+            externalButton.dataset.fileTargetName = 'files[' + nextIndex + '][type]';
+            externalButton.classList.toggle('active', type === 'external');
+            externalButton.setAttribute('aria-pressed', type === 'external' ? 'true' : 'false');
+        }
         buttonTargets.forEach((button) => {
             button.dataset.fileTargetName = 'files[' + nextIndex + '][type]';
             const isActive = (button.dataset.fileTargetType || '') === type;

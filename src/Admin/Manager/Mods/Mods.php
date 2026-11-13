@@ -707,32 +707,32 @@ final class Mods extends ModManager {
 												</div>
 												<div class="row g-3">
 													<div class="col-align-self-end d-flex">
-														<?php echo FormFieldHelper::button_group(
-'files[template][type]',
-array(
-'internal' => array(
-'label' => __( 'Internal', 'modpress' ),
-'input_attributes' => array(
-'class' => 'modpress-file-type-radio',
-),
-),
-'external' => array(
-'label' => __( 'External', 'modpress' ),
-'input_attributes' => array(
-'class' => 'modpress-file-type-radio',
-),
-),
-),
-'internal',
-array(
-'id' => 'modpress-file-type-template',
-'class' => 'w-100',
-'type' => 'button',
-'variant' => 'outline-primary',
-'aria_label' => __( 'File source', 'modpress' ),
-),
-); ?>
-<?php echo WPMediaHelper::create(
+														<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'File Types', 'modpress' ); ?>">
+															<?php echo FormFieldHelper::button(
+																FAHelper::faicon( 'plus' ).' '.__('External File', 'modpress'),
+																array(
+																	'type' => 'button',
+																	'class' => 'btn btn-outline-secondary',
+																	'attributes' => array(
+																		'data-file-add' => 'external',
+																	),
+																)
+															); ?>
+															<?php echo FormFieldHelper::button(
+																FAHelper::faicon( 'plus' ).' '.__('Internal File', 'modpress'),
+																array(
+																	'type' => 'button',
+																	'class' => 'btn btn-outline-danger',
+																	'attributes' => array(
+																		'data-file-add' => 'internal',
+																	),
+																)
+															); ?>
+														</div>
+													</div>
+													<div class="row g-3">
+														<div class="col-md-10">
+															<?php echo WPMediaHelper::create(
 																'',
 																array(
 																	'name' => 'files[template][attachment_id]',
@@ -804,9 +804,15 @@ array(
 														); ?>
 													</div>
 													<div class="col-md-2">
-														<button type="button" class="btn btn-sm btn-outline-primary" data-modpress-file-target-external-delete>
-															<?php echo FAHelper::faicon( 'trash' ); ?>
-														</button>
+														<?php echo FormFieldHelper::button(
+															'',
+															array(
+																'type' => 'button',
+																'class' => 'btn btn-sm btn-outline-primary',
+																'data-modpress-file-target-external-delete' => true,
+															),
+															FAHelper::faicon( 'trash' )
+														); ?>
 													</div>
 												</div>
 											</div>
