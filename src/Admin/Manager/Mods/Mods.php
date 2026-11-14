@@ -632,13 +632,21 @@ final class Mods extends ModManager {
 												)
 											); ?>
 										</div>
-										<button type="button" class="btn btn-sm btn-outline-primary" data-modpress-file-add>
-											<?php echo FAHelper::faicon( 'plus' ); ?> <?php esc_html_e( 'Add file', 'modpress' ); ?>
-										</button>
+										<?php echo FormFieldHelper::button(
+											FAHelper::faicon( 'plus' ).' '.__('Add file', 'modpress' ),
+											array(
+												'id' => 'modpress-file-add',
+												'type' => 'button',
+												'class' => 'btn btn-sm btn-outline-primary',
+												'data-modpress-file-add' => true,
+											)
+										);
+										?>
 									</div>
 									<div id="modpress-file-repeater" class="modpress-file-repeater" data-modpress-saved-files="<?php echo esc_attr( wp_json_encode( $existing_files ) ); ?>" data-modpress-file-host-urls="<?php echo esc_attr( wp_json_encode( $file_host_urls ) ); ?>">
 										<template id="modpress-file-template">
 											<div class="modpress-file-item border rounded p-3 mb-3" data-file-index="0">
+												<input type="hidden" name="files[template][type]" class="modpress-file-type" value="internal" />
 												<div class="d-flex justify-content-end mb-2">
 													<button type="button" class="btn btn-sm btn-outline-danger modpress-file-remove" aria-label="<?php esc_attr_e( 'Remove file', 'modpress' ); ?>"><?php echo FAHelper::faicon( 'trash' ); ?></button>
 												</div>
@@ -715,7 +723,7 @@ final class Mods extends ModManager {
 																		'type' => 'button',
 																		'class' => 'btn btn-outline-primary',
 																		'attributes' => array(
-																			'data-file-add' => 'external',
+																			'data-file-type-add' => 'external',
 																			'id' => 'modpress-file-add-external',
 																		),
 																	)
@@ -726,7 +734,7 @@ final class Mods extends ModManager {
 																		'type' => 'button',
 																		'class' => 'btn btn-outline-primary',
 																		'attributes' => array(
-																			'data-file-add' => 'internal',
+																			'data-file-type-add' => 'internal',
 																			'id' => 'modpress-file-add-internal',
 																		),
 																	)
@@ -735,100 +743,106 @@ final class Mods extends ModManager {
 														</div>
 													</div>
 												</div>
-												<div class="row g-3 p-1 modpress-file-target-wrapper modpress-file-target-internal d-none">
-													<div class="col-md-11">
-														<?php echo WPMediaHelper::create(
-															'',
-															array(
-																'name' => 'files[template][attachment_id]',
-																'id' => 'modpress-file-attachment-template',
-																'button_text' => __( 'Select File', 'modpress' ),
-																'show_remove' => true,
-																'media_type' => 'file',
-																'return_value' => 'id',
-																'helper_text' => __( 'Pick a file from the Media Library.', 'modpress' ),
-															),
-															array(
-																'alt' => __( 'Uploaded file preview', 'modpress' ),
-															)
-														); ?>
-													</div>
-													<div class="col-md-1">
-														<?php echo FormFieldHelper::button(
-															FAHelper::faicon( 'trash' ),
-															array(
-																'type' => 'button',
-																'class' => 'btn btn-outline-danger',
-																'attributes' => array(
-																	'data-file-remove' => 'internal',
-																	'id' => 'modpress-file-remove-internal-template['. $index . ']',
-																),
-															)
-														); ?>
-													</div>
-												</div>
-												<div class="row g-3 modpress-file-target-wrapper modpress-file-target-external d-none">
-													<div class="col-12">
-														<div class="col-md-3">
-															<?php echo FormFieldHelper::label( 
-																'modpress-file-host-selector-template', 
-																__( 'Host', 'modpress' ) 
-															); ?>
-															<?php echo FormFieldHelper::bootstrap_select(
-																'files[template][host_id]',
-																array(
-																	'data' => $file_host_options,
-																	'selected' => '',
-																	'id' => 'modpress-file-host-selector-template',
-																	'class' => 'modpress-file-host-selector w-100',
-																	'live_search' => true,
-																	'placeholder' => __( 'Select host', 'modpress' ),
-																)
-															); ?>
-														</div>
-														<div class="col-md-8">
-															<?php echo FormFieldHelper::label(
-																'modpress-file-host-url-template',
-																__( 'Download URL', 'modpress' )
-															); ?>
-															<?php echo FormFieldHelper::input_group(
-																'<span class="input-group-text modpress-file-host-url-display" id="modpress-file-host-url-template">https://</span>'
-																		. '<input type="hidden" name="files[template][host_url]" class="modpress-file-host-url" value="" />'
-																		. FormFieldHelper::text_input(
-																	'files[template][url_suffix]',
+												<div class="row gy-3 modpress-file-target-wrapper">
+													<template id="modpress-file-target-internal-template">
+														<div class="row g-3 p-1 modpress-file-target-wrapper modpress-file-target-internal-template d-none" id="modpress-file-target-internal-template">
+															<div class="col-md-11">
+																<?php echo WPMediaHelper::create(
 																	'',
 																	array(
-																		'id' => 'modpress-file-url-suffix-template',
-																		'class' => 'modpress-file-url-suffix w-90',
-																		'placeholder' => 'path/to/file/link/',
+																		'name' => 'files[template][attachment_id]',
+																		'id' => 'modpress-file-attachment-template',
+																		'button_text' => __( 'Select File', 'modpress' ),
+																		'show_remove' => true,
+																		'media_type' => 'file',
+																		'return_value' => 'id',
+																		'helper_text' => __( 'Pick a file from the Media Library.', 'modpress' ),
+																	),
+																	array(
+																		'alt' => __( 'Uploaded file preview', 'modpress' ),
 																	)
-																),
-																array(
-																	'attributes' => array(
-																		'class' => 'flex-nowrap',
-																		'role' => 'group',
-																		'aria-label' => __( 'Download URL', 'modpress' ),
-																	),
-																)
-															); ?>
-															<?php echo FormFieldHelper::form_text(
-																__('Please provide the download URL for the external file.', 'modpress')
-															); ?>
+																); ?>
+															</div>
+															<div class="col-md-1">
+																<?php echo FormFieldHelper::button(
+																	FAHelper::faicon( 'trash' ),
+																	array(
+																		'type' => 'button',
+																		'class' => 'btn btn-outline-danger',
+																		'attributes' => array(
+																			'data-file-type-remove' => 'internal',
+																			'id' => 'modpress-file-remove-internal-template['. $index . ']',
+																		),
+																	)
+																); ?>
+															</div>
 														</div>
-														<div class="col-md-1">
-															<?php echo FormFieldHelper::button(
-																FAHelper::faicon( 'trash' ),
-																array(
-																	'type' => 'button',
-																	'class' => 'btn btn-outline-danger',
-																	'attributes' => array(
-																		'data-file-remove' => 'external',
-																		'id' => 'modpress-file-remove-external-template['. $index . ']',
-																	),
-																)
-															); ?>
+													</template>
+													<template id="modpress-file-target-external-template">
+														<div class="row g-3 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
+															<div class="col-12">
+																<div class="col-md-3">
+																	<?php echo FormFieldHelper::label( 
+																		'modpress-file-host-selector-template', 
+																		__( 'Host', 'modpress' ) 
+																	); ?>
+																	<?php echo FormFieldHelper::bootstrap_select(
+																		'files[template][host_id]',
+																		array(
+																			'data' => $file_host_options,
+																			'selected' => '',
+																			'id' => 'modpress-file-host-selector-template',
+																			'class' => 'modpress-file-host-selector w-100',
+																			'live_search' => true,
+																			'placeholder' => __( 'Select host', 'modpress' ),
+																		)
+																	); ?>
+																</div>
+																<div class="col-md-8">
+																	<?php echo FormFieldHelper::label(
+																		'modpress-file-host-url-template',
+																		__( 'Download URL', 'modpress' )
+																	); ?>
+																	<?php echo FormFieldHelper::input_group(
+																		'<span class="input-group-text modpress-file-host-url-display" id="modpress-file-host-url-template">https://</span>'
+																				. '<input type="hidden" name="files[template][host_url]" class="modpress-file-host-url" value="" />'
+																				. FormFieldHelper::text_input(
+																			'files[template][url_suffix]',
+																			'',
+																			array(
+																				'id' => 'modpress-file-url-suffix-template',
+																				'class' => 'modpress-file-url-suffix w-90',
+																				'placeholder' => 'path/to/file/link/',
+																			)
+																		),
+																		array(
+																			'attributes' => array(
+																				'class' => 'flex-nowrap',
+																				'role' => 'group',
+																				'aria-label' => __( 'Download URL', 'modpress' ),
+																			),
+																		)
+																	); ?>
+																	<?php echo FormFieldHelper::form_text(
+																		__('Please provide the download URL for the external file.', 'modpress')
+																	); ?>
+																</div>
+																<div class="col-md-1">
+																	<?php echo FormFieldHelper::button(
+																		FAHelper::faicon( 'trash' ),
+																		array(
+																			'type' => 'button',
+																			'class' => 'btn btn-outline-danger',
+																			'attributes' => array(
+																				'data-file-type-remove' => 'external',
+																				'id' => 'modpress-file-remove-external-template['. $index . ']',
+																			),
+																		)
+																	); ?>
+																</div>
+															</div>
 														</div>
-													</div>
+													</template>
 												</div>
 											</div>
 										</template>

@@ -1537,107 +1537,143 @@
         field.addEventListener('changed.bs.select', handleSelection);
     };
 
+    const getFileTypeFromValue = (value = '') => {
+        const nextType = String(value || '').trim().toLowerCase();
+        return [ 'internal', 'external' ].includes(nextType) ? nextType : 'internal';
+    };
+
     const syncFileRowState = (row) => {
         if (!row) {
             return;
         }
 
-        const hiddenTypeInput = row.querySelector('[data-modpress-button-group-value="true"]');
-        const legacyRadioButtons = row.querySelectorAll('.modpress-file-type-radio');
-        const buttonTargets = row.querySelectorAll('[data-file-target-type]');
-        let type = 'internal';
+        const typeField = row.querySelector('.modpress-file-type');
+        const nextType = typeField ? getFileTypeFromValue(typeField.value) : 'internal';
 
-        if (hiddenTypeInput && hiddenTypeInput.value) {
-            type = String(hiddenTypeInput.value).trim() || 'internal';
-        } else {
-            legacyRadioButtons.forEach((radio) => {
-                if (radio.checked) {
-                    type = radio.value || 'internal';
-                }
-            });
+        row.dataset.fileType = nextType;
+
+        if (typeField) {
+            typeField.value = nextType;
         }
 
-        row.dataset.fileType = type;
-
-        if (hiddenTypeInput) {
-            hiddenTypeInput.value = type;
-        }
-
-        legacyRadioButtons.forEach((radio) => {
-            radio.checked = radio.value === type;
-        });
-
-        buttonTargets.forEach((button) => {
-            const isActive = (button.dataset.fileTargetType || '') === type;
-            button.classList.toggle('active', isActive);
-            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-        });
-
-        const internalBlock = row.querySelector('.modpress-file-target-internal');
-        const externalBlock = row.querySelector('.modpress-file-target-external');
-
-        if (internalBlock) {
-            internalBlock.classList.toggle('d-none', type !== 'internal');
-        }
-
-        if (externalBlock) {
-            externalBlock.classList.toggle('d-none', type !== 'external');
-        }
-
-        row.querySelectorAll('.modpress-file-target-wrapper input, .modpress-file-target-wrapper select, .modpress-file-target-wrapper textarea').forEach((input) => {
-            const belongsToActivePane = type === 'internal'
-                ? input.closest('.modpress-file-target-internal')
-                : input.closest('.modpress-file-target-external');
-            if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement || input instanceof HTMLTextAreaElement) {
-                input.disabled = !belongsToActivePane;
-            }
+        row.querySelectorAll('[data-file-target-type]').forEach((targetRow) => {
+            const matchesType = (targetRow.dataset.fileTargetType || 'internal') === nextType;
+            targetRow.classList.toggle('d-none', !matchesType);
         });
     };
 
-    const bindFileTargetButtons = (row) => {
-        if (!row) {
-            return;
+    const buildFileTargetRow = (fileRow, targetType = 'internal', values = {}) => {
+        if (!fileRow) {
+            return null;
         }
 
-        row.querySelectorAll('[data-file-target-type]').forEach((button) => {
-            if (button.dataset.modpressFileTargetBound === 'true') {
-                return;
+        const targetContainer = fileRow.querySelector('.modpress-file-target-wrapper');
+        if (!targetContainer) {
+            return null;
+        }
+
+        const normalizedType = getFileTypeFromValue(targetType);
+        const templateId = 'modpress-file-target-' + normalizedType + '-template';
+        const template = document.getElementById(templateId);
+        if (!template || !template.content || !template.content.firstElementChild) {
+            return null;
+        }
+
+        const existingRows = targetContainer.querySelectorAll('[data-file-target-type]');
+        existingRows.forEach((targetRow) => {
+            if ((targetRow.dataset.fileTargetType || 'internal') === normalizedType) {
+                targetRow.remove();
+            }
+        });
+
+        const targetRow = template.content.firstElementChild.cloneNode(true);
+        targetRow.dataset.fileTargetType = normalizedType;
+        targetRow.removeAttribute('id');
+        targetRow.classList.remove('d-none');
+
+        const fileIndex = Number.parseInt(String(fileRow.dataset.fileIndex || ''), 10);
+        const rowIndex = Number.isInteger(fileIndex) ? fileIndex : 0;
+        const typeField = fileRow.querySelector('.modpress-file-type');
+        if (typeField) {
+            typeField.value = normalizedType;
+        }
+
+        if ('internal' === normalizedType) {
+            const attachmentField = targetRow.querySelector('[data-media-field="true"]');
+            if (attachmentField) {
+                attachmentField.name = 'files[' + rowIndex + '][attachment_id]';
+                attachmentField.id = 'modpress-file-attachment-' + rowIndex;
+                if (values.attachment_id !== undefined && values.attachment_id !== null && values.attachment_id !== '') {
+                    attachmentField.value = String(values.attachment_id);
+                }
             }
 
-            button.dataset.modpressFileTargetBound = 'true';
-            button.addEventListener('click', () => {
-                const targetType = button.dataset.fileTargetType || 'internal';
-                const hiddenTypeInput = row.querySelector('[data-modpress-button-group-value="true"]');
-
-                if (hiddenTypeInput) {
-                    hiddenTypeInput.value = targetType;
-                }
-
-                row.querySelectorAll('[data-file-target-type]').forEach((candidate) => {
-                    const isActive = (candidate.dataset.fileTargetType || '') === targetType;
-                    candidate.classList.toggle('active', isActive);
-                    candidate.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            const removeButton = targetRow.querySelector('[data-file-type-remove]');
+            if (removeButton) {
+                removeButton.id = 'modpress-file-remove-internal-' + rowIndex;
+                removeButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const row = event.target.closest('[data-file-target-type]');
+                    if (row) {
+                        row.remove();
+                    }
                 });
-
-                syncFileRowState(row);
-            });
-        });
-    };
-
-    const bindFileTypeRadio = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const legacyRadios = row.querySelectorAll('.modpress-file-type-radio');
-        legacyRadios.forEach((radio) => {
-            if (radio.dataset.modpressFileTypeBound === 'true') {
-                return;
+            }
+        } else {
+            const hostField = targetRow.querySelector('.modpress-file-host-selector');
+            if (hostField) {
+                hostField.name = 'files[' + rowIndex + '][host_id]';
+                hostField.id = 'modpress-file-host-selector-' + rowIndex;
+                if (values.host_id !== undefined && values.host_id !== null && values.host_id !== '') {
+                    hostField.value = String(values.host_id);
+                }
+                bindFileHostSelector(hostField);
+                refreshBootstrapSelect(hostField);
             }
 
-            radio.dataset.modpressFileTypeBound = 'true';
-            radio.addEventListener('change', () => syncFileRowState(row));
-        });
+            const hostUrlField = targetRow.querySelector('.modpress-file-host-url');
+            if (hostUrlField) {
+                hostUrlField.name = 'files[' + rowIndex + '][host_url]';
+                hostUrlField.id = 'modpress-file-host-url-' + rowIndex;
+                if (typeof values.host_url === 'string') {
+                    hostUrlField.value = values.host_url;
+                }
+            }
+
+            const hostUrlDisplay = targetRow.querySelector('.modpress-file-host-url-display');
+            if (hostUrlDisplay) {
+                hostUrlDisplay.id = 'modpress-file-host-url-display-' + rowIndex;
+            }
+
+            const urlSuffixField = targetRow.querySelector('.modpress-file-url-suffix');
+            if (urlSuffixField) {
+                urlSuffixField.name = 'files[' + rowIndex + '][url_suffix]';
+                urlSuffixField.id = 'modpress-file-url-suffix-' + rowIndex;
+                if (typeof values.url_suffix === 'string') {
+                    urlSuffixField.value = values.url_suffix;
+                }
+            }
+
+            const removeButton = targetRow.querySelector('[data-file-type-remove]');
+            if (removeButton) {
+                removeButton.id = 'modpress-file-remove-external-' + rowIndex;
+                removeButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const row = event.target.closest('[data-file-target-type]');
+                    if (row) {
+                        row.remove();
+                    }
+                });
+            }
+        }
+
+        targetContainer.appendChild(targetRow);
+        const hostField = targetRow.querySelector('.modpress-file-host-selector');
+        if (hostField) {
+            syncFileHostValue(hostField);
+        }
+
+        return targetRow;
     };
 
     const getNextFileIndex = (repeater) => {
@@ -1667,43 +1703,11 @@
         row.dataset.fileIndex = String(nextIndex);
 
         const value = file && typeof file === 'object' ? file : {};
-        const type = ['internal', 'external'].includes(String(value.type || 'internal')) ? String(value.type || 'internal') : 'internal';
-
-        const hiddenTypeInput = row.querySelector('[data-modpress-button-group-value="true"]');
-        if (hiddenTypeInput) {
-            hiddenTypeInput.name = 'files[' + nextIndex + '][type]';
-            hiddenTypeInput.value = type;
-        }
-
-        const internalButton = row.querySelector('[data-file-target-type="internal"]');
-        const externalButton = row.querySelector('[data-file-target-type="external"]');
-        const buttonTargets = row.querySelectorAll('[data-file-target-type]');
-
-        if (internalButton) {
-            internalButton.dataset.fileTargetName = 'files[' + nextIndex + '][type]';
-            internalButton.classList.toggle('active', type === 'internal');
-            internalButton.setAttribute('aria-pressed', type === 'internal' ? 'true' : 'false');
-        }
-
-        if (externalButton) {
-            externalButton.dataset.fileTargetName = 'files[' + nextIndex + '][type]';
-            externalButton.classList.toggle('active', type === 'external');
-            externalButton.setAttribute('aria-pressed', type === 'external' ? 'true' : 'false');
-        }
-        buttonTargets.forEach((button) => {
-            button.dataset.fileTargetName = 'files[' + nextIndex + '][type]';
-            const isActive = (button.dataset.fileTargetType || '') === type;
-            button.classList.toggle('active', isActive);
-            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-        });
-
-        const attachmentInput = row.querySelector('[data-media-field="true"]');
-        if (attachmentInput) {
-            attachmentInput.name = 'files[' + nextIndex + '][attachment_id]';
-            attachmentInput.id = 'modpress-file-attachment-' + nextIndex;
-            if (value.attachment_id !== undefined && value.attachment_id !== null && value.attachment_id !== '') {
-                attachmentInput.value = String(value.attachment_id);
-            }
+        const typeField = row.querySelector('.modpress-file-type');
+        const defaultType = getFileTypeFromValue(value.type || (value.host_id || value.host_url || value.url_suffix || value.download ? 'external' : 'internal'));
+        if (typeField) {
+            typeField.name = 'files[' + nextIndex + '][type]';
+            typeField.value = defaultType;
         }
 
         const fileNameField = row.querySelector('.modpress-file-name');
@@ -1727,40 +1731,6 @@
             fileDescriptionField.value = typeof value.description === 'string' ? value.description : (value.description ?? '');
         }
 
-        const hostField = row.querySelector('.modpress-file-host-selector');
-        if (hostField) {
-            hostField.name = 'files[' + nextIndex + '][host_id]';
-            hostField.id = 'modpress-file-host-selector-' + nextIndex;
-            if (value.host_id !== undefined && value.host_id !== null && value.host_id !== '') {
-                hostField.value = String(value.host_id);
-            }
-            bindFileHostSelector(hostField);
-            refreshBootstrapSelect(hostField);
-        }
-
-        const hostUrlField = row.querySelector('.modpress-file-host-url');
-        if (hostUrlField) {
-            hostUrlField.name = 'files[' + nextIndex + '][host_url]';
-            hostUrlField.id = 'modpress-file-host-url-' + nextIndex;
-            hostUrlField.value = typeof value.host_url === 'string' ? value.host_url : (value.host_url ?? '');
-        }
-
-        const hostUrlDisplay = row.querySelector('.modpress-file-host-url-display');
-        if (hostUrlDisplay) {
-            hostUrlDisplay.id = 'modpress-file-host-url-display-' + nextIndex;
-            const displayValue = hostUrlField && hostUrlField.value
-                ? hostUrlField.value.replace(/^https?:\/\//i, '').replace(/\/+$/, '')
-                : 'https://';
-            hostUrlDisplay.textContent = displayValue || 'https://';
-        }
-
-        const urlSuffixField = row.querySelector('.modpress-file-url-suffix');
-        if (urlSuffixField) {
-            urlSuffixField.name = 'files[' + nextIndex + '][url_suffix]';
-            urlSuffixField.id = 'modpress-file-url-suffix-' + nextIndex;
-            urlSuffixField.value = typeof value.url_suffix === 'string' ? value.url_suffix : (value.url_suffix ?? '');
-        }
-
         const removeButton = row.querySelector('.modpress-file-remove');
         if (removeButton) {
             removeButton.addEventListener('click', (event) => {
@@ -1772,14 +1742,16 @@
             });
         }
 
-        bindFileTypeRadio(row);
-        bindFileTargetButtons(row);
-        syncFileRowState(row);
-        syncFileHostValue(hostField);
-
         if (repeater) {
             repeater.appendChild(row);
         }
+
+        const shouldRestoreTarget = value && (value.type || value.attachment_id || value.host_id || value.host_url || value.url_suffix || value.download);
+        if (shouldRestoreTarget) {
+            buildFileTargetRow(row, defaultType, value);
+        }
+
+        syncFileRowState(row);
 
         return row;
     };
@@ -1811,11 +1783,22 @@
             return;
         }
 
-        const sourceType = ['internal', 'external'].includes(String(requestedType || (button && button.dataset && button.dataset.fileAdd) || 'internal'))
-            ? String(requestedType || (button && button.dataset && button.dataset.fileAdd) || 'internal')
-            : 'internal';
+        buildFileRow(repeater, { type: 'internal' }, getNextFileIndex(repeater));
+    };
 
-        buildFileRow(repeater, { type: sourceType }, getNextFileIndex(repeater));
+    const addFileTargetRow = (button = null, requestedType = null) => {
+        const sourceButton = button && button.closest ? button.closest('[data-file-type-add]') : null;
+        if (!sourceButton) {
+            return null;
+        }
+
+        const fileRow = sourceButton.closest('.modpress-file-item');
+        if (!fileRow) {
+            return null;
+        }
+
+        const type = getFileTypeFromValue(requestedType || sourceButton.dataset.fileTypeAdd || 'internal');
+        return buildFileTargetRow(fileRow, type, {});
     };
 
     const bindCustomFieldButtons = () => {
@@ -2168,13 +2151,13 @@
             return;
         }
 
-        const sourceAddButton = event.target.closest('[data-file-add], #modpress-file-add-external, #modpress-file-add-internal');
+        const sourceAddButton = event.target.closest('[data-file-type-add]');
         if (sourceAddButton) {
             event.preventDefault();
-            const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileAdd
-                ? sourceAddButton.dataset.fileAdd
-                : (sourceAddButton.id === 'modpress-file-add-external' ? 'external' : 'internal');
-            addFileRow(sourceAddButton, sourceType);
+            const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileTypeAdd
+                ? sourceAddButton.dataset.fileTypeAdd
+                : 'internal';
+            addFileTargetRow(sourceAddButton, sourceType);
             return;
         }
 
@@ -2182,6 +2165,16 @@
         if (fileRemoveButton) {
             event.preventDefault();
             const row = fileRemoveButton.closest('.modpress-file-item');
+            if (row) {
+                row.remove();
+            }
+            return;
+        }
+
+        const fileTargetRemoveButton = event.target.closest('[data-file-type-remove]');
+        if (fileTargetRemoveButton) {
+            event.preventDefault();
+            const row = fileTargetRemoveButton.closest('[data-file-target-type]');
             if (row) {
                 row.remove();
             }
