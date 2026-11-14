@@ -89,71 +89,73 @@ final class Integrations extends ToolsManager {
 							)
 						); ?>
 					</div>
-                    <?php if ( class_exists( 'Wikipress' ) ) : ?>
-					<div class="mt-3">
-						<?php echo FormFieldHelper::switch(
-							'modpress_tools[enable_wikipress_integration]',
-							true,
-							__( 'Enable WikiPress integration', 'modpress' ),
-							array(
-								'id'      => 'modpress-enable-wikipress-integration',
-								'checked' => ! empty( $values['enable_wikipress_integration'] ) ?? false,
-							)
-						); ?>
-					</div>
-                    <?php endif; ?>
-                    <?php if ( class_exists( 'Accesspress' ) ) : ?>
-					<div class="mt-3">
-						<?php echo FormFieldHelper::switch(
-							'modpress_tools[enable_accesspress_integration]',
-							true,
-							__( 'Enable AccessPress integration', 'modpress' ),
-							array(
-								'id'      => 'modpress-enable-accesspress-integration',
-								'checked' => ! empty( $values['enable_accesspress_integration'] ) ?? false,
-							)
-						); ?>
-					</div>
-                    <?php endif; ?>
-                    <?php if ( class_exists( 'Mspress' ) ) : ?>
-					<div class="mt-3">
-						<?php echo FormFieldHelper::switch(
-							'modpress_tools[enable_mspress_integration]',
-							true,
-							__( 'Enable MSPress integration', 'modpress' ),
-							array(
-								'id'      => 'modpress-enable-mspress-integration',
-								'checked' => ! empty( $values['enable_mspress_integration'] ) ?? false,
-							)
-						); ?>
-					</div>
-                    <?php endif; ?>
-                    <?php if ( class_exists( 'LicencePress' ) ) : ?>
-					<div class="mt-3">
-						<?php echo FormFieldHelper::switch(
-							'modpress_tools[enable_licencepress_integration]',
-							true,
-							__( 'Enable LicencePress integration', 'modpress' ),
-							array(
-								'id'      => 'modpress-enable-licencepress-integration',
-								'checked' => ! empty( $values['enable_licencepress_integration'] ) ?? false,
-							)
-						); ?>
-					</div>
-                    <?php endif; ?>
-                    <?php if ( class_exists( 'ProjectPress' ) ) : ?>
-					<div class="mt-3">
-						<?php echo FormFieldHelper::switch(
-							'modpress_tools[enable_projectpress_integration]',
-							true,
-							__( 'Enable ProjectPress integration', 'modpress' ),
-							array(
-								'id'      => 'modpress-enable-projectpress-integration',
-								'checked' => ! empty( $values['enable_projectpress_integration'] ) ?? false,
-							)
-						); ?>
-					</div>
-                    <?php endif; ?>
+					<?php if ( $_POST['modpress_tools']['enable_integrations'] || $values['enable_integrations'] ?? false ) : ?>
+						<?php if ( class_exists( 'WikiPress' ) ) : ?>
+							<div class="mt-3">
+								<?php echo FormFieldHelper::switch(
+									'modpress_tools[enable_wikipress_integration]',
+									true,
+									__( 'Enable WikiPress integration', 'modpress' ),
+									array(
+										'id'      => 'modpress-enable-wikipress-integration',
+										'checked' => ! empty( $values['enable_wikipress_integration'] ) ?? false,
+									)
+								); ?>
+							</div>
+						<?php endif; ?>
+						<?php if ( class_exists( 'AccessPress' ) ) : ?>
+							<div class="mt-3">
+								<?php echo FormFieldHelper::switch(
+									'modpress_tools[enable_accesspress_integration]',
+									true,
+									__( 'Enable AccessPress integration', 'modpress' ),
+									array(
+										'id'      => 'modpress-enable-accesspress-integration',
+										'checked' => ! empty( $values['enable_accesspress_integration'] ) ?? false,
+									)
+								); ?>
+							</div>
+						<?php endif; ?>
+						<?php if ( class_exists( 'MSPress' ) ) : ?>
+						<div class="mt-3">
+							<?php echo FormFieldHelper::switch(
+								'modpress_tools[enable_mspress_integration]',
+								true,
+								__( 'Enable MSPress integration', 'modpress' ),
+								array(
+									'id'      => 'modpress-enable-mspress-integration',
+									'checked' => ! empty( $values['enable_mspress_integration'] ) ?? false,
+								)
+							); ?>
+						</div>
+						<?php endif; ?>
+						<?php if ( class_exists( 'LicencePress' ) ) : ?>
+						<div class="mt-3">
+							<?php echo FormFieldHelper::switch(
+								'modpress_tools[enable_licencepress_integration]',
+								true,
+								__( 'Enable LicencePress integration', 'modpress' ),
+								array(
+									'id'      => 'modpress-enable-licencepress-integration',
+									'checked' => ! empty( $values['enable_licencepress_integration'] ) ?? false,
+								)
+							); ?>
+						</div>
+						<?php endif; ?>
+						<?php if ( class_exists( 'ProjectPress' ) ) : ?>
+						<div class="mt-3">
+							<?php echo FormFieldHelper::switch(
+								'modpress_tools[enable_projectpress_integration]',
+								true,
+								__( 'Enable ProjectPress integration', 'modpress' ),
+								array(
+									'id'      => 'modpress-enable-projectpress-integration',
+									'checked' => ! empty( $values['enable_projectpress_integration'] ) ?? false,
+								)
+							); ?>
+						</div>
+						<?php endif; ?>
+					<?php endif; ?>
 					<div class="mt-4">
 						<?php echo FormFieldHelper::button(
 							__( 'Save settings', 'modpress' ),
