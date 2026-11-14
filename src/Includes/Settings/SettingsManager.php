@@ -9,7 +9,7 @@
 
 namespace ModPress\Includes\Settings;
 
-use ModPress\Includes\Core\WP\Database;
+use ModPress\Includes\Functions\Helpers\DBHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -39,7 +39,7 @@ final class SettingsManager {
      * @since 1.0.0
      */
     public static function table_name(): string {
-        return Database::table_name( 'settings' );
+        return DBHelper::table_name( 'settings' );
     }
 
     /**
@@ -49,7 +49,7 @@ final class SettingsManager {
      * @since 1.0.0
      */
     public static function install(): void {
-        Database::install();
+        DBHelper::install();
     }
     /**
      * Get a setting value.
@@ -123,8 +123,6 @@ final class SettingsManager {
      * @since 1.0.0
      */
     public static function get_all(): array {
-        global $wpdb;
-
         if ( ! self::table_exists() ) {
             if ( self::is_mock_database_object() ) {
                 return [];
@@ -133,7 +131,7 @@ final class SettingsManager {
         }
 
         $column_name = self::has_column( 'setting_group' ) ? 'setting_group' : 'setting_key';
-        $rows = $wpdb->get_results( 'SELECT ' . $column_name . ', setting_value FROM ' . self::table_name(), ARRAY_A );
+        $rows = DBHelper::get_all( 'settings' );
         $rows = is_array( $rows ) ? $rows : [];
 
         $settings = [];
@@ -144,7 +142,7 @@ final class SettingsManager {
                 continue;
             }
 
-            $stored = maybe_unserialize( $row['setting_value'] );
+            $stored = maybe_unserialize( $row['setting_value'] ?? '' );
             if ( is_array( $stored ) ) {
                 $settings[ $group ] = $stored;
             }
@@ -159,8 +157,6 @@ final class SettingsManager {
      * @since 1.0.0
      */
     public static function get_group( string $group ): ?array {
-        global $wpdb;
-
         $normalized_group = self::normalize_group( $group );
         if ( ! self::table_exists() ) {
             if ( self::is_mock_database_object() ) {
@@ -170,14 +166,12 @@ final class SettingsManager {
         }
 
         $column_name = self::has_column( 'setting_group' ) ? 'setting_group' : 'setting_key';
-        $value = $wpdb->get_var(
-            $wpdb->prepare(
-                'SELECT setting_value FROM ' . self::table_name() . ' WHERE ' . $column_name . ' = %s',
-                self::storage_group( $group )
-            )
-        );
-        $settings = $value === null ? null : maybe_unserialize( $value );
+        $row = DBHelper::get_row( 'settings', array( $column_name => self::storage_group( $group ) ) );
+        if ( ! is_array( $row ) ) {
+            return null;
+        }
 
+        $settings = maybe_unserialize( $row['setting_value'] ?? '' );
         if ( ! is_array( $settings ) ) {
             return null;
         }
@@ -193,8 +187,6 @@ final class SettingsManager {
      * @since 1.0.0
      */
     public static function set_group( string $group, array $settings ): bool {
-        global $wpdb;
-
         $normalized_group = self::normalize_group( $group );
         if ( '' === $normalized_group ) {
             return false;
@@ -210,53 +202,54 @@ final class SettingsManager {
         }
 
         $storage_group = self::storage_group( $group );
-        if ( self::has_column( 'setting_group' ) ) {
-            $result = $wpdb->replace(
-                self::table_name(),
-                [
-                    'setting_group' => $storage_group,
-                    'setting_value' => maybe_serialize( $settings ),
-                    'autoload' => 'yes',
-                    'updated_at' => current_time( 'mysql' ),
-                ],
-                [ '%s', '%s', '%s', '%s' ]
-            );
-
-            if ( false === $result ) {
-                return false;
-            }
-
-            $stored = $wpdb->get_var(
-                $wpdb->prepare(
-                    'SELECT setting_value FROM ' . self::table_name() . ' WHERE setting_group = %s',
-                    $storage_group
-                )
-            );
-
-            if ( null === $stored ) {
-                return false;
-            }
-
-            $stored_settings = maybe_unserialize( $stored );
-            if ( ! is_array( $stored_settings ) ) {
-                return false;
-            }
-
-            return maybe_serialize( $stored_settings ) === maybe_serialize( $settings );
-        }
-
-        $result = $wpdb->replace(
-            self::table_name(),
-            [
-                'setting_key' => $storage_group,
-                'setting_value' => maybe_serialize( $settings ),
-                'created_at' => current_time( 'mysql' ),
-                'updated_at' => current_time( 'mysql' ),
-            ],
-            [ '%s', '%s', '%s', '%s' ]
+        $payload = array(
+            'setting_value' => maybe_serialize( $settings ),
+            'updated_at' => current_time( 'mysql' ),
         );
 
-        return false !== $result;
+        if ( self::has_column( 'setting_group' ) ) {
+            $existing = DBHelper::get_row( 'settings', array( 'setting_group' => $storage_group ) );
+            $payload['setting_group'] = $storage_group;
+            $payload['autoload'] = 'yes';
+
+            if ( is_array( $existing ) ) {
+                $updated = DBHelper::update( 'settings', $payload, array( 'setting_group' => $storage_group ) );
+                if ( ! $updated ) {
+                    return false;
+                }
+            } else {
+                $payload['created_at'] = current_time( 'mysql' );
+                $inserted = DBHelper::insert( 'settings', $payload );
+                if ( false === $inserted ) {
+                    return false;
+                }
+            }
+
+            $stored = DBHelper::get_var( 'settings', 'setting_value', array( 'setting_group' => $storage_group ) );
+            return is_string( $stored ) && maybe_serialize( maybe_unserialize( $stored ) ) === maybe_serialize( $settings );
+        }
+
+        $existing = DBHelper::get_row( 'settings', array( 'setting_key' => $storage_group ) );
+        $payload = array(
+            'setting_key' => $storage_group,
+            'setting_value' => maybe_serialize( $settings ),
+            'updated_at' => current_time( 'mysql' ),
+        );
+
+        if ( is_array( $existing ) ) {
+            $updated = DBHelper::update( 'settings', $payload, array( 'setting_key' => $storage_group ) );
+            if ( ! $updated ) {
+                return false;
+            }
+        } else {
+            $payload['created_at'] = current_time( 'mysql' );
+            $inserted = DBHelper::insert( 'settings', $payload );
+            if ( false === $inserted ) {
+                return false;
+            }
+        }
+
+        return true;
     }
     /**
      * Register a settings group for lookup resolution.
@@ -375,20 +368,7 @@ final class SettingsManager {
      * @since 1.0.0
      */
     private static function table_exists(): bool {
-        global $wpdb;
-
-        if ( ! isset( $wpdb ) || ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_var' ) ) {
-            return false;
-        }
-
-        if ( ! method_exists( $wpdb, 'prepare' ) ) {
-            return false;
-        }
-
-        $query = $wpdb->prepare( 'SHOW TABLES LIKE %s', self::table_name() );
-        $table = $wpdb->get_var( $query );
-
-        return is_string( $table ) && '' !== $table;
+        return DBHelper::table_exists( 'settings' );
     }
 
     /**
