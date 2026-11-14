@@ -58,12 +58,11 @@ final class Activator {
 
 		Plugins::get_instance()->init();
 		Database::install();
+		SettingsManager::install();
 		Database::update();
 		GroupsManager::create_default_group();
 		Roles::install();
 		Capabilities::install();
-		Defaults::install_default_settings();
-		SettingsManager::install();
 
 		foreach ( $callbacks ?? self::$callbacks as $callback ) {
 			call_user_func( $callback );

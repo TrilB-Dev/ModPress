@@ -243,7 +243,7 @@ final class DBHelper {
 		$query .= ' LIMIT 1';
 
 		if ( ! empty( $args ) ) {
-			$query = $wpdb->prepare( $query, $args );
+			$query = $wpdb->prepare( $query, ...$args );
 		}
 
 		return $wpdb->get_row( $query, ARRAY_A );
@@ -286,7 +286,7 @@ final class DBHelper {
 		}
 
 		if ( ! empty( $args ) ) {
-			$query = $wpdb->prepare( $query, $args );
+			$query = $wpdb->prepare( $query, ...$args );
 		}
 
 		return $wpdb->get_results( $query, ARRAY_A );
@@ -315,7 +315,7 @@ final class DBHelper {
 		$query .= ' LIMIT 1';
 
 		if ( ! empty( $args ) ) {
-			$query = $wpdb->prepare( $query, $args );
+			$query = $wpdb->prepare( $query, ...$args );
 		}
 
 		$value = $wpdb->get_var( $query );
@@ -354,7 +354,7 @@ final class DBHelper {
 		}
 
 		if ( ! empty( $args ) ) {
-			$query = $wpdb->prepare( $query, $args );
+			$query = $wpdb->prepare( $query, ...$args );
 		}
 
 		return (int) $wpdb->get_var( $query );
@@ -399,7 +399,7 @@ final class DBHelper {
 		}
 
 		$query = 'INSERT INTO ' . $table_name . ' (' . implode( ', ', $columns ) . ') VALUES (' . implode( ', ', $placeholders ) . ')';
-		$prepared = $wpdb->prepare( $query, $values );
+		$prepared = $wpdb->prepare( $query, ...$values );
 		$inserted = $wpdb->query( $prepared );
 
 		return false !== $inserted ? (int) $wpdb->insert_id : false;
@@ -440,7 +440,7 @@ final class DBHelper {
 			$query .= ' WHERE ' . $where_sql;
 		}
 
-		$prepared = $wpdb->prepare( $query, array_merge( $values, $where_args ) );
+		$prepared = $wpdb->prepare( $query, ...array_merge( $values, $where_args ) );
 		$executed = $wpdb->query( $prepared );
 		if ( false === $executed ) {
 			return false;
@@ -478,7 +478,7 @@ final class DBHelper {
 		}
 
 		if ( ! empty( $where_args ) ) {
-			$query = $wpdb->prepare( $query, $where_args );
+			$query = $wpdb->prepare( $query, ...$where_args );
 		}
 
 		$executed = $wpdb->query( $query );
