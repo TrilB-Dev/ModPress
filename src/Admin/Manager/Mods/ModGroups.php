@@ -423,6 +423,7 @@ final class ModGroups extends ModManager {
 																		array(
 																			'type' => 'submit',
 																			'class' => 'btn btn-outline-danger',
+																			'style' => 'border-radius: 5px 0 0 5px',
 																			'attributes' => array(
 																				'data-role' => 'delete-group-entry',
 																			),
