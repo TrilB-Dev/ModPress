@@ -243,6 +243,12 @@ final class FunctionsSidebar {
 						'link'       => 'modpress&group=tools&tab=general',
 						'capability' => 'modpress_tools_general',
 					],
+					'integrations' => [
+						'label'      => __( 'Integrations', 'modpress' ),
+						'icon'       => 'fa-solid fa-gear-complex-api',
+						'link'       => 'modpress&group=tools&tab=integrations',
+						'capability' => 'modpress_tools_integrations',
+					],
 					'debug' => [
 						'label'      => __( 'Debug', 'modpress' ),
 						'icon'       => 'fa-solid fa-bug-slash',

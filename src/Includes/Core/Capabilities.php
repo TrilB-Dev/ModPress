@@ -97,6 +97,11 @@ class Capabilities {
 					'label'       => __( 'Reset ModPress Data', 'modpress' ),
 					'description' => __( 'Allows resetting or clearing ModPress records and related data.', 'modpress' ),
 				),
+				'modpress_tools_integrations'        => array(
+					'group'       => 'ModPress Tools',
+					'label'       => __( 'Manage Integrations', 'modpress' ),
+					'description' => __( 'Allows managing integrations within ModPress.', 'modpress' ),
+				),
 				'modpress_settings_plugins_view'     => array(
 					'group'       => 'ModPress Settings',
 					'label'       => __( 'View Plugin Settings', 'modpress' ),
