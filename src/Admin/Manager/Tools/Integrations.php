@@ -45,7 +45,7 @@ final class Integrations extends ToolsManager {
 	 * @return void
 	 */
 	public function render_page_content(): void {
-		
+		$this->render();
 	}
 
 	/**
