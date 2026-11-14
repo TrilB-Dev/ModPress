@@ -1805,13 +1805,17 @@
         });
     };
 
-    const addFileRow = (button = null) => {
+    const addFileRow = (button = null, requestedType = null) => {
         const repeater = document.getElementById('modpress-file-repeater');
         if (!repeater) {
             return;
         }
 
-        buildFileRow(repeater, { type: 'internal' }, getNextFileIndex(repeater));
+        const sourceType = ['internal', 'external'].includes(String(requestedType || (button && button.dataset && button.dataset.fileAdd) || 'internal'))
+            ? String(requestedType || (button && button.dataset && button.dataset.fileAdd) || 'internal')
+            : 'internal';
+
+        buildFileRow(repeater, { type: sourceType }, getNextFileIndex(repeater));
     };
 
     const bindCustomFieldButtons = () => {
@@ -2160,7 +2164,17 @@
         const fileAddButton = event.target.closest('[data-modpress-file-add]');
         if (fileAddButton) {
             event.preventDefault();
-            addFileRow(fileAddButton);
+            addFileRow(fileAddButton, 'internal');
+            return;
+        }
+
+        const sourceAddButton = event.target.closest('[data-file-add], #modpress-file-add-external, #modpress-file-add-internal');
+        if (sourceAddButton) {
+            event.preventDefault();
+            const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileAdd
+                ? sourceAddButton.dataset.fileAdd
+                : (sourceAddButton.id === 'modpress-file-add-external' ? 'external' : 'internal');
+            addFileRow(sourceAddButton, sourceType);
             return;
         }
 

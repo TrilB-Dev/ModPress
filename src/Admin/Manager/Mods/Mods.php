@@ -707,7 +707,7 @@ final class Mods extends ModManager {
 												</div>
 												<div class="row g-3">
 													<div class="col-12">
-														<div class="col-align-self-end d-flex">
+														<div class="align-self-end d-flex">
 															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'File Types', 'modpress' ); ?>">
 																<?php echo FormFieldHelper::button(
 																	FAHelper::faicon( 'plus' ).' '.__('External File', 'modpress'),
@@ -716,6 +716,7 @@ final class Mods extends ModManager {
 																		'class' => 'btn btn-outline-primary',
 																		'attributes' => array(
 																			'data-file-add' => 'external',
+																			'id' => 'modpress-file-add-external',
 																		),
 																	)
 																); ?>
@@ -726,6 +727,7 @@ final class Mods extends ModManager {
 																		'class' => 'btn btn-outline-primary',
 																		'attributes' => array(
 																			'data-file-add' => 'internal',
+																			'id' => 'modpress-file-add-internal',
 																		),
 																	)
 																); ?>
@@ -733,8 +735,8 @@ final class Mods extends ModManager {
 														</div>
 													</div>
 												</div>
-												<div class="row g-3">
-													<div class="col-md-10">
+												<div class="row g-3 p-1 modpress-file-target-wrapper modpress-file-target-internal d-none">
+													<div class="col-md-11">
 														<?php echo WPMediaHelper::create(
 															'',
 															array(
@@ -751,7 +753,7 @@ final class Mods extends ModManager {
 															)
 														); ?>
 													</div>
-													<div class="col-md-2">
+													<div class="col-md-1">
 														<?php echo FormFieldHelper::button(
 															FAHelper::faicon( 'trash' ),
 															array(
@@ -759,6 +761,7 @@ final class Mods extends ModManager {
 																'class' => 'btn btn-outline-danger',
 																'attributes' => array(
 																	'data-file-remove' => 'internal',
+																	'id' => 'modpress-file-remove-internal-template['. $index . ']',
 																),
 															)
 														); ?>
@@ -820,6 +823,7 @@ final class Mods extends ModManager {
 																	'class' => 'btn btn-outline-danger',
 																	'attributes' => array(
 																		'data-file-remove' => 'external',
+																		'id' => 'modpress-file-remove-external-template['. $index . ']',
 																	),
 																)
 															); ?>
