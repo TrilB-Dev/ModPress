@@ -713,9 +713,9 @@ final class Mods extends ModManager {
 														</div>
 													</div>
 												</div>
-												<div class="row g-3">
+												<div class="row g-3 py-4">
 													<div class="col-12">
-														<div class="align-self-end d-flex">
+													<div class="align-self-end d-flex justify-content-end w-100">
 															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'File Types', 'modpress' ); ?>">
 																<?php echo FormFieldHelper::button(
 																	FAHelper::faicon( 'plus' ).' '.__('External File', 'modpress'),
