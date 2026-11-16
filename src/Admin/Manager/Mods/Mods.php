@@ -720,8 +720,8 @@ final class Mods extends ModManager {
 														</div>
 													</div>
 												</div>
-												<div class="row g-3 py-4">
-													<div class="col-12">
+												<div class="row g-1 m-1 p-1">
+													<div class="col-12 p-1">
 													<div class="align-self-end d-flex justify-content-end w-100">
 															<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'File Types', 'modpress' ); ?>">
 																<?php echo FormFieldHelper::button(
@@ -750,7 +750,7 @@ final class Mods extends ModManager {
 														</div>
 													</div>
 												</div>
-												<div class="row gy-3 modpress-file-target-wrapper">
+												<div class="row g-3 p-3 modpress-file-target-wrapper">
 													<template id="modpress-file-target-internal-template">
 														<div class="row g-3 p-1 modpress-file-target-wrapper modpress-file-target-internal-template d-none" id="modpress-file-target-internal-template">
 															<div class="col-md-11">
@@ -786,9 +786,9 @@ final class Mods extends ModManager {
 														</div>
 													</template>
 													<template id="modpress-file-target-external-template">
-														<div class="row g-3 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
+														<div class="row g-3 m-2 p-3 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
 															<div class="col-12">
-																<div class="col-md-3">
+																<div class="col-md-2">
 																	<?php echo FormFieldHelper::label( 
 																		'modpress-file-host-selector-template', 
 																		__( 'Host', 'modpress' ) 
@@ -834,7 +834,7 @@ final class Mods extends ModManager {
 																		__('Please provide the download URL for the external file.', 'modpress')
 																	); ?>
 																</div>
-																<div class="col-md-0">
+																<div class="col-md-1">
 																	<?php echo FormFieldHelper::button(
 																		FAHelper::faicon( 'trash' ),
 																		array(
