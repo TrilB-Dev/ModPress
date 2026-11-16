@@ -1573,62 +1573,6 @@
         }
 
         const normalizedType = getFileTypeFromValue(targetType);
-        const existingTargetRow = targetContainer.querySelector('[data-file-target-type="' + normalizedType + '"]');
-        if (existingTargetRow) {
-            const fileIndex = Number.parseInt(String(fileRow.dataset.fileIndex || ''), 10);
-            const rowIndex = Number.isInteger(fileIndex) ? fileIndex : 0;
-            const typeField = fileRow.querySelector('.modpress-file-type');
-            if (typeField) {
-                typeField.value = normalizedType;
-            }
-
-            if ('internal' === normalizedType) {
-                const attachmentField = existingTargetRow.querySelector('[data-media-field="true"]');
-                if (attachmentField) {
-                    attachmentField.name = 'files[' + rowIndex + '][attachment_id]';
-                    attachmentField.id = 'modpress-file-attachment-' + rowIndex;
-                    if (values.attachment_id !== undefined && values.attachment_id !== null && values.attachment_id !== '') {
-                        attachmentField.value = String(values.attachment_id);
-                    }
-                }
-            } else {
-                const hostField = existingTargetRow.querySelector('.modpress-file-host-selector');
-                if (hostField) {
-                    hostField.name = 'files[' + rowIndex + '][host_id]';
-                    hostField.id = 'modpress-file-host-selector-' + rowIndex;
-                    if (values.host_id !== undefined && values.host_id !== null && values.host_id !== '') {
-                        hostField.value = String(values.host_id);
-                    }
-                    bindFileHostSelector(hostField);
-                    refreshBootstrapSelect(hostField);
-                }
-
-                const hostUrlField = existingTargetRow.querySelector('.modpress-file-host-url');
-                if (hostUrlField) {
-                    hostUrlField.name = 'files[' + rowIndex + '][host_url]';
-                    hostUrlField.id = 'modpress-file-host-url-' + rowIndex;
-                    if (typeof values.host_url === 'string') {
-                        hostUrlField.value = values.host_url;
-                    }
-                }
-
-                const urlSuffixField = existingTargetRow.querySelector('.modpress-file-url-suffix');
-                if (urlSuffixField) {
-                    urlSuffixField.name = 'files[' + rowIndex + '][url_suffix]';
-                    urlSuffixField.id = 'modpress-file-url-suffix-' + rowIndex;
-                    if (typeof values.url_suffix === 'string') {
-                        urlSuffixField.value = values.url_suffix;
-                    }
-                }
-            }
-
-            const hostField = existingTargetRow.querySelector('.modpress-file-host-selector');
-            if (hostField) {
-                syncFileHostValue(hostField);
-            }
-
-            return existingTargetRow;
-        }
 
         const templateId = 'modpress-file-target-' + normalizedType + '-template';
         const template = document.getElementById(templateId);
@@ -1848,10 +1792,6 @@
         }
 
         const type = getFileTypeFromValue(requestedType || sourceButton.dataset.fileTypeAdd || 'internal');
-        const existingTargetRow = fileRow.querySelector('[data-file-target-type="' + type + '"]');
-        if (existingTargetRow) {
-            return existingTargetRow;
-        }
 
         if (sourceButton.dataset.modpressFileTypePending === 'true') {
             return null;

@@ -648,7 +648,14 @@ final class Mods extends ModManager {
 											<div class="modpress-file-item border rounded p-3 mb-3" data-file-index="0">
 												<input type="hidden" name="files[template][type]" class="modpress-file-type" value="internal" />
 												<div class="d-flex justify-content-end mb-2">
-													<button type="button" class="btn btn-sm btn-outline-danger modpress-file-remove" aria-label="<?php esc_attr_e( 'Remove file', 'modpress' ); ?>"><?php echo FAHelper::faicon( 'trash' ); ?></button>
+													<?php echo FormFieldHelper::button(
+														FAHelper::faicon( 'trash' ),
+														array(
+															'type' => 'button',
+															'class' => 'btn btn-sm btn-outline-danger modpress-file-remove',
+															'aria-label' => __( 'Remove file', 'modpress' ),
+														)
+													); ?>
 												</div>
 												<div class="row g-3">
 													<div class="col-12">
@@ -798,7 +805,7 @@ final class Mods extends ModManager {
 																		)
 																	); ?>
 																</div>
-																<div class="col-md-8">
+																<div class="col-md-9">
 																	<?php echo FormFieldHelper::label(
 																		'modpress-file-host-url-template',
 																		__( 'Download URL', 'modpress' )
@@ -827,7 +834,7 @@ final class Mods extends ModManager {
 																		__('Please provide the download URL for the external file.', 'modpress')
 																	); ?>
 																</div>
-																<div class="col-md-1">
+																<div class="col-md-0">
 																	<?php echo FormFieldHelper::button(
 																		FAHelper::faicon( 'trash' ),
 																		array(
