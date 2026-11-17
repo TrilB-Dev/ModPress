@@ -191,6 +191,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         mediaFrame.open();
     };
+    const setModalMediaValue = (modal, name, value) => {
+        if (!modal || !name) {
+            return;
+        }
+
+        const field = modal.querySelector('[name="' + name + '"]');
+        if (!field) {
+            return;
+        }
+
+        field.value = value || '';
+
+        const wrapper = field.closest('.modpress-media-picker');
+        const preview = wrapper ? wrapper.querySelector('[data-modpress-media-preview-container]') : null;
+        const previewImage = wrapper ? wrapper.querySelector('[data-modpress-media-preview-image]') : null;
+        if (preview) {
+            preview.classList.toggle('d-none', !value);
+        }
+        if (previewImage) {
+            previewImage.src = value || '';
+        }
+    };
 
     document.addEventListener('click', (event) => {
         const pickerButton = event.target.closest('[data-modpress-media-picker="true"]');

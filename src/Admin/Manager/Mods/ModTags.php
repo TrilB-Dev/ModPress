@@ -22,8 +22,10 @@ final class ModTags extends ModManager {
     public function render_page_content(): void {
         // Render the content for the Mod Tags page here.
         ?>
-        <div class="card shadow-sm border-0">
-			<div class="card-body p-4">
+        <div class="modpress-tags-page">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                </div>
             </div>
         </div>
         <?php

@@ -1,787 +1,1221 @@
+/**
+  * Mod Manager JS
+  * 
+  * @package: ModPress
+  * @subpackage: Admin\Manager\Mods
+  * @version 1.0.0
+  * @since 1.0.0
+  */
 (() => {
-    const normalizeFieldName = (name = '', fieldKey = '') => {
-        if (!name) {
-            return name;
-        }
-
-        const trimmedName = String(name).trim();
-        if (!trimmedName || !fieldKey) {
-            return trimmedName;
-        }
-
-        const sanitizedFieldKey = String(fieldKey).trim();
-        if (!sanitizedFieldKey) {
-            return trimmedName;
-        }
-
-        if (trimmedName.endsWith('[]')) {
-            return trimmedName.slice(0, -2) + '[' + sanitizedFieldKey + ']';
-        }
-
-        if (trimmedName.endsWith(']')) {
-            return trimmedName.replace(/\]$/, '[' + sanitizedFieldKey + ']');
-        }
-
-        return trimmedName + '[' + sanitizedFieldKey + ']';
-    };
-
-    const syncCustomFieldRowNames = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const fieldId = String(row.dataset.fieldId || row.querySelector('[name^="custom_field_id"]')?.value || '').trim();
-        const slugInput = row.querySelector('[name^="custom_field_slug"]');
-        const fieldKey = String(slugInput?.value || row.dataset.fieldSlug || fieldId || '').trim();
-        if (!fieldKey) {
-            return;
-        }
-
-        row.dataset.fieldSlug = fieldKey;
-
-        const keyedNames = [
-            'custom_field_id',
-            'custom_field_label',
-            'custom_field_slug',
-            'custom_field_description',
-            'custom_field_type',
-            'custom_field_type_textarea_rows',
-            'custom_field_type_switch',
-            'custom_field_type_switch_custom',
-            'custom_field_type_color',
-            'custom_field_show_in_table',
-            'custom_field_type_radio',
-            'custom_field_type_select',
-            'custom_field_type_image_type',
-            'custom_field_type_image_type_image',
-            'custom_field_type_image_type_icon',
-            'custom_field_type_image_type_url',
-        ];
-
-        row.querySelectorAll('input, select, textarea').forEach((element) => {
-            const currentName = element.getAttribute('name');
-            if (!currentName) {
+    /**
+     * Global / shared script setup
+     *
+     * These helpers are reused across the Mod Manager and should remain outside
+     * page-specific blocks so shared logic is easy to find.
+     * @since 1.0.0
+     */
+    const modManagerRoot = document.querySelector('.modpress-mod-manager');
+    modManagerRoot && (() => {
+        /**
+         * Synchronizes the mod manager tabs with their corresponding tab panes.
+         * Ensures that clicking on a tab updates the active tab and its corresponding pane.
+         * @since 1.0.0
+         */
+        const syncModManagerTabs = () => {
+            const managerRoot = document.querySelector('.modpress-mod-manager-tab-content');
+            if (!managerRoot) {
                 return;
             }
 
-            const matchedName = keyedNames.find((name) => currentName === name + '[]' || currentName.startsWith(name + '[') || currentName === name);
-            if (!matchedName) {
-                return;
-            }
-
-            const nextName = normalizeFieldName(matchedName + '[]', fieldKey);
-            if (nextName !== currentName) {
-                element.setAttribute('name', nextName);
-            }
-        });
-    };
-
-    const syncCustomFieldLabel = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const labelInput = row.querySelector('[name^="custom_field_label"]');
-        const title = row.querySelector('[data-custom-field-title]');
-        const triggerButton = row.querySelector('.accordion-button');
-        if (!title && !triggerButton) {
-            return;
-        }
-
-        const labelText = labelInput && labelInput.value ? String(labelInput.value).trim() : 'Field';
-        if (title) {
-            title.textContent = labelText;
-        }
-
-        if (triggerButton) {
-            const prefix = triggerButton.querySelector('[data-custom-field-prefix]');
-            if (prefix) {
-                prefix.textContent = 'Field:';
-            }
-        }
-    };
-
-    const removeFieldRow = (button) => {
-        const row = button.closest('.modpress-custom-field-row');
-        if (row) {
-            row.remove();
-        }
-    };
-
-    const syncDeleteButtons = () => {
-        const buttons = document.querySelectorAll('[data-role="bulk-delete-group-entry"], .btn-delete-selected');
-        buttons.forEach((button) => {
-            const form = button.form || button.closest('form');
-            const panel = button.closest('.tab-pane') || form?.closest('.tab-pane');
-            const scope = panel || form || document;
-            const rows = scope.querySelectorAll ? scope.querySelectorAll('.modpress-row-checkbox') : [];
-            const hasSelection = Array.from(rows).some((checkbox) => checkbox.checked);
-
-            button.disabled = !hasSelection;
-            if (button instanceof HTMLElement) {
-                button.setAttribute('aria-disabled', String(button.disabled));
-            }
-        });
-    };
-
-    const collectBulkDeleteSelection = (button) => {
-        const form = button.form || button.closest('form');
-        const panel = button.closest('.tab-pane') || form?.closest('.tab-pane');
-        const scope = panel || form || document;
-
-        return Array.from(scope.querySelectorAll('.modpress-row-checkbox:checked'))
-            .map((checkbox) => String(checkbox.value || '').trim())
-            .filter((value) => value !== '');
-    };
-
-    const resolveBulkDeleteArrayName = (form, fallbackName = 'group_entry_ids[]') => {
-        if (!form) {
-            return fallbackName;
-        }
-
-        const checkedRows = Array.from(form.querySelectorAll('.modpress-row-checkbox:checked'))
-            .filter((row) => Boolean(row.name));
-        const matchedRowName = checkedRows.find((row) => /(group|file_type|file_host)_.*ids\[\]$/.test(row.name))?.name;
-        if (matchedRowName) {
-            return matchedRowName;
-        }
-
-        const hiddenInputs = Array.from(form.querySelectorAll('input[type="hidden"][name]'));
-        const matchedHiddenName = hiddenInputs.find((input) => /(group|file_type|file_host)_.*ids\[\]$/.test(input.name))?.name;
-        if (matchedHiddenName) {
-            return matchedHiddenName;
-        }
-
-        const genericRowName = form.querySelector('.modpress-row-checkbox')?.name;
-        return genericRowName || fallbackName;
-    };
-
-    const syncModManagerTabs = () => {
-        const managerRoot = document.querySelector('.modpress-mod-manager-tab-content');
-        if (!managerRoot) {
-            return;
-        }
-
-        const tabs = managerRoot.querySelectorAll('[data-bs-toggle="tab"]');
-        tabs.forEach((tab) => {
-            const targetSelector = tab.getAttribute('data-bs-target');
-            if (!targetSelector || tab.dataset.modpressTabBound === 'true') {
-                return;
-            }
-
-            tab.dataset.modpressTabBound = 'true';
-            tab.addEventListener('click', () => {
-                const pane = managerRoot.querySelector(targetSelector);
-                if (!pane) {
+            const tabs = managerRoot.querySelectorAll('[data-bs-toggle="tab"]');
+            tabs.forEach((tab) => {
+                const targetSelector = tab.getAttribute('data-bs-target');
+                if (!targetSelector || tab.dataset.modpressTabBound === 'true') {
                     return;
                 }
 
-                managerRoot.querySelectorAll('[data-bs-toggle="tab"]').forEach((link) => {
-                    const isActive = link === tab;
-                    link.classList.toggle('active', isActive);
-                    link.setAttribute('aria-selected', isActive ? 'true' : 'false');
-                    if (isActive) {
-                        link.setAttribute('aria-current', 'page');
-                    } else {
-                        link.removeAttribute('aria-current');
+                tab.dataset.modpressTabBound = 'true';
+                tab.addEventListener('click', () => {
+                    const pane = managerRoot.querySelector(targetSelector);
+                    if (!pane) {
+                        return;
                     }
-                });
 
-                managerRoot.querySelectorAll('.tab-pane').forEach((panel) => {
-                    const isActivePane = panel === pane;
-                    panel.classList.toggle('show', isActivePane);
-                    panel.classList.toggle('active', isActivePane);
+                    managerRoot.querySelectorAll('[data-bs-toggle="tab"]').forEach((link) => {
+                        const isActive = link === tab;
+                        link.classList.toggle('active', isActive);
+                        link.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                        if (isActive) {
+                            link.setAttribute('aria-current', 'page');
+                        } else {
+                            link.removeAttribute('aria-current');
+                        }
+                    });
+
+                    managerRoot.querySelectorAll('.tab-pane').forEach((panel) => {
+                        const isActivePane = panel === pane;
+                        panel.classList.toggle('show', isActivePane);
+                        panel.classList.toggle('active', isActivePane);
+                    });
                 });
             });
-        });
-    };
+        };
+        syncModManagerTabs();
+    })();
+    /**
+     * Mods Page
+     * 
+     * This script handles the functionality for the Mods page.
+     * @since 1.0.0
+     */
+    const modsPage = document.querySelector('.modpress-mods-page');
+    modsPage && (() => {
+        /**
+         * Collects the selected rows for bulk deletion.
+         * @param {HTMLElement} button The button that triggered the bulk delete action.
+         * @returns {Array<string>} An array of selected row IDs.
+         * @since 1.0.0
+         */
+        const collectBulkDeleteSelection = (button) => {
+            const form = button.form || button.closest('form');
+            const panel = button.closest('.tab-pane') || form?.closest('.tab-pane');
+            const scope = panel || form || document;
 
-    const normalizeConditionValue = (value) => {
-        if (value === null || value === undefined) {
-            return '';
-        }
-
-        const normalized = String(value).trim().toLowerCase();
-        if (['on', 'yes', 'true', 'checked', '1'].includes(normalized)) {
-            return 'true';
-        }
-
-        if (['off', 'no', 'false', 'unchecked', '0'].includes(normalized)) {
-            return 'false';
-        }
-
-        return normalized;
-    };
-
-    const normalizeBooleanValue = (value) => {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-
-        if (typeof value === 'number') {
-            return value !== 0;
-        }
-
-        if (typeof value === 'string') {
-            const normalized = value.trim().toLowerCase();
-            if (['1', 'true', 'yes', 'on', 'checked'].includes(normalized)) {
-                return true;
-            }
-
-            if (['0', 'false', 'no', 'off', 'unchecked', ''].includes(normalized)) {
-                return false;
-            }
-        }
-
-        return Boolean(value);
-    };
-
-    const getNamedCheckbox = (scope, namePrefix = '') => {
-        if (!scope || !namePrefix) {
-            return null;
-        }
-
-        const inputs = Array.from(scope.querySelectorAll('input[type="checkbox"]'));
-        return inputs.find((input) => {
-            const name = String(input.getAttribute('name') || '');
-            return name === namePrefix
-                || name.startsWith(namePrefix + '[')
-                || name.startsWith(namePrefix + '[]')
-                || name.startsWith(namePrefix);
-        }) || null;
-    };
-
-    const getCustomFieldTypeControl = (row) => {
-        if (!row) {
-            return null;
-        }
-
-        return Array.from(row.querySelectorAll('[name^="custom_field_type"]')).find((field) => {
-            const name = String(field.getAttribute('name') || '');
-            if (name === 'custom_field_type' || name.startsWith('custom_field_type[')) {
-                return true;
-            }
-
-            if (name.startsWith('custom_field_type_')) {
-                return !name.startsWith('custom_field_type_switch')
-                    && !name.startsWith('custom_field_type_switch_custom')
-                    && !name.startsWith('custom_field_type_color')
-                    && !name.startsWith('custom_field_type_radio')
-                    && !name.startsWith('custom_field_type_select')
-                    && !name.startsWith('custom_field_type_image_type')
-                    && !name.startsWith('custom_field_type_textarea_rows');
-            }
-
-            return false;
-        }) || null;
-    };
-
-    const syncCustomFieldVisibility = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const typeField = getCustomFieldTypeControl(row);
-        const targetFields = row.querySelectorAll('[data-custom-field-condition]');
-        if (!typeField && !targetFields.length) {
-            return;
-        }
-
-        const currentType = normalizeConditionValue(typeField ? (typeField.value || '') : '');
-        row.querySelectorAll('[data-custom-field-condition]').forEach((group) => {
-            const rawCondition = group.dataset.customFieldCondition || '';
-            let conditionValues = [];
-
-            try {
-                const parsed = JSON.parse(rawCondition);
-                conditionValues = Array.isArray(parsed) ? parsed : [parsed];
-            } catch (error) {
-                conditionValues = String(rawCondition).split(',').map((value) => value.trim()).filter(Boolean);
-            }
-
-            const normalizedCondition = conditionValues.map((value) => normalizeConditionValue(value));
-            const targetName = group.dataset.customFieldConditionTarget || '';
-            const targetTypeHint = targetName
-                ? String(targetName)
-                    .replace(/^custom_field_type_/, '')
-                    .replace(/\[\]$/, '')
-                    .replace(/\[[^\]]*\]$/, '')
-                : '';
-            const effectiveCurrentType = currentType || (targetTypeHint ? normalizeConditionValue(targetTypeHint) : '');
-            let shouldShow = false;
-
-            if (targetName && normalizedCondition.length > 1) {
-                const targetField = row.querySelector('[name="' + targetName + '"]') || (targetName ? row.querySelector('[name^="' + targetName.replace(/\[\]$/, '') + '"]') : null);
-                const targetValue = targetField ? normalizeConditionValue(targetField.value || (targetField.checked ? 'true' : '')) : '';
-                shouldShow = effectiveCurrentType === normalizedCondition[0] && targetValue === normalizedCondition[1];
-            } else {
-                shouldShow = normalizedCondition.includes(effectiveCurrentType);
-            }
-
-            group.classList.toggle('d-none', !shouldShow);
-        });
-    };
-
-    const findParentControl = (parentName = '') => {
-        const normalizedParentName = String(parentName || '').trim();
-        if (!normalizedParentName) {
-            return null;
-        }
-
-        const candidateIds = new Set();
-        candidateIds.add(normalizedParentName);
-        candidateIds.add(normalizedParentName.replace(/_/g, '-'));
-        candidateIds.add(normalizedParentName.replace(/-/g, '_'));
-
-        if (normalizedParentName === 'mod_type') {
-            candidateIds.add('modpress-mod-type');
-            candidateIds.add('modpress_mod_type');
-        }
-
-        for (const candidateId of candidateIds) {
-            const byId = candidateId ? document.getElementById(candidateId) : null;
-            if (byId) {
-                return byId;
-            }
-        }
-
-        return null;
-    };
-
-    const syncModGroupVisibility = () => {
-        document.querySelectorAll('.modpress-dynamic-group-field').forEach((field) => {
-            const parentName = String(field.dataset.modpressParentGroup || '').trim();
-            const entries = (() => {
-                try {
-                    return JSON.parse(field.dataset.modpressParentEntries || '[]');
-                } catch (error) {
-                    return [];
-                }
-            })();
-
-            let shouldShow = true;
-            if (parentName && entries.length > 0) {
-                const parentControl = findParentControl(parentName);
-                const selectedValue = parentControl ? String(parentControl.value || '').trim() : '';
-                shouldShow = entries.includes(selectedValue);
-            }
-
-            field.classList.toggle('d-none', !shouldShow);
-        });
-    };
-
-    const getSelectedValues = (select) => {
-        if (!select) {
-            return [];
-        }
-
-        if (select.multiple) {
-            return Array.from(select.selectedOptions || []).map((option) => String(option.value || '')).filter((value) => value !== '');
-        }
-
-        const value = String(select.value || '').trim();
-        return value !== '' ? [value] : [];
-    };
-
-    const setSelectedValues = (select, values = []) => {
-        if (!select) {
-            return;
-        }
-
-        const normalized = Array.isArray(values) ? values : [values];
-        const selectedValues = normalized
-            .map((value) => String(value ?? ''))
-            .filter((value) => value !== '' && value !== '0');
-
-        if (select.multiple) {
-            Array.from(select.options || []).forEach((option) => {
-                option.selected = selectedValues.includes(String(option.value || ''));
-            });
-            return;
-        }
-
-        select.value = selectedValues[0] || '';
-    };
-
-    const syncGroupParentField = (groupKey = '', modal = document.getElementById('modpress-group-modal'), selectedParentEntries = []) => {
-        const row = modal ? (modal.querySelector('.modpress-group-parent-row') || modal.querySelector('[id$="-group-parent-row"]')) : document.querySelector('.modpress-group-parent-row');
-        const select = modal ? (modal.querySelector('[name="group_parent[]"]') || modal.querySelector('[name="group_parent"]')) : document.querySelector('[name="group_parent[]"]') || document.querySelector('[name="group_parent"]');
-        const parentEntryRow = modal ? (modal.querySelector('[id$="-group-parent-entry-row"]') || modal.querySelector('.modpress-group-parent-entry-row')) : document.querySelector('[id$="-group-parent-entry-row"]') || document.querySelector('.modpress-group-parent-entry-row');
-        const parentEntrySelect = modal ? (modal.querySelector('[name="group_parent_entry[]"]') || modal.querySelector('[name="group_parent_entry"]')) : document.querySelector('[name="group_parent_entry[]"]') || document.querySelector('[name="group_parent_entry"]');
-        if (!row || !select) {
-            return;
-        }
-
-        const isReserved = String(groupKey || '').trim() === 'modpress_type';
-        row.classList.toggle('d-none', isReserved);
-        if (isReserved) {
-            setSelectedValues(select, []);
-            if (parentEntrySelect) {
-                setSelectedValues(parentEntrySelect, []);
-            }
-        }
-
-        const parentValues = getSelectedValues(select);
-        if (parentEntryRow && parentEntrySelect) {
-            const hasParent = parentValues.length > 0 && !isReserved;
-            parentEntryRow.classList.toggle('d-none', !hasParent);
-        }
-
-        if (parentEntrySelect) {
-            const defaultParentEntries = Array.isArray(selectedParentEntries)
-                ? selectedParentEntries
-                : (selectedParentEntries ? [String(selectedParentEntries)] : getSelectedValues(parentEntrySelect));
-            const entries = getGroupParentEntries(parentValues[0] || '', modal);
-            populateParentEntryOptions(entries, defaultParentEntries, modal);
-            refreshBootstrapSelect(parentEntrySelect);
-        }
-
-        if (window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
-            const instance = window.Selectpicker.getOrCreateInstance(select);
-            if (instance) {
-                instance.refresh();
-            }
-        }
-    };
-
-    const getGroupParentEntries = (parentKey = '', modal = document.getElementById('modpress-group-modal')) => {
-        const globalEntries = (window.modpressManager && window.modpressManager.groupEntries) || {};
-        const modalEntries = modal && modal.dataset && modal.dataset.groupEntries ? (() => {
-            try {
-                return JSON.parse(modal.dataset.groupEntries || '{}');
-            } catch (error) {
-                return {};
-            }
-        })() : {};
-        const groups = Object.keys(modalEntries).length ? modalEntries : globalEntries;
-        const lookupKey = String(parentKey || '').trim();
-
-        if (!lookupKey) {
-            return {};
-        }
-
-        if (groups && groups[lookupKey] && typeof groups[lookupKey] === 'object') {
-            return groups[lookupKey];
-        }
-
-        const matchedGroup = Object.entries(groups || {}).find(([groupKey, entries]) => {
-            if (!entries || typeof entries !== 'object') {
-                return false;
-            }
-
-            const normalizedGroupKey = String(groupKey || '').trim();
-            return normalizedGroupKey === lookupKey || String(lookupKey).replace(/^modpress_/, '') === String(normalizedGroupKey).replace(/^modpress_/, '');
-        });
-
-        return matchedGroup ? matchedGroup[1] : {};
-    };
-
-    const refreshBootstrapSelect = (select) => {
-        if (!select || typeof window === 'undefined') {
-            return;
-        }
-
-        if (window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
-            const instance = window.Selectpicker.getOrCreateInstance(select);
-            if (instance) {
-                instance.refresh();
+            return Array.from(scope.querySelectorAll('.modpress-row-checkbox:checked'))
+                .map((checkbox) => String(checkbox.value || '').trim())
+                .filter((value) => value !== '');
+        };
+        /**
+         * Converts a string into a URL-friendly slug.
+         * 
+         * @param {string} value The string to slugify.
+         * @returns {string} The slugified string.
+         * @since 1.0.0
+         */
+        const slugifyTitle = (value = '') => String(value || '')
+            .trim()
+            .toLowerCase()
+            .replace(/&/g, ' and ')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+        /**
+         * Synchronizes the mod slug field based on the title field.
+         * 
+         * @param {HTMLElement} titleField The title input field.
+         * @since 1.0.0
+         */
+        const syncModSlugFromTitle = (titleField = document.querySelector('[name="post_title"], #modpress-mod-title')) => {
+            if (!titleField) {
                 return;
             }
 
-            try {
-                new window.Selectpicker(select);
-            } catch (error) {
-                // Ignore initialization errors for non-selectpicker elements.
-            }
-        }
-    };
-
-    const loadGroupEntriesPage = async (link) => {
-        if (!link) {
-            return false;
-        }
-
-        const taxonomyKey = link.dataset.modpressTaxonomyKey || '';
-        const pane = taxonomyKey ? document.getElementById('modpress-taxonomy-pane-' + taxonomyKey) : null;
-        if (!pane || !link.href) {
-            return false;
-        }
-
-        try {
-            const nextUrl = new URL(link.href, window.location.href);
-            const response = await fetch(nextUrl.toString(), {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-
-            if (!response.ok) {
-                return false;
+            const slugField = document.querySelector('[name="post_name"], #modpress-mod-slug');
+            if (!slugField) {
+                return;
             }
 
-            const html = await response.text();
-            const parser = new DOMParser();
-            const documentFragment = parser.parseFromString(html, 'text/html');
-            const nextPane = documentFragment.getElementById('modpress-taxonomy-pane-' + taxonomyKey);
-            if (!nextPane) {
-                return false;
+            const nextSlug = slugifyTitle(titleField.value);
+            if (!nextSlug) {
+                return;
             }
 
-            pane.innerHTML = nextPane.innerHTML;
-            syncDeleteButtons();
-            return true;
-        } catch (error) {
-            return false;
-        }
-    };
+            const autoGenerated = slugField.dataset.modpressAutoGenerated === 'true';
+            const hasManualValue = String(slugField.value || '').trim() !== '' && !autoGenerated;
 
-    const populateParentEntryOptions = (entries, selectedValues = [], modal = document.getElementById('modpress-group-modal')) => {
-        const select = modal ? (modal.querySelector('[name="group_parent_entry[]"]') || modal.querySelector('[name="group_parent_entry"]')) : document.querySelector('[name="group_parent_entry[]"]') || document.querySelector('[name="group_parent_entry"]');
-        if (!select) {
-            return;
-        }
-
-        const normalizedSelectedValues = Array.isArray(selectedValues)
-            ? selectedValues.map((value) => String(value || '')).filter((value) => value !== '')
-            : (selectedValues ? [String(selectedValues)] : []);
-
-        const options = Object.entries(entries || {}).map(([value, label]) => ({ value: String(value), label: String(label) }));
-        select.innerHTML = '';
-
-        const placeholderOption = document.createElement('option');
-        placeholderOption.value = '';
-        placeholderOption.textContent = 'Select a parent entry';
-        select.appendChild(placeholderOption);
-
-        options.forEach((entry) => {
-            const option = document.createElement('option');
-            option.value = entry.value;
-            option.textContent = entry.label;
-            option.selected = normalizedSelectedValues.some((selectedValue) => String(selectedValue || '').trim() === String(entry.value).trim());
-            select.appendChild(option);
-        });
-
-        setSelectedValues(select, normalizedSelectedValues);
-        refreshBootstrapSelect(select);
-    };
-
-    const getGroupFields = (groupData = {}) => {
-        if (Array.isArray(groupData.group_fields)) {
-            return groupData.group_fields;
-        }
-
-        if (typeof groupData.group_fields === 'string') {
-            try {
-                const decoded = JSON.parse(groupData.group_fields);
-                return Array.isArray(decoded) ? decoded : [];
-            } catch (error) {
-                return [];
+            if (!hasManualValue) {
+                slugField.value = nextSlug;
+                slugField.dataset.modpressAutoGenerated = 'true';
             }
-        }
-
-        return [];
-    };
-
-    const getModalGroupFields = (modal = document.getElementById('modpress-group-modal')) => {
-        if (!modal || !modal.dataset) {
-            return [];
-        }
-
-        const rawValue = String(modal.dataset.groupFields || '').trim();
-        if (!rawValue) {
-            return [];
-        }
-
-        try {
-            const parsedValue = JSON.parse(rawValue);
-            return Array.isArray(parsedValue) ? parsedValue : [];
-        } catch (error) {
-            console.error('[ModPress] Failed to parse saved group fields for modal hydration.', {
-                modalId: modal.id || null,
-                rawValue,
-                error,
-            });
-            return [];
-        }
-    };
-
-    const hydrateGroupModalCustomFields = (modal = document.getElementById('modpress-group-modal')) => {
-        if (!modal) {
-            return;
-        }
-
-        const container = modal.querySelector('[id$="-custom-fields-container"]');
-        if (!container) {
-            return;
-        }
-
-        const template = getCustomFieldTemplate(container, modal);
-        if (template && !container.contains(template)) {
-            container.appendChild(template);
-        }
-
-        populateCustomFieldRows({ group_fields: getModalGroupFields(modal) }, modal);
-        syncGroupDeleteState(modal);
-    };
-
-    const getCustomFieldContainer = (button = null, modal = null) => {
-        const explicitSelector = button && button.dataset && button.dataset.customFieldContainer
-            ? String(button.dataset.customFieldContainer || '').trim()
-            : '';
-
-        if (explicitSelector) {
-            const explicitContainer = document.querySelector(explicitSelector);
-            if (explicitContainer) {
-                return explicitContainer;
-            }
-        }
-
-        const modalScope = modal || (button ? button.closest('.modal') : null);
-        if (modalScope) {
-            return modalScope.querySelector('.modpress-custom-fields-container') || modalScope.querySelector('[id$="-custom-fields-container"]');
-        }
-
-        return document.querySelector('.modpress-custom-fields-container') || document.querySelector('[id$="-custom-fields-container"]');
-    };
-
-    const getCustomFieldTemplate = (container = null, modal = null) => {
-        const modalTemplate = modal ? modal.querySelector('[id$="-custom-field-template"]') : null;
-        if (modalTemplate) {
-            return modalTemplate;
-        }
-
-        if (container) {
-            const containerTemplate = container.querySelector('[id$="-custom-field-template"]');
-            if (containerTemplate) {
-                return containerTemplate;
-            }
-        }
-
-        const globalTemplate = document.querySelector('[id$="-custom-field-template"]');
-        if (globalTemplate) {
-            if (container && !container.contains(globalTemplate)) {
-                container.appendChild(globalTemplate);
-            }
-            return globalTemplate;
-        }
-
-        return null;
-    };
-
-    const normalizeOptionEntry = (option = null) => {
-        if (!option || typeof option !== 'object') {
-            return null;
-        }
-
-        const label = String(option.label ?? option.name ?? option.text ?? '').trim();
-        const value = String(option.value ?? option.option ?? option.id ?? label).trim();
-        if (label === '' && value === '') {
-            return null;
-        }
-
-        return {
-            label: label || value,
-            value: value || label,
         };
-    };
 
-    const normalizeFieldOptions = (options) => {
-        if (Array.isArray(options)) {
-            return options
-                .map((option) => {
-                    if (option && typeof option === 'object') {
-                        return normalizeOptionEntry(option);
-                    }
-
-                    if (typeof option === 'string') {
-                        const trimmed = option.trim();
-                        return trimmed ? { label: trimmed, value: trimmed } : null;
-                    }
-
-                    return null;
-                })
-                .filter(Boolean);
-        }
-
-        if (typeof options === 'string') {
-            try {
-                const decoded = JSON.parse(options);
-                return normalizeFieldOptions(decoded);
-            } catch (error) {
-                return [];
+        const getFileHostUrlMap = (repeater = document.getElementById('modpress-file-repeater')) => {
+            if (!repeater) {
+                return {};
             }
-        }
 
-        if (options && typeof options === 'object') {
-            const entries = Array.isArray(options) ? options : Object.values(options);
-            return entries
-                .map((entry) => {
-                    if (entry && typeof entry === 'object') {
-                        return normalizeOptionEntry(entry);
+            try {
+                return JSON.parse(repeater.dataset.modpressFileHostUrls || '{}');
+            } catch (error) {
+                return {};
+            }
+        };
+
+        const syncFileHostValue = (field) => {
+            if (!field) {
+                return;
+            }
+
+            const row = field.closest('.modpress-file-item');
+            const hostUrlMap = getFileHostUrlMap();
+            const hostUrlField = row ? row.querySelector('.modpress-file-host-url, .modpress-file-host-url-value') : null;
+            const hostUrlDisplay = row ? row.querySelector('.modpress-file-host-url-display') : null;
+            if (!hostUrlField) {
+                return;
+            }
+
+            const nextHostUrl = hostUrlMap[String(field.value || '').trim()] || '';
+            if (hostUrlField.type === 'hidden' || hostUrlField.matches('.modpress-file-host-url')) {
+                hostUrlField.value = nextHostUrl;
+            } else if (hostUrlField instanceof HTMLInputElement) {
+                hostUrlField.value = nextHostUrl;
+            }
+
+            if (hostUrlDisplay) {
+                const displayValue = nextHostUrl
+                    ? nextHostUrl.replace(/^https?:\/\//i, '').replace(/\/+$/, '')
+                    : 'https://';
+                hostUrlDisplay.textContent = displayValue || 'https://';
+            }
+        };
+
+        const bindFileHostSelector = (field) => {
+            if (!field || field.dataset.modpressFileHostBound === 'true') {
+                return;
+            }
+
+            field.dataset.modpressFileHostBound = 'true';
+            const handleSelection = () => syncFileHostValue(field);
+            field.addEventListener('change', handleSelection);
+            field.addEventListener('changed.bs.select', handleSelection);
+        };
+
+        const getFileTypeFromValue = (value = '') => {
+            const nextType = String(value || '').trim().toLowerCase();
+            return ['internal', 'external'].includes(nextType) ? nextType : 'internal';
+        };
+
+        const syncFileRowState = (row) => {
+            if (!row) {
+                return;
+            }
+
+            const typeField = row.querySelector('.modpress-file-type');
+            const nextType = typeField ? getFileTypeFromValue(typeField.value) : 'internal';
+
+            row.dataset.fileType = nextType;
+
+            if (typeField) {
+                typeField.value = nextType;
+            }
+
+            row.querySelectorAll('[data-file-target-type]').forEach((targetRow) => {
+                const matchesType = (targetRow.dataset.fileTargetType || 'internal') === nextType;
+                targetRow.classList.toggle('d-none', !matchesType);
+            });
+        };
+
+        const buildFileTargetRow = (fileRow, targetType = 'internal', values = {}) => {
+            if (!fileRow) {
+                return null;
+            }
+
+            const targetContainer = fileRow.querySelector('.modpress-file-target-wrapper');
+            if (!targetContainer) {
+                return null;
+            }
+
+            const normalizedType = getFileTypeFromValue(targetType);
+
+            const templateId = 'modpress-file-target-' + normalizedType + '-template';
+            const template = document.getElementById(templateId);
+            if (!template || !template.content || !template.content.firstElementChild) {
+                return null;
+            }
+
+            const targetRow = template.content.firstElementChild.cloneNode(true);
+            targetRow.dataset.fileTargetType = normalizedType;
+            targetRow.removeAttribute('id');
+            targetRow.classList.remove('d-none');
+
+            const fileIndex = Number.parseInt(String(fileRow.dataset.fileIndex || ''), 10);
+            const rowIndex = Number.isInteger(fileIndex) ? fileIndex : 0;
+            const typeField = fileRow.querySelector('.modpress-file-type');
+            if (typeField) {
+                typeField.value = normalizedType;
+            }
+
+            if ('internal' === normalizedType) {
+                const attachmentField = targetRow.querySelector('[data-media-field="true"]');
+                if (attachmentField) {
+                    attachmentField.name = 'files[' + rowIndex + '][attachment_id]';
+                    attachmentField.id = 'modpress-file-attachment-' + rowIndex;
+                    if (values.attachment_id !== undefined && values.attachment_id !== null && values.attachment_id !== '') {
+                        attachmentField.value = String(values.attachment_id);
                     }
+                }
 
-                    if (typeof entry === 'string') {
-                        const trimmed = entry.trim();
-                        return trimmed ? { label: trimmed, value: trimmed } : null;
+                const removeButton = targetRow.querySelector('[data-file-type-remove]');
+                if (removeButton) {
+                    removeButton.id = 'modpress-file-remove-internal-' + rowIndex;
+                    removeButton.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        const row = event.target.closest('[data-file-target-type]');
+                        if (row) {
+                            row.remove();
+                        }
+                    });
+                }
+            } else {
+                const hostField = targetRow.querySelector('.modpress-file-host-selector');
+                if (hostField) {
+                    hostField.name = 'files[' + rowIndex + '][host_id]';
+                    hostField.id = 'modpress-file-host-selector-' + rowIndex;
+                    if (values.host_id !== undefined && values.host_id !== null && values.host_id !== '') {
+                        hostField.value = String(values.host_id);
                     }
+                    bindFileHostSelector(hostField);
+                    refreshBootstrapSelect(hostField);
+                }
 
-                    return null;
-                })
-                .filter(Boolean);
+                const hostUrlField = targetRow.querySelector('.modpress-file-host-url');
+                if (hostUrlField) {
+                    hostUrlField.name = 'files[' + rowIndex + '][host_url]';
+                    hostUrlField.id = 'modpress-file-host-url-' + rowIndex;
+                    if (typeof values.host_url === 'string') {
+                        hostUrlField.value = values.host_url;
+                    }
+                }
+
+                const hostUrlDisplay = targetRow.querySelector('.modpress-file-host-url-display');
+                if (hostUrlDisplay) {
+                    hostUrlDisplay.id = 'modpress-file-host-url-display-' + rowIndex;
+                }
+
+                const urlSuffixField = targetRow.querySelector('.modpress-file-url-suffix');
+                if (urlSuffixField) {
+                    urlSuffixField.name = 'files[' + rowIndex + '][url_suffix]';
+                    urlSuffixField.id = 'modpress-file-url-suffix-' + rowIndex;
+                    if (typeof values.url_suffix === 'string') {
+                        urlSuffixField.value = values.url_suffix;
+                    }
+                }
+
+                const removeButton = targetRow.querySelector('[data-file-type-remove]');
+                if (removeButton) {
+                    removeButton.id = 'modpress-file-remove-external-' + rowIndex;
+                    removeButton.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        const row = event.target.closest('[data-file-target-type]');
+                        if (row) {
+                            row.remove();
+                        }
+                    });
+                }
+            }
+
+            targetContainer.appendChild(targetRow);
+            const hostField = targetRow.querySelector('.modpress-file-host-selector');
+            if (hostField) {
+                syncFileHostValue(hostField);
+            }
+
+            return targetRow;
+        };
+
+        const getNextFileIndex = (repeater) => {
+            if (!repeater) {
+                return 0;
+            }
+
+            let highestIndex = -1;
+            repeater.querySelectorAll('.modpress-file-item').forEach((row) => {
+                const rowIndex = Number.parseInt(String(row.dataset.fileIndex || ''), 10);
+                if (!Number.isNaN(rowIndex) && rowIndex > highestIndex) {
+                    highestIndex = rowIndex;
+                }
+            });
+
+            return highestIndex + 1;
+        };
+
+        const buildFileRow = (repeater, file = {}, rowIndex = null, requestedType = null) => {
+            const template = document.getElementById('modpress-file-template');
+            if (!template || !template.content || !template.content.firstElementChild) {
+                return null;
+            }
+
+            const row = template.content.firstElementChild.cloneNode(true);
+            const nextIndex = Number.isInteger(rowIndex) ? rowIndex : getNextFileIndex(repeater);
+            row.dataset.fileIndex = String(nextIndex);
+
+            const value = file && typeof file === 'object' ? file : {};
+            const typeField = row.querySelector('.modpress-file-type');
+            const defaultType = getFileTypeFromValue(requestedType ?? value.type ?? (value.host_id || value.host_url || value.url_suffix || value.download ? 'external' : 'internal'));
+            if (typeField) {
+                typeField.name = 'files[' + nextIndex + '][type]';
+                typeField.value = defaultType;
+            }
+
+            const fileNameField = row.querySelector('.modpress-file-name');
+            if (fileNameField) {
+                fileNameField.name = 'files[' + nextIndex + '][name]';
+                fileNameField.id = 'modpress-file-name-' + nextIndex;
+                fileNameField.value = typeof value.name === 'string' ? value.name : (value.name ?? '');
+            }
+
+            const fileVersionField = row.querySelector('.modpress-file-version');
+            if (fileVersionField) {
+                fileVersionField.name = 'files[' + nextIndex + '][version]';
+                fileVersionField.id = 'modpress-file-version-' + nextIndex;
+                fileVersionField.value = typeof value.version === 'string' ? value.version : (value.version ?? '');
+            }
+
+            const fileDescriptionField = row.querySelector('.modpress-file-description');
+            if (fileDescriptionField) {
+                fileDescriptionField.name = 'files[' + nextIndex + '][description]';
+                fileDescriptionField.id = 'modpress-file-description-' + nextIndex;
+                fileDescriptionField.value = typeof value.description === 'string' ? value.description : (value.description ?? '');
+            }
+
+            const removeButton = row.querySelector('.modpress-file-remove');
+            if (removeButton) {
+                removeButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const targetRow = event.target.closest('.modpress-file-item');
+                    if (targetRow) {
+                        targetRow.remove();
+                    }
+                });
+            }
+
+            if (repeater) {
+                repeater.appendChild(row);
+            }
+
+            const shouldRestoreTarget = value && (value.type || value.attachment_id || value.host_id || value.host_url || value.url_suffix || value.download);
+            if (shouldRestoreTarget) {
+                buildFileTargetRow(row, defaultType, value);
+            }
+
+            syncFileRowState(row);
+
+            return row;
+        };
+
+        const hydrateFileRows = (repeater = document.getElementById('modpress-file-repeater')) => {
+            if (!repeater) {
+                return;
+            }
+
+            let savedFiles = [];
+            try {
+                savedFiles = JSON.parse(repeater.dataset.modpressSavedFiles || '[]');
+            } catch (error) {
+                savedFiles = [];
+            }
+
+            if (!Array.isArray(savedFiles) || !savedFiles.length) {
+                return;
+            }
+
+            savedFiles.forEach((file, index) => {
+                buildFileRow(repeater, file, index);
+            });
+        };
+
+        const addFileRow = (button = null, requestedType = null) => {
+            const repeater = document.getElementById('modpress-file-repeater');
+            if (!repeater) {
+                return;
+            }
+
+            buildFileRow(repeater, { type: requestedType || 'internal' }, getNextFileIndex(repeater), requestedType);
+        };
+
+        const addFileTargetRow = (button = null, requestedType = null) => {
+            const sourceButton = button && button.closest ? button.closest('[data-file-type-add]') : null;
+            if (!sourceButton) {
+                return null;
+            }
+
+            const fileRow = sourceButton.closest('.modpress-file-item');
+            if (!fileRow) {
+                return null;
+            }
+
+            const type = getFileTypeFromValue(requestedType || sourceButton.dataset.fileTypeAdd || 'internal');
+
+            return buildFileTargetRow(fileRow, type, {});
+        };
+
+        const setModalFieldValue = (modal, name, value) => {
+            if (!modal || !name) {
+                return;
+            }
+
+            const field = modal.querySelector('[name="' + name + '"]');
+            if (!field) {
+                return;
+            }
+
+            field.value = value || '';
+        };
+
+        const setModalMediaValue = (modal, name, value) => {
+            if (!modal || !name) {
+                return;
+            }
+
+            const field = modal.querySelector('[name="' + name + '"]');
+            if (!field) {
+                return;
+            }
+
+            field.value = value || '';
+
+            const wrapper = field.closest('.modpress-media-picker');
+            const preview = wrapper ? wrapper.querySelector('[data-modpress-media-preview-container]') : null;
+            const previewImage = wrapper ? wrapper.querySelector('[data-modpress-media-preview-image]') : null;
+            if (preview) {
+                preview.classList.toggle('d-none', !value);
+            }
+            if (previewImage) {
+                previewImage.src = value || '';
+            }
+        };
+
+        const resetTaxonomyModal = (modal, type) => {
+            if (!modal) {
+                return;
+            }
+
+            const modalMap = {
+                file_type: {
+                    fields: ['modpress-file-types-term-id', 'modpress-file-types-name', 'modpress-file-types-slug', 'modpress-file-types-description'],
+                    media: ['modpress-file-types-image'],
+                    title: 'Add File Type',
+                },
+                file_host: {
+                    fields: ['modpress-file-hosts-term-id', 'modpress-file-hosts-name', 'modpress-file-hosts-slug', 'modpress-file-hosts-description', 'modpress-file-hosts-url'],
+                    media: ['modpress-file-hosts-logo'],
+                    title: 'Add File Host',
+                },
+                changelog_category: {
+                    fields: ['modpress-changelog-category-term-id', 'modpress-changelog-category-name', 'modpress-changelog-category-slug', 'modpress-changelog-category-description', 'modpress-changelog-category-color'],
+                    media: [],
+                    title: 'Add Changelog Category',
+                },
+            };
+
+            const config = modalMap[type] || null;
+            if (!config) {
+                return;
+            }
+
+            config.fields.forEach((fieldName) => setModalFieldValue(modal, fieldName, ''));
+            config.media.forEach((fieldName) => setModalMediaValue(modal, fieldName, ''));
+
+            const modalTitle = modal.querySelector('.modal-title');
+            if (modalTitle) {
+                modalTitle.textContent = config.title;
+            }
+        };
+
+        const populateTaxonomyModal = (button) => {
+            if (!button) {
+                return;
+            }
+
+            const targetSelector = button.getAttribute('data-bs-target');
+            if (!targetSelector) {
+                return;
+            }
+
+            const modal = document.querySelector(targetSelector);
+            if (!modal) {
+                return;
+            }
+
+            const type = button.dataset.modpressTaxonomyEdit;
+            if (!type) {
+                return;
+            }
+
+            if ('file_type' === type) {
+                setModalFieldValue(modal, 'modpress-file-types-term-id', button.dataset.termId || '0');
+                setModalFieldValue(modal, 'modpress-file-types-name', button.dataset.termName || '');
+                setModalFieldValue(modal, 'modpress-file-types-slug', button.dataset.termSlug || '');
+                setModalFieldValue(modal, 'modpress-file-types-description', button.dataset.termDescription || '');
+                setModalMediaValue(modal, 'modpress-file-types-image', button.dataset.termImage || '');
+                const title = modal.querySelector('.modal-title');
+                if (title) {
+                    title.textContent = button.dataset.termId ? 'Edit File Type' : 'Add File Type';
+                }
+                return;
+            }
+
+            if ('file_host' === type) {
+                setModalFieldValue(modal, 'modpress-file-hosts-term-id', button.dataset.termId || '0');
+                setModalFieldValue(modal, 'modpress-file-hosts-name', button.dataset.termName || '');
+                setModalFieldValue(modal, 'modpress-file-hosts-slug', button.dataset.termSlug || '');
+                setModalFieldValue(modal, 'modpress-file-hosts-description', button.dataset.termDescription || '');
+                setModalFieldValue(modal, 'modpress-file-hosts-url', button.dataset.termUrl || '');
+                setModalMediaValue(modal, 'modpress-file-hosts-logo', button.dataset.termImage || '');
+                const title = modal.querySelector('.modal-title');
+                if (title) {
+                    title.textContent = button.dataset.termId ? 'Edit File Host' : 'Add File Host';
+                }
+                return;
+            }
+
+            if ('changelog_category' === type) {
+                setModalFieldValue(modal, 'modpress-changelog-category-term-id', button.dataset.termId || '0');
+                setModalFieldValue(modal, 'modpress-changelog-category-name', button.dataset.termName || '');
+                setModalFieldValue(modal, 'modpress-changelog-category-slug', button.dataset.termSlug || '');
+                setModalFieldValue(modal, 'modpress-changelog-category-description', button.dataset.termDescription || '');
+                setModalFieldValue(modal, 'modpress-changelog-category-color', button.dataset.termColor || '#ffffff');
+                const title = modal.querySelector('.modal-title');
+                if (title) {
+                    title.textContent = button.dataset.termId ? 'Edit Changelog Category' : 'Add Changelog Category';
+                }
+            }
+        };
+
+        
+
+        /**
+         * Handles the click event for various buttons on the Mods page.
+         * @since 1.0.0
+         */
+        document.addEventListener('click', (event) => {
+            const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
+            if (dependentAddButton) {
+                event.preventDefault();
+                addDependentRow(dependentAddButton);
+                return;
+            }
+
+            const dependentRemoveButton = event.target.closest('.modpress-dependent-remove');
+            if (dependentRemoveButton) {
+                event.preventDefault();
+                const row = dependentRemoveButton.closest('.modpress-dependent-item');
+                if (row) {
+                    row.remove();
+                }
+                return;
+            }
+
+            const fileAddButton = event.target.closest('[data-modpress-file-add]');
+            if (fileAddButton) {
+                event.preventDefault();
+                addFileRow(fileAddButton, 'internal');
+                return;
+            }
+
+            const sourceAddButton = event.target.closest('[data-file-type-add]');
+            if (sourceAddButton) {
+                event.preventDefault();
+                const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileTypeAdd
+                    ? sourceAddButton.dataset.fileTypeAdd
+                    : 'internal';
+                addFileTargetRow(sourceAddButton, sourceType);
+                return;
+            }
+
+            const fileRemoveButton = event.target.closest('.modpress-file-remove');
+            if (fileRemoveButton) {
+                event.preventDefault();
+                const row = fileRemoveButton.closest('.modpress-file-item');
+                if (row) {
+                    row.remove();
+                }
+                return;
+            }
+
+            const fileTargetRemoveButton = event.target.closest('[data-file-type-remove]');
+            if (fileTargetRemoveButton) {
+                event.preventDefault();
+                const row = fileTargetRemoveButton.closest('[data-file-target-type]');
+                if (row) {
+                    row.remove();
+                }
+                return;
+            }
+
+            const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
+            if (taxonomyResetButton) {
+                const target = taxonomyResetButton.getAttribute('data-bs-target');
+                const modal = target ? document.querySelector(target) : null;
+                resetTaxonomyModal(modal, taxonomyResetButton.dataset.modpressTaxonomyReset);
+                return;
+            }
+
+            const taxonomyEditButton = event.target.closest('[data-modpress-taxonomy-edit]');
+            if (taxonomyEditButton) {
+                populateTaxonomyModal(taxonomyEditButton);
+                return;
+            }
+
+            const groupPageLink = event.target.closest('.modpress-group-page-link');
+            if (groupPageLink) {
+                event.preventDefault();
+                loadGroupEntriesPage(groupPageLink);
+                return;
+            }
+
+            const deleteRowButton = event.target.closest('[data-role="delete-group-entry"]');
+            if (deleteRowButton) {
+                event.preventDefault();
+                const form = deleteRowButton.closest('form');
+                if (!form) {
+                    return;
+                }
+                if (!window.confirm('Delete this entry?')) {
+                    return;
+                }
+                form.submit();
+                return;
+            }
+
+            const bulkDeleteButton = event.target.closest('[data-role="bulk-delete-group-entry"], .btn-delete-selected');
+            if (bulkDeleteButton) {
+                event.preventDefault();
+                const form = bulkDeleteButton.form || bulkDeleteButton.closest('form');
+                if (!form) {
+                    console.error('[ModPress] Bulk delete button missing its parent form.', {
+                        button: bulkDeleteButton.outerHTML,
+                    });
+                    return;
+                }
+
+                const checkedRows = collectBulkDeleteSelection(bulkDeleteButton);
+                if (!checkedRows.length) {
+                    console.error('[ModPress] Bulk delete attempted without selected rows.', {
+                        formAction: form.getAttribute('action') || null,
+                        button: bulkDeleteButton.outerHTML,
+                    });
+                    return;
+                }
+
+                if (!window.confirm('Delete the selected entries?')) {
+                    return;
+                }
+
+                const deleteArrayName = resolveBulkDeleteArrayName(form, 'group_entry_ids[]');
+
+                form.querySelectorAll('input[type="hidden"][name="group_entry_ids[]"], input[type="hidden"][name="file_type_ids[]"], input[type="hidden"][name="file_host_ids[]"]').forEach((existingInput) => {
+                    existingInput.remove();
+                });
+
+                checkedRows.forEach((entryId) => {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = deleteArrayName;
+                    hiddenInput.value = entryId;
+                    form.appendChild(hiddenInput);
+                });
+
+                console.info('[ModPress] Submitting bulk delete for selected entries.', {
+                    arrayName: deleteArrayName,
+                    ids: checkedRows,
+                });
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+                return;
+            }
+
+            const button = event.target.closest('[data-role="add-custom-field"]');
+            if (button) {
+                event.preventDefault();
+                try {
+                    addCustomFieldRow(button);
+                } catch (error) {
+                    console.error('[ModPress] Failed to add custom field row.', error);
+                }
+                return;
+            }
+
+            const optionButton = event.target.closest('[data-role="add-option-row"]');
+            if (optionButton) {
+                event.preventDefault();
+                event.stopPropagation();
+                addOptionRow(optionButton);
+                return;
+            }
+
+            const removeOptionButton = event.target.closest('[data-role="remove-option-row"]');
+            if (removeOptionButton) {
+                event.preventDefault();
+                event.stopPropagation();
+                const optionRow = removeOptionButton.closest('.modpress-option-row');
+                if (optionRow) {
+                    optionRow.remove();
+                }
+                return;
+            }
+
+            const deleteGroupButton = event.target.closest('[data-role="delete-group"]');
+            if (deleteGroupButton) {
+                event.preventDefault();
+                const form = deleteGroupButton.form || deleteGroupButton.closest('form');
+                if (!form) {
+                    return;
+                }
+                const groupKey = form.querySelector('[name="group_edit_key"]')?.value || '';
+                if (groupKey && groupKey !== 'modpress_type') {
+                    if (!window.confirm('Delete this group?')) {
+                        return;
+                    }
+                    form.submit();
+                }
+                return;
+            }
+
+            const removeButton = event.target.closest('[data-role="remove-custom-field"]');
+            if (removeButton) {
+                removeFieldRow(removeButton);
+            }
+
+            const groupEditButton = event.target.closest('.modpress-tab-edit-btn');
+            if (groupEditButton) {
+                return;
+            }
+        });
+        /**
+         * Handle Bootstrap select change events for dependent type fields.
+         * 
+         * @since 1.0.0
+         */
+        document.addEventListener('changed.bs.select', (event) => {
+        const target = event && event.target ? event.target : null;
+        if (isDependentTypeField(target)) {
+            syncDependentTypeChange(target);
         }
+    });
+    })();
+    /**
+     * Changelogs Page
+     * 
+     * @since 1.0.0
+     */
+    const changelogsPage = document.querySelector('.modpress-changelogs-page');
+    changelogsPage && (() => {
+        // Your changelogs page specific code here
+    })();
+    /**
+     * Files Page
+     *
+     * @since 1.0.0
+     */
+    const filesPage = document.querySelector('.modpress-files-page');
+    filesPage && (() => {
+        // Your files page specific code here
+    })();
+    /**
+     * Groups Page
+     *
+     * @since 1.0.0
+     */
+    const modpressGroups = document.querySelectorAll('.modpress-groups-page');
+    modpressGroups && (() => {
+        /**
+         * Normalize Field Name
+         *
+         * @param {string} name The base name of the field.
+         * @param {string} fieldKey The key to append to the field name.
+         * @return {string} The normalized field name.
+         * @since 1.0.0
+         */
+        const normalizeFieldName = (name = '', fieldKey = '') => {
+            if (!name) {
+                return name;
+            }
 
-        return [];
-    };
+            const trimmedName = String(name).trim();
+            if (!trimmedName || !fieldKey) {
+                return trimmedName;
+            }
 
-    const populateCustomFieldRows = (groupData = {}, modal = document.getElementById('modpress-group-modal')) => {
-        if (!modal) {
-            return;
-        }
+            const sanitizedFieldKey = String(fieldKey).trim();
+            if (!sanitizedFieldKey) {
+                return trimmedName;
+            }
 
-        const container = modal.querySelector('[id$="-custom-fields-container"]');
-        if (!container) {
-            return;
-        }
+            if (trimmedName.endsWith('[]')) {
+                return trimmedName.slice(0, -2) + '[' + sanitizedFieldKey + ']';
+            }
 
-        const template = getCustomFieldTemplate(container, modal);
-        if (!template) {
-            return;
-        }
+            if (trimmedName.endsWith(']')) {
+                return trimmedName.replace(/\]$/, '[' + sanitizedFieldKey + ']');
+            }
 
-        const accordion = container.querySelector('[id$="-custom-fields-accordion"]') || container;
-        accordion.innerHTML = '';
-        if (!accordion.contains(template)) {
-            accordion.appendChild(template);
-        }
-        const fields = getGroupFields(groupData);
+            return trimmedName + '[' + sanitizedFieldKey + ']';
+        };
+        /**
+         * Sync Custom Field Row Names
+         * 
+         * @param {HTMLElement} row The custom field row element to sync.
+         * @return {void}
+         * @since 1.0.0
+         */
+        const syncCustomFieldRowNames = (row) => {
+            if (!row) {
+                return;
+            }
 
-        if (!fields.length) {
+            const fieldId = String(row.dataset.fieldId || row.querySelector('[name^="custom_field_id"]')?.value || '').trim();
+            const slugInput = row.querySelector('[name^="custom_field_slug"]');
+            const fieldKey = String(slugInput?.value || row.dataset.fieldSlug || fieldId || '').trim();
+            if (!fieldKey) {
+                return;
+            }
+
+            row.dataset.fieldSlug = fieldKey;
+
+            const keyedNames = [
+                'custom_field_id',
+                'custom_field_label',
+                'custom_field_slug',
+                'custom_field_description',
+                'custom_field_type',
+                'custom_field_type_textarea_rows',
+                'custom_field_type_switch',
+                'custom_field_type_switch_custom',
+                'custom_field_type_color',
+                'custom_field_show_in_table',
+                'custom_field_type_radio',
+                'custom_field_type_select',
+                'custom_field_type_image_type',
+                'custom_field_type_image_type_image',
+                'custom_field_type_image_type_icon',
+                'custom_field_type_image_type_url',
+            ];
+
+            row.querySelectorAll('input, select, textarea').forEach((element) => {
+                const currentName = element.getAttribute('name');
+                if (!currentName) {
+                    return;
+                }
+
+                const matchedName = keyedNames.find((name) => currentName === name + '[]' || currentName.startsWith(name + '[') || currentName === name);
+                if (!matchedName) {
+                    return;
+                }
+
+                const nextName = normalizeFieldName(matchedName + '[]', fieldKey);
+                if (nextName !== currentName) {
+                    element.setAttribute('name', nextName);
+                }
+            });
+        };
+        /**
+         * Sync Custom Field Label
+         *
+         * @param {HTMLElement} row The custom field row element to sync.
+         * @return {void}
+         * @since 1.0.0
+         */
+        const syncCustomFieldLabel = (row) => {
+            if (!row) {
+                return;
+            }
+
+            const labelInput = row.querySelector('[name^="custom_field_label"]');
+            const title = row.querySelector('[data-custom-field-title]');
+            const triggerButton = row.querySelector('.accordion-button');
+            if (!title && !triggerButton) {
+                return;
+            }
+
+            const labelText = labelInput && labelInput.value ? String(labelInput.value).trim() : 'Field';
+            if (title) {
+                title.textContent = labelText;
+            }
+
+            if (triggerButton) {
+                const prefix = triggerButton.querySelector('[data-custom-field-prefix]');
+                if (prefix) {
+                    prefix.textContent = 'Field:';
+                }
+            }
+        };
+        /**
+         * Populate Custom Field Rows
+         *
+         * @param {Object} groupData The group data containing custom fields.
+         * @param {HTMLElement} modal The modal element containing the custom fields container.
+         * @return {void}
+         * @since 1.0.0
+         */
+        const populateCustomFieldRows = (groupData = {}, modal = document.getElementById('modpress-group-modal')) => {
+            if (!modal) {
+                return;
+            }
+
+            const container = modal.querySelector('[id$="-custom-fields-container"]');
+            if (!container) {
+                return;
+            }
+
+            const template = getCustomFieldTemplate(container, modal);
+            if (!template) {
+                return;
+            }
+
+            const accordion = container.querySelector('[id$="-custom-fields-accordion"]') || container;
             accordion.innerHTML = '';
-            if (template && !accordion.contains(template)) {
+            if (!accordion.contains(template)) {
                 accordion.appendChild(template);
             }
+            const fields = getGroupFields(groupData);
 
-            const emptyState = container.querySelector('.modpress-custom-fields-empty');
-            if (!emptyState) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'text-muted small modpress-custom-fields-empty';
-                placeholder.textContent = 'No custom fields configured for this group.';
-                container.appendChild(placeholder);
+            if (!fields.length) {
+                accordion.innerHTML = '';
+                if (template && !accordion.contains(template)) {
+                    accordion.appendChild(template);
+                }
+
+                const emptyState = container.querySelector('.modpress-custom-fields-empty');
+                if (!emptyState) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'text-muted small modpress-custom-fields-empty';
+                    placeholder.textContent = 'No custom fields configured for this group.';
+                    container.appendChild(placeholder);
+                }
+                return;
             }
-            return;
-        }
 
-        fields.forEach((field, fieldIndex) => {
-            const row = template.content && template.content.firstElementChild ? template.content.firstElementChild.cloneNode(true) : template.firstElementChild.cloneNode(true);
-            row.removeAttribute('id');
+            fields.forEach((field, fieldIndex) => {
+                const row = template.content && template.content.firstElementChild ? template.content.firstElementChild.cloneNode(true) : template.firstElementChild.cloneNode(true);
+                row.removeAttribute('id');
+                row.classList.remove('d-none');
+                row.classList.add('modpress-custom-field-row');
+                row.dataset.fieldIndex = String(fieldIndex);
+
+                const headingId = 'modpress-custom-field-heading-' + fieldIndex + '-' + Math.random().toString(16).slice(2, 8);
+                const collapseId = 'modpress-custom-field-content-' + fieldIndex + '-' + Math.random().toString(16).slice(2, 8);
+                const header = row.querySelector('.accordion-header');
+                const trigger = row.querySelector('.accordion-button');
+                const collapse = row.querySelector('.accordion-collapse');
+
+                if (header) {
+                    header.id = headingId;
+                }
+                if (trigger) {
+                    trigger.setAttribute('data-bs-target', '#' + collapseId);
+                    trigger.setAttribute('aria-controls', collapseId);
+                    trigger.setAttribute('aria-labelledby', headingId);
+                    trigger.classList.remove('collapsed');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+                if (collapse) {
+                    collapse.id = collapseId;
+                    collapse.setAttribute('aria-labelledby', headingId);
+                    collapse.setAttribute('data-bs-parent', '#' + accordion.id);
+                    collapse.classList.remove('show');
+                    collapse.classList.add('collapse');
+                }
+
+                const fieldId = field.id || field.field_id || field.slug || String(fieldIndex + 1);
+                const hiddenFieldId = row.querySelector('[name^="custom_field_id"]');
+                if (hiddenFieldId) {
+                    hiddenFieldId.value = String(fieldId);
+                }
+                const removeButton = row.querySelector('.modpress-remove-custom-field');
+                if (removeButton) {
+                    removeButton.removeAttribute('id');
+                }
+                row.dataset.fieldId = String(fieldId);
+                syncCustomFieldRowNames(row);
+
+                const labelInput = row.querySelector('[name^="custom_field_label"]');
+                if (labelInput) {
+                    labelInput.value = field.name || field.label || '';
+                }
+                syncCustomFieldLabel(row);
+
+                const slugInput = row.querySelector('[name^="custom_field_slug"]');
+                if (slugInput) {
+                    slugInput.value = field.slug || '';
+                }
+
+                const descriptionInput = row.querySelector('[name^="custom_field_description"]');
+                if (descriptionInput) {
+                    descriptionInput.value = field.description || '';
+                }
+
+                const typeInput = row.querySelector('[name^="custom_field_type"][name$=""]') || row.querySelector('[name^="custom_field_type"]');
+                if (typeInput) {
+                    typeInput.value = field.type || 'text';
+                }
+
+                const textareaRowsInput = row.querySelector('[name^="custom_field_type_textarea_rows"]');
+                if (textareaRowsInput) {
+                    textareaRowsInput.value = field.rows || 4;
+                }
+
+                const switchDefaultInput = Array.from(row.querySelectorAll('select[name^="custom_field_type_switch"]')).find((selectField) => {
+                    const name = String(selectField.getAttribute('name') || '');
+                    return name === 'custom_field_type_switch[]' || name.startsWith('custom_field_type_switch[');
+                }) || row.querySelector('select[name^="custom_field_type_switch"]');
+                if (switchDefaultInput) {
+                    const switchValue = field.switch || field.switch_default || field.switch_value || 'true';
+                    switchDefaultInput.value = String(switchValue).trim() || 'true';
+                }
+
+                const switchCustomInput = row.querySelector('input[name^="custom_field_type_switch_custom"]');
+                if (switchCustomInput) {
+                    const switchCustomValue = Array.isArray(field.switch_custom)
+                        ? field.switch_custom.join(', ')
+                        : (field.switch_custom || '');
+                    switchCustomInput.value = String(switchCustomValue || '').trim();
+                }
+
+                syncCustomFieldVisibility(row);
+
+                const colorInput = getNamedCheckbox(row, 'custom_field_type_color');
+                if (colorInput) {
+                    const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
+                    colorInput.checked = normalizeBooleanValue(colorValue);
+                }
+
+                const showInTableInput = getNamedCheckbox(row, 'custom_field_show_in_table');
+                if (showInTableInput) {
+                    const shouldShowInTable = normalizeBooleanValue(field.show_in_table ?? field.showInTable ?? false);
+                    showInTableInput.checked = shouldShowInTable;
+                }
+
+                const fieldType = String(field.type || 'text').toLowerCase();
+                row.querySelectorAll('.modpress-option-repeater').forEach((optionRepeater) => {
+                    const optionItems = optionRepeater.querySelector('.modpress-option-repeater-items');
+                    const optionTemplate = optionRepeater.querySelector('.modpress-option-row-template');
+                    if (!optionItems || !optionTemplate) {
+                        return;
+                    }
+
+                    const repeaterType = String(optionRepeater.dataset.optionType || 'radio').toLowerCase();
+                    const supportsOptions = ['radio', 'select'].includes(repeaterType);
+                    const shouldPopulate = supportsOptions && repeaterType === fieldType;
+                    optionItems.innerHTML = '';
+
+                    if (!shouldPopulate) {
+                        syncOptionRepeaterNames(optionRepeater, fieldIndex);
+                        return;
+                    }
+
+                    const options = normalizeFieldOptions(field.options || []);
+                    if (!options.length) {
+                        const emptyRow = optionTemplate.cloneNode(true);
+                        emptyRow.classList.remove('d-none');
+                        emptyRow.classList.remove('modpress-option-row-template');
+                        emptyRow.classList.add('modpress-option-row');
+                        optionItems.appendChild(emptyRow);
+                        syncOptionRepeaterNames(optionRepeater, fieldIndex);
+                        return;
+                    }
+
+                    options.forEach((option) => {
+                        const optionRow = optionTemplate.cloneNode(true);
+                        optionRow.classList.remove('d-none');
+                        optionRow.classList.remove('modpress-option-row-template');
+                        optionRow.classList.add('modpress-option-row');
+
+                        const labelInputField = optionRow.querySelector('[data-option-role="label"]');
+                        const optionInputField = optionRow.querySelector('[data-option-role="value"]');
+
+                        if (labelInputField) {
+                            labelInputField.value = option.label || option.value || '';
+                        }
+
+                        if (optionInputField) {
+                            optionInputField.value = option.value || option.label || '';
+                        }
+
+                        optionItems.appendChild(optionRow);
+                    });
+
+                    syncOptionRepeaterNames(optionRepeater, fieldIndex);
+                });
+
+                const imageTypeInputs = row.querySelectorAll('[name^="custom_field_type_image_type_"]');
+                if (imageTypeInputs.length) {
+                    const imageTypes = Array.isArray(field.image_types) ? field.image_types : [];
+                    imageTypeInputs.forEach((input) => {
+                        const value = String(input.getAttribute('value') || input.value || '').trim();
+                        input.checked = imageTypes.includes(value);
+                    });
+                }
+
+                accordion.appendChild(row);
+                syncCustomFieldRepeaterNames(row);
+                syncCustomFieldVisibility(row);
+            });
+        };
+        /**
+         * Add a new custom field row to the container.
+         * 
+         * This function adds a new custom field row to the specified container.
+         * It handles cloning the template, assigning unique IDs and indexes, 
+         * and appending the new row to the container.
+         * 
+         * @param {HTMLElement|null} button - The button that triggered the action, if any.
+         * @since 1.0.0
+         */
+        const addCustomFieldRow = (button = null) => {
+            const scope = button ? button.closest('.modal') : null;
+            const container = getCustomFieldContainer(button, scope);
+            if (!container) {
+                console.error('[ModPress] Missing custom fields container for Add Custom Field action.', {
+                    button: button ? button.outerHTML : null,
+                    modal: scope ? scope.id : null,
+                });
+                return;
+            }
+
+            const accordion = container.querySelector('[id$="-custom-fields-accordion"], .accordion') || container;
+            const placeholder = container.querySelector('.text-muted.small');
+            if (placeholder) {
+                placeholder.remove();
+            }
+
+            const template = getCustomFieldTemplate(container, scope);
+            if (!template) {
+                console.error('[ModPress] Missing custom field template for Add Custom Field action.', {
+                    containerId: container.id || null,
+                    modalId: scope ? scope.id : null,
+                });
+                return;
+            }
+
+            let row = null;
+            try {
+                if (template.content && template.content.firstElementChild) {
+                    row = template.content.firstElementChild.cloneNode(true);
+                } else if (template.firstElementChild) {
+                    row = template.firstElementChild.cloneNode(true);
+                }
+            } catch (error) {
+                console.error('[ModPress] Failed to clone custom field template.', {
+                    templateId: template.id || null,
+                    error,
+                });
+                return;
+            }
+
+            if (!row) {
+                console.error('[ModPress] Custom field template does not contain a valid row to clone.', {
+                    templateId: template.id || null,
+                });
+                return;
+            }
+
+            const fieldIndex = getNextCustomFieldIndex(container);
+            const fieldId = getNextCustomFieldId(container);
             row.classList.remove('d-none');
             row.classList.add('modpress-custom-field-row');
             row.dataset.fieldIndex = String(fieldIndex);
+            row.dataset.fieldId = fieldId;
 
-            const headingId = 'modpress-custom-field-heading-' + fieldIndex + '-' + Math.random().toString(16).slice(2, 8);
-            const collapseId = 'modpress-custom-field-content-' + fieldIndex + '-' + Math.random().toString(16).slice(2, 8);
+            const hiddenFieldId = row.querySelector('[name^="custom_field_id"]');
+            if (hiddenFieldId) {
+                hiddenFieldId.value = fieldId;
+            }
+            row.dataset.fieldId = fieldId;
+            syncCustomFieldRowNames(row);
+
+            const headingId = 'modpress-custom-field-heading-' + fieldIndex;
+            const collapseId = 'modpress-custom-field-content-' + fieldIndex;
             const header = row.querySelector('.accordion-header');
             const trigger = row.querySelector('.accordion-button');
             const collapse = row.querySelector('.accordion-collapse');
@@ -793,1570 +1227,1261 @@
                 trigger.setAttribute('data-bs-target', '#' + collapseId);
                 trigger.setAttribute('aria-controls', collapseId);
                 trigger.setAttribute('aria-labelledby', headingId);
-                trigger.classList.remove('collapsed');
-                trigger.setAttribute('aria-expanded', 'false');
+                trigger.querySelector('[data-custom-field-title]')?.setAttribute('data-custom-field-title', '');
             }
             if (collapse) {
                 collapse.id = collapseId;
                 collapse.setAttribute('aria-labelledby', headingId);
                 collapse.setAttribute('data-bs-parent', '#' + accordion.id);
-                collapse.classList.remove('show');
-                collapse.classList.add('collapse');
             }
 
-            const fieldId = field.id || field.field_id || field.slug || String(fieldIndex + 1);
-            const hiddenFieldId = row.querySelector('[name^="custom_field_id"]');
-            if (hiddenFieldId) {
-                hiddenFieldId.value = String(fieldId);
-            }
-            const removeButton = row.querySelector('.modpress-remove-custom-field');
-            if (removeButton) {
-                removeButton.removeAttribute('id');
-            }
-            row.dataset.fieldId = String(fieldId);
-            syncCustomFieldRowNames(row);
-
-            const labelInput = row.querySelector('[name^="custom_field_label"]');
-            if (labelInput) {
-                labelInput.value = field.name || field.label || '';
-            }
-            syncCustomFieldLabel(row);
-
-            const slugInput = row.querySelector('[name^="custom_field_slug"]');
-            if (slugInput) {
-                slugInput.value = field.slug || '';
-            }
-
-            const descriptionInput = row.querySelector('[name^="custom_field_description"]');
-            if (descriptionInput) {
-                descriptionInput.value = field.description || '';
-            }
-
-            const typeInput = row.querySelector('[name^="custom_field_type"][name$=""]') || row.querySelector('[name^="custom_field_type"]');
-            if (typeInput) {
-                typeInput.value = field.type || 'text';
-            }
-
-            const textareaRowsInput = row.querySelector('[name^="custom_field_type_textarea_rows"]');
-            if (textareaRowsInput) {
-                textareaRowsInput.value = field.rows || 4;
-            }
-
-            const switchDefaultInput = Array.from(row.querySelectorAll('select[name^="custom_field_type_switch"]')).find((selectField) => {
-                const name = String(selectField.getAttribute('name') || '');
-                return name === 'custom_field_type_switch[]' || name.startsWith('custom_field_type_switch[');
-            }) || row.querySelector('select[name^="custom_field_type_switch"]');
-            if (switchDefaultInput) {
-                const switchValue = field.switch || field.switch_default || field.switch_value || 'true';
-                switchDefaultInput.value = String(switchValue).trim() || 'true';
-            }
-
-            const switchCustomInput = row.querySelector('input[name^="custom_field_type_switch_custom"]');
-            if (switchCustomInput) {
-                const switchCustomValue = Array.isArray(field.switch_custom)
-                    ? field.switch_custom.join(', ')
-                    : (field.switch_custom || '');
-                switchCustomInput.value = String(switchCustomValue || '').trim();
-            }
-
-            syncCustomFieldVisibility(row);
-
-            const colorInput = getNamedCheckbox(row, 'custom_field_type_color');
-            if (colorInput) {
-                const colorValue = field.custom_color_use ?? field.color ?? field.apply_color ?? field.color_value ?? false;
-                colorInput.checked = normalizeBooleanValue(colorValue);
-            }
-
-            const showInTableInput = getNamedCheckbox(row, 'custom_field_show_in_table');
-            if (showInTableInput) {
-                const shouldShowInTable = normalizeBooleanValue(field.show_in_table ?? field.showInTable ?? false);
-                showInTableInput.checked = shouldShowInTable;
-            }
-
-            const fieldType = String(field.type || 'text').toLowerCase();
-            row.querySelectorAll('.modpress-option-repeater').forEach((optionRepeater) => {
-                const optionItems = optionRepeater.querySelector('.modpress-option-repeater-items');
-                const optionTemplate = optionRepeater.querySelector('.modpress-option-row-template');
-                if (!optionItems || !optionTemplate) {
-                    return;
-                }
-
-                const repeaterType = String(optionRepeater.dataset.optionType || 'radio').toLowerCase();
-                const supportsOptions = ['radio', 'select'].includes(repeaterType);
-                const shouldPopulate = supportsOptions && repeaterType === fieldType;
-                optionItems.innerHTML = '';
-
-                if (!shouldPopulate) {
-                    syncOptionRepeaterNames(optionRepeater, fieldIndex);
-                    return;
-                }
-
-                const options = normalizeFieldOptions(field.options || []);
-                if (!options.length) {
-                    const emptyRow = optionTemplate.cloneNode(true);
-                    emptyRow.classList.remove('d-none');
-                    emptyRow.classList.remove('modpress-option-row-template');
-                    emptyRow.classList.add('modpress-option-row');
-                    optionItems.appendChild(emptyRow);
-                    syncOptionRepeaterNames(optionRepeater, fieldIndex);
-                    return;
-                }
-
-                options.forEach((option) => {
-                    const optionRow = optionTemplate.cloneNode(true);
-                    optionRow.classList.remove('d-none');
-                    optionRow.classList.remove('modpress-option-row-template');
-                    optionRow.classList.add('modpress-option-row');
-
-                    const labelInputField = optionRow.querySelector('[data-option-role="label"]');
-                    const optionInputField = optionRow.querySelector('[data-option-role="value"]');
-
-                    if (labelInputField) {
-                        labelInputField.value = option.label || option.value || '';
-                    }
-
-                    if (optionInputField) {
-                        optionInputField.value = option.value || option.label || '';
-                    }
-
-                    optionItems.appendChild(optionRow);
-                });
-
-                syncOptionRepeaterNames(optionRepeater, fieldIndex);
-            });
-
-            const imageTypeInputs = row.querySelectorAll('[name^="custom_field_type_image_type_"]');
-            if (imageTypeInputs.length) {
-                const imageTypes = Array.isArray(field.image_types) ? field.image_types : [];
-                imageTypeInputs.forEach((input) => {
-                    const value = String(input.getAttribute('value') || input.value || '').trim();
-                    input.checked = imageTypes.includes(value);
-                });
+            const repeater = row.querySelector('.modpress-option-repeater');
+            if (repeater) {
+                repeater.dataset.optionType = 'radio';
+                createOptionRow(repeater, fieldIndex, 0);
             }
 
             accordion.appendChild(row);
             syncCustomFieldRepeaterNames(row);
             syncCustomFieldVisibility(row);
-        });
-    };
-
-    const syncGroupDeleteState = (modal = document.getElementById('modpress-group-modal')) => {
-        if (!modal) {
-            return;
-        }
-
-        const deleteWrap = modal.querySelector('.modpress-group-delete-wrap');
-        const deleteButton = modal.querySelector('[data-role="delete-group"]');
-        const editKeyInput = modal.querySelector('[name="group_edit_key"]');
-        const deleteForm = modal.querySelector('[data-role="group-delete-form"]');
-        const deleteGroupIdInput = deleteForm ? deleteForm.querySelector('[name="group_id"]') : null;
-        const deleteGroupKeyInput = deleteForm ? deleteForm.querySelector('[name="group_edit_key"]') : null;
-        const groupKey = String(editKeyInput ? editKeyInput.value : '').trim();
-        const shouldShowDelete = Boolean(groupKey) && groupKey !== 'modpress_type';
-
-        if (deleteWrap) {
-            deleteWrap.classList.toggle('d-none', !shouldShowDelete);
-        }
-
-        if (deleteButton) {
-            deleteButton.disabled = !shouldShowDelete;
-        }
-
-        if (deleteForm) {
-            if (deleteGroupIdInput) {
-                deleteGroupIdInput.value = deleteForm.dataset.groupId || '';
-            }
-            if (deleteGroupKeyInput) {
-                deleteGroupKeyInput.value = groupKey;
-            }
-        }
-    };
-
-    const resetGroupModal = (modal = document.getElementById('modpress-group-modal')) => {
-        if (!modal) {
-            return;
-        }
-
-        const fields = [
-            'group_edit_key',
-            'group_name',
-            'group_singular_name',
-            'group_slug',
-            'group_description',
-            'group_parent[]',
-            'group_parent_entry[]',
-        ];
-
-        fields.forEach((fieldName) => {
-            const input = modal.querySelector('[name="' + fieldName + '"]');
-            if (input) {
-                if (input.multiple) {
-                    setSelectedValues(input, []);
-                } else {
-                    input.value = '';
-                }
-            }
-        });
-
-        const customFieldsContainer = modal.querySelector('[id$="-custom-fields-container"]');
-        if (customFieldsContainer) {
-            const customFieldTemplate = getCustomFieldTemplate(customFieldsContainer, modal);
-            customFieldsContainer.innerHTML = '';
-            if (customFieldTemplate && !customFieldsContainer.contains(customFieldTemplate)) {
-                customFieldsContainer.appendChild(customFieldTemplate);
-            }
-        }
-
-        const hierarchicalInput = getNamedCheckbox(modal, 'group_hierarchical');
-        if (hierarchicalInput) {
-            hierarchicalInput.checked = false;
-        }
-
-        const deleteForm = modal.querySelector('[data-role="group-delete-form"]');
-        if (deleteForm) {
-            const groupIdInput = deleteForm.querySelector('[name="group_id"]');
-            const groupKeyInput = deleteForm.querySelector('[name="group_edit_key"]');
-            if (groupIdInput) {
-                groupIdInput.value = '';
-            }
-            if (groupKeyInput) {
-                groupKeyInput.value = '';
-            }
-        }
-
-        const modalTitle = modal.querySelector('.modal-title');
-        if (modalTitle) {
-            modalTitle.textContent = 'Add Group';
-        }
-
-        syncGroupParentField('');
-        syncGroupDeleteState();
-        syncModGroupVisibility();
-        syncModGroupVisibility();
-    };
-
-    const getNextCustomFieldIndex = (scope = document) => {
-        const rows = scope && scope.querySelectorAll ? scope.querySelectorAll('.modpress-custom-field-row') : document.querySelectorAll('.modpress-custom-field-row');
-        let maxIndex = -1;
-
-        rows.forEach((row) => {
-            const current = Number(row.dataset.fieldIndex || 0);
-            if (!Number.isNaN(current) && current > maxIndex) {
-                maxIndex = current;
-            }
-        });
-
-        return maxIndex + 1;
-    };
-
-    const getNextCustomFieldId = (scope = document) => {
-        const rows = scope && scope.querySelectorAll ? scope.querySelectorAll('.modpress-custom-field-row') : document.querySelectorAll('.modpress-custom-field-row');
-        let maxId = 0;
-
-        rows.forEach((row) => {
-            const hiddenInput = row.querySelector('[name="custom_field_id[]"]');
-            const candidate = hiddenInput ? String(hiddenInput.value || row.dataset.fieldId || '') : String(row.dataset.fieldId || '');
-            const numericId = Number(String(candidate).replace(/\D/g, ''));
-            if (!Number.isNaN(numericId) && numericId > maxId) {
-                maxId = numericId;
-            }
-        });
-
-        return String(maxId + 1);
-    };
-
-    const slugifyTitle = (value = '') => String(value || '')
-        .trim()
-        .toLowerCase()
-        .replace(/&/g, ' and ')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-
-    const syncModSlugFromTitle = (titleField = document.querySelector('[name="post_title"], #modpress-mod-title')) => {
-        if (!titleField) {
-            return;
-        }
-
-        const slugField = document.querySelector('[name="post_name"], #modpress-mod-slug');
-        if (!slugField) {
-            return;
-        }
-
-        const nextSlug = slugifyTitle(titleField.value);
-        if (!nextSlug) {
-            return;
-        }
-
-        const autoGenerated = slugField.dataset.modpressAutoGenerated === 'true';
-        const hasManualValue = String(slugField.value || '').trim() !== '' && !autoGenerated;
-
-        if (!hasManualValue) {
-            slugField.value = nextSlug;
-            slugField.dataset.modpressAutoGenerated = 'true';
-        }
-    };
-
-    const syncOptionRepeaterNames = (repeater, fieldIndex) => {
-        if (!repeater) {
-            return;
-        }
-
-        const row = repeater.closest('.modpress-custom-field-row');
-        const rowFieldKey = row ? (String(row.dataset.fieldSlug || row.querySelector('[name^="custom_field_slug"]')?.value || row.dataset.fieldId || fieldIndex || '').trim()) : String(fieldIndex || '').trim();
-        const type = repeater.dataset.optionType || 'radio';
-        const optionRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((optionRow) => !optionRow.closest('.modpress-option-row-template'));
-        optionRows.forEach((optionRow, optionIndex) => {
-            const labelInput = optionRow.querySelector('[data-option-role="label"]');
-            const valueInput = optionRow.querySelector('[data-option-role="value"]');
-            const keyedFieldKey = rowFieldKey || String(fieldIndex || '');
-            if (labelInput) {
-                labelInput.name = 'custom_field_type_' + type + '[' + keyedFieldKey + '][' + optionIndex + '][label]';
-            }
-            if (valueInput) {
-                valueInput.name = 'custom_field_type_' + type + '[' + keyedFieldKey + '][' + optionIndex + '][option]';
-            }
-        });
-    };
-
-    const syncCustomFieldRepeaterNames = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const fieldIndex = row.dataset.fieldIndex;
-        if (!fieldIndex && fieldIndex !== '0') {
-            return;
-        }
-
-        row.querySelectorAll('.modpress-option-repeater').forEach((repeater) => {
-            syncOptionRepeaterNames(repeater, fieldIndex);
-        });
-    };
-
-    const createOptionRow = (repeater, fieldIndex, optionIndex = null) => {
-        if (!repeater) {
-            return null;
-        }
-
-        const template = repeater.querySelector('.modpress-option-row-template');
-        if (!template) {
-            return null;
-        }
-
-        const items = repeater.querySelector('.modpress-option-repeater-items');
-        if (!items) {
-            return null;
-        }
-
-        const actualRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template'));
-        const resolvedIndex = optionIndex !== null && optionIndex !== undefined ? optionIndex : actualRows.length;
-
-        const clone = template.cloneNode(true);
-        clone.classList.remove('d-none');
-        clone.classList.remove('modpress-option-row-template');
-        clone.classList.add('modpress-option-row');
-
-        if (fieldIndex !== null && fieldIndex !== undefined && fieldIndex !== '') {
-            const labelInput = clone.querySelector('[data-option-role="label"]');
-            const valueInput = clone.querySelector('[data-option-role="value"]');
-            const type = repeater.dataset.optionType || 'radio';
-            if (labelInput) {
-                labelInput.name = 'custom_field_type_' + type + '[' + fieldIndex + '][' + resolvedIndex + '][label]';
-            }
-            if (valueInput) {
-                valueInput.name = 'custom_field_type_' + type + '[' + fieldIndex + '][' + resolvedIndex + '][option]';
-            }
-        }
-
-        items.appendChild(clone);
-        return clone;
-    };
-
-    const syncOptionRepeaterType = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const typeField = getCustomFieldTypeControl(row);
-        const repeaters = row.querySelectorAll('.modpress-option-repeater');
-        if (!typeField || !repeaters.length) {
-            return;
-        }
-
-        const nextType = String(typeField.value || 'text').toLowerCase();
-        const optionTypes = ['radio', 'select'];
-        repeaters.forEach((repeater) => {
-            const repeaterType = String(repeater.dataset.optionType || 'radio').toLowerCase();
-            const shouldShow = optionTypes.includes(repeaterType) && repeaterType === nextType;
-            repeater.classList.toggle('d-none', !shouldShow);
-            const repeatableGroup = repeater.closest('tr');
-            if (repeatableGroup) {
-                repeatableGroup.classList.toggle('d-none', !shouldShow);
-            }
-            syncOptionRepeaterNames(repeater, row.dataset.fieldIndex);
-        });
-    };
-
-    const addCustomFieldRow = (button = null) => {
-        const scope = button ? button.closest('.modal') : null;
-        const container = getCustomFieldContainer(button, scope);
-        if (!container) {
-            console.error('[ModPress] Missing custom fields container for Add Custom Field action.', {
-                button: button ? button.outerHTML : null,
-                modal: scope ? scope.id : null,
-            });
-            return;
-        }
-
-        const accordion = container.querySelector('[id$="-custom-fields-accordion"], .accordion') || container;
-        const placeholder = container.querySelector('.text-muted.small');
-        if (placeholder) {
-            placeholder.remove();
-        }
-
-        const template = getCustomFieldTemplate(container, scope);
-        if (!template) {
-            console.error('[ModPress] Missing custom field template for Add Custom Field action.', {
-                containerId: container.id || null,
-                modalId: scope ? scope.id : null,
-            });
-            return;
-        }
-
-        let row = null;
-        try {
-            if (template.content && template.content.firstElementChild) {
-                row = template.content.firstElementChild.cloneNode(true);
-            } else if (template.firstElementChild) {
-                row = template.firstElementChild.cloneNode(true);
-            }
-        } catch (error) {
-            console.error('[ModPress] Failed to clone custom field template.', {
-                templateId: template.id || null,
-                error,
-            });
-            return;
-        }
-
-        if (!row) {
-            console.error('[ModPress] Custom field template does not contain a valid row to clone.', {
-                templateId: template.id || null,
-            });
-            return;
-        }
-
-        const fieldIndex = getNextCustomFieldIndex(container);
-        const fieldId = getNextCustomFieldId(container);
-        row.classList.remove('d-none');
-        row.classList.add('modpress-custom-field-row');
-        row.dataset.fieldIndex = String(fieldIndex);
-        row.dataset.fieldId = fieldId;
-
-        const hiddenFieldId = row.querySelector('[name^="custom_field_id"]');
-        if (hiddenFieldId) {
-            hiddenFieldId.value = fieldId;
-        }
-        row.dataset.fieldId = fieldId;
-        syncCustomFieldRowNames(row);
-
-        const headingId = 'modpress-custom-field-heading-' + fieldIndex;
-        const collapseId = 'modpress-custom-field-content-' + fieldIndex;
-        const header = row.querySelector('.accordion-header');
-        const trigger = row.querySelector('.accordion-button');
-        const collapse = row.querySelector('.accordion-collapse');
-
-        if (header) {
-            header.id = headingId;
-        }
-        if (trigger) {
-            trigger.setAttribute('data-bs-target', '#' + collapseId);
-            trigger.setAttribute('aria-controls', collapseId);
-            trigger.setAttribute('aria-labelledby', headingId);
-            trigger.querySelector('[data-custom-field-title]')?.setAttribute('data-custom-field-title', '');
-        }
-        if (collapse) {
-            collapse.id = collapseId;
-            collapse.setAttribute('aria-labelledby', headingId);
-            collapse.setAttribute('data-bs-parent', '#' + accordion.id);
-        }
-
-        const repeater = row.querySelector('.modpress-option-repeater');
-        if (repeater) {
-            repeater.dataset.optionType = 'radio';
-            createOptionRow(repeater, fieldIndex, 0);
-        }
-
-        accordion.appendChild(row);
-        syncCustomFieldRepeaterNames(row);
-        syncCustomFieldVisibility(row);
-        syncCustomFieldLabel(row);
-        syncOptionRepeaterType(row);
-    };
-
-    const isDependentTypeField = (target) => {
-        if (!target) {
-            return false;
-        }
-
-        if (target.matches && (target.matches('select.modpress-dependent-type') || target.matches('.modpress-dependent-type'))) {
-            return true;
-        }
-
-        if (target.closest && target.closest('select.modpress-dependent-type')) {
-            return true;
-        }
-
-        const id = typeof target.id === 'string' ? target.id : '';
-        return /^modpress-dependent-type(?:-\d+)?$/.test(id);
-    };
-
-    const getDependentTypeField = (row) => {
-        if (!row) {
-            return null;
-        }
-
-        return row.querySelector('select.modpress-dependent-type') || row.querySelector('.modpress-dependent-type');
-    };
-
-    const syncDependentRowState = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const typeField = getDependentTypeField(row);
-        const type = typeField ? String(typeField.value || 'internal').trim() : 'internal';
-        const normalizedType = ['internal', 'external'].includes(type) ? type : 'internal';
-        const internalBlock = row.querySelector('.modpress-dependent-target-internal');
-        const externalBlock = row.querySelector('.modpress-dependent-target-external');
-
-        if (internalBlock) {
-            internalBlock.classList.toggle('d-none', normalizedType !== 'internal');
-        }
-
-        if (externalBlock) {
-            externalBlock.classList.toggle('d-none', normalizedType !== 'external');
-        }
-
-        row.querySelectorAll('.modpress-dependent-target-wrapper input, .modpress-dependent-target-wrapper select, .modpress-dependent-target-wrapper textarea').forEach((input) => {
-            const belongsToActivePane = normalizedType === 'internal'
-                ? input.closest('.modpress-dependent-target-internal')
-                : input.closest('.modpress-dependent-target-external');
-            if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement || input instanceof HTMLTextAreaElement) {
-                input.disabled = !belongsToActivePane;
-            }
-        });
-    };
-
-    const syncDependentTypeChange = (target) => {
-        if (!isDependentTypeField(target)) {
-            return;
-        }
-
-        const dependentRow = target.closest('.modpress-dependent-item');
-        if (dependentRow) {
-            syncDependentRowState(dependentRow);
-        }
-    };
-
-    const bindDependentTypeField = (field) => {
-        if (!field || field.dataset.modpressDependentBound === 'true') {
-            return;
-        }
-
-        field.dataset.modpressDependentBound = 'true';
-        const handleDependentTypeSelection = () => {
-            const row = field.closest('.modpress-dependent-item');
-            syncDependentRowState(row);
+            syncCustomFieldLabel(row);
+            syncOptionRepeaterType(row);
         };
-
-        field.addEventListener('change', handleDependentTypeSelection);
-        field.addEventListener('changed.bs.select', handleDependentTypeSelection);
-    };
-
-    const getNextDependentIndex = (repeater) => {
-        if (!repeater) {
-            return 0;
-        }
-
-        let highestIndex = -1;
-        repeater.querySelectorAll('.modpress-dependent-item').forEach((row) => {
-            const rowIndex = Number.parseInt(String(row.dataset.dependentIndex || ''), 10);
-            if (!Number.isNaN(rowIndex) && rowIndex > highestIndex) {
-                highestIndex = rowIndex;
-            }
-        });
-
-        return highestIndex + 1;
-    };
-
-    const buildDependentRow = (repeater, dependent = {}, rowIndex = null) => {
-        const template = document.getElementById('modpress-dependent-template');
-        if (!template || !template.content || !template.content.firstElementChild) {
-            return null;
-        }
-
-        const row = template.content.firstElementChild.cloneNode(true);
-        const nextIndex = Number.isInteger(rowIndex) ? rowIndex : getNextDependentIndex(repeater);
-        row.dataset.dependentIndex = String(nextIndex);
-
-        const typeField = row.querySelector('.modpress-dependent-type');
-        const modField = row.querySelector('.modpress-dependent-internal');
-        const urlField = row.querySelector('.modpress-dependent-external');
-        const instructionsField = row.querySelector('.modpress-dependent-instructions');
-        const value = dependent && typeof dependent === 'object' ? dependent : {};
-        const type = ['internal', 'external'].includes(String(value.type || 'internal')) ? String(value.type || 'internal') : 'internal';
-
-        if (typeField) {
-            typeField.name = 'dependents[' + nextIndex + '][type]';
-            typeField.id = 'modpress-dependent-type-' + nextIndex;
-            typeField.value = type;
-            bindDependentTypeField(typeField);
-            refreshBootstrapSelect(typeField);
-        }
-
-        if (modField) {
-            modField.name = 'dependents[' + nextIndex + '][mod_id]';
-            modField.id = 'modpress-dependent-mod-' + nextIndex;
-            if (value.mod_id !== undefined && value.mod_id !== null && value.mod_id !== '') {
-                modField.value = String(value.mod_id);
-            }
-            refreshBootstrapSelect(modField);
-        }
-
-        if (urlField) {
-            urlField.name = 'dependents[' + nextIndex + '][external_url]';
-            urlField.id = 'modpress-dependent-url-' + nextIndex;
-            urlField.value = typeof value.external_url === 'string' ? value.external_url : (value.external_url ?? '');
-        }
-
-        if (instructionsField) {
-            instructionsField.name = 'dependents[' + nextIndex + '][instructions]';
-            instructionsField.id = 'modpress-dependent-instructions-' + nextIndex;
-            instructionsField.value = typeof value.instructions === 'string' ? value.instructions : (value.instructions ?? '');
-        }
-
-        const removeButton = row.querySelector('.modpress-dependent-remove');
-        if (removeButton) {
-            removeButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                const targetRow = event.target.closest('.modpress-dependent-item');
-                if (targetRow) {
-                    targetRow.remove();
+        /**
+         * Bind custom field buttons
+         * 
+         * This function attaches click event listeners to all buttons with the data-role "add-custom-field".
+         * It ensures that each button is only bound once to prevent duplicate event handlers.
+         * When clicked, it attempts to add a new custom field row.
+         * If an error occurs, it logs the error to the console.
+         *
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const bindCustomFieldButtons = () => {
+            document.querySelectorAll('[data-role="add-custom-field"]').forEach((button) => {
+                if (button.dataset.modpressCustomFieldBound === 'true') {
+                    return;
                 }
-            });
-        }
 
-        repeater.appendChild(row);
-        refreshBootstrapSelect(typeField);
-        refreshBootstrapSelect(modField);
-        syncDependentRowState(row);
-
-        return row;
-    };
-
-    const hydrateDependentRows = (repeater = document.getElementById('modpress-dependent-repeater')) => {
-        if (!repeater) {
-            return;
-        }
-
-        let savedDependents = [];
-        try {
-            savedDependents = JSON.parse(repeater.dataset.modpressSavedDependents || '[]');
-        } catch (error) {
-            savedDependents = [];
-        }
-
-        if (!Array.isArray(savedDependents) || !savedDependents.length) {
-            return;
-        }
-
-        savedDependents.forEach((dependent, index) => {
-            buildDependentRow(repeater, dependent, index);
-        });
-    };
-
-    const addDependentRow = (button = null) => {
-        const repeater = document.getElementById('modpress-dependent-repeater');
-        if (!repeater) {
-            return;
-        }
-
-        buildDependentRow(repeater, { type: 'internal' }, getNextDependentIndex(repeater));
-    };
-
-    const getFileHostUrlMap = (repeater = document.getElementById('modpress-file-repeater')) => {
-        if (!repeater) {
-            return {};
-        }
-
-        try {
-            return JSON.parse(repeater.dataset.modpressFileHostUrls || '{}');
-        } catch (error) {
-            return {};
-        }
-    };
-
-    const syncFileHostValue = (field) => {
-        if (!field) {
-            return;
-        }
-
-        const row = field.closest('.modpress-file-item');
-        const hostUrlMap = getFileHostUrlMap();
-        const hostUrlField = row ? row.querySelector('.modpress-file-host-url, .modpress-file-host-url-value') : null;
-        const hostUrlDisplay = row ? row.querySelector('.modpress-file-host-url-display') : null;
-        if (!hostUrlField) {
-            return;
-        }
-
-        const nextHostUrl = hostUrlMap[String(field.value || '').trim()] || '';
-        if (hostUrlField.type === 'hidden' || hostUrlField.matches('.modpress-file-host-url')) {
-            hostUrlField.value = nextHostUrl;
-        } else if (hostUrlField instanceof HTMLInputElement) {
-            hostUrlField.value = nextHostUrl;
-        }
-
-        if (hostUrlDisplay) {
-            const displayValue = nextHostUrl
-                ? nextHostUrl.replace(/^https?:\/\//i, '').replace(/\/+$/, '')
-                : 'https://';
-            hostUrlDisplay.textContent = displayValue || 'https://';
-        }
-    };
-
-    const bindFileHostSelector = (field) => {
-        if (!field || field.dataset.modpressFileHostBound === 'true') {
-            return;
-        }
-
-        field.dataset.modpressFileHostBound = 'true';
-        const handleSelection = () => syncFileHostValue(field);
-        field.addEventListener('change', handleSelection);
-        field.addEventListener('changed.bs.select', handleSelection);
-    };
-
-    const getFileTypeFromValue = (value = '') => {
-        const nextType = String(value || '').trim().toLowerCase();
-        return [ 'internal', 'external' ].includes(nextType) ? nextType : 'internal';
-    };
-
-    const syncFileRowState = (row) => {
-        if (!row) {
-            return;
-        }
-
-        const typeField = row.querySelector('.modpress-file-type');
-        const nextType = typeField ? getFileTypeFromValue(typeField.value) : 'internal';
-
-        row.dataset.fileType = nextType;
-
-        if (typeField) {
-            typeField.value = nextType;
-        }
-
-        row.querySelectorAll('[data-file-target-type]').forEach((targetRow) => {
-            const matchesType = (targetRow.dataset.fileTargetType || 'internal') === nextType;
-            targetRow.classList.toggle('d-none', !matchesType);
-        });
-    };
-
-    const buildFileTargetRow = (fileRow, targetType = 'internal', values = {}) => {
-        if (!fileRow) {
-            return null;
-        }
-
-        const targetContainer = fileRow.querySelector('.modpress-file-target-wrapper');
-        if (!targetContainer) {
-            return null;
-        }
-
-        const normalizedType = getFileTypeFromValue(targetType);
-
-        const templateId = 'modpress-file-target-' + normalizedType + '-template';
-        const template = document.getElementById(templateId);
-        if (!template || !template.content || !template.content.firstElementChild) {
-            return null;
-        }
-
-        const targetRow = template.content.firstElementChild.cloneNode(true);
-        targetRow.dataset.fileTargetType = normalizedType;
-        targetRow.removeAttribute('id');
-        targetRow.classList.remove('d-none');
-
-        const fileIndex = Number.parseInt(String(fileRow.dataset.fileIndex || ''), 10);
-        const rowIndex = Number.isInteger(fileIndex) ? fileIndex : 0;
-        const typeField = fileRow.querySelector('.modpress-file-type');
-        if (typeField) {
-            typeField.value = normalizedType;
-        }
-
-        if ('internal' === normalizedType) {
-            const attachmentField = targetRow.querySelector('[data-media-field="true"]');
-            if (attachmentField) {
-                attachmentField.name = 'files[' + rowIndex + '][attachment_id]';
-                attachmentField.id = 'modpress-file-attachment-' + rowIndex;
-                if (values.attachment_id !== undefined && values.attachment_id !== null && values.attachment_id !== '') {
-                    attachmentField.value = String(values.attachment_id);
-                }
-            }
-
-            const removeButton = targetRow.querySelector('[data-file-type-remove]');
-            if (removeButton) {
-                removeButton.id = 'modpress-file-remove-internal-' + rowIndex;
-                removeButton.addEventListener('click', (event) => {
+                button.dataset.modpressCustomFieldBound = 'true';
+                button.addEventListener('click', (event) => {
                     event.preventDefault();
-                    const row = event.target.closest('[data-file-target-type]');
-                    if (row) {
-                        row.remove();
+                    event.stopPropagation();
+                    try {
+                        addCustomFieldRow(button);
+                    } catch (error) {
+                        console.error('[ModPress] Failed to add custom field row.', error);
                     }
                 });
+            });
+        };
+        /**
+         * Remove a custom field row.
+         *
+         * This function removes the closest custom field row to the provided button.
+         *
+         * @param {HTMLElement} button - The button that triggered the removal.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const removeFieldRow = (button) => {
+            const row = button.closest('.modpress-custom-field-row');
+            if (row) {
+                row.remove();
             }
-        } else {
-            const hostField = targetRow.querySelector('.modpress-file-host-selector');
-            if (hostField) {
-                hostField.name = 'files[' + rowIndex + '][host_id]';
-                hostField.id = 'modpress-file-host-selector-' + rowIndex;
-                if (values.host_id !== undefined && values.host_id !== null && values.host_id !== '') {
-                    hostField.value = String(values.host_id);
-                }
-                bindFileHostSelector(hostField);
-                refreshBootstrapSelect(hostField);
-            }
+        };
+        /**
+         * Synchronize the state of delete buttons based on row selection.
+         *
+         * This function checks all relevant delete buttons and enables or disables them
+         * depending on whether any rows are selected.
+         *
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const syncDeleteButtons = () => {
+            const buttons = document.querySelectorAll('[data-role="bulk-delete-group-entry"], .btn-delete-selected');
+            buttons.forEach((button) => {
+                const form = button.form || button.closest('form');
+                const panel = button.closest('.tab-pane') || form?.closest('.tab-pane');
+                const scope = panel || form || document;
+                const rows = scope.querySelectorAll ? scope.querySelectorAll('.modpress-row-checkbox') : [];
+                const hasSelection = Array.from(rows).some((checkbox) => checkbox.checked);
 
-            const hostUrlField = targetRow.querySelector('.modpress-file-host-url');
-            if (hostUrlField) {
-                hostUrlField.name = 'files[' + rowIndex + '][host_url]';
-                hostUrlField.id = 'modpress-file-host-url-' + rowIndex;
-                if (typeof values.host_url === 'string') {
-                    hostUrlField.value = values.host_url;
-                }
-            }
-
-            const hostUrlDisplay = targetRow.querySelector('.modpress-file-host-url-display');
-            if (hostUrlDisplay) {
-                hostUrlDisplay.id = 'modpress-file-host-url-display-' + rowIndex;
-            }
-
-            const urlSuffixField = targetRow.querySelector('.modpress-file-url-suffix');
-            if (urlSuffixField) {
-                urlSuffixField.name = 'files[' + rowIndex + '][url_suffix]';
-                urlSuffixField.id = 'modpress-file-url-suffix-' + rowIndex;
-                if (typeof values.url_suffix === 'string') {
-                    urlSuffixField.value = values.url_suffix;
-                }
-            }
-
-            const removeButton = targetRow.querySelector('[data-file-type-remove]');
-            if (removeButton) {
-                removeButton.id = 'modpress-file-remove-external-' + rowIndex;
-                removeButton.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    const row = event.target.closest('[data-file-target-type]');
-                    if (row) {
-                        row.remove();
-                    }
-                });
-            }
-        }
-
-        targetContainer.appendChild(targetRow);
-        const hostField = targetRow.querySelector('.modpress-file-host-selector');
-        if (hostField) {
-            syncFileHostValue(hostField);
-        }
-
-        return targetRow;
-    };
-
-    const getNextFileIndex = (repeater) => {
-        if (!repeater) {
-            return 0;
-        }
-
-        let highestIndex = -1;
-        repeater.querySelectorAll('.modpress-file-item').forEach((row) => {
-            const rowIndex = Number.parseInt(String(row.dataset.fileIndex || ''), 10);
-            if (!Number.isNaN(rowIndex) && rowIndex > highestIndex) {
-                highestIndex = rowIndex;
-            }
-        });
-
-        return highestIndex + 1;
-    };
-
-    const buildFileRow = (repeater, file = {}, rowIndex = null) => {
-        const template = document.getElementById('modpress-file-template');
-        if (!template || !template.content || !template.content.firstElementChild) {
-            return null;
-        }
-
-        const row = template.content.firstElementChild.cloneNode(true);
-        const nextIndex = Number.isInteger(rowIndex) ? rowIndex : getNextFileIndex(repeater);
-        row.dataset.fileIndex = String(nextIndex);
-
-        const value = file && typeof file === 'object' ? file : {};
-        const typeField = row.querySelector('.modpress-file-type');
-        const defaultType = getFileTypeFromValue(value.type || (value.host_id || value.host_url || value.url_suffix || value.download ? 'external' : 'internal'));
-        if (typeField) {
-            typeField.name = 'files[' + nextIndex + '][type]';
-            typeField.value = defaultType;
-        }
-
-        const fileNameField = row.querySelector('.modpress-file-name');
-        if (fileNameField) {
-            fileNameField.name = 'files[' + nextIndex + '][name]';
-            fileNameField.id = 'modpress-file-name-' + nextIndex;
-            fileNameField.value = typeof value.name === 'string' ? value.name : (value.name ?? '');
-        }
-
-        const fileVersionField = row.querySelector('.modpress-file-version');
-        if (fileVersionField) {
-            fileVersionField.name = 'files[' + nextIndex + '][version]';
-            fileVersionField.id = 'modpress-file-version-' + nextIndex;
-            fileVersionField.value = typeof value.version === 'string' ? value.version : (value.version ?? '');
-        }
-
-        const fileDescriptionField = row.querySelector('.modpress-file-description');
-        if (fileDescriptionField) {
-            fileDescriptionField.name = 'files[' + nextIndex + '][description]';
-            fileDescriptionField.id = 'modpress-file-description-' + nextIndex;
-            fileDescriptionField.value = typeof value.description === 'string' ? value.description : (value.description ?? '');
-        }
-
-        const removeButton = row.querySelector('.modpress-file-remove');
-        if (removeButton) {
-            removeButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                const targetRow = event.target.closest('.modpress-file-item');
-                if (targetRow) {
-                    targetRow.remove();
+                button.disabled = !hasSelection;
+                if (button instanceof HTMLElement) {
+                    button.setAttribute('aria-disabled', String(button.disabled));
                 }
             });
-        }
+        };
+        /**
+         * Resolve the array name for bulk delete operations.
+         *
+         * This function attempts to determine the appropriate array name for bulk delete
+         * checkboxes within a given form. It checks checked rows, hidden inputs, and
+         * falls back to a generic row name or a provided default.
+         *
+         * @param {HTMLFormElement} form - The form containing the bulk delete checkboxes.
+         * @param {string} [fallbackName='group_entry_ids[]'] - The default name to use if no specific name is found.
+         * @returns {string} The resolved array name for bulk delete.
+         * @since 1.0.0
+         */
+        const resolveBulkDeleteArrayName = (form, fallbackName = 'group_entry_ids[]') => {
+            if (!form) {
+                return fallbackName;
+            }
 
-        if (repeater) {
-            repeater.appendChild(row);
-        }
+            const checkedRows = Array.from(form.querySelectorAll('.modpress-row-checkbox:checked'))
+                .filter((row) => Boolean(row.name));
+            const matchedRowName = checkedRows.find((row) => /(group|file_type|file_host)_.*ids\[\]$/.test(row.name))?.name;
+            if (matchedRowName) {
+                return matchedRowName;
+            }
 
-        const shouldRestoreTarget = value && (value.type || value.attachment_id || value.host_id || value.host_url || value.url_suffix || value.download);
-        if (shouldRestoreTarget) {
-            buildFileTargetRow(row, defaultType, value);
-        }
+            const hiddenInputs = Array.from(form.querySelectorAll('input[type="hidden"][name]'));
+            const matchedHiddenName = hiddenInputs.find((input) => /(group|file_type|file_host)_.*ids\[\]$/.test(input.name))?.name;
+            if (matchedHiddenName) {
+                return matchedHiddenName;
+            }
 
-        syncFileRowState(row);
-
-        return row;
-    };
-
-    const hydrateFileRows = (repeater = document.getElementById('modpress-file-repeater')) => {
-        if (!repeater) {
-            return;
-        }
-
-        let savedFiles = [];
-        try {
-            savedFiles = JSON.parse(repeater.dataset.modpressSavedFiles || '[]');
-        } catch (error) {
-            savedFiles = [];
-        }
-
-        if (!Array.isArray(savedFiles) || !savedFiles.length) {
-            return;
-        }
-
-        savedFiles.forEach((file, index) => {
-            buildFileRow(repeater, file, index);
-        });
-    };
-
-    const addFileRow = (button = null, requestedType = null) => {
-        const repeater = document.getElementById('modpress-file-repeater');
-        if (!repeater) {
-            return;
-        }
-
-        buildFileRow(repeater, { type: 'internal' }, getNextFileIndex(repeater));
-    };
-
-    const addFileTargetRow = (button = null, requestedType = null) => {
-        const sourceButton = button && button.closest ? button.closest('[data-file-type-add]') : null;
-        if (!sourceButton) {
-            return null;
-        }
-
-        const fileRow = sourceButton.closest('.modpress-file-item');
-        if (!fileRow) {
-            return null;
-        }
-
-        const type = getFileTypeFromValue(requestedType || sourceButton.dataset.fileTypeAdd || 'internal');
-
-        if (sourceButton.dataset.modpressFileTypePending === 'true') {
-            return null;
-        }
-
-        sourceButton.dataset.modpressFileTypePending = 'true';
-        const targetRow = buildFileTargetRow(fileRow, type, {});
-        window.setTimeout(() => {
-            delete sourceButton.dataset.modpressFileTypePending;
-        }, 0);
-
-        return targetRow;
-    };
-
-    const bindCustomFieldButtons = () => {
-        document.querySelectorAll('[data-role="add-custom-field"]').forEach((button) => {
-            if (button.dataset.modpressCustomFieldBound === 'true') {
+            const genericRowName = form.querySelector('.modpress-row-checkbox')?.name;
+            return genericRowName || fallbackName;
+        };
+        /**
+         * Synchronize the visibility of custom fields based on their conditions.
+         *
+         * This function checks the conditions specified in the `data-custom-field-condition`
+         * attributes of the target fields within a row and toggles their visibility accordingly.
+         *
+         * @param {HTMLElement} row - The row containing the custom fields to synchronize.
+         * @since 1.0.0
+         */
+        const syncCustomFieldVisibility = (row) => {
+            if (!row) {
                 return;
             }
 
-            button.dataset.modpressCustomFieldBound = 'true';
-            button.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
+            const typeField = getCustomFieldTypeControl(row);
+            const targetFields = row.querySelectorAll('[data-custom-field-condition]');
+            if (!typeField && !targetFields.length) {
+                return;
+            }
+
+            const currentType = normalizeConditionValue(typeField ? (typeField.value || '') : '');
+            row.querySelectorAll('[data-custom-field-condition]').forEach((group) => {
+                const rawCondition = group.dataset.customFieldCondition || '';
+                let conditionValues = [];
+
                 try {
-                    addCustomFieldRow(button);
+                    const parsed = JSON.parse(rawCondition);
+                    conditionValues = Array.isArray(parsed) ? parsed : [parsed];
                 } catch (error) {
-                    console.error('[ModPress] Failed to add custom field row.', error);
+                    conditionValues = String(rawCondition).split(',').map((value) => value.trim()).filter(Boolean);
                 }
+
+                const normalizedCondition = conditionValues.map((value) => normalizeConditionValue(value));
+                const targetName = group.dataset.customFieldConditionTarget || '';
+                const targetTypeHint = targetName
+                    ? String(targetName)
+                        .replace(/^custom_field_type_/, '')
+                        .replace(/\[\]$/, '')
+                        .replace(/\[[^\]]*\]$/, '')
+                    : '';
+                const effectiveCurrentType = currentType || (targetTypeHint ? normalizeConditionValue(targetTypeHint) : '');
+                let shouldShow = false;
+
+                if (targetName && normalizedCondition.length > 1) {
+                    const targetField = row.querySelector('[name="' + targetName + '"]') || (targetName ? row.querySelector('[name^="' + targetName.replace(/\[\]$/, '') + '"]') : null);
+                    const targetValue = targetField ? normalizeConditionValue(targetField.value || (targetField.checked ? 'true' : '')) : '';
+                    shouldShow = effectiveCurrentType === normalizedCondition[0] && targetValue === normalizedCondition[1];
+                } else {
+                    shouldShow = normalizedCondition.includes(effectiveCurrentType);
+                }
+
+                group.classList.toggle('d-none', !shouldShow);
             });
-        });
-    };
-
-    const setModalFieldValue = (modal, name, value) => {
-        if (!modal || !name) {
-            return;
-        }
-
-        const field = modal.querySelector('[name="' + name + '"]');
-        if (!field) {
-            return;
-        }
-
-        field.value = value || '';
-    };
-
-    const setModalMediaValue = (modal, name, value) => {
-        if (!modal || !name) {
-            return;
-        }
-
-        const field = modal.querySelector('[name="' + name + '"]');
-        if (!field) {
-            return;
-        }
-
-        field.value = value || '';
-
-        const wrapper = field.closest('.modpress-media-picker');
-        const preview = wrapper ? wrapper.querySelector('[data-modpress-media-preview-container]') : null;
-        const previewImage = wrapper ? wrapper.querySelector('[data-modpress-media-preview-image]') : null;
-        if (preview) {
-            preview.classList.toggle('d-none', !value);
-        }
-        if (previewImage) {
-            previewImage.src = value || '';
-        }
-    };
-
-    const resetTaxonomyModal = (modal, type) => {
-        if (!modal) {
-            return;
-        }
-
-        const modalMap = {
-            file_type: {
-                fields: ['modpress-file-types-term-id', 'modpress-file-types-name', 'modpress-file-types-slug', 'modpress-file-types-description'],
-                media: ['modpress-file-types-image'],
-                title: 'Add File Type',
-            },
-            file_host: {
-                fields: ['modpress-file-hosts-term-id', 'modpress-file-hosts-name', 'modpress-file-hosts-slug', 'modpress-file-hosts-description', 'modpress-file-hosts-url'],
-                media: ['modpress-file-hosts-logo'],
-                title: 'Add File Host',
-            },
-            changelog_category: {
-                fields: ['modpress-changelog-category-term-id', 'modpress-changelog-category-name', 'modpress-changelog-category-slug', 'modpress-changelog-category-description', 'modpress-changelog-category-color'],
-                media: [],
-                title: 'Add Changelog Category',
-            },
         };
-
-        const config = modalMap[type] || null;
-        if (!config) {
-            return;
-        }
-
-        config.fields.forEach((fieldName) => setModalFieldValue(modal, fieldName, ''));
-        config.media.forEach((fieldName) => setModalMediaValue(modal, fieldName, ''));
-
-        const modalTitle = modal.querySelector('.modal-title');
-        if (modalTitle) {
-            modalTitle.textContent = config.title;
-        }
-    };
-
-    const populateTaxonomyModal = (button) => {
-        if (!button) {
-            return;
-        }
-
-        const targetSelector = button.getAttribute('data-bs-target');
-        if (!targetSelector) {
-            return;
-        }
-
-        const modal = document.querySelector(targetSelector);
-        if (!modal) {
-            return;
-        }
-
-        const type = button.dataset.modpressTaxonomyEdit;
-        if (!type) {
-            return;
-        }
-
-        if ('file_type' === type) {
-            setModalFieldValue(modal, 'modpress-file-types-term-id', button.dataset.termId || '0');
-            setModalFieldValue(modal, 'modpress-file-types-name', button.dataset.termName || '');
-            setModalFieldValue(modal, 'modpress-file-types-slug', button.dataset.termSlug || '');
-            setModalFieldValue(modal, 'modpress-file-types-description', button.dataset.termDescription || '');
-            setModalMediaValue(modal, 'modpress-file-types-image', button.dataset.termImage || '');
-            const title = modal.querySelector('.modal-title');
-            if (title) {
-                title.textContent = button.dataset.termId ? 'Edit File Type' : 'Add File Type';
+        /**
+         * Normalize a condition value for comparison.
+         *
+         * This function converts various representations of boolean and string values
+         * into a standardized format for consistent comparison.
+         *
+         * @param {string|null|undefined} value - The value to normalize.
+         * @returns {string} The normalized value.
+         * @since 1.0.0
+         */
+        const normalizeConditionValue = (value) => {
+            if (value === null || value === undefined) {
+                return '';
             }
-            return;
-        }
 
-        if ('file_host' === type) {
-            setModalFieldValue(modal, 'modpress-file-hosts-term-id', button.dataset.termId || '0');
-            setModalFieldValue(modal, 'modpress-file-hosts-name', button.dataset.termName || '');
-            setModalFieldValue(modal, 'modpress-file-hosts-slug', button.dataset.termSlug || '');
-            setModalFieldValue(modal, 'modpress-file-hosts-description', button.dataset.termDescription || '');
-            setModalFieldValue(modal, 'modpress-file-hosts-url', button.dataset.termUrl || '');
-            setModalMediaValue(modal, 'modpress-file-hosts-logo', button.dataset.termImage || '');
-            const title = modal.querySelector('.modal-title');
-            if (title) {
-                title.textContent = button.dataset.termId ? 'Edit File Host' : 'Add File Host';
+            const normalized = String(value).trim().toLowerCase();
+            if (['on', 'yes', 'true', 'checked', '1'].includes(normalized)) {
+                return 'true';
             }
-            return;
-        }
 
-        if ('changelog_category' === type) {
-            setModalFieldValue(modal, 'modpress-changelog-category-term-id', button.dataset.termId || '0');
-            setModalFieldValue(modal, 'modpress-changelog-category-name', button.dataset.termName || '');
-            setModalFieldValue(modal, 'modpress-changelog-category-slug', button.dataset.termSlug || '');
-            setModalFieldValue(modal, 'modpress-changelog-category-description', button.dataset.termDescription || '');
-            setModalFieldValue(modal, 'modpress-changelog-category-color', button.dataset.termColor || '#ffffff');
-            const title = modal.querySelector('.modal-title');
-            if (title) {
-                title.textContent = button.dataset.termId ? 'Edit Changelog Category' : 'Add Changelog Category';
+            if (['off', 'no', 'false', 'unchecked', '0'].includes(normalized)) {
+                return 'false';
             }
-        }
-    };
 
-    const addOptionRow = (button) => {
-        if (!button || button.dataset.modpressOptionAddPending === 'true') {
-            return;
-        }
-
-        const repeater = button.closest('.modpress-option-repeater');
-        if (!repeater) {
-            return;
-        }
-
-        button.dataset.modpressOptionAddPending = 'true';
-
-        try {
-            const fieldRow = button.closest('.modpress-custom-field-row');
-            const fieldIndex = fieldRow ? fieldRow.dataset.fieldIndex : null;
-            const optionIndex = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template')).length;
-            const clone = createOptionRow(repeater, fieldIndex, optionIndex);
-            if (clone) {
-                syncOptionRepeaterNames(repeater, fieldIndex);
+            return normalized;
+        };
+        /**
+         * Normalize a value to a boolean.
+         *
+         * This function converts various representations of boolean, number, and string values
+         * into a standardized boolean format.
+         *
+         * @param {any} value - The value to normalize.
+         * @returns {boolean} The normalized boolean value.
+         * @since 1.0.0
+         */
+        const normalizeBooleanValue = (value) => {
+            if (typeof value === 'boolean') {
+                return value;
             }
-        } finally {
-            window.setTimeout(() => {
-                delete button.dataset.modpressOptionAddPending;
-            }, 0);
-        }
-    };
 
-    document.addEventListener('input', (event) => {
-        const target = event.target;
-
-        if (target.matches('[name="post_title"], #modpress-mod-title')) {
-            syncModSlugFromTitle(target);
-        }
-
-        if (target.matches('[name="post_name"], #modpress-mod-slug')) {
-            target.dataset.modpressAutoGenerated = 'false';
-        }
-
-        if (target.matches('[name^="custom_field_label"]')) {
-            syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
-        }
-
-        if (target.matches('[name^="custom_field_slug"]')) {
-            const row = target.closest('.modpress-custom-field-row');
-            if (row) {
-                syncCustomFieldRowNames(row);
-                syncCustomFieldRepeaterNames(row);
+            if (typeof value === 'number') {
+                return value !== 0;
             }
-        }
-    });
 
-    document.addEventListener('change', (event) => {
-        const target = event.target;
-        if (target.matches('.modpress-row-checkbox')) {
-            syncDeleteButtons();
-        }
+            if (typeof value === 'string') {
+                const normalized = value.trim().toLowerCase();
+                if (['1', 'true', 'yes', 'on', 'checked'].includes(normalized)) {
+                    return true;
+                }
 
-        if (target.matches('#modpress-mod-type') || target.matches('[name="mod_type"]')) {
-            syncModGroupVisibility();
-        }
-
-        if (target.matches('.modpress-select-all')) {
-            const taxonomy = target.dataset.taxonomy;
-            const rows = document.querySelectorAll('.modpress-row-checkbox[data-taxonomy="' + taxonomy + '"]');
-            rows.forEach((checkbox) => {
-                checkbox.checked = target.checked;
+                if (['0', 'false', 'no', 'off', 'unchecked', ''].includes(normalized)) {
+                    return false;
+                }
             }
-            );
-            syncDeleteButtons();
-        }
 
-        if (target.matches('[name^="custom_field_label"]')) {
-            syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
-        }
-
-        if (target.matches('[name^="custom_field_slug"]')) {
-            const fieldRow = target.closest('.modpress-custom-field-row');
-            if (fieldRow) {
-                syncCustomFieldRowNames(fieldRow);
-                syncCustomFieldRepeaterNames(fieldRow);
+            return Boolean(value);
+        };
+        /**
+         * Get a named checkbox input within a given scope.
+         *
+         * @param {Element} scope - The scope to search within.
+         * @param {string} namePrefix - The name prefix to match.
+         * @returns {HTMLInputElement|null} The found checkbox input or null if not found.
+         * @since 1.0.0
+         */
+        const getNamedCheckbox = (scope, namePrefix = '') => {
+            if (!scope || !namePrefix) {
+                return null;
             }
-        }
 
-        if (target.matches('[name^="custom_field_type"]')) {
-            const fieldRow = target.closest('.modpress-custom-field-row');
-            syncCustomFieldVisibility(fieldRow);
-            syncOptionRepeaterType(fieldRow);
-        }
+            const inputs = Array.from(scope.querySelectorAll('input[type="checkbox"]'));
+            return inputs.find((input) => {
+                const name = String(input.getAttribute('name') || '');
+                return name === namePrefix
+                    || name.startsWith(namePrefix + '[')
+                    || name.startsWith(namePrefix + '[]')
+                    || name.startsWith(namePrefix);
+            }) || null;
+        };
+        /**
+         * Get the custom field type control within a given row.
+         *
+         * @param {Element} row - The row element to search within.
+         * @returns {Element|null} The found custom field type control or null if not found.
+         * @since 1.0.0
+         */
+        const getCustomFieldTypeControl = (row) => {
+            if (!row) {
+                return null;
+            }
 
-        if (isDependentTypeField(target)) {
-            const dependentRow = target.closest('.modpress-dependent-item');
-            syncDependentRowState(dependentRow);
-        }
+            return Array.from(row.querySelectorAll('[name^="custom_field_type"]')).find((field) => {
+                const name = String(field.getAttribute('name') || '');
+                if (name === 'custom_field_type' || name.startsWith('custom_field_type[')) {
+                    return true;
+                }
 
-        if (target.matches('[name^="custom_field_type_switch"]')) {
-            const fieldRow = target.closest('.modpress-custom-field-row');
-            syncCustomFieldVisibility(fieldRow);
-        }
+                if (name.startsWith('custom_field_type_')) {
+                    return !name.startsWith('custom_field_type_switch')
+                        && !name.startsWith('custom_field_type_switch_custom')
+                        && !name.startsWith('custom_field_type_color')
+                        && !name.startsWith('custom_field_type_radio')
+                        && !name.startsWith('custom_field_type_select')
+                        && !name.startsWith('custom_field_type_image_type')
+                        && !name.startsWith('custom_field_type_textarea_rows');
+                }
 
-        if (target.matches('[name="group_parent[]"]')) {
-            const modal = target.closest('.modal');
-            const parentValues = getSelectedValues(target);
-            const parentValue = parentValues[0] || '';
-            const parentEntryRow = modal ? modal.querySelector('[id$="-group-parent-entry-row"]') : document.querySelector('[id$="-group-parent-entry-row"]');
-            const parentEntrySelect = modal ? modal.querySelector('[name="group_parent_entry[]"]') : document.getElementById('group_parent_entry');
+                return false;
+            }) || null;
+        };
+        /**
+         * Find the parent control element based on the given parent name.
+         *
+         * @param {string} parentName - The name of the parent control to find.
+         * @returns {Element|null} The found parent control element or null if not found.
+         * @since 1.0.0
+         */
+        const findParentControl = (parentName = '') => {
+            const normalizedParentName = String(parentName || '').trim();
+            if (!normalizedParentName) {
+                return null;
+            }
+
+            const candidateIds = new Set();
+            candidateIds.add(normalizedParentName);
+            candidateIds.add(normalizedParentName.replace(/_/g, '-'));
+            candidateIds.add(normalizedParentName.replace(/-/g, '_'));
+
+            if (normalizedParentName === 'mod_type') {
+                candidateIds.add('modpress-mod-type');
+                candidateIds.add('modpress_mod_type');
+            }
+
+            for (const candidateId of candidateIds) {
+                const byId = candidateId ? document.getElementById(candidateId) : null;
+                if (byId) {
+                    return byId;
+                }
+            }
+
+            return null;
+        };
+        /**
+         * Synchronize the visibility of mod group fields based on their parent control values.
+         *
+         * This function iterates over all elements with the class 'modpress-dynamic-group-field'
+         * and toggles their visibility based on the values of their parent controls and the
+         * specified entries.
+         *
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const syncModGroupVisibility = () => {
+            document.querySelectorAll('.modpress-dynamic-group-field').forEach((field) => {
+                const parentName = String(field.dataset.modpressParentGroup || '').trim();
+                const entries = (() => {
+                    try {
+                        return JSON.parse(field.dataset.modpressParentEntries || '[]');
+                    } catch (error) {
+                        return [];
+                    }
+                })();
+
+                let shouldShow = true;
+                if (parentName && entries.length > 0) {
+                    const parentControl = findParentControl(parentName);
+                    const selectedValue = parentControl ? String(parentControl.value || '').trim() : '';
+                    shouldShow = entries.includes(selectedValue);
+                }
+
+                field.classList.toggle('d-none', !shouldShow);
+            });
+        };
+        /**
+         * Get the selected values from a select element.
+         *
+         * @param {HTMLSelectElement} select - The select element to retrieve values from.
+         * @returns {string[]} An array of selected values.
+         * @since 1.0.0
+         */
+        const getSelectedValues = (select) => {
+            if (!select) {
+                return [];
+            }
+
+            if (select.multiple) {
+                return Array.from(select.selectedOptions || []).map((option) => String(option.value || '')).filter((value) => value !== '');
+            }
+
+            const value = String(select.value || '').trim();
+            return value !== '' ? [value] : [];
+        };
+        /**
+         * Set the selected values for a select element.
+         *
+         * @param {HTMLSelectElement} select - The select element to set values for.
+         * @param {string[]} values - The values to select.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const setSelectedValues = (select, values = []) => {
+            if (!select) {
+                return;
+            }
+
+            const normalized = Array.isArray(values) ? values : [values];
+            const selectedValues = normalized
+                .map((value) => String(value ?? ''))
+                .filter((value) => value !== '' && value !== '0');
+
+            if (select.multiple) {
+                Array.from(select.options || []).forEach((option) => {
+                    option.selected = selectedValues.includes(String(option.value || ''));
+                });
+                return;
+            }
+
+            select.value = selectedValues[0] || '';
+        };
+        /**
+         * Synchronize the group parent field and its dependent parent entry field.
+         *
+         * @param {string} groupKey - The key of the group.
+         * @param {HTMLElement} modal - The modal element containing the fields.
+         * @param {string[]} selectedParentEntries - The selected parent entries.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const syncGroupParentField = (groupKey = '', modal = document.getElementById('modpress-group-modal'), selectedParentEntries = []) => {
+            const row = modal ? (modal.querySelector('.modpress-group-parent-row') || modal.querySelector('[id$="-group-parent-row"]')) : document.querySelector('.modpress-group-parent-row');
+            const select = modal ? (modal.querySelector('[name="group_parent[]"]') || modal.querySelector('[name="group_parent"]')) : document.querySelector('[name="group_parent[]"]') || document.querySelector('[name="group_parent"]');
+            const parentEntryRow = modal ? (modal.querySelector('[id$="-group-parent-entry-row"]') || modal.querySelector('.modpress-group-parent-entry-row')) : document.querySelector('[id$="-group-parent-entry-row"]') || document.querySelector('.modpress-group-parent-entry-row');
+            const parentEntrySelect = modal ? (modal.querySelector('[name="group_parent_entry[]"]') || modal.querySelector('[name="group_parent_entry"]')) : document.querySelector('[name="group_parent_entry[]"]') || document.querySelector('[name="group_parent_entry"]');
+            if (!row || !select) {
+                return;
+            }
+
+            const isReserved = String(groupKey || '').trim() === 'modpress_type';
+            row.classList.toggle('d-none', isReserved);
+            if (isReserved) {
+                setSelectedValues(select, []);
+                if (parentEntrySelect) {
+                    setSelectedValues(parentEntrySelect, []);
+                }
+            }
+
+            const parentValues = getSelectedValues(select);
             if (parentEntryRow && parentEntrySelect) {
-                parentEntryRow.classList.toggle('d-none', '' === parentValue);
+                const hasParent = parentValues.length > 0 && !isReserved;
+                parentEntryRow.classList.toggle('d-none', !hasParent);
             }
 
             if (parentEntrySelect) {
-                setSelectedValues(parentEntrySelect, []);
-                populateParentEntryOptions(getGroupParentEntries(parentValue, modal), [], modal);
+                const defaultParentEntries = Array.isArray(selectedParentEntries)
+                    ? selectedParentEntries
+                    : (selectedParentEntries ? [String(selectedParentEntries)] : getSelectedValues(parentEntrySelect));
+                const entries = getGroupParentEntries(parentValues[0] || '', modal);
+                populateParentEntryOptions(entries, defaultParentEntries, modal);
                 refreshBootstrapSelect(parentEntrySelect);
             }
-        }
 
-        if (target.matches('#modpress-mod-type') || target.matches('[name="mod_type"]')) {
+            if (window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
+                const instance = window.Selectpicker.getOrCreateInstance(select);
+                if (instance) {
+                    instance.refresh();
+                }
+            }
+        };
+        /**
+         * Reset the group modal to its default state.
+         *
+         * @param {HTMLElement} modal - The modal element to reset.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const resetGroupModal = (modal = document.getElementById('modpress-group-modal')) => {
+            if (!modal) {
+                return;
+            }
+
+            const fields = [
+                'group_edit_key',
+                'group_name',
+                'group_singular_name',
+                'group_slug',
+                'group_description',
+                'group_parent[]',
+                'group_parent_entry[]',
+            ];
+
+            fields.forEach((fieldName) => {
+                const input = modal.querySelector('[name="' + fieldName + '"]');
+                if (input) {
+                    if (input.multiple) {
+                        setSelectedValues(input, []);
+                    } else {
+                        input.value = '';
+                    }
+                }
+            });
+
+            const customFieldsContainer = modal.querySelector('[id$="-custom-fields-container"]');
+            if (customFieldsContainer) {
+                const customFieldTemplate = getCustomFieldTemplate(customFieldsContainer, modal);
+                customFieldsContainer.innerHTML = '';
+                if (customFieldTemplate && !customFieldsContainer.contains(customFieldTemplate)) {
+                    customFieldsContainer.appendChild(customFieldTemplate);
+                }
+            }
+
+            const hierarchicalInput = getNamedCheckbox(modal, 'group_hierarchical');
+            if (hierarchicalInput) {
+                hierarchicalInput.checked = false;
+            }
+
+            const deleteForm = modal.querySelector('[data-role="group-delete-form"]');
+            if (deleteForm) {
+                const groupIdInput = deleteForm.querySelector('[name="group_id"]');
+                const groupKeyInput = deleteForm.querySelector('[name="group_edit_key"]');
+                if (groupIdInput) {
+                    groupIdInput.value = '';
+                }
+                if (groupKeyInput) {
+                    groupKeyInput.value = '';
+                }
+            }
+
+            const modalTitle = modal.querySelector('.modal-title');
+            if (modalTitle) {
+                modalTitle.textContent = 'Add Group';
+            }
+
+            syncGroupParentField('');
+            syncGroupDeleteState();
             syncModGroupVisibility();
-        }
+            syncModGroupVisibility();
+        };
+        /**
+         * Get parent entries for a given group key.
+         *
+         * @param {string} parentKey - The key of the parent group.
+         * @param {HTMLElement} modal - The modal element containing group entries.
+         * @returns {Object} The parent entries for the specified group key.
+         * @since 1.0.0
+         */
+        const getGroupParentEntries = (parentKey = '', modal = document.getElementById('modpress-group-modal')) => {
+            const globalEntries = (window.modpressManager && window.modpressManager.groupEntries) || {};
+            const modalEntries = modal && modal.dataset && modal.dataset.groupEntries ? (() => {
+                try {
+                    return JSON.parse(modal.dataset.groupEntries || '{}');
+                } catch (error) {
+                    return {};
+                }
+            })() : {};
+            const groups = Object.keys(modalEntries).length ? modalEntries : globalEntries;
+            const lookupKey = String(parentKey || '').trim();
 
-        if (target.matches('[name$="_mode"]') || target.matches('.modpress-image-picker-mode-input')) {
-            const fieldWrapper = target.closest('.modpress-image-field');
-            if (!fieldWrapper) {
-                return;
+            if (!lookupKey) {
+                return {};
             }
 
-            const mode = target.value;
-            const imageMode = fieldWrapper.querySelector('.modpress-image-entry-mode-image');
-            const iconMode = fieldWrapper.querySelector('.modpress-image-entry-mode-icon');
-            const urlMode = fieldWrapper.querySelector('.modpress-image-entry-mode-url');
-            const activeHidden = fieldWrapper.querySelector('input[type="hidden"][name="' + (target.dataset.inputName || target.name.replace(/_mode$/, '')) + '"]');
-            const imageHidden = fieldWrapper.querySelector('.modpress-image-entry-mode-image input[type="hidden"]');
-            const iconHidden = fieldWrapper.querySelector('.modpress-fa-picker-container input[type="hidden"]');
-            const urlInput = fieldWrapper.querySelector('.modpress-image-entry-mode-url input[type="url"]');
-
-            if (imageMode) {
-                imageMode.style.display = mode === 'image' ? '' : 'none';
-            }
-            if (iconMode) {
-                iconMode.style.display = mode === 'icon' ? '' : 'none';
-            }
-            if (urlMode) {
-                urlMode.style.display = mode === 'url' ? '' : 'none';
+            if (groups && groups[lookupKey] && typeof groups[lookupKey] === 'object') {
+                return groups[lookupKey];
             }
 
-            if (imageHidden) {
-                imageHidden.disabled = mode !== 'image';
-            }
-            if (iconHidden) {
-                iconHidden.disabled = mode !== 'icon';
-            }
-            if (urlInput) {
-                urlInput.disabled = mode !== 'url';
-            }
+            const matchedGroup = Object.entries(groups || {}).find(([groupKey, entries]) => {
+                if (!entries || typeof entries !== 'object') {
+                    return false;
+                }
 
-            if (mode === 'icon' && iconHidden && (!iconHidden.value || !String(iconHidden.value).includes('fa-'))) {
-                iconHidden.value = 'fas fa-image';
-            }
-
-            if (activeHidden && mode === 'image') {
-                activeHidden.value = activeHidden.value || '';
-            }
-        }
-
-    });
-
-    document.addEventListener('changed.bs.select', (event) => {
-        const target = event && event.target ? event.target : null;
-        if (isDependentTypeField(target)) {
-            syncDependentTypeChange(target);
-        }
-    });
-
-    document.addEventListener('click', (event) => {
-        const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
-        if (dependentAddButton) {
-            event.preventDefault();
-            addDependentRow(dependentAddButton);
-            return;
-        }
-
-        const dependentRemoveButton = event.target.closest('.modpress-dependent-remove');
-        if (dependentRemoveButton) {
-            event.preventDefault();
-            const row = dependentRemoveButton.closest('.modpress-dependent-item');
-            if (row) {
-                row.remove();
-            }
-            return;
-        }
-
-        const fileAddButton = event.target.closest('[data-modpress-file-add]');
-        if (fileAddButton) {
-            event.preventDefault();
-            addFileRow(fileAddButton, 'internal');
-            return;
-        }
-
-        const sourceAddButton = event.target.closest('[data-file-type-add]');
-        if (sourceAddButton) {
-            event.preventDefault();
-            const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileTypeAdd
-                ? sourceAddButton.dataset.fileTypeAdd
-                : 'internal';
-            addFileTargetRow(sourceAddButton, sourceType);
-            return;
-        }
-
-        const fileRemoveButton = event.target.closest('.modpress-file-remove');
-        if (fileRemoveButton) {
-            event.preventDefault();
-            const row = fileRemoveButton.closest('.modpress-file-item');
-            if (row) {
-                row.remove();
-            }
-            return;
-        }
-
-        const fileTargetRemoveButton = event.target.closest('[data-file-type-remove]');
-        if (fileTargetRemoveButton) {
-            event.preventDefault();
-            const row = fileTargetRemoveButton.closest('[data-file-target-type]');
-            if (row) {
-                row.remove();
-            }
-            return;
-        }
-
-        const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
-        if (taxonomyResetButton) {
-            const target = taxonomyResetButton.getAttribute('data-bs-target');
-            const modal = target ? document.querySelector(target) : null;
-            resetTaxonomyModal(modal, taxonomyResetButton.dataset.modpressTaxonomyReset);
-            return;
-        }
-
-        const taxonomyEditButton = event.target.closest('[data-modpress-taxonomy-edit]');
-        if (taxonomyEditButton) {
-            populateTaxonomyModal(taxonomyEditButton);
-            return;
-        }
-
-        const groupPageLink = event.target.closest('.modpress-group-page-link');
-        if (groupPageLink) {
-            event.preventDefault();
-            loadGroupEntriesPage(groupPageLink);
-            return;
-        }
-
-        const deleteRowButton = event.target.closest('[data-role="delete-group-entry"]');
-        if (deleteRowButton) {
-            event.preventDefault();
-            const form = deleteRowButton.closest('form');
-            if (!form) {
-                return;
-            }
-            if (!window.confirm('Delete this entry?')) {
-                return;
-            }
-            form.submit();
-            return;
-        }
-
-        const bulkDeleteButton = event.target.closest('[data-role="bulk-delete-group-entry"], .btn-delete-selected');
-        if (bulkDeleteButton) {
-            event.preventDefault();
-            const form = bulkDeleteButton.form || bulkDeleteButton.closest('form');
-            if (!form) {
-                console.error('[ModPress] Bulk delete button missing its parent form.', {
-                    button: bulkDeleteButton.outerHTML,
-                });
-                return;
-            }
-
-            const checkedRows = collectBulkDeleteSelection(bulkDeleteButton);
-            if (!checkedRows.length) {
-                console.error('[ModPress] Bulk delete attempted without selected rows.', {
-                    formAction: form.getAttribute('action') || null,
-                    button: bulkDeleteButton.outerHTML,
-                });
-                return;
-            }
-
-            if (!window.confirm('Delete the selected entries?')) {
-                return;
-            }
-
-            const deleteArrayName = resolveBulkDeleteArrayName(form, 'group_entry_ids[]');
-
-            form.querySelectorAll('input[type="hidden"][name="group_entry_ids[]"], input[type="hidden"][name="file_type_ids[]"], input[type="hidden"][name="file_host_ids[]"]').forEach((existingInput) => {
-                existingInput.remove();
+                const normalizedGroupKey = String(groupKey || '').trim();
+                return normalizedGroupKey === lookupKey || String(lookupKey).replace(/^modpress_/, '') === String(normalizedGroupKey).replace(/^modpress_/, '');
             });
 
-            checkedRows.forEach((entryId) => {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = deleteArrayName;
-                hiddenInput.value = entryId;
-                form.appendChild(hiddenInput);
-            });
-
-            console.info('[ModPress] Submitting bulk delete for selected entries.', {
-                arrayName: deleteArrayName,
-                ids: checkedRows,
-            });
-            form.requestSubmit ? form.requestSubmit() : form.submit();
-            return;
-        }
-
-        const button = event.target.closest('[data-role="add-custom-field"]');
-        if (button) {
-            event.preventDefault();
-            try {
-                addCustomFieldRow(button);
-            } catch (error) {
-                console.error('[ModPress] Failed to add custom field row.', error);
-            }
-            return;
-        }
-
-        const optionButton = event.target.closest('[data-role="add-option-row"]');
-        if (optionButton) {
-            event.preventDefault();
-            event.stopPropagation();
-            addOptionRow(optionButton);
-            return;
-        }
-
-        const removeOptionButton = event.target.closest('[data-role="remove-option-row"]');
-        if (removeOptionButton) {
-            event.preventDefault();
-            event.stopPropagation();
-            const optionRow = removeOptionButton.closest('.modpress-option-row');
-            if (optionRow) {
-                optionRow.remove();
-            }
-            return;
-        }
-
-        const deleteGroupButton = event.target.closest('[data-role="delete-group"]');
-        if (deleteGroupButton) {
-            event.preventDefault();
-            const form = deleteGroupButton.form || deleteGroupButton.closest('form');
-            if (!form) {
+            return matchedGroup ? matchedGroup[1] : {};
+        };
+        /**
+         * Refresh a Bootstrap select element using the Selectpicker instance.
+         *
+         * @param {HTMLElement} select - The select element to refresh.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const refreshBootstrapSelect = (select) => {
+            if (!select || typeof window === 'undefined') {
                 return;
             }
-            const groupKey = form.querySelector('[name="group_edit_key"]')?.value || '';
-            if (groupKey && groupKey !== 'modpress_type') {
-                if (!window.confirm('Delete this group?')) {
+
+            if (window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
+                const instance = window.Selectpicker.getOrCreateInstance(select);
+                if (instance) {
+                    instance.refresh();
                     return;
                 }
-                form.submit();
+
+                try {
+                    new window.Selectpicker(select);
+                } catch (error) {
+                    // Ignore initialization errors for non-selectpicker elements.
+                }
             }
-            return;
-        }
+        };
+        /**
+         * Load the entries for a specific group page via AJAX.
+         *
+         * @param {HTMLElement} link - The link element that triggers the page load.
+         * @returns {Promise<boolean>} - Returns true if the page was successfully loaded, false otherwise.
+         * @since 1.0.0
+         */
+        const loadGroupEntriesPage = async (link) => {
+            if (!link) {
+                return false;
+            }
 
-        const removeButton = event.target.closest('[data-role="remove-custom-field"]');
-        if (removeButton) {
-            removeFieldRow(removeButton);
-        }
+            const taxonomyKey = link.dataset.modpressTaxonomyKey || '';
+            const pane = taxonomyKey ? document.getElementById('modpress-taxonomy-pane-' + taxonomyKey) : null;
+            if (!pane || !link.href) {
+                return false;
+            }
 
-        const groupEditButton = event.target.closest('.modpress-tab-edit-btn');
-        if (groupEditButton) {
-            return;
-        }
-    });
+            try {
+                const nextUrl = new URL(link.href, window.location.href);
+                const response = await fetch(nextUrl.toString(), {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
 
-    document.addEventListener('shown.bs.modal', (event) => {
-        const modal = event && event.target && event.target.closest ? event.target.closest('.modal') : null;
-        if (!modal) {
-            return;
-        }
+                if (!response.ok) {
+                    return false;
+                }
 
-        hydrateGroupModalCustomFields(modal);
-    });
+                const html = await response.text();
+                const parser = new DOMParser();
+                const documentFragment = parser.parseFromString(html, 'text/html');
+                const nextPane = documentFragment.getElementById('modpress-taxonomy-pane-' + taxonomyKey);
+                if (!nextPane) {
+                    return false;
+                }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const titleField = document.querySelector('[name="post_title"], #modpress-mod-title');
-        if (titleField) {
-            syncModSlugFromTitle(titleField);
-        }
+                pane.innerHTML = nextPane.innerHTML;
+                syncDeleteButtons();
+                return true;
+            } catch (error) {
+                return false;
+            }
+        };
+        /**
+         * Get the group fields from the provided group data.
+         *
+         * @param {Object} groupData - The group data object.
+         * @returns {Array} - Returns an array of group fields.
+         * @since 1.0.0
+         */
+        const getGroupFields = (groupData = {}) => {
+            if (Array.isArray(groupData.group_fields)) {
+                return groupData.group_fields;
+            }
 
-        hydrateDependentRows();
-        hydrateFileRows();
+            if (typeof groupData.group_fields === 'string') {
+                try {
+                    const decoded = JSON.parse(groupData.group_fields);
+                    return Array.isArray(decoded) ? decoded : [];
+                } catch (error) {
+                    return [];
+                }
+            }
 
-        document.querySelectorAll('.modpress-dependent-item').forEach((row) => {
-            syncDependentRowState(row);
+            return [];
+        };
+        /**
+         * Get the group fields from the modal's dataset.
+         *
+         * @param {HTMLElement} modal - The modal element.
+         * @returns {Array} - Returns an array of group fields.
+         * @since 1.0.0
+         */
+        const getModalGroupFields = (modal = document.getElementById('modpress-group-modal')) => {
+            if (!modal || !modal.dataset) {
+                return [];
+            }
+
+            const rawValue = String(modal.dataset.groupFields || '').trim();
+            if (!rawValue) {
+                return [];
+            }
+
+            try {
+                const parsedValue = JSON.parse(rawValue);
+                return Array.isArray(parsedValue) ? parsedValue : [];
+            } catch (error) {
+                console.error('[ModPress] Failed to parse saved group fields for modal hydration.', {
+                    modalId: modal.id || null,
+                    rawValue,
+                    error,
+                });
+                return [];
+            }
+        };
+        /**
+         * Hydrate the custom fields within the group modal.
+         *
+         * @param {HTMLElement} modal - The modal element.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const hydrateGroupModalCustomFields = (modal = document.getElementById('modpress-group-modal')) => {
+            if (!modal) {
+                return;
+            }
+
+            const container = modal.querySelector('[id$="-custom-fields-container"]');
+            if (!container) {
+                return;
+            }
+
+            const template = getCustomFieldTemplate(container, modal);
+            if (template && !container.contains(template)) {
+                container.appendChild(template);
+            }
+
+            populateCustomFieldRows({ group_fields: getModalGroupFields(modal) }, modal);
+            syncGroupDeleteState(modal);
+        };
+        /**
+         * Get the custom field container element.
+         *
+         * @param {HTMLElement|null} button - The button element that triggered the action.
+         * @param {HTMLElement|null} modal - The modal element.
+         * @returns {HTMLElement|null} The custom field container element.
+         * @since 1.0.0
+         */
+        const getCustomFieldContainer = (button = null, modal = null) => {
+            const explicitSelector = button && button.dataset && button.dataset.customFieldContainer
+                ? String(button.dataset.customFieldContainer || '').trim()
+                : '';
+
+            if (explicitSelector) {
+                const explicitContainer = document.querySelector(explicitSelector);
+                if (explicitContainer) {
+                    return explicitContainer;
+                }
+            }
+
+            const modalScope = modal || (button ? button.closest('.modal') : null);
+            if (modalScope) {
+                return modalScope.querySelector('.modpress-custom-fields-container') || modalScope.querySelector('[id$="-custom-fields-container"]');
+            }
+
+            return document.querySelector('.modpress-custom-fields-container') || document.querySelector('[id$="-custom-fields-container"]');
+        };
+        /**
+         * Get the custom field template element.
+         *
+         * @param {HTMLElement|null} container - The custom field container element.
+         * @param {HTMLElement|null} modal - The modal element.
+         * @returns {HTMLElement|null} The custom field template element.
+         * @since 1.0.0
+         */
+        const getCustomFieldTemplate = (container = null, modal = null) => {
+            const modalTemplate = modal ? modal.querySelector('[id$="-custom-field-template"]') : null;
+            if (modalTemplate) {
+                return modalTemplate;
+            }
+
+            if (container) {
+                const containerTemplate = container.querySelector('[id$="-custom-field-template"]');
+                if (containerTemplate) {
+                    return containerTemplate;
+                }
+            }
+
+            const globalTemplate = document.querySelector('[id$="-custom-field-template"]');
+            if (globalTemplate) {
+                if (container && !container.contains(globalTemplate)) {
+                    container.appendChild(globalTemplate);
+                }
+                return globalTemplate;
+            }
+
+            return null;
+        };
+        /**
+         * Normalize a single option entry.
+         *
+         * @param {Object|null} option - The option entry to normalize.
+         * @returns {Object|null} The normalized option entry.
+         * @since 1.0.0
+         */
+        const normalizeOptionEntry = (option = null) => {
+            if (!option || typeof option !== 'object') {
+                return null;
+            }
+
+            const label = String(option.label ?? option.name ?? option.text ?? '').trim();
+            const value = String(option.value ?? option.option ?? option.id ?? label).trim();
+            if (label === '' && value === '') {
+                return null;
+            }
+
+            return {
+                label: label || value,
+                value: value || label,
+            };
+        };
+        /**
+         * Normalize an array of field options.
+         *
+         * @param {Array|Object|string} options - The field options to normalize.
+         * @returns {Array} The normalized field options.
+         * @since 1.0.0
+         */
+        const normalizeFieldOptions = (options) => {
+            if (Array.isArray(options)) {
+                return options
+                    .map((option) => {
+                        if (option && typeof option === 'object') {
+                            return normalizeOptionEntry(option);
+                        }
+
+                        if (typeof option === 'string') {
+                            const trimmed = option.trim();
+                            return trimmed ? { label: trimmed, value: trimmed } : null;
+                        }
+
+                        return null;
+                    })
+                    .filter(Boolean);
+            }
+
+            if (typeof options === 'string') {
+                try {
+                    const decoded = JSON.parse(options);
+                    return normalizeFieldOptions(decoded);
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            if (options && typeof options === 'object') {
+                const entries = Array.isArray(options) ? options : Object.values(options);
+                return entries
+                    .map((entry) => {
+                        if (entry && typeof entry === 'object') {
+                            return normalizeOptionEntry(entry);
+                        }
+
+                        if (typeof entry === 'string') {
+                            const trimmed = entry.trim();
+                            return trimmed ? { label: trimmed, value: trimmed } : null;
+                        }
+
+                        return null;
+                    })
+                    .filter(Boolean);
+            }
+
+            return [];
+        };
+        /**
+         * Synchronize the delete state of a group modal.
+         *
+         * @param {HTMLElement|null} modal - The group modal element.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const syncGroupDeleteState = (modal = document.getElementById('modpress-group-modal')) => {
+            if (!modal) {
+                return;
+            }
+
+            const deleteWrap = modal.querySelector('.modpress-group-delete-wrap');
+            const deleteButton = modal.querySelector('[data-role="delete-group"]');
+            const editKeyInput = modal.querySelector('[name="group_edit_key"]');
+            const deleteForm = modal.querySelector('[data-role="group-delete-form"]');
+            const deleteGroupIdInput = deleteForm ? deleteForm.querySelector('[name="group_id"]') : null;
+            const deleteGroupKeyInput = deleteForm ? deleteForm.querySelector('[name="group_edit_key"]') : null;
+            const groupKey = String(editKeyInput ? editKeyInput.value : '').trim();
+            const shouldShowDelete = Boolean(groupKey) && groupKey !== 'modpress_type';
+
+            if (deleteWrap) {
+                deleteWrap.classList.toggle('d-none', !shouldShowDelete);
+            }
+
+            if (deleteButton) {
+                deleteButton.disabled = !shouldShowDelete;
+            }
+
+            if (deleteForm) {
+                if (deleteGroupIdInput) {
+                    deleteGroupIdInput.value = deleteForm.dataset.groupId || '';
+                }
+                if (deleteGroupKeyInput) {
+                    deleteGroupKeyInput.value = groupKey;
+                }
+            }
+        };
+        /**
+         * Get the next available custom field index within a given scope.
+         *
+         * @param {HTMLElement|Document} [scope=document] - The scope to search for custom field rows.
+         * @returns {number} The next available custom field index.
+         * @since 1.0.0
+         */
+        const getNextCustomFieldIndex = (scope = document) => {
+            const rows = scope && scope.querySelectorAll ? scope.querySelectorAll('.modpress-custom-field-row') : document.querySelectorAll('.modpress-custom-field-row');
+            let maxIndex = -1;
+
+            rows.forEach((row) => {
+                const current = Number(row.dataset.fieldIndex || 0);
+                if (!Number.isNaN(current) && current > maxIndex) {
+                    maxIndex = current;
+                }
+            });
+
+            return maxIndex + 1;
+        };
+        /**
+         * Get the next available custom field ID within a given scope.
+         *
+         * @param {HTMLElement|Document} [scope=document] - The scope to search for custom field rows.
+         * @returns {string} The next available custom field ID.
+         * @since 1.0.0
+         */
+        const getNextCustomFieldId = (scope = document) => {
+            const rows = scope && scope.querySelectorAll ? scope.querySelectorAll('.modpress-custom-field-row') : document.querySelectorAll('.modpress-custom-field-row');
+            let maxId = 0;
+
+            rows.forEach((row) => {
+                const hiddenInput = row.querySelector('[name="custom_field_id[]"]');
+                const candidate = hiddenInput ? String(hiddenInput.value || row.dataset.fieldId || '') : String(row.dataset.fieldId || '');
+                const numericId = Number(String(candidate).replace(/\D/g, ''));
+                if (!Number.isNaN(numericId) && numericId > maxId) {
+                    maxId = numericId;
+                }
+            });
+
+            return String(maxId + 1);
+        };
+        /**
+         * Sync the names of option repeater fields based on the row and field index.
+         *
+         * @param {HTMLElement} repeater - The option repeater element.
+         * @param {string|number} fieldIndex - The index of the custom field row.
+         * @since 1.0.0
+         */
+        const syncOptionRepeaterNames = (repeater, fieldIndex) => {
+            if (!repeater) {
+                return;
+            }
+
+            const row = repeater.closest('.modpress-custom-field-row');
+            const rowFieldKey = row ? (String(row.dataset.fieldSlug || row.querySelector('[name^="custom_field_slug"]')?.value || row.dataset.fieldId || fieldIndex || '').trim()) : String(fieldIndex || '').trim();
+            const type = repeater.dataset.optionType || 'radio';
+            const optionRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((optionRow) => !optionRow.closest('.modpress-option-row-template'));
+            optionRows.forEach((optionRow, optionIndex) => {
+                const labelInput = optionRow.querySelector('[data-option-role="label"]');
+                const valueInput = optionRow.querySelector('[data-option-role="value"]');
+                const keyedFieldKey = rowFieldKey || String(fieldIndex || '');
+                if (labelInput) {
+                    labelInput.name = 'custom_field_type_' + type + '[' + keyedFieldKey + '][' + optionIndex + '][label]';
+                }
+                if (valueInput) {
+                    valueInput.name = 'custom_field_type_' + type + '[' + keyedFieldKey + '][' + optionIndex + '][option]';
+                }
+            });
+        };
+        /**
+         * Sync the names of custom field repeater fields based on the row.
+         *
+         * @param {*} row - The custom field row element.
+         * @returns void
+         * @since 1.0.0
+         */
+        const syncCustomFieldRepeaterNames = (row) => {
+            if (!row) {
+                return;
+            }
+
+            const fieldIndex = row.dataset.fieldIndex;
+            if (!fieldIndex && fieldIndex !== '0') {
+                return;
+            }
+
+            row.querySelectorAll('.modpress-option-repeater').forEach((repeater) => {
+                syncOptionRepeaterNames(repeater, fieldIndex);
+            });
+        };
+        /**
+         * Create a new option row within the repeater.
+         *
+         * @param {*} repeater - The option repeater element.
+         * @param {string|number} fieldIndex - The index of the custom field row.
+         * @param {number|null} optionIndex - The index of the option row (optional).
+         * @returns {HTMLElement|null} The newly created option row element or null if creation failed.
+         * @since 1.0.0
+         */
+        const createOptionRow = (repeater, fieldIndex, optionIndex = null) => {
+            if (!repeater) {
+                return null;
+            }
+
+            const template = repeater.querySelector('.modpress-option-row-template');
+            if (!template) {
+                return null;
+            }
+
+            const items = repeater.querySelector('.modpress-option-repeater-items');
+            if (!items) {
+                return null;
+            }
+
+            const actualRows = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template'));
+            const resolvedIndex = optionIndex !== null && optionIndex !== undefined ? optionIndex : actualRows.length;
+
+            const clone = template.cloneNode(true);
+            clone.classList.remove('d-none');
+            clone.classList.remove('modpress-option-row-template');
+            clone.classList.add('modpress-option-row');
+
+            if (fieldIndex !== null && fieldIndex !== undefined && fieldIndex !== '') {
+                const labelInput = clone.querySelector('[data-option-role="label"]');
+                const valueInput = clone.querySelector('[data-option-role="value"]');
+                const type = repeater.dataset.optionType || 'radio';
+                if (labelInput) {
+                    labelInput.name = 'custom_field_type_' + type + '[' + fieldIndex + '][' + resolvedIndex + '][label]';
+                }
+                if (valueInput) {
+                    valueInput.name = 'custom_field_type_' + type + '[' + fieldIndex + '][' + resolvedIndex + '][option]';
+                }
+            }
+
+            items.appendChild(clone);
+            return clone;
+        };
+        /**
+         * Synchronize the type of option repeater rows based on the custom field type.
+         *
+         * @param {HTMLElement} row - The custom field row element.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const syncOptionRepeaterType = (row) => {
+            if (!row) {
+                return;
+            }
+
+            const typeField = getCustomFieldTypeControl(row);
+            const repeaters = row.querySelectorAll('.modpress-option-repeater');
+            if (!typeField || !repeaters.length) {
+                return;
+            }
+
+            const nextType = String(typeField.value || 'text').toLowerCase();
+            const optionTypes = ['radio', 'select'];
+            repeaters.forEach((repeater) => {
+                const repeaterType = String(repeater.dataset.optionType || 'radio').toLowerCase();
+                const shouldShow = optionTypes.includes(repeaterType) && repeaterType === nextType;
+                repeater.classList.toggle('d-none', !shouldShow);
+                const repeatableGroup = repeater.closest('tr');
+                if (repeatableGroup) {
+                    repeatableGroup.classList.toggle('d-none', !shouldShow);
+                }
+                syncOptionRepeaterNames(repeater, row.dataset.fieldIndex);
+            });
+        };
+        /**
+         * Add a new option row to the repeater.
+         *
+         * @param {HTMLElement} button - The button element that triggered the addition.
+         * @returns {void}
+         * @since 1.0.0
+         */
+        const addOptionRow = (button) => {
+            if (!button || button.dataset.modpressOptionAddPending === 'true') {
+                return;
+            }
+
+            const repeater = button.closest('.modpress-option-repeater');
+            if (!repeater) {
+                return;
+            }
+
+            button.dataset.modpressOptionAddPending = 'true';
+
+            try {
+                const fieldRow = button.closest('.modpress-custom-field-row');
+                const fieldIndex = fieldRow ? fieldRow.dataset.fieldIndex : null;
+                const optionIndex = Array.from(repeater.querySelectorAll('.modpress-option-row')).filter((row) => !row.closest('.modpress-option-row-template')).length;
+                const clone = createOptionRow(repeater, fieldIndex, optionIndex);
+                if (clone) {
+                    syncOptionRepeaterNames(repeater, fieldIndex);
+                }
+            } finally {
+                window.setTimeout(() => {
+                    delete button.dataset.modpressOptionAddPending;
+                }, 0);
+            }
+        };
+        /**
+         * Handle input and change events for various elements.
+         *
+         * This section listens for input and change events on the document and triggers
+         * appropriate synchronization functions based on the target element.
+         * 
+         * @returns {void}
+         * @since 1.0.0
+         */
+        document.addEventListener('input', (event) => {
+            const target = event.target;
+
+            if (target.matches('[name="post_title"], #modpress-mod-title')) {
+                syncModSlugFromTitle(target);
+            }
+
+            if (target.matches('[name="post_name"], #modpress-mod-slug')) {
+                target.dataset.modpressAutoGenerated = 'false';
+            }
+
+            if (target.matches('[name^="custom_field_label"]')) {
+                syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
+            }
+
+            if (target.matches('[name^="custom_field_slug"]')) {
+                const row = target.closest('.modpress-custom-field-row');
+                if (row) {
+                    syncCustomFieldRowNames(row);
+                    syncCustomFieldRepeaterNames(row);
+                }
+            }
         });
+        /**
+         * Handle change events for various elements on the groups page.
+         *
+         * This section listens for change events on the document and triggers
+         * appropriate synchronization functions based on the target element.
+         *
+         * @returns {void}
+         * @since 1.0.0
+         */
+        document.addEventListener('change', (event) => {
+            const target = event.target;
+            if (target.matches('.modpress-row-checkbox')) {
+                syncDeleteButtons();
+            }
 
-        document.querySelectorAll('.modpress-file-item').forEach((row) => {
-            syncFileRowState(row);
+            if (target.matches('#modpress-mod-type') || target.matches('[name="mod_type"]')) {
+                syncModGroupVisibility();
+            }
+
+            if (target.matches('.modpress-select-all')) {
+                const taxonomy = target.dataset.taxonomy;
+                const rows = document.querySelectorAll('.modpress-row-checkbox[data-taxonomy="' + taxonomy + '"]');
+                rows.forEach((checkbox) => {
+                    checkbox.checked = target.checked;
+                }
+                );
+                syncDeleteButtons();
+            }
+
+            if (target.matches('[name^="custom_field_label"]')) {
+                syncCustomFieldLabel(target.closest('.modpress-custom-field-row'));
+            }
+
+            if (target.matches('[name^="custom_field_slug"]')) {
+                const fieldRow = target.closest('.modpress-custom-field-row');
+                if (fieldRow) {
+                    syncCustomFieldRowNames(fieldRow);
+                    syncCustomFieldRepeaterNames(fieldRow);
+                }
+            }
+
+            if (target.matches('[name^="custom_field_type"]')) {
+                const fieldRow = target.closest('.modpress-custom-field-row');
+                syncCustomFieldVisibility(fieldRow);
+                syncOptionRepeaterType(fieldRow);
+            }
+
+            if (isDependentTypeField(target)) {
+                const dependentRow = target.closest('.modpress-dependent-item');
+                syncDependentRowState(dependentRow);
+            }
+
+            if (target.matches('[name^="custom_field_type_switch"]')) {
+                const fieldRow = target.closest('.modpress-custom-field-row');
+                syncCustomFieldVisibility(fieldRow);
+            }
+
+            if (target.matches('[name="group_parent[]"]')) {
+                const modal = target.closest('.modal');
+                const parentValues = getSelectedValues(target);
+                const parentValue = parentValues[0] || '';
+                const parentEntryRow = modal ? modal.querySelector('[id$="-group-parent-entry-row"]') : document.querySelector('[id$="-group-parent-entry-row"]');
+                const parentEntrySelect = modal ? modal.querySelector('[name="group_parent_entry[]"]') : document.getElementById('group_parent_entry');
+                if (parentEntryRow && parentEntrySelect) {
+                    parentEntryRow.classList.toggle('d-none', '' === parentValue);
+                }
+
+                if (parentEntrySelect) {
+                    setSelectedValues(parentEntrySelect, []);
+                    populateParentEntryOptions(getGroupParentEntries(parentValue, modal), [], modal);
+                    refreshBootstrapSelect(parentEntrySelect);
+                }
+            }
+
+            if (target.matches('#modpress-mod-type') || target.matches('[name="mod_type"]')) {
+                syncModGroupVisibility();
+            }
+
+            if (target.matches('[name$="_mode"]') || target.matches('.modpress-image-picker-mode-input')) {
+                const fieldWrapper = target.closest('.modpress-image-field');
+                if (!fieldWrapper) {
+                    return;
+                }
+
+                const mode = target.value;
+                const imageMode = fieldWrapper.querySelector('.modpress-image-entry-mode-image');
+                const iconMode = fieldWrapper.querySelector('.modpress-image-entry-mode-icon');
+                const urlMode = fieldWrapper.querySelector('.modpress-image-entry-mode-url');
+                const activeHidden = fieldWrapper.querySelector('input[type="hidden"][name="' + (target.dataset.inputName || target.name.replace(/_mode$/, '')) + '"]');
+                const imageHidden = fieldWrapper.querySelector('.modpress-image-entry-mode-image input[type="hidden"]');
+                const iconHidden = fieldWrapper.querySelector('.modpress-fa-picker-container input[type="hidden"]');
+                const urlInput = fieldWrapper.querySelector('.modpress-image-entry-mode-url input[type="url"]');
+
+                if (imageMode) {
+                    imageMode.style.display = mode === 'image' ? '' : 'none';
+                }
+                if (iconMode) {
+                    iconMode.style.display = mode === 'icon' ? '' : 'none';
+                }
+                if (urlMode) {
+                    urlMode.style.display = mode === 'url' ? '' : 'none';
+                }
+
+                if (imageHidden) {
+                    imageHidden.disabled = mode !== 'image';
+                }
+                if (iconHidden) {
+                    iconHidden.disabled = mode !== 'icon';
+                }
+                if (urlInput) {
+                    urlInput.disabled = mode !== 'url';
+                }
+
+                if (mode === 'icon' && iconHidden && (!iconHidden.value || !String(iconHidden.value).includes('fa-'))) {
+                    iconHidden.value = 'fas fa-image';
+                }
+
+                if (activeHidden && mode === 'image') {
+                    activeHidden.value = activeHidden.value || '';
+                }
+            }
+
         });
+        /**
+         * Hydrate group modal custom fields when a modal is shown.
+         *
+         * @since 1.0.0
+         */
+        document.addEventListener('shown.bs.modal', (event) => {
+            const modal = event && event.target && event.target.closest ? event.target.closest('.modal') : null;
+            if (!modal) {
+                return;
+            }
 
-        document.querySelectorAll('.modal[data-group-fields]').forEach((modal) => {
             hydrateGroupModalCustomFields(modal);
         });
-    });
-
-    bindCustomFieldButtons();
-    syncDeleteButtons();
-    syncModManagerTabs();
+        bindCustomFieldButtons();
+        bindCustomFieldButtons();
+    })();
+    /**
+     * Tags Page
+     *
+     * @since 1.0.0
+     */
+    const tagsPage = document.querySelector('.modpress-tags-page');
+    tagsPage && (() => {
+        // Your tags page specific code here
+    })();
 })();
