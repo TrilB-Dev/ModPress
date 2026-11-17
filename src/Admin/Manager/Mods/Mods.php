@@ -790,7 +790,7 @@ final class Mods extends ModManager {
 													</template>
 													<template id="modpress-file-target-external-template">
 														<div class="container-fluid">
-														<div class="row g-3 m-2 p-3 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
+															<div class="row g-3 m-2 p-3 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
 																<div class="row g-3 align-items-end">
 																	<div class="col-md-3">
 																	<?php echo FormFieldHelper::label( 
@@ -835,13 +835,6 @@ final class Mods extends ModManager {
 																			__('Please provide the download URL for the external file.', 'modpress')
 																		); ?>
 																	</div>
-																</div>
-															</div>
-														</div>
-													</template>
-																				
-																		
-																	</div>
 																	<div class="col-md-1 d-flex align-items-end justify-content-end">
 																		<?php echo FormFieldHelper::button(
 																			FAHelper::faicon( 'trash' ),
@@ -856,6 +849,7 @@ final class Mods extends ModManager {
 																		); ?>
 																	</div>
 																</div>
+															</div>
 														</div>
 													</template>
 												</div>
