@@ -36,4 +36,9 @@
 			pointer-events: none;
 		}
 	}
+	.modpress-file-name, .modpress-file-version {
+		width: stretch;
+		display: inline-block;
+		margin-right: 0.5rem;
+	}
 }
