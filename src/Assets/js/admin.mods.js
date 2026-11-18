@@ -2974,6 +2974,208 @@
                 return;
             }
         });
+        /**
+         * Handle click events for various elements.
+         *
+         * This section listens for click events on the document and triggers
+         * appropriate functions based on the target element.
+         * 
+         * @returns {void}
+         * @since 1.0.0
+         */
+        document.addEventListener('click', (event) => {
+            const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
+            if (dependentAddButton) {
+                event.preventDefault();
+                addDependentRow(dependentAddButton);
+                return;
+            }
+
+            const dependentRemoveButton = event.target.closest('.modpress-dependent-remove');
+            if (dependentRemoveButton) {
+                event.preventDefault();
+                const row = dependentRemoveButton.closest('.modpress-dependent-item');
+                if (row) {
+                    row.remove();
+                }
+                return;
+            }
+
+            const fileAddButton = event.target.closest('[data-modpress-file-add]');
+            if (fileAddButton) {
+                event.preventDefault();
+                addFileRow(fileAddButton, 'internal');
+                return;
+            }
+
+            const sourceAddButton = event.target.closest('[data-file-type-add]');
+            if (sourceAddButton) {
+                event.preventDefault();
+                const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileTypeAdd
+                    ? sourceAddButton.dataset.fileTypeAdd
+                    : 'internal';
+                addFileTargetRow(sourceAddButton, sourceType);
+                return;
+            }
+
+            const fileRemoveButton = event.target.closest('.modpress-file-remove');
+            if (fileRemoveButton) {
+                event.preventDefault();
+                const row = fileRemoveButton.closest('.modpress-file-item');
+                if (row) {
+                    row.remove();
+                }
+                return;
+            }
+
+            const fileTargetRemoveButton = event.target.closest('[data-file-type-remove]');
+            if (fileTargetRemoveButton) {
+                event.preventDefault();
+                const row = fileTargetRemoveButton.closest('[data-file-target-type]');
+                if (row) {
+                    row.remove();
+                }
+                return;
+            }
+
+            const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
+            if (taxonomyResetButton) {
+                const target = taxonomyResetButton.getAttribute('data-bs-target');
+                const modal = target ? document.querySelector(target) : null;
+                resetTaxonomyModal(modal, taxonomyResetButton.dataset.modpressTaxonomyReset);
+                return;
+            }
+
+            const taxonomyEditButton = event.target.closest('[data-modpress-taxonomy-edit]');
+            if (taxonomyEditButton) {
+                populateTaxonomyModal(taxonomyEditButton);
+                return;
+            }
+
+            const groupPageLink = event.target.closest('.modpress-group-page-link');
+            if (groupPageLink) {
+                event.preventDefault();
+                loadGroupEntriesPage(groupPageLink);
+                return;
+            }
+
+            const deleteRowButton = event.target.closest('[data-role="delete-group-entry"]');
+            if (deleteRowButton) {
+                event.preventDefault();
+                const form = deleteRowButton.closest('form');
+                if (!form) {
+                    return;
+                }
+                if (!window.confirm('Delete this entry?')) {
+                    return;
+                }
+                form.submit();
+                return;
+            }
+
+            const bulkDeleteButton = event.target.closest('[data-role="bulk-delete-group-entry"], .btn-delete-selected');
+            if (bulkDeleteButton) {
+                event.preventDefault();
+                const form = bulkDeleteButton.form || bulkDeleteButton.closest('form');
+                if (!form) {
+                    console.error('[ModPress] Bulk delete button missing its parent form.', {
+                        button: bulkDeleteButton.outerHTML,
+                    });
+                    return;
+                }
+
+                const checkedRows = collectBulkDeleteSelection(bulkDeleteButton);
+                if (!checkedRows.length) {
+                    console.error('[ModPress] Bulk delete attempted without selected rows.', {
+                        formAction: form.getAttribute('action') || null,
+                        button: bulkDeleteButton.outerHTML,
+                    });
+                    return;
+                }
+
+                if (!window.confirm('Delete the selected entries?')) {
+                    return;
+                }
+
+                const deleteArrayName = resolveBulkDeleteArrayName(form, 'group_entry_ids[]');
+
+                form.querySelectorAll('input[type="hidden"][name="group_entry_ids[]"], input[type="hidden"][name="file_type_ids[]"], input[type="hidden"][name="file_host_ids[]"]').forEach((existingInput) => {
+                    existingInput.remove();
+                });
+
+                checkedRows.forEach((entryId) => {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = deleteArrayName;
+                    hiddenInput.value = entryId;
+                    form.appendChild(hiddenInput);
+                });
+
+                console.info('[ModPress] Submitting bulk delete for selected entries.', {
+                    arrayName: deleteArrayName,
+                    ids: checkedRows,
+                });
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+                return;
+            }
+
+            const button = event.target.closest('[data-role="add-custom-field"]');
+            if (button) {
+                event.preventDefault();
+                try {
+                    addCustomFieldRow(button);
+                } catch (error) {
+                    console.error('[ModPress] Failed to add custom field row.', error);
+                }
+                return;
+            }
+
+            const optionButton = event.target.closest('[data-role="add-option-row"]');
+            if (optionButton) {
+                event.preventDefault();
+                event.stopPropagation();
+                addOptionRow(optionButton);
+                return;
+            }
+
+            const removeOptionButton = event.target.closest('[data-role="remove-option-row"]');
+            if (removeOptionButton) {
+                event.preventDefault();
+                event.stopPropagation();
+                const optionRow = removeOptionButton.closest('.modpress-option-row');
+                if (optionRow) {
+                    optionRow.remove();
+                }
+                return;
+            }
+
+            const deleteGroupButton = event.target.closest('[data-role="delete-group"]');
+            if (deleteGroupButton) {
+                event.preventDefault();
+                const form = deleteGroupButton.form || deleteGroupButton.closest('form');
+                if (!form) {
+                    return;
+                }
+                const groupKey = form.querySelector('[name="group_edit_key"]')?.value || '';
+                if (groupKey && groupKey !== 'modpress_type') {
+                    if (!window.confirm('Delete this group?')) {
+                        return;
+                    }
+                    form.submit();
+                }
+                return;
+            }
+
+            const removeButton = event.target.closest('[data-role="remove-custom-field"]');
+            if (removeButton) {
+                removeFieldRow(removeButton);
+            }
+
+            const groupEditButton = event.target.closest('.modpress-tab-edit-btn');
+            if (groupEditButton) {
+                return;
+            }
+        });
         bindCustomFieldButtons();
         bindCustomFieldButtons();
     })();
