@@ -147,59 +147,6 @@
          * @since 1.0.0
          */
         document.addEventListener('click', (event) => {
-            const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
-            if (dependentAddButton) {
-                event.preventDefault();
-                addDependentRow(dependentAddButton);
-                return;
-            }
-
-            const dependentRemoveButton = event.target.closest('.modpress-dependent-remove');
-            if (dependentRemoveButton) {
-                event.preventDefault();
-                const row = dependentRemoveButton.closest('.modpress-dependent-item');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
-            const fileAddButton = event.target.closest('[data-modpress-file-add]');
-            if (fileAddButton) {
-                event.preventDefault();
-                addFileRow(fileAddButton, 'internal');
-                return;
-            }
-
-            const sourceAddButton = event.target.closest('[data-file-type-add]');
-            if (sourceAddButton) {
-                event.preventDefault();
-                const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileTypeAdd
-                    ? sourceAddButton.dataset.fileTypeAdd
-                    : 'internal';
-                addFileTargetRow(sourceAddButton, sourceType);
-                return;
-            }
-
-            const fileRemoveButton = event.target.closest('.modpress-file-remove');
-            if (fileRemoveButton) {
-                event.preventDefault();
-                const row = fileRemoveButton.closest('.modpress-file-item');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
-            const fileTargetRemoveButton = event.target.closest('[data-file-type-remove]');
-            if (fileTargetRemoveButton) {
-                event.preventDefault();
-                const row = fileTargetRemoveButton.closest('[data-file-target-type]');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
 
             const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
             if (taxonomyResetButton) {
@@ -745,6 +692,171 @@
             return buildFileTargetRow(fileRow, type, {});
         };
         /**
+         * Refreshes a Bootstrap select after cloning or changing its options.
+         *
+         * @param {HTMLElement} select The select element to refresh.
+         * @since 1.0.0
+         */
+        const refreshBootstrapSelect = (select) => {
+            if (!select) {
+                return;
+            }
+
+            if (window.Selectpicker && typeof window.Selectpicker.getOrCreateInstance === 'function') {
+                const instance = window.Selectpicker.getOrCreateInstance(select);
+                if (instance) {
+                    instance.refresh();
+                }
+            } else if (window.jQuery && window.jQuery.fn && window.jQuery.fn.selectpicker) {
+                window.jQuery(select).selectpicker('refresh');
+            }
+        };
+        /**
+         * Determines whether a field controls a dependent row type.
+         *
+         * @param {HTMLElement|null} field The field to inspect.
+         * @returns {boolean} Whether the field is a dependent type field.
+         * @since 1.0.0
+         */
+        const isDependentTypeField = (field) =>
+            Boolean(field && field.matches('.modpress-dependent-type'));
+        /**
+         * Synchronizes dependent internal and external fields for a row.
+         *
+         * @param {HTMLElement|null} row The dependent row to synchronize.
+         * @since 1.0.0
+         */
+        const syncDependentRowState = (row) => {
+            if (!row) {
+                return;
+            }
+
+            const typeField = row.querySelector('.modpress-dependent-type');
+            const type = typeField && typeField.value === 'external' ? 'external' : 'internal';
+            row.dataset.dependentType = type;
+
+            row.querySelectorAll('.modpress-dependent-target-internal, .modpress-dependent-target-external').forEach((target) => {
+                const isInternal = target.classList.contains('modpress-dependent-target-internal');
+                target.classList.toggle('d-none', isInternal ? type !== 'internal' : type !== 'external');
+            });
+        };
+        /**
+         * Synchronizes a dependent row after its type changes.
+         *
+         * @param {HTMLElement|null} field The changed dependent type field.
+         * @since 1.0.0
+         */
+        const syncDependentTypeChange = (field) => {
+            if (!field) {
+                return;
+            }
+            syncDependentRowState(field.closest('.modpress-dependent-item'));
+        };
+        /**
+         * Retrieves the next available dependent row index.
+         *
+         * @param {HTMLElement} repeater The dependent repeater.
+         * @returns {number} The next row index.
+         * @since 1.0.0
+         */
+        const getNextDependentIndex = (repeater) => {
+            let highestIndex = -1;
+            repeater.querySelectorAll('.modpress-dependent-item').forEach((row) => {
+                const index = Number.parseInt(row.dataset.dependentIndex || '', 10);
+                if (Number.isInteger(index) && index > highestIndex) {
+                    highestIndex = index;
+                }
+            });
+            return highestIndex + 1;
+        };
+        /**
+         * Builds a dependent row and updates names and IDs for its fields.
+         *
+         * @param {HTMLElement} repeater The dependent repeater.
+         * @param {Object} dependent Saved dependent values.
+         * @param {number|null} rowIndex The row index.
+         * @returns {HTMLElement|null} The created row.
+         * @since 1.0.0
+         */
+        const buildDependentRow = (repeater, dependent = {}, rowIndex = null) => {
+            const template = document.getElementById('modpress-dependent-template');
+            if (!template || !template.content || !template.content.firstElementChild) {
+                return null;
+            }
+
+            const row = template.content.firstElementChild.cloneNode(true);
+            const index = Number.isInteger(rowIndex) ? rowIndex : getNextDependentIndex(repeater);
+            row.dataset.dependentIndex = String(index);
+
+            const typeField = row.querySelector('.modpress-dependent-type');
+            if (typeField) {
+                typeField.name = 'dependents[' + index + '][type]';
+                typeField.id = 'modpress-dependent-type-' + index;
+                typeField.value = dependent.type === 'external' ? 'external' : 'internal';
+                refreshBootstrapSelect(typeField);
+            }
+
+            const internalField = row.querySelector('.modpress-dependent-internal');
+            if (internalField) {
+                internalField.name = 'dependents[' + index + '][mod_id]';
+                internalField.id = 'modpress-dependent-mod-' + index;
+                internalField.value = dependent.mod_id ? String(dependent.mod_id) : '';
+                refreshBootstrapSelect(internalField);
+            }
+
+            const externalField = row.querySelector('.modpress-dependent-external');
+            if (externalField) {
+                externalField.name = 'dependents[' + index + '][external_url]';
+                externalField.id = 'modpress-dependent-url-' + index;
+                externalField.value = typeof dependent.external_url === 'string' ? dependent.external_url : '';
+            }
+
+            const instructionsField = row.querySelector('.modpress-dependent-instructions');
+            if (instructionsField) {
+                instructionsField.name = 'dependents[' + index + '][instructions]';
+                instructionsField.id = 'modpress-dependent-instructions-' + index;
+                instructionsField.value = typeof dependent.instructions === 'string' ? dependent.instructions : '';
+            }
+
+            repeater.appendChild(row);
+            syncDependentRowState(row);
+            return row;
+        };
+        /**
+         * Hydrates saved dependents and adds a blank dependent row when none exist.
+         *
+         * @since 1.0.0
+         */
+        const hydrateDependentRows = () => {
+            const repeater = document.getElementById('modpress-dependent-repeater');
+            if (!repeater) {
+                return;
+            }
+
+            let dependents = [];
+            try {
+                dependents = JSON.parse(repeater.dataset.modpressSavedDependents || '[]');
+            } catch (error) {
+                dependents = [];
+            }
+
+            if (Array.isArray(dependents) && dependents.length) {
+                dependents.forEach((dependent, index) => buildDependentRow(repeater, dependent, index));
+            }
+        };
+        /**
+         * Adds a dependent row to the Mods page repeater.
+         *
+         * @since 1.0.0
+         */
+        const addDependentRow = () => {
+            const repeater = document.getElementById('modpress-dependent-repeater');
+            if (!repeater) {
+                return null;
+            }
+            return buildDependentRow(repeater, { type: 'internal' }, getNextDependentIndex(repeater));
+        };
+        /**
          * Sets the value of a field within a modal.
          *
          * @param {HTMLElement} modal The modal element containing the field.
@@ -964,53 +1076,6 @@
                 return;
             }
 
-            const dependentRemoveButton = event.target.closest('.modpress-dependent-remove');
-            if (dependentRemoveButton) {
-                event.preventDefault();
-                const row = dependentRemoveButton.closest('.modpress-dependent-item');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
-            const fileAddButton = event.target.closest('[data-modpress-file-add]');
-            if (fileAddButton) {
-                event.preventDefault();
-                addFileRow(fileAddButton, 'internal');
-                return;
-            }
-
-            const sourceAddButton = event.target.closest('[data-file-type-add]');
-            if (sourceAddButton) {
-                event.preventDefault();
-                const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileTypeAdd
-                    ? sourceAddButton.dataset.fileTypeAdd
-                    : 'internal';
-                addFileTargetRow(sourceAddButton, sourceType);
-                return;
-            }
-
-            const fileRemoveButton = event.target.closest('.modpress-file-remove');
-            if (fileRemoveButton) {
-                event.preventDefault();
-                const row = fileRemoveButton.closest('.modpress-file-item');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
-            const fileTargetRemoveButton = event.target.closest('[data-file-type-remove]');
-            if (fileTargetRemoveButton) {
-                event.preventDefault();
-                const row = fileTargetRemoveButton.closest('[data-file-target-type]');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
             const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
             if (taxonomyResetButton) {
                 const target = taxonomyResetButton.getAttribute('data-bs-target');
@@ -1160,6 +1225,14 @@
                     syncDependentTypeChange(target);
                 }
         });
+        document.addEventListener('change', (event) => {
+            const target = event.target;
+            if (isDependentTypeField(target)) {
+                syncDependentTypeChange(target);
+            }
+        });
+        hydrateDependentRows();
+        hydrateFileRows();
     })();
     /**
      * Changelogs Page
@@ -2683,11 +2756,6 @@
                 syncOptionRepeaterType(fieldRow);
             }
 
-            if (isDependentTypeField(target)) {
-                const dependentRow = target.closest('.modpress-dependent-item');
-                syncDependentRowState(dependentRow);
-            }
-
             if (target.matches('[name^="custom_field_type_switch"]')) {
                 const fieldRow = target.closest('.modpress-custom-field-row');
                 syncCustomFieldVisibility(fieldRow);
@@ -2782,59 +2850,6 @@
          * @since 1.0.0
          */
         document.addEventListener('click', (event) => {
-            const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
-            if (dependentAddButton) {
-                event.preventDefault();
-                addDependentRow(dependentAddButton);
-                return;
-            }
-
-            const dependentRemoveButton = event.target.closest('.modpress-dependent-remove');
-            if (dependentRemoveButton) {
-                event.preventDefault();
-                const row = dependentRemoveButton.closest('.modpress-dependent-item');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
-            const fileAddButton = event.target.closest('[data-modpress-file-add]');
-            if (fileAddButton) {
-                event.preventDefault();
-                addFileRow(fileAddButton, 'internal');
-                return;
-            }
-
-            const sourceAddButton = event.target.closest('[data-file-type-add]');
-            if (sourceAddButton) {
-                event.preventDefault();
-                const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileTypeAdd
-                    ? sourceAddButton.dataset.fileTypeAdd
-                    : 'internal';
-                addFileTargetRow(sourceAddButton, sourceType);
-                return;
-            }
-
-            const fileRemoveButton = event.target.closest('.modpress-file-remove');
-            if (fileRemoveButton) {
-                event.preventDefault();
-                const row = fileRemoveButton.closest('.modpress-file-item');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
-            const fileTargetRemoveButton = event.target.closest('[data-file-type-remove]');
-            if (fileTargetRemoveButton) {
-                event.preventDefault();
-                const row = fileTargetRemoveButton.closest('[data-file-target-type]');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
 
             const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
             if (taxonomyResetButton) {
@@ -2984,59 +2999,6 @@
          * @since 1.0.0
          */
         document.addEventListener('click', (event) => {
-            const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
-            if (dependentAddButton) {
-                event.preventDefault();
-                addDependentRow(dependentAddButton);
-                return;
-            }
-
-            const dependentRemoveButton = event.target.closest('.modpress-dependent-remove');
-            if (dependentRemoveButton) {
-                event.preventDefault();
-                const row = dependentRemoveButton.closest('.modpress-dependent-item');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
-            const fileAddButton = event.target.closest('[data-modpress-file-add]');
-            if (fileAddButton) {
-                event.preventDefault();
-                addFileRow(fileAddButton, 'internal');
-                return;
-            }
-
-            const sourceAddButton = event.target.closest('[data-file-type-add]');
-            if (sourceAddButton) {
-                event.preventDefault();
-                const sourceType = sourceAddButton.dataset && sourceAddButton.dataset.fileTypeAdd
-                    ? sourceAddButton.dataset.fileTypeAdd
-                    : 'internal';
-                addFileTargetRow(sourceAddButton, sourceType);
-                return;
-            }
-
-            const fileRemoveButton = event.target.closest('.modpress-file-remove');
-            if (fileRemoveButton) {
-                event.preventDefault();
-                const row = fileRemoveButton.closest('.modpress-file-item');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
-
-            const fileTargetRemoveButton = event.target.closest('[data-file-type-remove]');
-            if (fileTargetRemoveButton) {
-                event.preventDefault();
-                const row = fileTargetRemoveButton.closest('[data-file-target-type]');
-                if (row) {
-                    row.remove();
-                }
-                return;
-            }
 
             const taxonomyResetButton = event.target.closest('[data-modpress-taxonomy-reset]');
             if (taxonomyResetButton) {
