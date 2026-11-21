@@ -671,12 +671,20 @@
             }
 
             const typeField = row.querySelector('.modpress-dependent-type');
-            const type = typeField && typeField.value === 'external' ? 'external' : 'internal';
+            const type = typeField?.value === 'external' ? 'external' : 'internal';
             row.dataset.dependentType = type;
 
-            row.querySelectorAll('.modpress-dependent-target-internal, .modpress-dependent-target-external').forEach((target) => {
-                const isInternal = target.classList.contains('modpress-dependent-target-internal');
-                target.classList.toggle('d-none', isInternal ? type !== 'internal' : type !== 'external');
+            const internalTarget = row.querySelector('.modpress-dependent-target-internal');
+            const externalTarget = row.querySelector('.modpress-dependent-target-external');
+
+            internalTarget?.classList.toggle('d-none', type !== 'internal');
+            externalTarget?.classList.toggle('d-none', type !== 'external');
+
+            internalTarget?.querySelectorAll('input, select, textarea, button').forEach((field) => {
+                field.disabled = type !== 'internal';
+            });
+            externalTarget?.querySelectorAll('input, select, textarea, button').forEach((field) => {
+                field.disabled = type !== 'external';
             });
         };
         /**
