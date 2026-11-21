@@ -703,7 +703,24 @@
             }
             field.dataset.modpressDependentTypeBound = 'true';
             field.addEventListener('change', () => syncDependentTypeChange(field));
+            field.addEventListener('input', () => syncDependentTypeChange(field));
             field.addEventListener('changed.bs.select', () => syncDependentTypeChange(field));
+        };
+        /**
+         * Binds every dependent type field in the repeater.
+         *
+         * @param {HTMLElement|null} repeater The dependent repeater.
+         * @since 1.0.0
+         */
+        const bindDependentRows = (repeater = document.getElementById('modpress-dependent-repeater')) => {
+            if (!repeater) {
+                return;
+            }
+            repeater.querySelectorAll('.modpress-dependent-item').forEach((row) => {
+                const typeField = row.querySelector('.modpress-dependent-type');
+                bindDependentTypeField(typeField);
+                syncDependentRowState(row);
+            });
         };
         /**
          * Retrieves the next available dependent row index.
@@ -895,6 +912,12 @@
          * @since 1.0.0
          */
         document.addEventListener('click', (event) => {
+            const dependentRow = event.target.closest('.modpress-dependent-item');
+            if (dependentRow) {
+                window.setTimeout(() => syncDependentRowState(dependentRow), 0);
+                window.setTimeout(() => syncDependentRowState(dependentRow), 50);
+            }
+
             const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
             if (dependentAddButton) {
                 event.preventDefault();
@@ -958,6 +981,7 @@
         });
         syncModGroupVisibility();
         hydrateDependentRows();
+        bindDependentRows();
         hydrateFileRows();
     })();
     /**
