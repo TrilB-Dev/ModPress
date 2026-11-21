@@ -254,7 +254,7 @@ final class Mods extends ModManager {
 			$mod_status_selected = (string) array_key_first( $mod_status_options );
 		}
 		?>
-		<div class="card shadow-sm border-0">
+		<div class="card shadow-sm border-0 modpress-mods-page">
 			<div class="card-body p-4">
 				<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
 					<h2 class="h4 mb-0"><?php echo esc_html( $mod_id > 0 ? __( 'Edit Mod', 'modpress' ) : __( 'New Mod', 'modpress' ) ); ?></h2>
