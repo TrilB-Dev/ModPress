@@ -692,6 +692,20 @@
             syncDependentRowState(field.closest('.modpress-dependent-item'));
         };
         /**
+         * Binds a dependent type select to its row state.
+         *
+         * @param {HTMLElement|null} field The dependent type select.
+         * @since 1.0.0
+         */
+        const bindDependentTypeField = (field) => {
+            if (!field || field.dataset.modpressDependentTypeBound === 'true') {
+                return;
+            }
+            field.dataset.modpressDependentTypeBound = 'true';
+            field.addEventListener('change', () => syncDependentTypeChange(field));
+            field.addEventListener('changed.bs.select', () => syncDependentTypeChange(field));
+        };
+        /**
          * Retrieves the next available dependent row index.
          *
          * @param {HTMLElement} repeater The dependent repeater.
@@ -733,6 +747,7 @@
                 typeField.id = 'modpress-dependent-type-' + index;
                 typeField.value = dependent.type === 'external' ? 'external' : 'internal';
                 refreshBootstrapSelect(typeField);
+                bindDependentTypeField(typeField);
             }
 
             const internalField = row.querySelector('.modpress-dependent-internal');
