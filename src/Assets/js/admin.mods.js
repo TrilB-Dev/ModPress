@@ -807,9 +807,51 @@
             if (normalizedName === 'mod_type') {
                 candidateIds.push('modpress-mod-type', 'modpress_mod_type');
             }
-            return candidateIds
+            const byId = candidateIds
                 .map((candidateId) => document.getElementById(candidateId))
-                .find((element) => Boolean(element)) || null;
+                .find((element) => Boolean(element));
+            if (byId) {
+                return byId;
+            }
+
+            const candidateNames = new Set([
+                normalizedName,
+                normalizedName.replace(/_/g, '-'),
+                normalizedName.replace(/-/g, '_'),
+                normalizedName + '[]',
+                normalizedName.replace(/_/g, '-') + '[]',
+                normalizedName.replace(/-/g, '_') + '[]',
+            ]);
+            if (normalizedName === 'mod_type') {
+                candidateNames.add('modpress_type');
+                candidateNames.add('modpress_type[]');
+            }
+
+            return Array.from(document.querySelectorAll('select, input'))
+                .find((control) => candidateNames.has(String(control.name || '').trim()) || candidateNames.has(String(control.id || '').trim())) || null;
+        };
+        const getModGroupParentValues = (control) => {
+            if (!control) {
+                return [];
+            }
+            if (control instanceof HTMLSelectElement) {
+                if (control.multiple) {
+                    return Array.from(control.selectedOptions || [])
+                        .map((option) => String(option.value || '').trim())
+                        .filter((value) => value !== '');
+                }
+                return String(control.value || '').trim() !== ''
+                    ? [String(control.value).trim()]
+                    : [];
+            }
+            if (control instanceof HTMLInputElement && (control.type === 'checkbox' || control.type === 'radio')) {
+                return control.checked && String(control.value || '').trim() !== ''
+                    ? [String(control.value).trim()]
+                    : [];
+            }
+            return String(control.value || '').trim() !== ''
+                ? [String(control.value).trim()]
+                : [];
         };
         const syncModGroupVisibility = () => {
             document.querySelectorAll('.modpress-dynamic-group-field').forEach((field) => {
@@ -823,8 +865,10 @@
                 let shouldShow = true;
                 if (parentName && entries.length) {
                     const parentControl = findModGroupParentControl(parentName);
-                    const selectedValue = parentControl ? String(parentControl.value || '').trim() : '';
-                    shouldShow = entries.includes(selectedValue);
+                    const selectedValues = getModGroupParentValues(parentControl);
+                    shouldShow = selectedValues.some((selectedValue) =>
+                        entries.map((entry) => String(entry)).includes(selectedValue)
+                    );
                 }
                 field.classList.toggle('d-none', !shouldShow);
             });
@@ -884,18 +928,17 @@
          */
         document.addEventListener('changed.bs.select', (event) => {
             const target = event && event.target ? event.target : null;
-                if (isDependentTypeField(target)) {
-                    syncDependentTypeChange(target);
-                }
+            if (isDependentTypeField(target)) {
+                syncDependentTypeChange(target);
+            }
+            syncModGroupVisibility();
         });
         document.addEventListener('change', (event) => {
             const target = event.target;
             if (isDependentTypeField(target)) {
                 syncDependentTypeChange(target);
             }
-            if (target.matches('#modpress-mod-type, [name="mod_type"]')) {
-                syncModGroupVisibility();
-            }
+            syncModGroupVisibility();
         });
         syncModGroupVisibility();
         hydrateDependentRows();
