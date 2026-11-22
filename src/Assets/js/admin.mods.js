@@ -772,6 +772,7 @@
                 typeField.name = 'dependents[' + index + '][type]';
                 typeField.id = 'modpress-dependent-type-' + index;
                 typeField.value = dependent.type === 'external' ? 'external' : 'internal';
+                row.querySelector('label[for="modpress-dependent-type-template"]')?.setAttribute('for', typeField.id);
                 refreshBootstrapSelect(typeField);
                 bindDependentTypeField(typeField);
             }
@@ -781,6 +782,7 @@
                 internalField.name = 'dependents[' + index + '][mod_id]';
                 internalField.id = 'modpress-dependent-mod-' + index;
                 internalField.value = dependent.mod_id ? String(dependent.mod_id) : '';
+                row.querySelector('label[for="modpress-dependent-mod-template"]')?.setAttribute('for', internalField.id);
                 refreshBootstrapSelect(internalField);
             }
 
@@ -789,6 +791,7 @@
                 externalField.name = 'dependents[' + index + '][external_url]';
                 externalField.id = 'modpress-dependent-url-' + index;
                 externalField.value = typeof dependent.external_url === 'string' ? dependent.external_url : '';
+                row.querySelector('label[for="modpress-dependent-url-template"]')?.setAttribute('for', externalField.id);
             }
 
             const instructionsField = row.querySelector('.modpress-dependent-instructions');
@@ -796,6 +799,7 @@
                 instructionsField.name = 'dependents[' + index + '][instructions]';
                 instructionsField.id = 'modpress-dependent-instructions-' + index;
                 instructionsField.value = typeof dependent.instructions === 'string' ? dependent.instructions : '';
+                row.querySelector('label[for="modpress-dependent-instructions-template"]')?.setAttribute('for', instructionsField.id);
             }
 
             syncDependentRowState(row);
@@ -922,6 +926,22 @@
         document.addEventListener('click', (event) => {
             const dependentRow = event.target.closest('.modpress-dependent-item');
             if (dependentRow) {
+                const dropdownOption = event.target.closest('.dropdown-item');
+                const dropdown = dropdownOption ? dropdownOption.closest('.dropdown') : null;
+                const typeField = dropdown ? dropdown.querySelector('select.modpress-dependent-type') : null;
+
+                if (dropdownOption && typeField) {
+                    const optionItem = dropdownOption.closest('li');
+                    const optionList = optionItem ? optionItem.parentElement : null;
+                    const optionIndex = optionList ? Array.from(optionList.children).indexOf(optionItem) : -1;
+                    const selectedOption = optionIndex >= 0 ? typeField.options[optionIndex] : null;
+
+                    if (selectedOption && typeField.value !== selectedOption.value) {
+                        typeField.value = selectedOption.value;
+                        typeField.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+
                 window.setTimeout(() => syncDependentRowState(dependentRow), 0);
                 window.setTimeout(() => syncDependentRowState(dependentRow), 50);
             }
