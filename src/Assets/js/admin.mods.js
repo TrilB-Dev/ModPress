@@ -651,86 +651,6 @@
             }
         };
         /**
-         * Determines whether a field controls a dependent row type.
-         *
-         * @param {HTMLElement|null} field The field to inspect.
-         * @returns {boolean} Whether the field is a dependent type field.
-         * @since 1.0.0
-         */
-        const isDependentTypeField = (field) => {
-            return Boolean(field && field.matches('.modpress-dependent-type'));
-        };
-        /**
-         * Synchronizes dependent internal and external fields for a row.
-         *
-         * @param {HTMLElement|null} row The dependent row to synchronize.
-         * @since 1.0.0
-         */
-        const syncDependentRowState = (row) => {
-            if (!row) {
-                return;
-            }
-
-            const typeField = row.querySelector('.modpress-dependent-type');
-            const type = typeField?.value === 'external' ? 'external' : 'internal';
-            row.dataset.dependentType = type;
-
-            const internalTarget = row.querySelector('.modpress-dependent-target-internal');
-            const externalTarget = row.querySelector('.modpress-dependent-target-external');
-
-            internalTarget?.classList.toggle('d-none', type !== 'internal');
-            externalTarget?.classList.toggle('d-none', type !== 'external');
-
-            internalTarget?.querySelectorAll('input, select, textarea, button').forEach((field) => {
-                field.disabled = type !== 'internal';
-            });
-            externalTarget?.querySelectorAll('input, select, textarea, button').forEach((field) => {
-                field.disabled = type !== 'external';
-            });
-        };
-        /**
-         * Synchronizes a dependent row after its type changes.
-         *
-         * @param {HTMLElement|null} field The changed dependent type field.
-         * @since 1.0.0
-         */
-        const syncDependentTypeChange = (field) => {
-            if (!field) {
-                return;
-            }
-            syncDependentRowState(field.closest('.modpress-dependent-item'));
-        };
-        /**
-         * Binds a dependent type select to its row state.
-         *
-         * @param {HTMLElement|null} field The dependent type select.
-         * @since 1.0.0
-         */
-        const bindDependentTypeField = (field) => {
-            if (!field || field.dataset.modpressDependentTypeBound === 'true') {
-                return;
-            }
-            field.dataset.modpressDependentTypeBound = 'true';
-            field.addEventListener('change', () => syncDependentTypeChange(field));
-            field.addEventListener('changed.bs.select', () => syncDependentTypeChange(field));
-        };
-        /**
-         * Binds every dependent type field in the repeater.
-         *
-         * @param {HTMLElement|null} repeater The dependent repeater.
-         * @since 1.0.0
-         */
-        const bindDependentRows = (repeater = document.getElementById('modpress-dependent-repeater')) => {
-            if (!repeater) {
-                return;
-            }
-            repeater.querySelectorAll('.modpress-dependent-item').forEach((row) => {
-                const typeField = row.querySelector('.modpress-dependent-type');
-                bindDependentTypeField(typeField);
-                syncDependentRowState(row);
-            });
-        };
-        /**
          * Retrieves the next available dependent row index.
          *
          * @param {HTMLElement} repeater The dependent repeater.
@@ -746,6 +666,55 @@
                 }
             });
             return highestIndex + 1;
+        };
+        /**
+         * Synchronizes the visible dependent target for one repeater row.
+         *
+         * @param {HTMLElement} row The dependent row to synchronize.
+         * @since 1.0.0
+         */
+        const syncDependentTypeTargets = (row) => {
+            if (!row) {
+                return;
+            }
+
+            const typeField = row.querySelector('.modpress-dependent-type');
+            const index = String(row.dataset.dependentIndex || '0');
+            const type = typeField?.value === 'external' ? 'external' : 'internal';
+            const internalTarget = row.querySelector('#modpress-dependent-target-internal-' + index);
+            const externalTarget = row.querySelector('#modpress-dependent-target-external-' + index);
+
+            if (internalTarget) {
+                internalTarget.classList.toggle('d-none', type !== 'internal');
+                internalTarget.querySelectorAll('input, select, textarea, button').forEach((field) => {
+                    field.disabled = type !== 'internal';
+                });
+            }
+            if (externalTarget) {
+                externalTarget.classList.toggle('d-none', type !== 'external');
+                externalTarget.querySelectorAll('input, select, textarea, button').forEach((field) => {
+                    field.disabled = type !== 'external';
+                });
+            }
+        };
+        /**
+         * Binds the dependent type select to its row targets.
+         *
+         * @param {HTMLElement} typeField The dependent type select.
+         * @since 1.0.0
+         */
+        const bindDependentTypeTargets = (typeField) => {
+            if (!typeField || typeField.dataset.modpressDependentTypeBound === 'true') {
+                return;
+            }
+
+            typeField.dataset.modpressDependentTypeBound = 'true';
+            const row = typeField.closest('.modpress-dependent-item');
+            const handleChange = () => syncDependentTypeTargets(row);
+
+            typeField.addEventListener('change', handleChange);
+            typeField.addEventListener('changed.bs.select', handleChange);
+            syncDependentTypeTargets(row);
         };
         /**
          * Builds a dependent row and updates names and IDs for its fields.
@@ -774,7 +743,6 @@
                 typeField.value = dependent.type === 'external' ? 'external' : 'internal';
                 row.querySelector('label[for="modpress-dependent-type-template"]')?.setAttribute('for', typeField.id);
                 refreshBootstrapSelect(typeField);
-                bindDependentTypeField(typeField);
             }
 
             const internalField = row.querySelector('.modpress-dependent-internal');
@@ -794,6 +762,16 @@
                 row.querySelector('label[for="modpress-dependent-url-template"]')?.setAttribute('for', externalField.id);
             }
 
+            const internalTarget = row.querySelector('.modpress-dependent-target-internal');
+            if (internalTarget) {
+                internalTarget.id = 'modpress-dependent-target-internal-' + index;
+            }
+
+            const externalTarget = row.querySelector('.modpress-dependent-target-external');
+            if (externalTarget) {
+                externalTarget.id = 'modpress-dependent-target-external-' + index;
+            }
+
             const instructionsField = row.querySelector('.modpress-dependent-instructions');
             if (instructionsField) {
                 instructionsField.name = 'dependents[' + index + '][instructions]';
@@ -802,12 +780,15 @@
                 row.querySelector('label[for="modpress-dependent-instructions-template"]')?.setAttribute('for', instructionsField.id);
             }
 
-            syncDependentRowState(row);
+            bindDependentTypeTargets(typeField);
+
             return row;
         };
         /**
          * Hydrates saved dependents and adds a blank dependent row when none exist.
          *
+         * @param {HTMLElement} repeater The repeater element containing dependent rows.
+         * @returns {void}
          * @since 1.0.0
          */
         const hydrateDependentRows = () => {
@@ -830,6 +811,9 @@
         /**
          * Adds a dependent row to the Mods page repeater.
          *
+         * @param {Object} dependent The dependent data to populate the row with.
+         * @param {number} index The index at which to add the dependent row.
+         * @returns {HTMLElement|null} The newly added dependent row element if successful, otherwise null.
          * @since 1.0.0
          */
         const addDependentRow = () => {
@@ -839,6 +823,13 @@
             }
             return buildDependentRow(repeater, { type: 'internal' }, getNextDependentIndex(repeater));
         };
+        /**
+         * Finds the parent control for a given mod group.
+         *
+         * @param {string} parentName The name of the parent control.
+         * @returns {HTMLElement|null} The parent control element if found, otherwise null.
+         * @since 1.0.0
+         */
         const findModGroupParentControl = (parentName = '') => {
             const normalizedName = String(parentName || '').trim();
             if (!normalizedName) {
@@ -875,6 +866,14 @@
             return Array.from(document.querySelectorAll('select, input'))
                 .find((control) => candidateNames.has(String(control.name || '').trim()) || candidateNames.has(String(control.id || '').trim())) || null;
         };
+        /**
+         * Retrieves the values of the parent control for a given mod group.
+         *
+         * @param {HTMLElement} control The parent control element.
+         * @returns {string[]} The selected values of the parent control.
+         *
+         * @since 1.0.0
+         */
         const getModGroupParentValues = (control) => {
             if (!control) {
                 return [];
@@ -898,6 +897,14 @@
                 ? [String(control.value).trim()]
                 : [];
         };
+        /**
+         * Synchronizes the visibility of mod group fields based on their parent control values.
+         *
+         * @event {Event} event The event object.
+         * @param {HTMLElement} field The mod group field element being synchronized.
+         * @returns {void}
+         * @since 1.0.0
+         */
         const syncModGroupVisibility = () => {
             document.querySelectorAll('.modpress-dynamic-group-field').forEach((field) => {
                 const parentName = String(field.dataset.modpressParentGroup || '').trim();
@@ -920,7 +927,9 @@
         };
         /**
          * Handles the click event for various buttons on the Mods page.
+         *
          * @event {Event} event The click event object.
+         * @returns {void}
          * @since 1.0.0
          */
         document.addEventListener('click', (event) => {
@@ -967,27 +976,37 @@
             }
         });
         /**
-         * Handle Bootstrap select change events for dependent type fields.
-         * 
+         * Hydrates the dependent rows by initializing any necessary event listeners or state.
+         *
          * @since 1.0.0
+         * @returns {void}
          */
         document.addEventListener('changed.bs.select', (event) => {
-            const target = event && event.target ? event.target : null;
-            if (isDependentTypeField(target)) {
-                syncDependentTypeChange(target);
+            const typeField = event.target?.matches('.modpress-dependent-type')
+                ? event.target
+                : null;
+            if (typeField) {
+                syncDependentTypeTargets(typeField.closest('.modpress-dependent-item'));
             }
             syncModGroupVisibility();
         });
+        /**
+         * Synchronizes the visibility of mod group fields when the document changes.
+         *
+         * @since 1.0.0
+         * @returns {void}
+         */
         document.addEventListener('change', (event) => {
-            const target = event.target;
-            if (isDependentTypeField(target)) {
-                syncDependentTypeChange(target);
+            const typeField = event.target?.matches('.modpress-dependent-type')
+                ? event.target
+                : null;
+            if (typeField) {
+                syncDependentTypeTargets(typeField.closest('.modpress-dependent-item'));
             }
             syncModGroupVisibility();
         });
         syncModGroupVisibility();
         hydrateDependentRows();
-        bindDependentRows();
         hydrateFileRows();
     })();
     /**

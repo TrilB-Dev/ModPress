@@ -562,7 +562,7 @@ final class Mods extends ModManager {
 														); ?>
 														<div class="form-text"><?php esc_html_e( 'Choose whether this dependent is internal or external.', 'modpress' ); ?></div>
 													</div>
-													<div class="col-md-7 modpress-dependent-target-wrapper modpress-dependent-target-internal">
+													<div id="modpress-dependent-target-internal-template" class="col-md-7 modpress-dependent-target-wrapper modpress-dependent-target-internal">
 														<?php echo FormFieldHelper::label( 
 															'modpress-dependent-mod-template', 
 															__( 'Internal Mod', 'modpress' ), 
@@ -581,7 +581,7 @@ final class Mods extends ModManager {
 														); ?>
 														<div class="form-text"><?php esc_html_e( 'Choose the internal mod to use as a dependent.', 'modpress' ); ?></div>
 													</div>
-													<div class="col-md-7 modpress-dependent-target-wrapper modpress-dependent-target-external d-none">
+													<div id="modpress-dependent-target-external-template" class="col-md-7 modpress-dependent-target-wrapper modpress-dependent-target-external d-none">
 														<?php echo FormFieldHelper::label( 
 															'modpress-dependent-url-template', 
 															__( 'External URL', 'modpress' ), 
