@@ -712,7 +712,6 @@
             }
             field.dataset.modpressDependentTypeBound = 'true';
             field.addEventListener('change', () => syncDependentTypeChange(field));
-            field.addEventListener('input', () => syncDependentTypeChange(field));
             field.addEventListener('changed.bs.select', () => syncDependentTypeChange(field));
         };
         /**
@@ -925,28 +924,6 @@
          * @since 1.0.0
          */
         document.addEventListener('click', (event) => {
-            const dependentRow = event.target.closest('.modpress-dependent-item');
-            if (dependentRow) {
-                const dropdownOption = event.target.closest('.dropdown-item');
-                const dropdown = dropdownOption ? dropdownOption.closest('.dropdown') : null;
-                const typeField = dropdown ? dropdown.querySelector('select.modpress-dependent-type') : null;
-
-                if (dropdownOption && typeField) {
-                    const optionItem = dropdownOption.closest('li');
-                    const optionList = optionItem ? optionItem.parentElement : null;
-                    const optionIndex = optionList ? Array.from(optionList.children).indexOf(optionItem) : -1;
-                    const selectedOption = optionIndex >= 0 ? typeField.options[optionIndex] : null;
-
-                    if (selectedOption && typeField.value !== selectedOption.value) {
-                        typeField.value = selectedOption.value;
-                        typeField.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }
-
-                window.setTimeout(() => syncDependentRowState(dependentRow), 0);
-                window.setTimeout(() => syncDependentRowState(dependentRow), 50);
-            }
-
             const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
             if (dependentAddButton) {
                 event.preventDefault();
@@ -1011,7 +988,6 @@
         syncModGroupVisibility();
         hydrateDependentRows();
         bindDependentRows();
-        window.setInterval(bindDependentRows, 250);
         hydrateFileRows();
     })();
     /**
