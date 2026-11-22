@@ -675,6 +675,7 @@
          */
         const syncDependentTypeTargets = (row) => {
             if (!row) {
+                console.error('[ModPress] Cannot synchronize dependent targets: row is missing.');
                 return;
             }
 
@@ -683,6 +684,32 @@
             const type = typeField?.value === 'external' ? 'external' : 'internal';
             const internalTarget = row.querySelector('#modpress-dependent-target-internal-' + index);
             const externalTarget = row.querySelector('#modpress-dependent-target-external-' + index);
+
+            console.info('[ModPress] Synchronizing dependent target.', {
+                index,
+                type,
+                typeFieldId: typeField?.id || null,
+                internalTargetId: internalTarget?.id || null,
+                externalTargetId: externalTarget?.id || null,
+            });
+
+            if (!typeField) {
+                console.error('[ModPress] Dependent type field is missing.', {
+                    index,
+                });
+            }
+            if (!internalTarget) {
+                console.error('[ModPress] Internal dependent target is missing.', {
+                    index,
+                    expectedId: 'modpress-dependent-target-internal-' + index,
+                });
+            }
+            if (!externalTarget) {
+                console.error('[ModPress] External dependent target is missing.', {
+                    index,
+                    expectedId: 'modpress-dependent-target-external-' + index,
+                });
+            }
 
             if (internalTarget) {
                 internalTarget.classList.toggle('d-none', type !== 'internal');
@@ -710,7 +737,15 @@
 
             typeField.dataset.modpressDependentTypeBound = 'true';
             const row = typeField.closest('.modpress-dependent-item');
-            const handleChange = () => syncDependentTypeTargets(row);
+            const handleChange = (event) => {
+                console.info('[ModPress] Dependent type changed.', {
+                    eventType: event?.type || 'unknown',
+                    typeFieldId: typeField.id,
+                    value: typeField.value,
+                    rowIndex: row?.dataset.dependentIndex || null,
+                });
+                syncDependentTypeTargets(row);
+            };
 
             typeField.addEventListener('change', handleChange);
             typeField.addEventListener('changed.bs.select', handleChange);
@@ -728,6 +763,9 @@
         const buildDependentRow = (repeater, dependent = {}, rowIndex = null) => {
             const template = document.getElementById('modpress-dependent-template');
             if (!template || !template.content || !template.content.firstElementChild) {
+                console.error('[ModPress] Dependent row template is missing or invalid.', {
+                    templateId: 'modpress-dependent-template',
+                });
                 return null;
             }
 
@@ -765,11 +803,19 @@
             const internalTarget = row.querySelector('.modpress-dependent-target-internal');
             if (internalTarget) {
                 internalTarget.id = 'modpress-dependent-target-internal-' + index;
+                console.info('[ModPress] Assigned internal target ID.', {
+                    index,
+                    targetId: internalTarget.id,
+                });
             }
 
             const externalTarget = row.querySelector('.modpress-dependent-target-external');
             if (externalTarget) {
                 externalTarget.id = 'modpress-dependent-target-external-' + index;
+                console.info('[ModPress] Assigned external target ID.', {
+                    index,
+                    targetId: externalTarget.id,
+                });
             }
 
             const instructionsField = row.querySelector('.modpress-dependent-instructions');
@@ -781,6 +827,11 @@
             }
 
             bindDependentTypeTargets(typeField);
+            console.info('[ModPress] Built dependent row.', {
+                index,
+                type: typeField?.value || 'internal',
+                typeFieldId: typeField?.id || null,
+            });
 
             return row;
         };
@@ -801,6 +852,9 @@
             try {
                 dependents = JSON.parse(repeater.dataset.modpressSavedDependents || '[]');
             } catch (error) {
+                console.error('[ModPress] Could not parse saved dependent rows.', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
                 dependents = [];
             }
 
@@ -986,6 +1040,11 @@
                 ? event.target
                 : null;
             if (typeField) {
+                console.info('[ModPress] Bootstrap select change event.', {
+                    typeFieldId: typeField.id,
+                    value: typeField.value,
+                    rowIndex: typeField.closest('.modpress-dependent-item')?.dataset.dependentIndex || null,
+                });
                 syncDependentTypeTargets(typeField.closest('.modpress-dependent-item'));
             }
             syncModGroupVisibility();
@@ -1001,6 +1060,11 @@
                 ? event.target
                 : null;
             if (typeField) {
+                console.info('[ModPress] Native change event.', {
+                    typeFieldId: typeField.id,
+                    value: typeField.value,
+                    rowIndex: typeField.closest('.modpress-dependent-item')?.dataset.dependentIndex || null,
+                });
                 syncDependentTypeTargets(typeField.closest('.modpress-dependent-item'));
             }
             syncModGroupVisibility();
