@@ -765,6 +765,7 @@
             const row = template.content.firstElementChild.cloneNode(true);
             const index = Number.isInteger(rowIndex) ? rowIndex : getNextDependentIndex(repeater);
             row.dataset.dependentIndex = String(index);
+            repeater.appendChild(row);
 
             const typeField = row.querySelector('.modpress-dependent-type');
             if (typeField) {
@@ -797,7 +798,6 @@
                 instructionsField.value = typeof dependent.instructions === 'string' ? dependent.instructions : '';
             }
 
-            repeater.appendChild(row);
             syncDependentRowState(row);
             return row;
         };
@@ -990,6 +990,7 @@
         syncModGroupVisibility();
         hydrateDependentRows();
         bindDependentRows();
+        window.setInterval(bindDependentRows, 250);
         hydrateFileRows();
     })();
     /**
