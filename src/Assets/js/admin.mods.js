@@ -657,8 +657,9 @@
          * @returns {boolean} Whether the field is a dependent type field.
          * @since 1.0.0
          */
-        const isDependentTypeField = (field) =>
-            Boolean(field && field.matches('.modpress-dependent-type'));
+        const isDependentTypeField = (field) => {
+            return Boolean(field && field.matches('.modpress-dependent-type'));
+        };
         /**
          * Synchronizes dependent internal and external fields for a row.
          *
