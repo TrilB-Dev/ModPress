@@ -755,45 +755,47 @@ final class Mods extends ModManager {
 														</div>
 													</div>
 												</div>
-												<div class="row g-3 p-3 modpress-file-target-wrapper">
+												<div class="row g-2 p-1 modpress-file-target-wrapper">
 													<template id="modpress-file-target-internal-template">
-														<div class="row g-3 p-1 modpress-file-target-wrapper modpress-file-target-internal-template d-none" id="modpress-file-target-internal-template">
-															<div class="col-md-11">
-																<?php echo WPMediaHelper::create(
-																	'',
-																	array(
-																		'name' => 'files[template][attachment_id]',
-																		'id' => 'modpress-file-attachment-template',
-																		'button_text' => __( 'Select File', 'modpress' ),
-																		'show_remove' => true,
-																		'media_type' => 'file',
-																		'return_value' => 'id',
-																		'helper_text' => __( 'Pick a file from the Media Library.', 'modpress' ),
-																	),
-																	array(
-																		'alt' => __( 'Uploaded file preview', 'modpress' ),
-																	)
-																); ?>
-															</div>
-															<div class="col-md-1">
-																<?php echo FormFieldHelper::button(
-																	FAHelper::faicon( 'trash' ),
-																	array(
-																		'type' => 'button',
-																		'class' => 'btn btn-outline-danger',
-																		'attributes' => array(
-																			'data-file-type-remove' => 'internal',
-																			'id' => 'modpress-file-remove-internal-template['. $index . ']',
+														<div class="container-fluid">
+															<div class="row g-2 p-1 modpress-file-target-wrapper modpress-file-target-internal-template d-none" id="modpress-file-target-internal-template">
+																<div class="col-md-11">
+																	<?php echo WPMediaHelper::create(
+																		'',
+																		array(
+																			'name' => 'files[template][attachment_id]',
+																			'id' => 'modpress-file-attachment-template',
+																			'button_text' => __( 'Select File', 'modpress' ),
+																			'show_remove' => true,
+																			'media_type' => 'file',
+																			'return_value' => 'id',
+																			'helper_text' => __( 'Pick a file from the Media Library.', 'modpress' ),
 																		),
-																	)
-																); ?>
+																		array(
+																			'alt' => __( 'Uploaded file preview', 'modpress' ),
+																		)
+																	); ?>
+																</div>
+																<div class="col-md-1">
+																	<?php echo FormFieldHelper::button(
+																		FAHelper::faicon( 'trash' ),
+																		array(
+																			'type' => 'button',
+																			'class' => 'btn btn-outline-danger',
+																			'attributes' => array(
+																				'data-file-type-remove' => 'internal',
+																				'id' => 'modpress-file-remove-internal-template['. $index . ']',
+																			),
+																		)
+																	); ?>
+																</div>
 															</div>
 														</div>
 													</template>
 													<template id="modpress-file-target-external-template">
 														<div class="container-fluid">
-															<div class="row g-3 m-2 p-3 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
-																<div class="row g-3 align-items-end">
+															<div class="row g-2 m-1 p-1 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
+																<div class="row g-2 align-items-end">
 																	<div class="col-md-3">
 																	<?php echo FormFieldHelper::label( 
 																		'modpress-file-host-selector-template', 
@@ -810,6 +812,9 @@ final class Mods extends ModManager {
 																			'placeholder' => __( 'Select host', 'modpress' ),
 																		)
 																		); ?>
+																	<?php echo FormFieldHelper::form_text(
+																		__('Choose the host of the external file.', 'modpress')
+																	); ?>
 																	</div>
 																	<div class="col-md-8">
 																		<?php echo FormFieldHelper::label(
@@ -848,6 +853,9 @@ final class Mods extends ModManager {
 																				'id' => 'modpress-file-remove-external-template['. $index . ']',
 																				),
 																			)
+																		); ?>
+																		<?php echo FormFieldHelper::form_text(
+																			' '
 																		); ?>
 																	</div>
 																</div>
