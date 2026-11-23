@@ -776,7 +776,7 @@ final class Mods extends ModManager {
 																		)
 																	); ?>
 																</div>
-																<div class="col-md-1">
+																<div class="col-md-1 d-flex justify-content-end align-items-end">
 																	<?php echo FormFieldHelper::button(
 																		FAHelper::faicon( 'trash' ),
 																		array(
@@ -795,7 +795,7 @@ final class Mods extends ModManager {
 													<template id="modpress-file-target-external-template">
 														<div class="container-fluid">
 															<div class="row g-2 m-1 p-1 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
-																<div class="col-md-10">
+																<div class="col-md-11">
 																	<div class="row g-2 align-items-end">
 																		<div class="col-md-4">
 																	<?php echo FormFieldHelper::label( 
@@ -845,7 +845,7 @@ final class Mods extends ModManager {
 																		</div>
 																	</div>
 																</div>
-																<div class="col-md-2 d-flex justify-content-end align-items-end">
+																<div class="col-md-1 d-flex justify-content-end align-items-end">
 																	<?php echo FormFieldHelper::button(
 																		FAHelper::faicon( 'trash' ),
 																		array(
