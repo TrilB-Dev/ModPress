@@ -378,6 +378,10 @@
             const templateId = 'modpress-file-target-' + normalizedType + '-template';
             const template = document.getElementById(templateId);
             if (!template || !template.content || !template.content.firstElementChild) {
+                console.error('[ModPress] File target template missing.', {
+                    templateId,
+                    targetType: normalizedType,
+                });
                 return null;
             }
 
@@ -388,6 +392,16 @@
 
             const fileIndex = Number.parseInt(String(fileRow.dataset.fileIndex || ''), 10);
             const rowIndex = Number.isInteger(fileIndex) ? fileIndex : 0;
+            targetRow.id = 'modpress-file-target-' + normalizedType + '-' + rowIndex;
+
+            targetRow.querySelectorAll('.d-none').forEach((hiddenElement) => {
+                hiddenElement.classList.remove('d-none');
+            });
+
+            const nestedTarget = targetRow.querySelector('[id="modpress-file-target-' + normalizedType + '-template"]');
+            if (nestedTarget) {
+                nestedTarget.id = 'modpress-file-target-' + normalizedType + '-' + rowIndex + '-wrapper';
+            }
             const typeField = fileRow.querySelector('.modpress-file-type');
             if (typeField) {
                 typeField.value = normalizedType;
@@ -463,6 +477,11 @@
             }
 
             targetContainer.appendChild(targetRow);
+            console.info('[ModPress] Added file target row.', {
+                fileIndex: rowIndex,
+                targetType: normalizedType,
+                targetId: targetRow.id,
+            });
             const hostField = targetRow.querySelector('.modpress-file-host-selector');
             if (hostField) {
                 syncFileHostValue(hostField);
@@ -502,7 +521,7 @@
          * @returns {HTMLElement|null} The constructed file row element or null if not possible.
          * @since 1.0.0
          */
-        const buildFileRow = (repeater, file = {}, rowIndex = null, requestedType = null) => {
+        const buildFileRow = (repeater, file = {}, rowIndex = null, requestedType = null, restoreTarget = false) => {
             const template = document.getElementById('modpress-file-template');
             if (!template || !template.content || !template.content.firstElementChild) {
                 return null;
@@ -556,7 +575,7 @@
                 repeater.appendChild(row);
             }
 
-            const shouldRestoreTarget = value && (value.type || value.attachment_id || value.host_id || value.host_url || value.url_suffix || value.download);
+            const shouldRestoreTarget = restoreTarget && value && (value.attachment_id || value.host_id || value.host_url || value.url_suffix || value.download);
             if (shouldRestoreTarget) {
                 buildFileTargetRow(row, defaultType, value);
             }
@@ -588,7 +607,7 @@
             }
 
             savedFiles.forEach((file, index) => {
-                buildFileRow(repeater, file, index);
+                buildFileRow(repeater, file, index, null, true);
             });
         };
         /**
