@@ -795,8 +795,9 @@ final class Mods extends ModManager {
 													<template id="modpress-file-target-external-template">
 														<div class="container-fluid">
 															<div class="row g-2 m-1 p-1 modpress-file-target-wrapper modpress-file-target-external-template d-none" id="modpress-file-target-external-template">
-																<div class="row g-2 align-items-end">
-																	<div class="col-md-3">
+																<div class="col-md-10">
+																	<div class="row g-2 align-items-end">
+																		<div class="col-md-4">
 																	<?php echo FormFieldHelper::label( 
 																		'modpress-file-host-selector-template', 
 																		__( 'Host', 'modpress' ) 
@@ -815,8 +816,8 @@ final class Mods extends ModManager {
 																	<?php echo FormFieldHelper::form_text(
 																		__('Choose the host of the external file.', 'modpress')
 																	); ?>
-																	</div>
-																	<div class="col-md-8">
+																		</div>
+																		<div class="col-md-8">
 																		<?php echo FormFieldHelper::label(
 																			'modpress-file-host-url-template',
 																			__( 'Download URL', 'modpress' )
@@ -841,23 +842,22 @@ final class Mods extends ModManager {
 																		<?php echo FormFieldHelper::form_text(
 																			__('Please provide the download URL for the external file.', 'modpress')
 																		); ?>
+																		</div>
 																	</div>
-																	<div class="col-md-1 d-flex align-items-end justify-content-end">
-																		<?php echo FormFieldHelper::button(
-																			FAHelper::faicon( 'trash' ),
-																			array(
-																				'type' => 'button',
-																				'class' => 'btn btn-outline-danger',
-																				'attributes' => array(
+																</div>
+																<div class="col-md-2 d-flex justify-content-end align-items-end">
+																	<?php echo FormFieldHelper::button(
+																		FAHelper::faicon( 'trash' ),
+																		array(
+																			'type' => 'button',
+																			'class' => 'btn btn-outline-danger',
+																			'attributes' => array(
 																				'data-file-type-remove' => 'external',
 																				'id' => 'modpress-file-remove-external-template['. $index . ']',
-																				),
-																			)
-																		); ?>
-																		<?php echo FormFieldHelper::form_text(
-																			' '
-																		); ?>
-																	</div>
+																			),
+																		)
+																	); ?>
+																</div>
 																</div>
 															</div>
 														</div>
