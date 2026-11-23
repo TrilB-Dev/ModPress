@@ -679,8 +679,8 @@
                 return;
             }
 
-            const typeField = row.querySelector('select.modpress-dependent-type');
             const index = String(row.dataset.dependentIndex || '0');
+            const typeField = row.querySelector('select[id="modpress-dependent-type-' + index + '"]');
             const type = typeField?.value === 'external' ? 'external' : 'internal';
             const internalTarget = row.querySelector('#modpress-dependent-target-internal-' + index);
             const externalTarget = row.querySelector('#modpress-dependent-target-external-' + index);
@@ -774,7 +774,7 @@
             row.dataset.dependentIndex = String(index);
             repeater.appendChild(row);
 
-            const typeField = row.querySelector('select.modpress-dependent-type');
+            const typeField = row.querySelector('select[id^="modpress-dependent-type-"]');
             if (typeField) {
                 typeField.name = 'dependents[' + index + '][type]';
                 typeField.id = 'modpress-dependent-type-' + index;
@@ -1036,7 +1036,7 @@
          * @returns {void}
          */
         document.addEventListener('changed.bs.select', (event) => {
-            const typeField = event.target?.matches('select.modpress-dependent-type')
+            const typeField = event.target?.matches('select[id^="modpress-dependent-type-"]')
                 ? event.target
                 : null;
             if (typeField) {
@@ -1056,7 +1056,7 @@
          * @returns {void}
          */
         document.addEventListener('change', (event) => {
-            const typeField = event.target?.matches('select.modpress-dependent-type')
+            const typeField = event.target?.matches('select[id^="modpress-dependent-type-"]')
                 ? event.target
                 : null;
             if (typeField) {
