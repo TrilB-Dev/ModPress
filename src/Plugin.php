@@ -19,6 +19,7 @@ use ModPress\Assets\Assets;
 use ModPress\Includes\Includes;
 use ModPress\Includes\Core\WP\I18n;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
+use ModPress\Includes\Integrations\Integrations;
 use ModPress\Includes\Plugins\Plugins;
 use ModPress\Public\Frontend;
 
@@ -94,6 +95,13 @@ class Plugin {
 	 * @access protected
 	 */
 	protected Plugins $plugins;
+	/**
+	 * The integration bridge access point.
+	 *
+	 * @var Integrations
+	 * @since 1.0.0
+	 */
+	protected Integrations $integrations;
 	/**
 	 * The current version of the plugin.
 	 *
@@ -260,8 +268,10 @@ class Plugin {
 		 * @access protected
 		 */
 		$this->plugins = Plugins::get_instance();
+		$this->integrations = Integrations::get_instance();
 		$this->loader->add_action( 'init', $this->includes, 'init' );
 		$this->loader->add_action( 'init', $this->plugins, 'init', -10 );
+		$this->loader->add_action( 'init', $this->integrations, 'init', -5 );
 		$this->loader->add_action( 'admin_menu', $this->admin, 'register_admin_menu' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $this->assets, 'enqueue_admin' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $this->assets, 'enqueue_frontend' );

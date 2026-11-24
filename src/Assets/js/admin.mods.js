@@ -280,7 +280,8 @@
                 return;
             }
 
-            const row = field.closest('.modpress-file-item');
+            const targetRow = field.closest('[data-file-target-type="external"]');
+            const row = targetRow || field.closest('.modpress-file-item');
             const hostUrlMap = getFileHostUrlMap();
             const hostUrlField = row ? row.querySelector('.modpress-file-host-url, .modpress-file-host-url-value') : null;
             const hostUrlDisplay = row ? row.querySelector('.modpress-file-host-url-display') : null;
@@ -289,6 +290,12 @@
             }
 
             const nextHostUrl = hostUrlMap[String(field.value || '').trim()] || '';
+            console.info('[ModPress] Synchronizing file host URL.', {
+                hostId: String(field.value || '').trim(),
+                fileIndex: field.closest('.modpress-file-item')?.dataset.fileIndex || null,
+                hostUrlFieldId: hostUrlField?.id || null,
+                nextHostUrl,
+            });
             if (hostUrlField.type === 'hidden' || hostUrlField.matches('.modpress-file-host-url')) {
                 hostUrlField.value = nextHostUrl;
             } else if (hostUrlField instanceof HTMLInputElement) {
