@@ -8,7 +8,7 @@
  */
 namespace ModPress\Admin\Manager\Tools;
 
-use ModPress\Includes\Functions\Admin\FunctionsExport;
+use ModPress\Includes\Functions\Admin\FunctionsTools;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
 use ModPress\Includes\Functions\Helpers\UrlHelper;
@@ -21,9 +21,9 @@ final class Export extends ToolsManager {
 	/**
 	 * Export handler instance.
 	 *
-	 * @var FunctionsExport
+	 * @var FunctionsTools
 	 */
-	private FunctionsExport $export_functions;
+	private FunctionsTools $export_functions;
 
 	/**
 	 * Constructor for the Export class.
@@ -32,7 +32,7 @@ final class Export extends ToolsManager {
 	 */
 	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
-		$this->export_functions = new FunctionsExport();
+		$this->export_functions = new FunctionsTools();
 		( $loader ?? new LoaderHelper() )->register_component(
 			$this->export_functions,
 			array(
@@ -76,36 +76,44 @@ final class Export extends ToolsManager {
 	public function render(): void {
 		?>
 		<tr>
-			<th scope="row"><?php echo wp_kses_post(
-				FormFieldHelper::label(
-					'modpress-export',
-					esc_html__( 'Import and export', 'modpress' ),
-					array(
-						'description' => __( 'Export or import ModPress data as a password-protected JSON archive.', 'modpress' ),
-						'tooltip'     => __( 'Exports are protected with a WordPress nonce and should use a password whenever shared with partners.', 'modpress' ),
+			<th scope="row">
+				<?php echo wp_kses_post(
+					FormFieldHelper::label(
+						'modpress-export',
+						esc_html__( 'Import and export', 'modpress' ),
+						array(
+							'description' => __( 'Export or import ModPress data as a password-protected JSON archive.', 'modpress' ),
+							'tooltip'     => __( 'Exports are protected with a WordPress nonce and should use a password whenever shared with partners.', 'modpress' ),
+						)
 					)
-				)
-			); ?></th>
-			<td><?php echo wp_kses_post(
-				FormFieldHelper::button(
-					esc_html__( 'Export ModPress JSON', 'modpress' ),
-					array(
-						'href'  => UrlHelper::admin_action_nonce( 'modpress_export', 'modpress_export' ),
-						'class' => 'btn-outline-primary',
+				); ?>
+			</th>
+			<td>
+				<?php echo wp_kses_post(
+					FormFieldHelper::button(
+						esc_html__( 'Export ModPress JSON', 'modpress' ),
+						array(
+							'href'  => UrlHelper::admin_action_nonce( 'modpress_export', 'modpress_export' ),
+							'class' => 'btn-outline-primary',
+						)
 					)
-				)
-			); ?></td>
+				); ?>
+			</td>
 		</tr>
 		<tr>
-			<th scope="row"><?php echo FormFieldHelper::label(
-				'modpress-database-manager',
-				esc_html__( 'Database manager', 'modpress' ),
-				array(
-					'description' => __( 'ModPress records are kept in the plugin database tables and managed through the core lifecycle.', 'modpress' ),
-					'tooltip'     => __( 'Manual database changes are not required for normal ModPress operations.', 'modpress' ),
-				)
-			); ?></th>
-			<td><?php esc_html_e( 'Managed automatically', 'modpress' ); ?></td>
+			<th scope="row">
+				<?php echo FormFieldHelper::label(
+					'modpress-database-manager',
+					esc_html__( 'Database manager', 'modpress' ),
+					array(
+						'description' => __( 'ModPress records are kept in the plugin database tables and managed through the core lifecycle.', 'modpress' ),
+						'tooltip'     => __( 'Manual database changes are not required for normal ModPress operations.', 'modpress' ),
+					)
+				); ?>
+			</th>
+			<td>
+				<?php esc_html_e( 'Managed automatically', 'modpress' ); ?>
+			</td>
 		</tr>
 		<?php
 	}

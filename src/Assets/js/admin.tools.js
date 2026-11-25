@@ -7,53 +7,81 @@
   * @since 1.0.0
   */
 (() => {
- /**
-     * Integration Tools Page
-     * 
-     * This script handles the functionality for the Integration Tools page.
-     * @since 1.0.0
-     */
+  /**
+   * Initialize integration-tool controls.
+   *
+   * @since 1.0.0
+   */
+  const initIntegrationTools = () => {
     const toolsIntegration = document.querySelector('.modpress-tools-integration-page');
-    toolsIntegration && (() => {
+    if (!toolsIntegration) {
+      return;
+    }
 
-      const integrationsEnabled = toolsIntegration.querySelector('#modpress-enable-integrations');
-      const integrationSwitches = toolsIntegration.querySelector('#modpress-integration-switches');
+    const integrationsEnabled = toolsIntegration.querySelector('input#modpress-enable-integrations');
+    const integrationSwitches = toolsIntegration.querySelector('#modpress-integration-switches');
 
-      if (integrationsEnabled && integrationSwitches) {
-        const applyIntegrationsState = () => {
-          const isEnabled = integrationsEnabled.checked;
-          integrationSwitches.classList.toggle('d-none', !isEnabled);
-          integrationSwitches.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-            checkbox.disabled = !isEnabled;
-          });
-        };
+    if (!integrationsEnabled || !integrationSwitches) {
+      return;
+    }
 
-        integrationsEnabled.addEventListener('change', applyIntegrationsState);
-        applyIntegrationsState();
-      }
-    })();
-    /**
-     * Reset Tools Page
-     *
-     * This script handles the functionality for the Reset Tools page.
-     * @since 1.0.0
-     */
+    const applyIntegrationsState = () => {
+      const isEnabled = integrationsEnabled.checked;
+      integrationSwitches.classList.toggle('d-none', !isEnabled);
+      integrationSwitches.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+        checkbox.disabled = !isEnabled;
+      });
+    };
+
+    if (integrationsEnabled.dataset.modpressIntegrationBound !== 'true') {
+      integrationsEnabled.dataset.modpressIntegrationBound = 'true';
+      integrationsEnabled.addEventListener('change', applyIntegrationsState);
+    }
+
+    applyIntegrationsState();
+  };
+
+  /**
+   * Initialize reset-tool controls.
+   *
+   * @since 1.0.0
+   */
+  const initResetTools = () => {
     const toolsReset = document.querySelector('.modpress-tools-reset-page');
-    toolsReset && (() => {
-      const resetScope = toolsReset.querySelector('#modpress-reset-scope');
-      const resetPlugins = toolsReset.querySelector('#modpress-reset-plugins');
+    if (!toolsReset) {
+      return;
+    }
 
-      if (resetScope && resetPlugins) {
-        const applyResetScopeState = () => {
-          const isPluginsScope = resetScope.value === 'plugins';
-          resetPlugins.hidden = !isPluginsScope;
-          resetPlugins.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-            checkbox.disabled = !isPluginsScope;
-          });
-        };
+    const resetScope = toolsReset.querySelector('#modpress-reset-scope');
+    const resetPlugins = toolsReset.querySelector('#modpress-reset-plugins');
+    if (!resetScope || !resetPlugins) {
+      return;
+    }
 
-        resetScope.addEventListener('change', applyResetScopeState);
-        applyResetScopeState();
-      }
-    })();
+    const applyResetScopeState = () => {
+      const isPluginsScope = resetScope.value === 'plugins';
+      resetPlugins.hidden = !isPluginsScope;
+      resetPlugins.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+        checkbox.disabled = !isPluginsScope;
+      });
+    };
+
+    if (resetScope.dataset.modpressResetScopeBound !== 'true') {
+      resetScope.dataset.modpressResetScopeBound = 'true';
+      resetScope.addEventListener('change', applyResetScopeState);
+    }
+
+    applyResetScopeState();
+  };
+
+  const initToolsPages = () => {
+    initIntegrationTools();
+    initResetTools();
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initToolsPages, { once: true });
+  } else {
+    initToolsPages();
+  }
 })();

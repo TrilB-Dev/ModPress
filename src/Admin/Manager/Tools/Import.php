@@ -8,7 +8,7 @@
  */
 namespace ModPress\Admin\Manager\Tools;
 
-use ModPress\Includes\Functions\Admin\FunctionsImport;
+use ModPress\Includes\Functions\Admin\FunctionsTools;
 use ModPress\Includes\Functions\Helpers\AlertHelper;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\Functions\Helpers\LoaderHelper;
@@ -22,9 +22,9 @@ final class Import extends ToolsManager {
 	/**
 	 * Import handler instance.
 	 *
-	 * @var FunctionsImport
+	 * @var FunctionsTools
 	 */
-	private FunctionsImport $import_functions;
+	private FunctionsTools $tools_functions;
 
 	/**
 	 * Render the JSON import form below the tools settings form.
@@ -33,9 +33,9 @@ final class Import extends ToolsManager {
 	 */
 	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
-		$this->import_functions = new FunctionsImport();
+		$this->tools_functions = new FunctionsTools();
 		( $loader ?? new LoaderHelper() )->register_component(
-			$this->import_functions,
+			$this->tools_functions,
 			array(
 				array(
 					'type'     => 'action',

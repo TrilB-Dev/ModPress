@@ -8,8 +8,11 @@
  */
 namespace ModPress\Admin\Manager\Tools;
 
+use ModPress\Includes\Functions\Admin\FunctionsTools;
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
-use ModPress\Includes\MSGraph\GraphService;
+use ModPress\Includes\Functions\Helpers\LoaderHelper;
+use ModPress\Includes\Functions\Helpers\PermissionHelper;
+use ModPress\Includes\Functions\Helpers\RequestHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -21,8 +24,18 @@ final class Debug extends ToolsManager {
 	 *
 	 * @since 1.0.0
 	 */
-	public function __construct() {
+	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
+		( $loader ?? new LoaderHelper() )->register_component(
+			$this,
+			array(
+				array(
+					'type'     => 'action',
+					'hook'     => 'admin_post_modpress_run_graph_diagnostics',
+					'callback' => 'handle_graph_diagnostics',
+				),
+			)
+		)->run();
 	}
 	/**
 	 * Render the debug settings page content.
@@ -30,45 +43,9 @@ final class Debug extends ToolsManager {
 	 * @return void
 	 */
 	public function render_page_content(): void {
-		$diagnostics = null;
-		if ( isset( $_POST['modpress_run_graph_diagnostics'] ) ) {
-			if ( ! current_user_can( 'modpress_tools_debug' ) || ! check_admin_referer( 'modpress_run_graph_diagnostics', 'modpress_graph_diagnostics_nonce' ) ) {
-				wp_die( esc_html__( 'You are not authorized to run Microsoft Graph diagnostics.', 'modpress' ) );
-			}
-
-			try {
-				$diagnostics_service    = $graph->get_diagnostics();
-				$curl_diagnostics       = $diagnostics_service->test_direct_curl_connection();
-				$http_graph_diagnostics = $diagnostics_service->test_http_graph_connection();
-				$diagnostics            = array(
-					'success'    => ! empty( $curl_diagnostics['success'] ) && ! empty( $http_graph_diagnostics['success'] ),
-					'message'    => __( 'Microsoft Graph diagnostics completed.', 'modpress' ),
-					'curl'       => $curl_diagnostics,
-					'http_graph' => $http_graph_diagnostics,
-				);
-				$graph_error            = $graph->get_connection_error();
-				if ( empty( $graph_error ) ) {
-					$graph_error = 'none';
-				}
-				$diagnostics['diagnostics'] = array_merge(
-					is_array( $curl_diagnostics['diagnostics'] ?? null ) ? $curl_diagnostics['diagnostics'] : array(),
-					is_array( $http_graph_diagnostics['diagnostics'] ?? null ) ? $http_graph_diagnostics['diagnostics'] : array(),
-					array(
-						'graph_initialization_error' => $graph_error,
-						'token_endpoint_probe'       => $diagnostics_service->probe_token_endpoint( (string) $graph->get_tenant_id() ),
-						'dns_context'                => $diagnostics_service->get_dns_context_summary( array( 'login.microsoftonline.com', 'graph.microsoft.com' ) ),
-						'proxy_context'              => $diagnostics_service->get_proxy_context_summary(),
-						'http_hook_context'          => $diagnostics_service->get_http_hook_context_summary(),
-					)
-				);
-			} catch ( \Throwable $error ) {
-				$diagnostics = array(
-					'success' => false,
-					'message' => __( 'The diagnostics could not be completed.', 'modpress' ),
-					'trace'   => array( $error->getMessage() ),
-				);
-			}
-		}
+		$diagnostics = '1' === RequestHelper::get_text( 'graph_diagnostics' )
+			? FunctionsTools::run_diagnostics()
+			: null;
 		?>
 		<div class="card shadow-sm">
 			<div class="card-body">
@@ -115,7 +92,8 @@ final class Debug extends ToolsManager {
 			<div class="card-body">
 				<h2 class="h5"><?php esc_html_e( 'Microsoft Graph diagnostics', 'modpress' ); ?></h2>
 				<p class="text-secondary"><?php esc_html_e( 'Test the configured application credentials against Microsoft Entra over TLS 1.2. The test does not display credentials or tokens.', 'modpress' ); ?></p>
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=modpress&group=tools&tab=debug' ) ); ?>">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="modpress_run_graph_diagnostics" />
 					<?php wp_nonce_field( 'modpress_run_graph_diagnostics', 'modpress_graph_diagnostics_nonce' ); ?>
 					<?php echo FormFieldHelper::input( 'modpress_run_graph_diagnostics', '1', array( 'type' => 'hidden' ) ); ?>
 					<?php
@@ -141,6 +119,23 @@ final class Debug extends ToolsManager {
 		</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Handle the Graph diagnostics request.
+	 *
+	 * @return void
+	 * @since 1.0.0
+	 */
+	public function handle_graph_diagnostics(): void {
+		if ( ! PermissionHelper::can( 'modpress_tools_debug' ) ) {
+			wp_die( esc_html__( 'You are not authorized to run ModPress diagnostics.', 'modpress' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'modpress_run_graph_diagnostics', 'modpress_graph_diagnostics_nonce' );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=tools&tab=debug&graph_diagnostics=1' ) );
+		exit;
 	}
 
 	/**

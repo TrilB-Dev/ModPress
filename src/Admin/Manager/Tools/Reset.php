@@ -56,7 +56,12 @@ final class Reset extends ToolsManager {
 	public function register_assets( Assets $assets ): void {
 		$this->register_page_assets( $assets, array( 'modpress' ), 'tools' );
 	}
-
+	/**
+	 * Render the plugin reset tool page content.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function render_page_content(): void {
 		if ( '1' === RequestHelper::get_text( 'reset_complete' ) ) {
 			AlertHelper::render_admin_notice( __( 'The selected ModPress data was reset successfully.', 'modpress' ), 'success' );
