@@ -65,56 +65,58 @@ final class Reset extends ToolsManager {
 			AlertHelper::render_admin_notice( __( 'The selected ModPress data could not be reset.', 'modpress' ), 'error' );
 		}
 		?>
-		<div class="card shadow-sm">
-			<div class="card-body">
-				<h2 class="h5"><?php esc_html_e( 'Reset ModPress data', 'modpress' ); ?></h2>
-				<p class="text-secondary"><?php esc_html_e( 'Reset ModPress settings and registered plugin data to their factory values. This does not delete WordPress content.', 'modpress' ); ?></p>
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-					<?php echo FormFieldHelper::input( 'action', 'modpress_reset', array( 'type' => 'hidden' ) ); ?>
-					<?php wp_nonce_field( 'modpress_reset', 'modpress_reset_nonce' ); ?>
-					<?php echo FormFieldHelper::label( 'modpress-reset-scope', __( 'Reset scope', 'modpress' ) ); ?>
-					<?php echo FormFieldHelper::bootstrap_select(
-						'scope',
-						array(
-							'data' => $this->scope_options(),
-							'selected' => 'core',
-							'id' => 'modpress-reset-scope',
-							'live_search' => true,
-						)
-					); ?>
-					<fieldset class="mt-4" id="modpress-reset-plugins" data-modpress-reset-plugins hidden>
-						<legend><?php esc_html_e( 'Plugin data', 'modpress' ); ?></legend>
-						<?php
-						foreach ( $this->plugin_options() as $slug => $plugin ) {
-							echo FormFieldHelper::checkbox( 'plugins[]', $slug, $plugin['name'], array( 'id' => 'modpress-reset-' . $slug ) );
-						}
-						?>
-					</fieldset>
-					<div class="mt-4">
-						<?php
-						echo FormFieldHelper::checkbox(
-							'confirm',
-							'1',
-							__( 'I understand that this action cannot be undone.', 'modpress' ),
+		<div class="modpress-tools-reset-page">
+			<div class="card shadow-sm">
+				<div class="card-body">
+					<h2 class="h5"><?php esc_html_e( 'Reset ModPress data', 'modpress' ); ?></h2>
+					<p class="text-secondary"><?php esc_html_e( 'Reset ModPress settings and registered plugin data to their factory values. This does not delete WordPress content.', 'modpress' ); ?></p>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<?php echo FormFieldHelper::input( 'action', 'modpress_reset', array( 'type' => 'hidden' ) ); ?>
+						<?php wp_nonce_field( 'modpress_reset', 'modpress_reset_nonce' ); ?>
+						<?php echo FormFieldHelper::label( 'modpress-reset-scope', __( 'Reset scope', 'modpress' ) ); ?>
+						<?php echo FormFieldHelper::bootstrap_select(
+							'scope',
 							array(
-								'id'       => 'modpress-reset-confirm',
-								'required' => true,
+								'data' => $this->scope_options(),
+								'selected' => 'core',
+								'id' => 'modpress-reset-scope',
+								'live_search' => true,
 							)
-						);
-						?>
-					</div>
-					<div class="mt-4">
-						<?php
-						echo FormFieldHelper::button(
-							__( 'Reset selected data', 'modpress' ),
-							array(
-								'type'  => 'submit',
-								'class' => 'btn-danger',
-							)
-						);
-						?>
-					</div>
-				</form>
+						); ?>
+						<fieldset class="mt-4" id="modpress-reset-plugins" data-modpress-reset-plugins hidden>
+							<legend><?php esc_html_e( 'Plugin data', 'modpress' ); ?></legend>
+							<?php
+							foreach ( $this->plugin_options() as $slug => $plugin ) {
+								echo FormFieldHelper::checkbox( 'plugins[]', $slug, $plugin['name'], array( 'id' => 'modpress-reset-' . $slug ) );
+							}
+							?>
+						</fieldset>
+						<div class="mt-4">
+							<?php
+							echo FormFieldHelper::checkbox(
+								'confirm',
+								'1',
+								__( 'I understand that this action cannot be undone.', 'modpress' ),
+								array(
+									'id'       => 'modpress-reset-confirm',
+									'required' => true,
+								)
+							);
+							?>
+						</div>
+						<div class="mt-4">
+							<?php
+							echo FormFieldHelper::button(
+								__( 'Reset selected data', 'modpress' ),
+								array(
+									'type'  => 'submit',
+									'class' => 'btn-danger',
+								)
+							);
+							?>
+						</div>
+					</form>
+				</div>
 			</div>
 		</div>
 		<?php

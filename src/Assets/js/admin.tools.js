@@ -1,36 +1,59 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const root = document;
-  const integrationsEnabled = root.querySelector('#modpress-enable-integrations');
-  const integrationSwitches = root.querySelector('#modpress-integration-switches');
+/**
+  * Tools Manager JS
+  *
+  * @package: ModPress
+  * @subpackage: Admin\Manager\Tools
+  * @version 1.0.0
+  * @since 1.0.0
+  */
+(() => {
+ /**
+     * Integration Tools Page
+     * 
+     * This script handles the functionality for the Integration Tools page.
+     * @since 1.0.0
+     */
+    const toolsIntegration = document.querySelector('.modpress-tools-integration-page');
+    toolsIntegration && (() => {
 
-  if (integrationsEnabled && integrationSwitches) {
-    const applyIntegrationsState = () => {
-      const isEnabled = integrationsEnabled.checked;
-      integrationSwitches.classList.toggle('d-none', !isEnabled);
-      integrationSwitches.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-        checkbox.disabled = !isEnabled;
-      });
-    };
+      const integrationsEnabled = toolsIntegration.querySelector('#modpress-enable-integrations');
+      const integrationSwitches = toolsIntegration.querySelector('#modpress-integration-switches');
 
-    integrationsEnabled.addEventListener('change', applyIntegrationsState);
-    applyIntegrationsState();
-  }
+      if (integrationsEnabled && integrationSwitches) {
+        const applyIntegrationsState = () => {
+          const isEnabled = integrationsEnabled.checked;
+          integrationSwitches.classList.toggle('d-none', !isEnabled);
+          integrationSwitches.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+            checkbox.disabled = !isEnabled;
+          });
+        };
 
-  const resetScope = root.querySelector('#modpress-reset-scope');
-  const resetPlugins = root.querySelector('#modpress-reset-plugins');
+        integrationsEnabled.addEventListener('change', applyIntegrationsState);
+        applyIntegrationsState();
+      }
+    })();
+    /**
+     * Reset Tools Page
+     *
+     * This script handles the functionality for the Reset Tools page.
+     * @since 1.0.0
+     */
+    const toolsReset = document.querySelector('.modpress-tools-reset-page');
+    toolsReset && (() => {
+      const resetScope = toolsReset.querySelector('#modpress-reset-scope');
+      const resetPlugins = toolsReset.querySelector('#modpress-reset-plugins');
 
-  if (!resetScope || !resetPlugins) {
-    return;
-  }
+      if (resetScope && resetPlugins) {
+        const applyResetScopeState = () => {
+          const isPluginsScope = resetScope.value === 'plugins';
+          resetPlugins.hidden = !isPluginsScope;
+          resetPlugins.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+            checkbox.disabled = !isPluginsScope;
+          });
+        };
 
-  const applyResetScopeState = () => {
-    const isPluginsScope = resetScope.value === 'plugins';
-    resetPlugins.hidden = !isPluginsScope;
-    resetPlugins.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-      checkbox.disabled = !isPluginsScope;
-    });
-  };
-
-  resetScope.addEventListener('change', applyResetScopeState);
-  applyResetScopeState();
-});
+        resetScope.addEventListener('change', applyResetScopeState);
+        applyResetScopeState();
+      }
+    })();
+})();
