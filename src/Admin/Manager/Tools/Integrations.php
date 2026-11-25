@@ -85,7 +85,7 @@ final class Integrations extends ToolsManager {
 							)
 						); ?>
 					</div>
-					<?php if ( $values['enable_integrations'] ) : ?>
+					<div id="modpress-integration-switches" class="<?php echo $values['enable_integrations'] ? '' : 'd-none'; ?>">
 						<?php foreach ( IntegrationsAccess::get_instance()->get_available_definitions() as $integration ) : ?>
 							<div class="mt-3">
 								<?php echo FormFieldHelper::switch(
@@ -99,7 +99,7 @@ final class Integrations extends ToolsManager {
 								); ?>
 							</div>
 						<?php endforeach; ?>
-					<?php endif; ?>
+					</div>
 					<div class="mt-4">
 						<?php echo FormFieldHelper::button(
 							__( 'Save settings', 'modpress' ),
