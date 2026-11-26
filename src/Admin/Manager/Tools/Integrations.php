@@ -67,7 +67,7 @@ final class Integrations extends ToolsManager {
 			'enable_integrations' => Settings::get_bool( 'enable_integrations', false ),
 		);
 		?>
-		<div class="modpress-tools-integration-page">
+		<div class="modpress-tools-integration-page" id="modpress-tools-integration-page">
 			<div class="card shadow-sm mb-4">
 				<div class="card-body">
 					<h2 class="h5">
@@ -96,7 +96,7 @@ final class Integrations extends ToolsManager {
 								)
 							); ?>
 						</div>
-						<div id="modpress-integrations" class="d-none">
+						<div id="modpress-integrations" class="d-none d-block">
 							<?php foreach ( IntegrationsAccess::get_instance()->get_available_definitions() as $integration ) : ?>
 								<div class="mt-3">
 									<?php echo FormFieldHelper::switch(
