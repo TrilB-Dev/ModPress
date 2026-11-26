@@ -12,34 +12,25 @@
    *
    * @since 1.0.0
    */
-  const initIntegrationTools = () => {
-    const toolsIntegration = document.querySelector('.modpress-tools-integration-page');
-    if (!toolsIntegration) {
-      return;
-    }
+  const toolsIntegration = document.querySelector('.modpress-tools-integration-page');
+    toolsIntegration && (() => {
+      /**
+       * Show or hide integration block based on switch state.
+       * 
+       * @since 1.0.0
+       */
+      const enableIntegrations = document.getElementById('modpress-enable-integrations');
+      const integrationBlock = document.getElementById('modpress-integrations');
 
-    const integrationsEnabled = toolsIntegration.querySelector('input#modpress-enable-integrations');
-    const integrationSwitches = toolsIntegration.querySelector('#modpress-integration-switches');
-
-    if (!integrationsEnabled || !integrationSwitches) {
-      return;
-    }
-
-    const applyIntegrationsState = () => {
-      const isEnabled = integrationsEnabled.checked;
-      integrationSwitches.classList.toggle('d-none', !isEnabled);
-      integrationSwitches.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-        checkbox.disabled = !isEnabled;
-      });
-    };
-
-    if (integrationsEnabled.dataset.modpressIntegrationBound !== 'true') {
-      integrationsEnabled.dataset.modpressIntegrationBound = 'true';
-      integrationsEnabled.addEventListener('change', applyIntegrationsState);
-    }
-
-    applyIntegrationsState();
-  };
+      enableIntegrations.addEventListener('change', function () {
+            // Toggle d-none class based on switch state
+            if (this.checked) {
+                integrationBlock.classList.remove('d-none');
+            } else {
+                integrationBlock.classList.add('d-none');
+            }
+        });
+  })();
 
   /**
    * Initialize reset-tool controls.
@@ -75,7 +66,6 @@
   };
 
   const initToolsPages = () => {
-    initIntegrationTools();
     initResetTools();
   };
 

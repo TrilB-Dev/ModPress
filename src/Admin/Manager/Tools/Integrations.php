@@ -70,10 +70,20 @@ final class Integrations extends ToolsManager {
 		<div class="modpress-tools-integration-page">
 			<div class="card shadow-sm mb-4">
 				<div class="card-body">
-					<h2 class="h5"><?php esc_html_e( 'General tools settings', 'modpress' ); ?></h2>
-					<p class="text-secondary"><?php esc_html_e( 'Configure the default cleanup behaviour used when ModPress is uninstalled or deactivated.', 'modpress' ); ?></p>
+					<h2 class="h5">
+						<?php esc_html_e( 'General tools settings', 'modpress' ); ?>
+					</h2>
+					<p class="text-secondary">
+						<?php esc_html_e( 'Configure the default cleanup behaviour used when ModPress is uninstalled or deactivated.', 'modpress' ); ?>
+					</p>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<?php echo FormFieldHelper::input( 'action', 'modpress_save_tools_integrations', array( 'type' => 'hidden' ) ); ?>
+						<?php echo FormFieldHelper::input( 
+							'action', 
+							'modpress_save_tools_integrations', 
+							array( 
+								'type' => 'hidden' 
+							) 
+						); ?>
 						<?php wp_nonce_field( 'modpress_tools_integrations', 'modpress_tools_integrations_nonce' ); ?>
 						<div class="mt-3">
 							<?php echo FormFieldHelper::switch(
@@ -86,7 +96,7 @@ final class Integrations extends ToolsManager {
 								)
 							); ?>
 						</div>
-						<div id="modpress-integration-switches" class="<?php echo $values['enable_integrations'] ? '' : 'd-none'; ?>">
+						<div id="modpress-integrations" class="<?php echo $values['enable_integrations'] ? '' : 'd-none'; ?>">
 							<?php foreach ( IntegrationsAccess::get_instance()->get_available_definitions() as $integration ) : ?>
 								<div class="mt-3">
 									<?php echo FormFieldHelper::switch(
