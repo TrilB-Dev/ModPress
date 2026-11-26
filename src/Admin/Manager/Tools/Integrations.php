@@ -96,7 +96,7 @@ final class Integrations extends ToolsManager {
 								)
 							); ?>
 						</div>
-						<div id="modpress-integrations" class="<?php echo $values['enable_integrations'] ? '' : 'd-none'; ?>">
+						<div id="modpress-integrations" class="d-none">
 							<?php foreach ( IntegrationsAccess::get_instance()->get_available_definitions() as $integration ) : ?>
 								<div class="mt-3">
 									<?php echo FormFieldHelper::switch(
