@@ -12,24 +12,24 @@
    *
    * @since 1.0.0
    */
-  const toolsIntegration = document.querySelector('.modpress-tools-integration-page');
-    toolsIntegration && (() => {
-      /**
-       * Show or hide integration block based on switch state.
-       * 
-       * @since 1.0.0
-       */
-      const enableIntegrations = document.getElementById('modpress-enable-integrations');
-      const integrationBlock = document.getElementById('modpress-integrations');
+  const toolsIntegration = document.getElementById('modpress-tools-integration-page');
+  toolsIntegration && (() => {
+    /**
+     * Show or hide integration block based on switch state.
+     * 
+     * @since 1.0.0
+     */
+    const enableIntegrations = document.getElementById('modpress-enable-integrations');
+    const integrationBlock = document.getElementById('modpress-integrations');
 
-      enableIntegrations.addEventListener('change', function () {
-            // Toggle d-none class based on switch state
-            if (this.checked) {
-                integrationBlock.classList.remove('d-none');
-            } else {
-                integrationBlock.classList.add('d-none');
-            }
-        });
+    enableIntegrations.addEventListener('change', function () {
+      // Toggle d-none class based on switch state
+      if (this.checked) {
+        integrationBlock.classList.remove('d-none');
+      } else {
+        integrationBlock.classList.add('d-none');
+      }
+    });
   })();
 
   /**
