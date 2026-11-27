@@ -75,63 +75,129 @@ final class Integrations extends ToolsManager {
 		<div class="modpress-tools-integration-page" id="modpress-tools-integration-page">
 			<div class="card shadow-sm mb-4">
 				<div class="card-body">
-					<h2 class="h5">
-						<?php esc_html_e( 'General tools settings', 'modpress' ); ?>
-					</h2>
-					<p class="text-secondary">
-						<?php esc_html_e( 'Configure the default cleanup behaviour used when ModPress is uninstalled or deactivated.', 'modpress' ); ?>
-					</p>
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<?php echo FormFieldHelper::input( 
-							'action', 
-							'modpress_save_tools_integrations', 
-							array( 
-								'type' => 'hidden' 
-							) 
-						); ?>
-						<?php wp_nonce_field( 'modpress_tools_integrations', 'modpress_tools_integrations_nonce' ); ?>
-						<div class="mt-3">
-							<?php echo FormFieldHelper::switch(
-								'modpress_tools[enable_integrations]',
-								true,
-								__( 'Enable integrations', 'modpress' ),
-								array(
-									'id'      => 'modpress-enable-integrations',
-									'checked' => ! empty( $values['enable_integrations'] ) ?? false,
-								)
-							); ?>
-						</div>
-						<div id="modpress-integrations" class="<?php echo $values['enable_integrations'] ? '' : 'd-none'; ?>">
-							<?php $available_integrations = $this->integrations->get_available_definitions(); ?>
-							<?php if ( empty( $available_integrations ) ) : ?>
-								<p class="mt-3 mb-0 text-secondary">
-									<?php esc_html_e( 'No supported integrations are currently installed.', 'modpress' ); ?>
-								</p>
-							<?php endif; ?>
-							<?php foreach ( $available_integrations as $integration ) : ?>
+					<?php
+					$available_integrations = $this->integrations->get_available_definitions();
+					$enabled_integrations   = array_filter(
+						$available_integrations,
+						static function ( array $integration ): bool {
+							return ! empty( $integration['enabled'] );
+						}
+					);
+					?>
+					<ul class="nav nav-tabs" id="modpress-integrations-tabs" role="tablist">
+						<li class="nav-item" role="presentation">
+							<button
+								type="button"
+								class="nav-link active"
+								id="integrations-tab"
+								data-bs-toggle="tab"
+								data-bs-target="#integrations-tab-pane"
+								role="tab"
+								aria-controls="integrations-tab-pane"
+								aria-selected="true"
+							>
+								<?php esc_html_e( 'Integrations', 'modpress' ); ?>
+							</button>
+						</li>
+						<?php foreach ( $enabled_integrations as $integration ) : ?>
+							<?php
+							$slug = (string) $integration['slug'];
+							$tab_id = $slug . '-tab';
+							$pane_id = $slug . '-tab-pane';
+							?>
+							<li class="nav-item" role="presentation">
+								<button
+									type="button"
+									class="nav-link"
+									id="<?php echo esc_attr( $tab_id ); ?>"
+									data-bs-toggle="tab"
+									data-bs-target="#<?php echo esc_attr( $pane_id ); ?>"
+									role="tab"
+									aria-controls="<?php echo esc_attr( $pane_id ); ?>"
+									aria-selected="false"
+								>
+									<?php echo esc_html( $integration['name'] ); ?>
+								</button>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<div class="tab-content mt-4" id="modpress-integrations-tab-content">
+						<div
+							class="tab-pane fade show active"
+							id="integrations-tab-pane"
+							role="tabpanel"
+							aria-labelledby="integrations-tab"
+							tabindex="0"
+						>
+							<h2 class="h5"><?php esc_html_e( 'Integrations', 'modpress' ); ?></h2>
+							<p class="text-secondary"><?php esc_html_e( 'Manage the integrations available for ModPress.', 'modpress' ); ?></p>
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+								<?php echo FormFieldHelper::input( 'action', 'modpress_save_tools_integrations', array( 'type' => 'hidden' ) ); ?>
+								<?php wp_nonce_field( 'modpress_tools_integrations', 'modpress_tools_integrations_nonce' ); ?>
 								<div class="mt-3">
 									<?php echo FormFieldHelper::switch(
-										'modpress_tools[' . esc_attr( $integration['setting_key'] ) . ']',
+										'modpress_tools[enable_integrations]',
 										true,
-										sprintf( __( 'Enable %s integration', 'modpress' ), $integration['name'] ),
+										__( 'Enable integrations', 'modpress' ),
 										array(
-											'id'      => 'modpress-enable-' . esc_attr( $integration['slug'] ) . '-integration',
-											'checked' => ! empty( $integration['enabled'] ),
+											'id'      => 'modpress-enable-integrations',
+											'checked' => ! empty( $values['enable_integrations'] ),
 										)
 									); ?>
 								</div>
-							<?php endforeach; ?>
+								<div id="modpress-integrations" class="<?php echo $values['enable_integrations'] ? '' : 'd-none'; ?>">
+									<?php if ( empty( $available_integrations ) ) : ?>
+										<p class="mt-3 mb-0 text-secondary"><?php esc_html_e( 'No supported integrations are currently installed.', 'modpress' ); ?></p>
+									<?php endif; ?>
+									<?php foreach ( $available_integrations as $integration ) : ?>
+										<div class="mt-3">
+											<?php echo FormFieldHelper::switch(
+												'modpress_tools[' . esc_attr( $integration['setting_key'] ) . ']',
+												true,
+												sprintf( __( 'Enable %s integration', 'modpress' ), $integration['name'] ),
+												array(
+													'id'      => 'modpress-enable-' . esc_attr( $integration['slug'] ) . '-integration',
+													'checked' => ! empty( $integration['enabled'] ),
+												)
+											); ?>
+										</div>
+									<?php endforeach; ?>
+								</div>
+								<div class="mt-4">
+									<?php echo FormFieldHelper::button(
+										__( 'Save settings', 'modpress' ),
+										array(
+											'type'  => 'submit',
+											'class' => 'btn-primary',
+										)
+									); ?>
+								</div>
+							</form>
 						</div>
-						<div class="mt-4">
-							<?php echo FormFieldHelper::button(
-								__( 'Save settings', 'modpress' ),
-								array(
-									'type'  => 'submit',
-									'class' => 'btn-primary',
-								)
-							); ?>
-						</div>
-					</form>
+						<?php foreach ( $enabled_integrations as $integration ) : ?>
+							<?php
+							$slug = (string) $integration['slug'];
+							$pane_id = $slug . '-tab-pane';
+							?>
+							<div
+								class="tab-pane fade"
+								id="<?php echo esc_attr( $pane_id ); ?>"
+								role="tabpanel"
+								aria-labelledby="<?php echo esc_attr( $slug . '-tab' ); ?>"
+								tabindex="0"
+							>
+								<h2 class="h5"><?php echo esc_html( $integration['name'] ); ?></h2>
+								<p class="text-secondary">
+									<?php echo esc_html(
+										sprintf(
+											__( '%s integration settings and status.', 'modpress' ),
+											$integration['name']
+										)
+									); ?>
+								</p>
+							</div>
+						<?php endforeach; ?>
+					</div>
 				</div>
 			</div>
 		</div>
