@@ -59,7 +59,20 @@ class AccessPress implements IntegrationInterface {
 	 * @return bool True if available, false otherwise.
 	 */
 	public function is_available(): bool {
-		return class_exists( $this->get_host_plugin_class() );
+		if ( defined( 'ACCESSPRESS_FILE' ) ) {
+			return true;
+		}
+		if ( class_exists( 'AccessPress\\Plugin' ) || class_exists( $this->get_host_plugin_class() ) ) {
+			return true;
+		}
+		if ( function_exists( 'is_plugin_active' ) ) {
+			return is_plugin_active( 'accesspress/accesspress.php' );
+		}
+		if ( function_exists( 'get_option' ) ) {
+			$active_plugins = array_map( 'strtolower', (array) get_option( 'active_plugins', array() ) );
+			return in_array( 'accesspress/accesspress.php', $active_plugins, true );
+		}
+		return false;
 	}
 
 	/**

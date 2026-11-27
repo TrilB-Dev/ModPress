@@ -60,7 +60,20 @@ class ProjectPress implements IntegrationInterface {
 	 * @return bool True if available, false otherwise.
 	 */
 	public function is_available(): bool {
-		return class_exists( $this->get_host_plugin_class() );
+		if ( defined( 'PROJECTPRESS_FILE' ) ) {
+			return true;
+		}
+		if ( class_exists( 'ProjectPress\\Plugin' ) || class_exists( $this->get_host_plugin_class() ) ) {
+			return true;
+		}
+		if ( function_exists( 'is_plugin_active' ) ) {
+			return is_plugin_active( 'projectpress/projectpress.php' );
+		}
+		if ( function_exists( 'get_option' ) ) {
+			$active_plugins = array_map( 'strtolower', (array) get_option( 'active_plugins', array() ) );
+			return in_array( 'projectpress/projectpress.php', $active_plugins, true );
+		}
+		return false;
 	}
 
 	/**
