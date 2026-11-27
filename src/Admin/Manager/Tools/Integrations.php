@@ -96,8 +96,14 @@ final class Integrations extends ToolsManager {
 								)
 							); ?>
 						</div>
-						<div id="modpress-integrations" class="d-none d-block">
-							<?php foreach ( IntegrationsAccess::get_instance()->get_available_definitions() as $integration ) : ?>
+						<div id="modpress-integrations" class="<?php echo $values['enable_integrations'] ? '' : 'd-none'; ?>">
+							<?php $available_integrations = IntegrationsAccess::get_instance()->get_available_definitions(); ?>
+							<?php if ( empty( $available_integrations ) ) : ?>
+								<p class="mt-3 mb-0 text-secondary">
+									<?php esc_html_e( 'No supported integrations are currently installed.', 'modpress' ); ?>
+								</p>
+							<?php endif; ?>
+							<?php foreach ( $available_integrations as $integration ) : ?>
 								<div class="mt-3">
 									<?php echo FormFieldHelper::switch(
 										'modpress_tools[' . esc_attr( $integration['setting_key'] ) . ']',

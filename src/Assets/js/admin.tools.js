@@ -12,12 +12,15 @@
    *
    * @since 1.0.0
    */
-  const toolsIntegration = document.getElementById('modpress-tools-integration-page');
-  if (!toolsIntegration) {
-    console.warn('[ModPress] Integration tools page wrapper not found.', {
-      wrapperId: 'modpress-tools-integration-page',
-    });
-  } else {
+  const initIntegrationTools = () => {
+    const toolsIntegration = document.getElementById('modpress-tools-integration-page');
+    if (!toolsIntegration) {
+      console.warn('[ModPress] Integration tools page wrapper not found.', {
+        wrapperId: 'modpress-tools-integration-page',
+      });
+      return;
+    }
+
     /**
      * Show or hide integration block based on switch state.
      * 
@@ -42,12 +45,17 @@
         try {
           if (enableIntegrations.checked) {
             integrationBlock.classList.remove('d-none');
+            integrationBlock.removeAttribute('hidden');
           } else {
             integrationBlock.classList.add('d-none');
+            integrationBlock.setAttribute('hidden', 'hidden');
           }
           console.info('[ModPress] Integration switch state applied.', {
             enabled: enableIntegrations.checked,
             blockId: integrationBlock.id,
+            childSwitches: integrationBlock.querySelectorAll('input[type="checkbox"]').length,
+            classes: integrationBlock.className,
+            hidden: integrationBlock.hidden,
           });
         } catch (error) {
           console.error('[ModPress] Failed to apply integration switch state.', {
@@ -102,6 +110,7 @@
   };
 
   const initToolsPages = () => {
+    initIntegrationTools();
     initResetTools();
   };
 
