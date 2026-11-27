@@ -26,6 +26,7 @@ use ModPress\Admin\Manager\Tools\Export;
 use ModPress\Admin\Manager\Tools\General;
 use ModPress\Admin\Manager\Tools\Import;
 use ModPress\Admin\Manager\Tools\Reset;
+use ModPress\Admin\Manager\Tools\Integrations;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -112,6 +113,7 @@ final class Admin {
 		new Reset( $this->loader );
 		new Import( $this->loader );
 		new Export( $this->loader );
+		new Integrations( $this->loader );
 		/**
 		 * Initialize the assets manager.
 		 */

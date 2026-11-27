@@ -32,16 +32,18 @@ final class Integrations extends ToolsManager {
 	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
 		$this->integrations = new IntegrationsAccess();
-		( $loader ?? new LoaderHelper() )->register_component(
-			$this,
-			array(
+		if ( null !== $loader ) {
+			$loader->register_component(
+				$this,
 				array(
-					'type'     => 'action',
-					'hook'     => 'admin_post_modpress_save_tools_integrations',
-					'callback' => 'handle_save',
-				),
-			)
-		)->run();
+					array(
+						'type'     => 'action',
+						'hook'     => 'admin_post_modpress_save_tools_integrations',
+						'callback' => 'handle_save',
+					),
+				)
+			)->run();
+		}
 	}
 	/**
 	 * Render the integrations settings page content.
