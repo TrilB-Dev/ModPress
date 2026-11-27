@@ -22,13 +22,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Integrations extends ToolsManager {
+	private IntegrationsAccess $integrations;
+
 	/**
 	 * Constructor for the Integrations class.
 	 *
 	 * @since 1.0.0
 	 */
-	public function __construct() {
+	public function __construct( ?LoaderHelper $loader = null ) {
 		parent::__construct( false );
+		$this->integrations = new IntegrationsAccess();
 		( $loader ?? new LoaderHelper() )->register_component(
 			$this,
 			array(
@@ -97,7 +100,7 @@ final class Integrations extends ToolsManager {
 							); ?>
 						</div>
 						<div id="modpress-integrations" class="<?php echo $values['enable_integrations'] ? '' : 'd-none'; ?>">
-							<?php $available_integrations = IntegrationsAccess::get_instance()->get_available_definitions(); ?>
+							<?php $available_integrations = $this->integrations->get_available_definitions(); ?>
 							<?php if ( empty( $available_integrations ) ) : ?>
 								<p class="mt-3 mb-0 text-secondary">
 									<?php esc_html_e( 'No supported integrations are currently installed.', 'modpress' ); ?>
@@ -152,10 +155,10 @@ final class Integrations extends ToolsManager {
 			Settings::set( $key, $value );
 		}
 
-		foreach ( IntegrationsAccess::get_instance()->get_available_definitions() as $integration ) {
+		foreach ( $this->integrations->get_available_definitions() as $integration ) {
 			$setting_key = $integration['setting_key'];
 			$enabled = ! empty( $input[$setting_key] );
-			IntegrationsAccess::get_instance()->set_enabled( $integration['slug'], $enabled );
+			$this->integrations->set_enabled( $integration['slug'], $enabled );
 		}
 
 		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=tools&tab=integrations&settings_saved=1' ) );

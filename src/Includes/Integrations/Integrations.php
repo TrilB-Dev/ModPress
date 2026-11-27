@@ -18,13 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class Integrations {
 	/**
-	 * The singleton instance of the Integrations class.
-	 *
-	 * @var self|null
-	 */
-	private static ?self $instance = null;
-
-	/**
 	 * The registered integration bridges.
 	 *
 	 * @var array<string, IntegrationInterface>
@@ -46,24 +39,8 @@ final class Integrations {
 	 * @since 1.0.0
 	 */
 	private bool $initialized = false;
-	/**
-	 * The constructor is private to enforce the singleton pattern.
-	 *
-	 * @since 1.0.0
-	 */
-	private function __construct() {}
-	/**
-	 * Retrieve the singleton instance of the Integrations class.
-	 *
-	 * @since 1.0.0
-	 * @return self
-	 */
-	public static function get_instance(): self {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
+	public function __construct() {
+		$this->register_default_bridges();
 	}
 	/**
 	 * Register the default integration bridges.

@@ -268,7 +268,7 @@ class Plugin {
 		 * @access protected
 		 */
 		$this->plugins = Plugins::get_instance();
-		$this->integrations = Integrations::get_instance();
+		$this->integrations = new Integrations();
 		$this->loader->add_action( 'init', $this->includes, 'init' );
 		$this->loader->add_action( 'init', $this->plugins, 'init', -10 );
 		$this->loader->add_action( 'init', $this->integrations, 'init', -5 );
