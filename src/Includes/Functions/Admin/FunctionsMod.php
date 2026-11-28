@@ -457,6 +457,36 @@ final class FunctionsMod {
 		return AlertHelper::get_admin_notice( $notice, 'success' );
 	}
 	/**
+	 * Delete a Mod submitted from the Mods table.
+	 *
+	 * @return void
+	 * @since 1.0.0
+	 */
+	public function delete_mod(): void {
+		if ( ! current_user_can( 'modpress_manager_mods_edit' ) && ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to delete Mods.', 'modpress' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'modpress_delete_mod', 'modpress_delete_mod_nonce' );
+
+		$mod_id = absint( wp_unslash( $_POST['mod_id'] ?? 0 ) );
+		if ( $mod_id <= 0 ) {
+			$this->redirect_mod_action_result( 'mods', __( 'No Mod was selected to delete.', 'modpress' ), false );
+		}
+
+		$post = get_post( $mod_id );
+		if ( ! $post instanceof \WP_Post || 'modpress_mod' !== $post->post_type ) {
+			$this->redirect_mod_action_result( 'mods', __( 'The selected Mod could not be found.', 'modpress' ), false );
+		}
+
+		$deleted = wp_delete_post( $mod_id, true );
+		if ( false === $deleted || null === $deleted ) {
+			$this->redirect_mod_action_result( 'mods', __( 'The Mod could not be deleted.', 'modpress' ), false );
+		}
+
+		$this->redirect_mod_action_result( 'mods', __( 'Mod deleted successfully.', 'modpress' ), true );
+	}
+	/**
      * Save a custom taxonomy group from the group modal.
      *
      * @return void

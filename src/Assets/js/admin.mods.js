@@ -1013,6 +1013,19 @@
          * @since 1.0.0
          */
         document.addEventListener('click', (event) => {
+            const deleteModButton = event.target.closest('[data-role="delete-mod"]');
+            if (deleteModButton) {
+                event.preventDefault();
+                if (!window.confirm('Delete this mod?')) {
+                    return;
+                }
+                const form = deleteModButton.closest('form');
+                if (form) {
+                    form.requestSubmit ? form.requestSubmit() : form.submit();
+                }
+                return;
+            }
+
             const dependentAddButton = event.target.closest('[data-modpress-dependent-add]');
             if (dependentAddButton) {
                 event.preventDefault();

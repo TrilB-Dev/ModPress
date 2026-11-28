@@ -14,6 +14,7 @@ use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\Plugins\FontAwesome\Includes\Functions\Helpers\FAHelper;
 use ModPress\Includes\Functions\Helpers\WPMediaHelper;
 use ModPress\Includes\Plugins\TinyMCE\Includes\Functions\Helpers\TinyMCEHelper;
+use ModPress\Includes\Functions\Helpers\RequestHelper;
 use ModPress\Includes\Settings\Settings;
 
 
@@ -34,7 +35,20 @@ final class Mods extends ModManager {
 		}
 
 		if ( in_array( $form_state, array( 'new', 'edit' ), true ) ) {
-			$this->render_mod_form();
+			$mod_id = RequestHelper::integer( $_GET, 'mod_id', 0 );
+			$mod = $mod_id > 0 && function_exists( 'get_post' ) ? get_post( $mod_id ) : null;
+			$mod_data = $mod instanceof \WP_Post
+				? array_merge( (array) $mod, array(
+					'ID' => $mod->ID,
+					'post_title' => $mod->post_title,
+					'post_name' => $mod->post_name,
+					'post_author' => $mod->post_author,
+					'post_status' => $mod->post_status,
+					'post_excerpt' => $mod->post_excerpt,
+					'post_content' => $mod->post_content,
+				) )
+				: array();
+			$this->render_mod_form( $mod_data );
 			return;
 		}
 
@@ -58,6 +72,7 @@ final class Mods extends ModManager {
 										<th><?php esc_html_e( 'Name', 'modpress' ); ?></th>
 										<th><?php esc_html_e( 'Status', 'modpress' ); ?></th>
 										<th><?php esc_html_e( 'Version', 'modpress' ); ?></th>
+										<th class="text-end"><?php esc_html_e( 'Actions', 'modpress' ); ?></th>
 									</tr>
 								</thead>
 								<tbody>
@@ -67,6 +82,36 @@ final class Mods extends ModManager {
 											<td><?php echo esc_html( $summary['title'] ); ?></td>
 											<td><?php echo esc_html( ucfirst( $summary['status'] ) ); ?></td>
 											<td><?php echo esc_html( $summary['version'] ); ?></td>
+											<td class="text-end">
+												<div class="btn-group btn-group-sm" role="group" aria-label="<?php esc_attr_e( 'Actions', 'modpress' ); ?>">
+													<?php echo FormFieldHelper::button(
+														FAHelper::faicon( 'pen-to-square' ),
+														array(
+															'type' => 'a',
+															'href' => admin_url( 'admin.php?page=modpress&group=mod-manager&tab=mods&form=edit&mod_id=' . (int) $mod->ID ),
+															'class' => 'btn btn-outline-secondary',
+															'attributes' => array(
+																'aria-label' => __( 'Edit mod', 'modpress' ),
+															),
+														)
+													); ?>
+													<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="d-inline-flex" aria-label="<?php esc_attr_e( 'Delete mod', 'modpress' ); ?>">
+														<input type="hidden" name="action" value="modpress_delete_mod" />
+														<input type="hidden" name="mod_id" value="<?php echo esc_attr( (string) $mod->ID ); ?>" />
+														<?php wp_nonce_field( 'modpress_delete_mod', 'modpress_delete_mod_nonce' ); ?>
+														<?php echo FormFieldHelper::button(
+															FAHelper::faicon( 'trash' ),
+															array(
+																'type' => 'submit',
+																'class' => 'btn btn-outline-danger',
+																'attributes' => array(
+																	'data-role' => 'delete-mod',
+																),
+															)
+														); ?>
+													</form>
+												</div>
+											</td>
 										</tr>
 									<?php endforeach; ?>
 								</tbody>
