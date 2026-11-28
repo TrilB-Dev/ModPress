@@ -6,6 +6,7 @@
  */
 namespace ModPress\Includes\Integrations\WikiPress;
 use ModPress\Includes\Integrations\IntegrationInterface;
+use ModPress\Includes\Integrations\WikiPress\Admin\Integrations;
 use ModPress\Includes\Settings\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WikiPress implements IntegrationInterface {
+	private ?Integrations $admin = null;
 	/**
 	 * Retrieve the slug of the integration bridge.
 	 *
@@ -102,7 +104,10 @@ class WikiPress implements IntegrationInterface {
 	 *
 	 * @since 1.0.0
 	 */
-	public function init(): void {}
+	public function init(): void {
+		$this->admin = new Integrations();
+		$this->admin->init();
+	}
 
 	/**
 	 * Process an action for the integration bridge.
@@ -114,5 +119,10 @@ class WikiPress implements IntegrationInterface {
 	 */
 	public function process( string $action, array $context = array() ) {
 		return null;
+	}
+
+	public function render_page_content(): void {
+		$this->admin ??= new Integrations();
+		$this->admin->render_page_content();
 	}
 }

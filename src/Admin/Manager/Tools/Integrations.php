@@ -186,15 +186,12 @@ final class Integrations extends ToolsManager {
 								aria-labelledby="<?php echo esc_attr( $slug . '-tab' ); ?>"
 								tabindex="0"
 							>
-								<h2 class="h5"><?php echo esc_html( $integration['name'] ); ?></h2>
-								<p class="text-secondary">
-									<?php echo esc_html(
-										sprintf(
-											__( '%s integration settings and status.', 'modpress' ),
-											$integration['name']
-										)
-									); ?>
-								</p>
+								<?php
+								$bridge = $this->integrations->get_bridge( $slug );
+								if ( $bridge ) {
+									$bridge->render_page_content();
+								}
+								?>
 							</div>
 						<?php endforeach; ?>
 					</div>

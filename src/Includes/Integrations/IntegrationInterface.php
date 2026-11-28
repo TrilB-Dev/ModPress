@@ -85,4 +85,11 @@ interface IntegrationInterface {
 	 * @return mixed The result of the action.
 	 */
 	public function process( string $action, array $context = array() );
+	/**
+	 * Render integration-specific admin content.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function render_page_content(): void;
 }

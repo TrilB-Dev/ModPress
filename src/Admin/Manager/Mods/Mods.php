@@ -384,6 +384,7 @@ final class Mods extends ModManager {
 							); ?>
 							<div class="form-text"><?php esc_html_e( 'This helps organize mods by their content type.', 'modpress' ); ?></div>
 						</div>
+						<?php do_action( 'modpress_mod_form_integration_fields', $mod_id, $mod ); ?>
 						<?php
 						$group_taxonomies = array();
 						if ( class_exists( '\ModPress\Includes\ModManagement\GroupsManager' ) ) {

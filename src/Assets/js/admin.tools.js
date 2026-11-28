@@ -28,6 +28,17 @@
      */
     const enableIntegrations = document.getElementById('modpress-enable-integrations');
     const integrationBlock = document.getElementById('modpress-integrations');
+    const wikiMode = document.getElementById('wikipress-mod-wiki-mode');
+    const wikiTypes = document.getElementById('wikipress-mod-wiki-types');
+
+    if (wikiMode && wikiTypes) {
+      const applyWikiModeState = () => {
+        const showTypes = wikiMode.value === 'by_type';
+        wikiTypes.classList.toggle('d-none', !showTypes);
+      };
+      wikiMode.addEventListener('change', applyWikiModeState);
+      applyWikiModeState();
+    }
 
     if (!enableIntegrations) {
       console.error('[ModPress] Integrations enable switch not found.', {

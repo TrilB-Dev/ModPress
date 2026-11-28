@@ -114,4 +114,5 @@ class AccessPress implements IntegrationInterface {
 	public function process( string $action, array $context = array() ) {
 		return null;
 	}
+	public function render_page_content(): void {}
 }

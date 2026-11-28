@@ -448,6 +448,8 @@ final class FunctionsMod {
 			update_post_meta( $post_id, '_modpress_files', $normalized_files );
 		}
 
+		do_action( 'modpress_mod_saved', $post_id, $mod_id, $post_args, $_POST );
+
 		$notice = __( 'Mod saved successfully.', 'modpress' );
 		if ( $should_redirect ) {
 			$this->redirect_mod_action_result( 'mods', $notice, true );
