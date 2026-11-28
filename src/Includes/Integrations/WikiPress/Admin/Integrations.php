@@ -170,8 +170,10 @@ final class Integrations {
 			: false;
 		?>
 		<div class="col-md-3">
-			<div class="card">
+			<div class="card shadow-sm mb-4">
 				<div class="card-body">
+					<h4 class="card-title"><?php esc_html_e( 'WikiPress Integrations', 'modpress' ); ?></h4>
+					<p><?php esc_html_e( 'Create a WikiPress wiki for this mod.', 'modpress' ); ?></p>
 					<?php echo FormFieldHelper::switch(
 						'modpress_create_wiki',
 						true,
