@@ -1,5 +1,13 @@
 <?php
+/**
+ * WikiPress integration for ModPress admin.
+ *
+ * @package ModPress
+ * @subpackage Includes\Integrations\WikiPress\Admin
+ * @since 1.0.0
+ */
 namespace ModPress\Includes\Integrations\WikiPress\Admin;
+
 use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\Functions\Helpers\PermissionHelper;
 use ModPress\Includes\Settings\Settings;
@@ -9,21 +17,60 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Integrations {
+	/**
+	 * WikiPress integration settings.
+	 * 
+	 * @since 1.0.0
+	 */
 	public const MODE_SETTING = 'wikipress_mod_wiki_create_mode';
+	/**
+	 * WikiPress integration types.
+	 *
+	 * @since 1.0.0
+	 */
 	public const TYPES_SETTING = 'wikipress_mod_wiki_create_types';
+	/**
+	 * WikiPress integration action for saving settings.
+	 *
+	 * @since 1.0.0
+	 */
 	public const ACTION_SAVE = 'modpress_save_wikipress_mod_wiki_integration';
+	/**
+	 * Meta key for creating a wiki for a mod.
+	 *
+	 * @since 1.0.0
+	 */
 	public const META_CREATE_WIKI = '_modpress_create_wiki';
+	/**
+	 * Meta key for storing the wiki ID associated with a mod.
+	 *
+	 * @since 1.0.0
+	 */
 	public const META_WIKI_ID = '_modpress_wiki_id';
-
+	/**
+	 * Constructor.
+	 *
+	 * @since 1.0.0
+	 */
 	public function __construct() {
 	}
-
+	/**
+	 * Initialize the integration by adding necessary hooks.
+	 *
+	 * @return void
+	 * @since 1.0.0
+	 */
 	public function init(): void {
 		add_action( 'admin_post_' . self::ACTION_SAVE, array( $this, 'handle_save' ) );
 		add_action( 'modpress_mod_form_integration_fields', array( $this, 'render_individual_mod_field' ), 10, 2 );
 		add_action( 'modpress_mod_saved', array( $this, 'handle_mod_saved' ), 10, 4 );
 	}
-
+	/**
+	 * Render the integration settings page content.
+	 *
+	 * @return void
+	 * @since 1.0.0
+	 */
 	public function render_page_content(): void {
 		$mode = Settings::get_string( self::MODE_SETTING, 'disabled' );
 		if ( ! in_array( $mode, array( 'disabled', 'all', 'by_type', 'individually' ), true ) ) {
@@ -83,7 +130,12 @@ final class Integrations {
 		</div>
 		<?php
 	}
-
+	/**
+	 * Handle saving the integration settings.
+	 *
+	 * @return void
+	 * @since 1.0.0
+	 */
 	public function handle_save(): void {
 		if ( ! PermissionHelper::can( 'modpress_tools_integrations' ) ) {
 			wp_die( esc_html__( 'You are not authorized to save WikiPress integration settings.', 'modpress' ), '', array( 'response' => 403 ) );
@@ -101,7 +153,13 @@ final class Integrations {
 		wp_safe_redirect( admin_url( 'admin.php?page=modpress&group=tools&tab=integrations&settings_saved=1' ) );
 		exit;
 	}
-
+	/**
+	 * Render the individual mod field for WikiPress integration.
+	 *
+	 * @param int $mod_id The ID of the mod.
+	 * @return void
+	 * @since 1.0.0
+	 */
 	public function render_individual_mod_field( int $mod_id = 0 ): void {
 		$mode = Settings::get_string( self::MODE_SETTING, 'disabled' );
 		if ( 'individually' !== $mode ) {
@@ -111,20 +169,33 @@ final class Integrations {
 			? '1' === (string) get_post_meta( $mod_id, self::META_CREATE_WIKI, true )
 			: false;
 		?>
-		<div class="col-md-6">
-			<?php echo FormFieldHelper::checkbox(
-				'modpress_create_wiki',
-				'1',
-				__( 'Create WikiPress wiki', 'modpress' ),
-				array(
-					'id' => 'modpress-create-wiki',
-					'checked' => $create_wiki,
-				)
-			); ?>
+		<div class="col-md-3">
+			<div class="card">
+				<div class="card-body">
+					<?php echo FormFieldHelper::switch(
+						'modpress_create_wiki',
+						true,
+						__( 'Create Mod wiki', 'modpress' ),
+						array(
+							'id' => 'modpress-create-wiki',
+							'checked' => $create_wiki,
+						)
+					); ?>
+				</div>
+			</div>
 		</div>
 		<?php
 	}
-
+	/**
+	 * Handle the saving of a mod and create a WikiPress wiki if necessary.
+	 *
+	 * @param int $mod_post_id The post ID of the mod being saved.
+	 * @param int $existing_mod_id The existing mod ID, if any.
+	 * @param array $post_args The post arguments.
+	 * @param array $request The request data.
+	 * @return void
+	 * @since 1.0.0
+	 */
 	public function handle_mod_saved( int $mod_post_id, int $existing_mod_id, array $post_args = array(), array $request = array() ): void {
 		$mode = Settings::get_string( self::MODE_SETTING, 'disabled' );
 		if ( 'disabled' === $mode || $existing_mod_id > 0 || post_type_exists( 'wikipress_wiki' ) === false ) {
