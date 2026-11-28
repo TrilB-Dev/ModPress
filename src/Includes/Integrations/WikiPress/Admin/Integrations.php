@@ -174,7 +174,7 @@ final class Integrations {
 				<div class="card-body">
 					<h4 class="card-title"><?php esc_html_e( 'WikiPress Integrations', 'modpress' ); ?></h4>
 					<p><?php esc_html_e( 'Create a WikiPress wiki for this mod.', 'modpress' ); ?></p>
-					<?php echo FormFieldHelper::switch(
+					<p><?php echo FormFieldHelper::switch(
 						'modpress_create_wiki',
 						true,
 						__( 'Create Mod wiki', 'modpress' ),
@@ -182,7 +182,7 @@ final class Integrations {
 							'id' => 'modpress-create-wiki',
 							'checked' => $create_wiki,
 						)
-					); ?>
+					); ?></p>
 				</div>
 			</div>
 		</div>
