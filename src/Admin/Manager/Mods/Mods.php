@@ -14,6 +14,7 @@ use ModPress\Includes\Functions\Helpers\FormFieldHelper;
 use ModPress\Includes\Plugins\FontAwesome\Includes\Functions\Helpers\FAHelper;
 use ModPress\Includes\Functions\Helpers\WPMediaHelper;
 use ModPress\Includes\Plugins\TinyMCE\Includes\Functions\Helpers\TinyMCEHelper;
+use ModPress\Includes\Settings\Settings;
 
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -901,7 +902,11 @@ final class Mods extends ModManager {
 							); ?>
 							<div class="form-text"><?php esc_html_e( 'The full description of the mod.', 'modpress' ); ?></div>
 						</div>
-						<?php do_action( 'modpress_mod_form_integration_fields', $mod_id, $mod ); ?>
+						<?php if ( Settings::get_bool( 'enable_integrations', false ) ) : ?>
+							<div class="col-12">
+								<?php do_action( 'modpress_mod_form_integration_fields', $mod_id, $mod ); ?>
+							</div>
+						<?php endif; ?>
 						<div class="col-12">
 							<?php echo FormFieldHelper::label( 
 								'featured_image', 
